@@ -1,5 +1,6 @@
 ---
 import { getLangFromUrl, useTranslations, localizedPath } from '../i18n/utils';
+import { APP_STORE_URL } from '../config';
 import LangSwitcher from './LangSwitcher.astro';
 
 const lang = getLangFromUrl(Astro.url);
@@ -36,7 +37,7 @@ const home = localizedPath(lang, '/');
             d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
         </svg>
       </button>
-      <a href="https://forum.dirtbikex.com" class="btn-primary text-sm">{t('nav.forum')}</a>
+      <a href={APP_STORE_URL} target="_blank" rel="noopener" class="btn-primary text-sm">{t('nav.getApp')}</a>
     </div>
   </div>
 </header>

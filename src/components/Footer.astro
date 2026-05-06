@@ -1,5 +1,6 @@
 ---
 import { getLangFromUrl, useTranslations, localizedPath } from '../i18n/utils';
+import AppStoreBadge from './AppStoreBadge.astro';
 
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
@@ -7,20 +8,25 @@ const year = new Date().getFullYear();
 ---
 
 <footer class="border-t border-clay-200 dark:border-clay-800 mt-12">
-  <div class="container-narrow py-10 flex flex-col sm:flex-row items-center justify-between gap-4">
-    <div class="flex items-center gap-2">
-      <img src="/favicon.svg" alt="" class="h-6 w-6" />
-      <span class="text-sm text-clay-600 dark:text-clay-400">{t('footer.tagline')}</span>
+  <div class="container-narrow py-12 grid gap-8 sm:grid-cols-2 items-start">
+    <div class="flex flex-col gap-3">
+      <div class="flex items-center gap-2">
+        <img src="/favicon.svg" alt="" class="h-6 w-6" />
+        <span class="font-display font-bold">DirtBike<span class="text-dirt-500">X</span></span>
+      </div>
+      <p class="text-sm text-clay-600 dark:text-clay-400 max-w-md">
+        {t('footer.tagline')}
+      </p>
+      <AppStoreBadge size="sm" class="mt-2" />
     </div>
-    <nav class="flex items-center gap-6 text-sm">
-      <a href={localizedPath(lang, '/privacy')} class="hover:text-dirt-600">
-        {t('footer.legal.privacy')}
-      </a>
-      <a href={localizedPath(lang, '/terms')} class="hover:text-dirt-600">
-        {t('footer.legal.terms')}
-      </a>
-      <a href="https://forum.dirtbikex.com" class="hover:text-dirt-600">forum</a>
+
+    <nav class="flex flex-col sm:items-end gap-2 text-sm">
+      <a href="https://forum.dirtbikex.com" class="hover:text-dirt-600">{t('footer.forum')}</a>
+      <a href={localizedPath(lang, '/privacy')} class="hover:text-dirt-600">{t('footer.legal.privacy')}</a>
+      <a href={localizedPath(lang, '/terms')} class="hover:text-dirt-600">{t('footer.legal.terms')}</a>
     </nav>
+  </div>
+  <div class="container-narrow pb-8">
     <p class="text-xs text-clay-500 dark:text-clay-500">
       {t('footer.copyright', { year })}
     </p>

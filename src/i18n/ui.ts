@@ -7,106 +7,116 @@ export const defaultLang = 'en';
 
 export const ui = {
   en: {
-    'meta.title': 'DirtBikeX — Community for dirt bike riders',
+    'meta.title': 'DirtBikeX — Dirt bike community for iPhone',
     'meta.description':
-      'Tracks, builds, gear, ride reports. Share it all with riders who actually ride.',
+      'Join DirtBikeX, a global dirt bike community with modern native design, smooth interactions, and a space built for riders to share, learn, and connect.',
 
     'nav.features': 'Features',
     'nav.faq': 'FAQ',
-    'nav.forum': 'Join Forum',
+    'nav.getApp': 'Get the app',
     'nav.toggleTheme': 'Toggle theme',
 
-    'hero.eyebrow': 'Built by riders, for riders',
-    'hero.title': 'The community for dirt bike riders.',
+    'hero.eyebrow': 'Native iOS app · Global community',
+    'hero.title': 'The dirt bike community, made for riders.',
     'hero.subtitle':
-      'Trails, builds, gear, ride reports — share it all with people who actually ride.',
-    'hero.cta.primary': 'Join the forum',
-    'hero.cta.secondary': 'See features',
+      'Join DirtBikeX, a global dirt bike community with modern native design, smooth interactions, and a space built for riders to share, learn, and connect.',
+    'hero.cta.secondary': 'See what\'s inside',
 
-    'features.title': 'What you get',
-    'features.subtitle': 'A focused community space, not another social feed.',
-    'features.f1.title': 'Active discussion forum',
+    'features.title': 'Built for the dirt bike community',
+    'features.subtitle':
+      'A dedicated app for riders, fans, builders, beginners, and experienced off-road enthusiasts.',
+    'features.f1.title': 'Talk about everything dirt',
     'features.f1.body':
-      'Threaded conversations on rides, repairs, gear, and trail reports. Searchable, owned by us, no algorithm.',
-    'features.f2.title': 'Builds & maintenance logs',
+      'Bikes, riding techniques, trails, gear, maintenance, events, builds, safety, racing, and off-road culture — all in one focused place.',
+    'features.f2.title': 'Native iPhone experience',
     'features.f2.body':
-      'Document your bike: mods, services, what broke and how you fixed it. Other riders learn from your wrenching.',
-    'features.f3.title': 'Trails & ride reports',
+      'A clean native interface, responsive interaction, and an ergonomic mobile experience. Browsing, posting, replying, and discovering content feels natural.',
+    'features.f3.title': 'Share rides, learn together',
     'features.f3.body':
-      'Share where you ride. Conditions, GPX, photos, the corner that almost got you. Local knowledge stays local.',
-    'features.f4.title': 'Multilingual by default',
+      'Share your rides, ask questions, learn from other riders, and connect with people who love dirt bikes as much as you do.',
+    'features.f4.title': 'For every kind of rider',
     'features.f4.body':
-      'English and Chinese on the same forum. Riders in different regions, one community.',
+      'Beginners finding their first bike, weekend riders, builders deep in a frame swap, racers chasing podiums — everyone has a thread here.',
 
     'faq.title': 'Common questions',
-    'faq.q1.q': 'Is the forum free to join?',
+    'faq.q1.q': 'Who is DirtBikeX for?',
     'faq.q1.a':
-      'Yes. Free to read, free to post. We may add optional supporter perks later — never paywall the conversation.',
-    'faq.q2.q': 'Who runs DirtBikeX?',
+      'Riders, fans, builders, beginners, and experienced off-road enthusiasts. If dirt bikes are part of your life, you\'ll fit in.',
+    'faq.q2.q': 'What can I discuss?',
     'faq.q2.a':
-      'A small group of riders self-hosting a Discourse instance. No VC, no ads, no data resale.',
-    'faq.q3.q': 'Can I post in Chinese / English?',
+      'Bikes, riding techniques, trails, gear, maintenance, events, builds, safety, racing, off-road culture — and anything in between.',
+    'faq.q3.q': 'Is there a web forum too?',
     'faq.q3.a':
-      'Both. Tag your post with a language hint and other riders will follow up in kind.',
-    'faq.q4.q': 'How do I report bad behavior?',
+      'Yes. The community is also accessible at forum.dirtbikex.com if you prefer browsing on a larger screen.',
+    'faq.q4.q': 'Is the app free?',
     'faq.q4.a':
-      'Use the flag button on any post. Mods triage within 24 hours.',
+      'Free to download, free to read, free to post. We may add optional supporter perks later — never paywall the conversation.',
 
-    'footer.tagline': 'Ride. Wrench. Share.',
+    'cta.appStore.line1': 'Download on the',
+    'cta.appStore.line2': 'App Store',
+
+    'footer.tagline': 'Ride together. Share freely. Build the global dirt bike community.',
     'footer.legal.privacy': 'Privacy',
     'footer.legal.terms': 'Terms',
+    'footer.forum': 'Web forum',
     'footer.copyright': '© {year} DirtBikeX. All rights reserved.',
 
     'legal.lastUpdated': 'Last updated',
     'legal.backHome': '← Back home',
   },
   zh: {
-    'meta.title': 'DirtBikeX — 越野摩托车手社区',
-    'meta.description': '路线、改装、装备、骑行记录。和真正在骑车的人一起分享。',
+    'meta.title': 'DirtBikeX — 越野摩托车 iPhone 社区',
+    'meta.description':
+      '加入 DirtBikeX,一个全球越野摩托车社区,拥有现代原生设计、流畅交互,一个为车手打造的分享、学习与连接的空间。',
 
     'nav.features': '功能',
     'nav.faq': '常见问题',
-    'nav.forum': '加入论坛',
+    'nav.getApp': '下载应用',
     'nav.toggleTheme': '切换主题',
 
-    'hero.eyebrow': '由车手为车手打造',
-    'hero.title': '越野摩托车手的社区。',
+    'hero.eyebrow': '原生 iOS 应用 · 全球社区',
+    'hero.title': '为车手打造的越野摩托车社区。',
     'hero.subtitle':
-      '路线、改装、装备、骑行记录——和真正在骑车的人一起分享。',
-    'hero.cta.primary': '加入论坛',
-    'hero.cta.secondary': '查看功能',
+      '加入 DirtBikeX,一个全球越野摩托车社区,拥有现代原生设计、流畅交互,一个为车手打造的分享、学习与连接的空间。',
+    'hero.cta.secondary': '了解更多',
 
-    'features.title': '你将获得',
-    'features.subtitle': '一个专注的社区空间,而不是又一个社交信息流。',
-    'features.f1.title': '活跃的讨论论坛',
+    'features.title': '为越野摩托车社区而生',
+    'features.subtitle':
+      '一个专属的应用,为车手、车迷、改装玩家、新手和资深越野发烧友打造。',
+    'features.f1.title': '聊一切关于越野的话题',
     'features.f1.body':
-      '关于骑行、维修、装备、路线的讨论帖。可搜索,我们自己所有,没有算法。',
-    'features.f2.title': '改装与维护日志',
+      '车辆、骑行技巧、路线、装备、维护、赛事、改装、安全、竞赛和越野文化——都在同一个专注的空间里。',
+    'features.f2.title': '原生 iPhone 体验',
     'features.f2.body':
-      '记录你的车:改装、保养、坏在哪里、怎么修好的。其他车手从你的扳手记录里学习。',
-    'features.f3.title': '路线与骑行报告',
+      '简洁的原生界面、流畅的交互、符合人体工学的移动体验。浏览、发帖、回复和发现内容,一切都自然流畅。',
+    'features.f3.title': '分享骑行,一起学习',
     'features.f3.body':
-      '分享你骑行的地方。路况、GPX 轨迹、照片、那个差点把你掀翻的弯。本地经验留在本地。',
-    'features.f4.title': '原生多语言',
+      '分享你的骑行,提出问题,向其他车手学习,认识同样热爱越野摩托车的人。',
+    'features.f4.title': '适合每一种车手',
     'features.f4.body':
-      '中文和英文在同一个论坛。不同地区的车手,同一个社区。',
+      '寻找第一台车的新手、周末出门的玩家、深陷换架工程的改装者、追逐领奖台的赛车手——每个人都有自己的话题。',
 
     'faq.title': '常见问题',
-    'faq.q1.q': '加入论坛免费吗?',
+    'faq.q1.q': 'DirtBikeX 是给谁用的?',
     'faq.q1.a':
-      '免费。免费阅读,免费发帖。我们之后可能会加一些可选的支持者权益——但绝不会对正常讨论收费。',
-    'faq.q2.q': 'DirtBikeX 是谁在运营?',
+      '车手、车迷、改装玩家、新手和资深越野发烧友。如果越野摩托车是你生活的一部分,你一定能融入。',
+    'faq.q2.q': '可以讨论什么?',
     'faq.q2.a':
-      '一小群车手自己运行一个 Discourse 实例。没有风投,没有广告,不卖数据。',
-    'faq.q3.q': '我可以用中文/英文发帖吗?',
+      '车辆、骑行技巧、路线、装备、维护、赛事、改装、安全、竞赛、越野文化——以及其间的任何话题。',
+    'faq.q3.q': '有网页版论坛吗?',
     'faq.q3.a':
-      '都可以。在帖子上标注一个语言标签,其他车手会用对应语言回复。',
-    'faq.q4.q': '怎么举报不良行为?',
-    'faq.q4.a': '用任意帖子下方的举报按钮。版主会在 24 小时内处理。',
+      '有。社区同时也可以在 forum.dirtbikex.com 访问,适合在大屏幕上浏览。',
+    'faq.q4.q': '应用是免费的吗?',
+    'faq.q4.a':
+      '免费下载,免费阅读,免费发帖。之后可能会有可选的支持者权益——但不会对正常讨论收费。',
 
-    'footer.tagline': '骑车。修车。分享。',
+    'cta.appStore.line1': '在',
+    'cta.appStore.line2': 'App Store 下载',
+
+    'footer.tagline': '一起骑行。自由分享。共建全球越野社区。',
     'footer.legal.privacy': '隐私',
     'footer.legal.terms': '条款',
+    'footer.forum': '网页论坛',
     'footer.copyright': '© {year} DirtBikeX. 保留所有权利。',
 
     'legal.lastUpdated': '最近更新',
