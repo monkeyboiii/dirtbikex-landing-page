@@ -1,0 +1,28 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import { getLangFromUrl, useTranslations, localizedPath } from '../i18n/utils';
+
+interface Props {
+  title: string;
+  lastUpdated: string;
+}
+
+const { title, lastUpdated } = Astro.props;
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+---
+
+<BaseLayout title={`${title} — DirtBikeX`}>
+  <article class="container-narrow py-16">
+    <a href={localizedPath(lang, '/')} class="text-sm text-dirt-600 hover:underline">
+      {t('legal.backHome')}
+    </a>
+    <h1 class="mt-4 text-4xl font-bold tracking-tight">{title}</h1>
+    <p class="mt-2 text-sm text-clay-500 dark:text-clay-400">
+      {t('legal.lastUpdated')}: {lastUpdated}
+    </p>
+    <div class="prose prose-clay dark:prose-invert mt-8 max-w-none">
+      <slot />
+    </div>
+  </article>
+</BaseLayout>

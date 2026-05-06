@@ -1,0 +1,26 @@
+---
+import { getLangFromUrl, useTranslations } from '../i18n/utils';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+---
+
+<section class="container-narrow pt-20 pb-24 text-center">
+  <p class="text-sm font-medium uppercase tracking-wider text-dirt-600">
+    {t('hero.eyebrow')}
+  </p>
+  <h1 class="mt-4 font-display text-5xl md:text-6xl font-bold tracking-tight">
+    <span class="gradient-text">{t('hero.title')}</span>
+  </h1>
+  <p class="mx-auto mt-6 max-w-2xl text-lg text-clay-700 dark:text-clay-300">
+    {t('hero.subtitle')}
+  </p>
+  <div class="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3">
+    <a href="https://forum.dirtbikex.com" class="btn-primary">
+      {t('hero.cta.primary')}
+    </a>
+    <a href="#features" class="btn-secondary">
+      {t('hero.cta.secondary')}
+    </a>
+  </div>
+</section>

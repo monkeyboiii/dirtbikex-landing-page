@@ -1,0 +1,30 @@
+---
+import { getLangFromUrl, switchLangPath } from '../i18n/utils';
+import { languages, type Lang } from '../i18n/ui';
+
+const current = getLangFromUrl(Astro.url);
+const entries = (Object.keys(languages) as Lang[]).map((code) => ({
+  code,
+  label: languages[code],
+  href: switchLangPath(Astro.url, code),
+  active: code === current,
+}));
+---
+
+<div class="flex items-center text-sm">
+  {entries.map((e, i) => (
+    <>
+      {i > 0 && <span class="mx-1 text-clay-400">/</span>}
+      <a
+        href={e.href}
+        hreflang={e.code === 'zh' ? 'zh-CN' : e.code}
+        class:list={[
+          'hover:text-dirt-600',
+          e.active ? 'font-semibold text-dirt-600' : 'text-clay-600 dark:text-clay-300',
+        ]}
+      >
+        {e.label}
+      </a>
+    </>
+  ))}
+</div>
