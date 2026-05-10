@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
+    "build:dev": "SITE_URL=https://www.dirtbikechina.com astro build",
+    "build:prod": "SITE_URL=https://www.dirtbikex.com astro build",
     "preview": "astro preview",
     "astro": "astro"
   },

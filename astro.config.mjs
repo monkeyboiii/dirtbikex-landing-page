@@ -4,7 +4,7 @@ import sitemap from '@astrojs/sitemap';
 import tailwind from '@astrojs/tailwind';
 
 export default defineConfig({
-  site: 'https://www.dirtbikex.com',
+  site: process.env.SITE_URL ?? 'https://www.dirtbikex.com',
   output: 'static',
   integrations: [tailwind(), mdx(), sitemap()],
   i18n: {
