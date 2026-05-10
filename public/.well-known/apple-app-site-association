@@ -1,0 +1,15 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["HWV4DP4TQ7.com.dirtbikex.app"],
+        "components": [
+          { "/": "/t/*" },
+          { "/": "/u/*" },
+          { "/": "/c/*" },
+          { "/": "/chat/*" }
+        ]
+      }
+    ]
+  }
+}
