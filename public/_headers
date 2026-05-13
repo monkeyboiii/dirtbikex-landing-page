@@ -11,3 +11,6 @@
 /api/sponsors.json
   Content-Type: application/json
   Cache-Control: public, max-age=3600, s-maxage=3600
+
+/s/*
+  Cache-Control: public, max-age=60
