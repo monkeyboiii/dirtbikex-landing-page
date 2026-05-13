@@ -1,0 +1,66 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { payload } from '../data/sponsors';
+import type { SponsorSection } from '../data/sponsor-types';
+
+const sectionTitles: Record<SponsorSection, string> = {
+  header: 'Header',
+  hero: 'Hero',
+  mid_with_text: 'Featured',
+  bottom_icon: 'Supporters',
+};
+
+const sections: SponsorSection[] = ['header', 'hero', 'mid_with_text', 'bottom_icon'];
+
+function sponsorsIn(section: SponsorSection) {
+  return payload.sponsors.filter((s) => s.section === section);
+}
+---
+
+<BaseLayout title="Sponsors — DirtBikeX">
+  <section class="mx-auto max-w-4xl px-4 py-16">
+    <h1 class="text-4xl font-bold mb-4">Sponsors</h1>
+    <p class="text-gray-600 dark:text-gray-300 mb-12">
+      The brands and individuals supporting the DirtBikeX community.
+    </p>
+
+    {sections.map((section) => {
+      const items = sponsorsIn(section);
+      if (items.length === 0) return null;
+      return (
+        <div class="mb-12">
+          <h2 class="text-2xl font-semibold mb-6">{sectionTitles[section]}</h2>
+          <ul class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
+            {items.map((sponsor) => (
+              <li class="flex flex-col items-center text-center">
+                {sponsor.photo_url ? (
+                  <img
+                    src={sponsor.photo_url}
+                    alt={sponsor.name ?? sponsor.id}
+                    class="w-24 h-24 rounded-full object-cover mb-2"
+                  />
+                ) : sponsor.logo_url ? (
+                  <img
+                    src={sponsor.logo_url}
+                    alt={sponsor.name ?? sponsor.id}
+                    class="h-16 object-contain mb-2"
+                  />
+                ) : null}
+                {sponsor.name && (
+                  <span class="text-sm font-medium">{sponsor.name}</span>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      );
+    })}
+
+    {payload.sponsors.length === 0 && (
+      <p class="text-gray-500 italic">
+        No active sponsors yet. Want to be one?
+        <a href="mailto:calvin@dirtbikex.com" class="text-blue-600 underline">Get in touch</a>.
+      </p>
+    )}
+  </section>
+</BaseLayout>
