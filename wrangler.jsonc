@@ -4,5 +4,17 @@
   "compatibility_date": "2025-04-01",
   "assets": {
     "directory": "./dist"
+  },
+  "env": {
+    "production": {
+      "vars": {
+        "FORUM_BASE": "https://forum.dirtbikex.com"
+      }
+    },
+    "preview": {
+      "vars": {
+        "FORUM_BASE": "https://forum.dirtbikechina.com"
+      }
+    }
   }
 }
