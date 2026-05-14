@@ -61,6 +61,7 @@ const HERO_COPY: Record<'en' | 'zh', HeroCopy> = {
 function buildHTML(props: ShareLandingProps, requestURL: string): string {
   const { locale } = props;
   const url = esc(requestURL);
+  const ogImage = buildOgImage(props);
 
   const head = (titleText: string, description: string | null) => `
 <meta charset="utf-8">
@@ -71,6 +72,11 @@ function buildHTML(props: ShareLandingProps, requestURL: string): string {
 ${description ? `<meta property="og:description" content="${esc(description)}">` : ''}
 <meta property="og:url" content="${url}">
 <meta property="og:type" content="website">
+${ogImage ? `<meta property="og:image" content="${esc(ogImage)}">
+<meta property="og:image:width" content="288">
+<meta property="og:image:height" content="288">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="${esc(ogImage)}">` : ''}
 <style>${CSS}</style>`;
 
   const body = props.invite
@@ -164,6 +170,18 @@ function heroCardBody(invite: InviteRow, props: ShareLandingProps, locale: 'en' 
 /* ============================================================
    Headline + helpers
    ============================================================ */
+
+/**
+ * Returns the absolute Discourse avatar URL to advertise as `og:image`, or null
+ * if the inviter has no uploaded avatar (template stays null in that case — see
+ * `buildAvatarTemplate` in inviteLookup.ts). 288px is Discourse's largest
+ * pre-rendered size and matches the in-page hero card.
+ */
+function buildOgImage(props: ShareLandingProps): string | null {
+  const template = props.invite?.invited_by.avatar_template;
+  if (!template) return null;
+  return `${props.forumBase}${template.replace('{size}', '288')}`;
+}
 
 function buildHeadline(invite: InviteRow, locale: 'en' | 'zh'): string {
   const copy = HERO_COPY[locale];
