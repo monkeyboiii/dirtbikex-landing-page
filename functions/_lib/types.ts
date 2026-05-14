@@ -14,32 +14,76 @@ export interface PagesContext<Params extends Record<string, string> = Record<str
 
 /** Bindings injected by Cloudflare Pages from the project dashboard. */
 export interface PagesEnv {
-  /** e.g. `https://forum.dirtbikechina.com` (dev) / `https://forum.dirtbikex.com` (prod). Wired in Phase 3.3. */
+  /** e.g. `https://forum.dirtbikechina.com` (dev) / `https://forum.dirtbikex.com` (prod). */
   FORUM_BASE?: string;
+  /** Numeric ID of the Discourse Data Explorer query that returns the invite shape below. */
+  FORUM_INVITE_QUERY_ID?: string;
+  /** Discourse `Api-Username` header. Defaults to `system`. */
+  FORUM_API_USERNAME?: string;
+  /** Discourse `Api-Key` header. Secret — wired via the Pages dashboard, not in wrangler.jsonc. */
+  FORUM_API_KEY?: string;
 }
 
 /** Props handed to the shared share-landing renderer. */
 export interface ShareLandingProps {
   /** Discriminator. Currently only `'i'` (invite); future kinds add raw values per ShareKind. */
   kind: 'i';
-  title: string;
-  subtitle?: string;
+  locale: 'en' | 'zh';
   primaryCTA: { label: string; url: string };
   returnTapCopy: string;
-  locale: 'en' | 'zh';
+  /** Forum origin (e.g. `https://forum.dirtbikex.com`) — needed to resolve `avatar_template`. */
+  forumBase: string;
+  /** Error-state copy. Mutually exclusive with `invite`. */
+  title?: string;
+  subtitle?: string;
+  /** Valid-state payload — drives the hero card. Mutually exclusive with `title`/`subtitle`. */
+  invite?: InviteRow;
 }
 
 /**
- * Subset of Discourse `GET /invites/{key}` response that the landing page reads.
- * Discourse returns more fields; all are optional here because the response
- * shape varies by invite state. `email` is intentionally listed so the field
- * can be deleted explicitly — never rendered.
+ * Recipient-facing invite payload. Field names mirror iOS `Invite.swift` /
+ * `InvitePayload.swift` so a future iOS migration to this endpoint can reuse
+ * the existing Codable decoders verbatim.
+ *
+ * Intentionally omitted vs `Invite.swift`: `link`, `email`, `domain`,
+ * `can_delete_invite` — recipient doesn't need them, and `email` is the
+ * long-standing leak vector (SHARING_MODULE.md "Discourse contracts").
  */
-export interface InviteResponse {
-  invited_by?: { username?: string; name?: string | null; avatar_template?: string };
-  email?: string;
-  expired?: boolean;
-  redemption_count?: number;
-  max_redemptions_allowed?: number | null;
-  groups?: Array<{ id: number; name: string; full_name?: string | null }>;
+export interface InviteRow {
+  id: number;
+  invite_key: string;
+  description: string | null;
+  max_redemptions_allowed: number | null;
+  redemption_count: number;
+  created_at: string;
+  updated_at: string;
+  expires_at: string | null;
+  expired: boolean;
+  topics: TopicReference[];
+  groups: GroupSummary[];
+  /** Extension beyond `Invite.swift` (iOS list is inviter-owned). Mirrors `InviterSummary`. */
+  invited_by: InviterSummary;
+}
+
+export interface TopicReference {
+  id: number;
+  title: string;
+  fancy_title: string | null;
+  slug: string | null;
+  posts_count: number | null;
+}
+
+export interface GroupSummary {
+  id: number;
+  name: string;
+  full_name: string | null;
+}
+
+export interface InviterSummary {
+  username: string;
+  name: string | null;
+  /** Discourse user title (e.g. "Moderator"). Additive vs iOS `InviterSummary`. */
+  title: string | null;
+  /** Discourse-format template with `{size}` placeholder, e.g. `/user_avatar/host/user/{size}/123_2.png`. */
+  avatar_template: string | null;
 }

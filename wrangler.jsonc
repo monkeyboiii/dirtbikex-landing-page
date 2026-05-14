@@ -8,12 +8,16 @@
   "env": {
     "production": {
       "vars": {
-        "FORUM_BASE": "https://forum.dirtbikex.com"
+        "FORUM_BASE": "https://forum.dirtbikex.com",
+        "FORUM_INVITE_QUERY_ID": "",
+        "FORUM_API_USERNAME": "system"
       }
     },
     "preview": {
       "vars": {
-        "FORUM_BASE": "https://forum.dirtbikechina.com"
+        "FORUM_BASE": "https://forum.dirtbikechina.com",
+        "FORUM_INVITE_QUERY_ID": "",
+        "FORUM_API_USERNAME": "system"
       }
     }
   }
