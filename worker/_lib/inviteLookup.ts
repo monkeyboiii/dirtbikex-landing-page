@@ -23,6 +23,11 @@ export type LookupResult =
 
 export async function lookupInvite(env: PagesEnv, key: string): Promise<LookupResult> {
   if (!env.FORUM_BASE || !env.FORUM_INVITE_QUERY_ID || !env.FORUM_API_KEY) {
+    console.error('lookupInvite:missing_env', {
+      has_base: !!env.FORUM_BASE,
+      has_query_id: !!env.FORUM_INVITE_QUERY_ID,
+      has_api_key: !!env.FORUM_API_KEY,
+    });
     return { status: 'unreachable' };
   }
 
@@ -41,20 +46,30 @@ export async function lookupInvite(env: PagesEnv, key: string): Promise<LookupRe
       // 5min edge cache, matches the previous fetchInvite path.
       ...({ cf: { cacheTtl: 300, cacheEverything: true } } as RequestInit),
     });
-  } catch {
+  } catch (err) {
+    console.error('lookupInvite:fetch_threw', { err: String(err), url });
     return { status: 'unreachable' };
   }
 
-  if (resp.status !== 200) return { status: 'unreachable' };
+  if (resp.status !== 200) {
+    console.error('lookupInvite:non_200', { status: resp.status, url });
+    return { status: 'unreachable' };
+  }
 
   let body: { success?: boolean; columns?: string[]; rows?: unknown[][] };
   try {
     body = (await resp.json()) as typeof body;
-  } catch {
+  } catch (err) {
+    console.error('lookupInvite:json_parse_failed', { err: String(err), url });
     return { status: 'unreachable' };
   }
 
   if (!body.success || !Array.isArray(body.columns) || !Array.isArray(body.rows)) {
+    console.error('lookupInvite:bad_shape', {
+      success: body.success,
+      has_cols: Array.isArray(body.columns),
+      has_rows: Array.isArray(body.rows),
+    });
     return { status: 'unreachable' };
   }
   if (body.rows.length === 0) return { status: 'not_found' };

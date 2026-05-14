@@ -1,11 +1,17 @@
-import { renderShareLanding } from '../../_lib/render';
-import { lookupInvite, type LookupResult } from '../../_lib/inviteLookup';
-import type { PagesContext, ShareLandingProps } from '../../_lib/types';
+import { lookupInvite, type LookupResult } from './_lib/inviteLookup';
+import { renderShareLanding } from './_lib/render';
+import type { PagesEnv, ShareLandingProps } from './_lib/types';
+
+interface Env extends PagesEnv {
+  /** Static-assets binding (serves files from `dist/`). Minimal inline shape — */
+  /** matches the existing `PagesEnv` convention of avoiding @cloudflare/workers-types. */
+  ASSETS: { fetch: (request: Request) => Promise<Response> };
+}
 
 /**
- * Mirrors the placeholder in `src/config.ts`. Functions are bundled separately
+ * Mirrors the placeholder in `src/config.ts`. The worker is bundled separately
  * from the Astro app and can't import `src/`. Replace both copies when the real
- * App Store ID lands; alternatively promote to a `APP_STORE_URL` Pages env var.
+ * App Store ID lands; alternatively promote to an `APP_STORE_URL` env var.
  */
 const APP_STORE_URL = 'https://apps.apple.com/app/id0000000000';
 
@@ -52,7 +58,6 @@ function buildProps(
 
   switch (result.status) {
     case 'valid':
-      // Hero card builds its own headline; no title/subtitle.
       return { props: { ...base, invite: result.invite } };
     case 'expired':
       return {
@@ -72,19 +77,23 @@ function buildProps(
   }
 }
 
-export const onRequest = async (
-  context: PagesContext<{ key: string }>
-): Promise<Response> => {
-  const { request, params, env } = context;
-  if (!params.key) {
-    return new Response('Not found', { status: 404 });
-  }
-
+async function handleInvite(request: Request, env: Env, key: string): Promise<Response> {
   const locale = pickLocale(request.headers.get('accept-language'));
   const copy = COPY[locale];
   const forumBase = env.FORUM_BASE ?? '';
 
-  const result = await lookupInvite(env, params.key);
+  const result = await lookupInvite(env, key);
   const { props, cacheControl } = buildProps(result, copy, locale, forumBase);
   return renderShareLanding(props, request.url, cacheControl ? { cacheControl } : {});
+}
+
+export default {
+  async fetch(request: Request, env: Env): Promise<Response> {
+    const url = new URL(request.url);
+    const m = url.pathname.match(/^\/s\/i\/([^/]+)\/?$/);
+    if (m && request.method === 'GET') {
+      return handleInvite(request, env, m[1]);
+    }
+    return env.ASSETS.fetch(request);
+  },
 };

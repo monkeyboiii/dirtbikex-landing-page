@@ -1,37 +1,44 @@
-// Cloudflare config for `dirtbikex-landing-page`.
+// Cloudflare Worker (Static Assets) config for `dirtbikex-landing-page`.
 //
-// Two ways this file is used:
-//   1. Local dev: `wrangler pages dev` reads `vars` below + `.dev.vars` for secrets.
-//   2. CI/CLI deploy: `wrangler pages deploy dist` picks the env (`--env production`
-//      or `--env preview`) and applies its `vars`. Secrets are NOT read from here —
-//      set them once with `wrangler pages secret put <NAME>`.
+// One Worker serves both the Astro static site (from `dist/`, via the ASSETS
+// binding) and the dynamic /s/i/:key route (handled inline in `worker/index.ts`).
 //
-// Runtime env vars consumed by `functions/` (see `functions/_lib/types.ts#PagesEnv`):
+// Local dev:    pnpm build && pnpm wrangler dev          (loads `.dev.vars`)
+// Deploy prod:  pnpm build:prod && pnpm wrangler deploy
+// Deploy prev:  pnpm build:dev && pnpm wrangler deploy --env preview
+//
+// Runtime env vars consumed by `worker/_lib/inviteLookup.ts`:
 //   - FORUM_BASE             (public) Discourse origin
 //   - FORUM_INVITE_QUERY_ID  (public) Data Explorer query ID for invite lookup
 //   - FORUM_API_USERNAME     (public) Discourse Api-Username header, defaults to "system"
-//   - FORUM_API_KEY          (SECRET) Discourse Api-Key header — never commit
+//   - FORUM_API_KEY          (SECRET) set via `wrangler secret put FORUM_API_KEY [--env preview]`
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "dirtbikex-landing-page",
+  "main": "worker/index.ts",
   "compatibility_date": "2025-04-01",
-  "pages_build_output_dir": "./dist",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS"
+  },
+  "vars": {
+    // Production defaults. Override per-env below.
+    "FORUM_BASE": "https://forum.dirtbikex.com",
+    // TODO: set to the production Data Explorer query ID.
+    "FORUM_INVITE_QUERY_ID": "",
+    "FORUM_API_USERNAME": "system"
+  },
   "env": {
-    "production": {
-      "vars": {
-        "FORUM_BASE": "https://forum.dirtbikex.com",
-        // TODO: set to the production Data Explorer query ID.
-        "FORUM_INVITE_QUERY_ID": "",
-        "FORUM_API_USERNAME": "system"
-        // FORUM_API_KEY: set via `wrangler pages secret put FORUM_API_KEY --env production`
-      }
-    },
     "preview": {
+      "name": "dirtbikex-landing-page-preview",
       "vars": {
         "FORUM_BASE": "https://forum.dirtbikechina.com",
         "FORUM_INVITE_QUERY_ID": "2",
         "FORUM_API_USERNAME": "system"
-        // FORUM_API_KEY: set via `wrangler pages secret put FORUM_API_KEY --env preview`
+      },
+      "assets": {
+        "directory": "./dist",
+        "binding": "ASSETS"
       }
     }
   }
