@@ -2,42 +2,37 @@
 import { getLangFromUrl, useTranslations, localizedPath } from '../i18n/utils';
 import { APP_STORE_URL } from '../config';
 import LangSwitcher from './LangSwitcher.astro';
+import Icon from './Icon.astro';
 
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
 const home = localizedPath(lang, '/');
 ---
 
-<header class="sticky top-0 z-40 border-b border-clay-200/60 dark:border-clay-800 bg-clay-50/80 dark:bg-clay-950/80 backdrop-blur">
-  <div class="container-narrow flex h-16 items-center justify-between">
-    <a href={home} class="flex items-center gap-2 font-display font-bold text-lg">
-      <img src="/favicon.svg" alt="" class="h-7 w-7" />
-      <span>DirtBike<span class="text-dirt-500">X</span></span>
+<header class="site-header">
+  <div class="container-narrow site-header__inner">
+    <a href={home} class="site-brand">
+      <img src="/brand/logo-lockup.svg" alt="DirtBikeX" class="site-brand__lockup" />
     </a>
 
-    <nav class="hidden md:flex items-center gap-6 text-sm font-medium">
-      <a href={`${home}#features`} class="hover:text-dirt-600">{t('nav.features')}</a>
-      <a href={`${home}#faq`} class="hover:text-dirt-600">{t('nav.faq')}</a>
+    <nav class="site-nav">
+      <a href={`${home}#features`}>{t('nav.features')}</a>
+      <a href={`${home}#faq`}>{t('nav.faq')}</a>
+      <a href="https://forum.dirtbikex.com" target="_blank" rel="noopener">{t('nav.community')}</a>
     </nav>
 
-    <div class="flex items-center gap-3">
+    <div class="site-tools">
       <LangSwitcher />
       <button
         type="button"
         id="theme-toggle"
         aria-label={t('nav.toggleTheme')}
-        class="rounded-md p-2 text-clay-600 hover:text-clay-900 dark:text-clay-300 dark:hover:text-white"
+        class="icon-btn"
       >
-        <svg class="h-5 w-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.36-6.36l-.71.71M6.34 17.66l-.71.71m12.02 0l-.71-.71M6.34 6.34l-.71-.71M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-        </svg>
-        <svg class="h-5 w-5 dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-        </svg>
+        <span class="hidden dark:inline-flex"><Icon name="sun" size={18} /></span>
+        <span class="inline-flex dark:hidden"><Icon name="moon" size={18} /></span>
       </button>
-      <a href={APP_STORE_URL} target="_blank" rel="noopener" class="btn-primary text-sm">{t('nav.getApp')}</a>
+      <a href={APP_STORE_URL} target="_blank" rel="noopener" class="btn btn--primary">{t('nav.getApp')}</a>
     </div>
   </div>
 </header>

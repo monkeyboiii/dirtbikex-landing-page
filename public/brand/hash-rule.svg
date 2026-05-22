@@ -1,0 +1,7 @@
+
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 24" fill="none">
+  <pattern id="hash" x="0" y="0" width="14" height="24" patternUnits="userSpaceOnUse" patternTransform="rotate(-18)">
+    <rect x="0" y="-4" width="4" height="32" fill="#ed6b00"></rect>
+  </pattern>
+  <rect width="240" height="24" fill="url(#hash)"></rect>
+</svg>

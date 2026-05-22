@@ -1,34 +1,52 @@
 ---
-import { getLangFromUrl, useTranslations, localizedPath } from '../i18n/utils';
+import { getLangFromUrl, useTranslations, localizedPath, switchLangPath } from '../i18n/utils';
+import { languages, type Lang } from '../i18n/ui';
 import AppStoreBadge from './AppStoreBadge.astro';
 
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
 const year = new Date().getFullYear();
+const home = localizedPath(lang, '/');
+const localeEntries = (Object.keys(languages) as Lang[]).map((code) => ({
+  code,
+  native: languages[code].native,
+  href: switchLangPath(Astro.url, code),
+  active: code === lang,
+}));
 ---
 
-<footer class="border-t border-clay-200 dark:border-clay-800 mt-12">
-  <div class="container-narrow py-12 grid gap-8 sm:grid-cols-2 items-start">
-    <div class="flex flex-col gap-3">
-      <div class="flex items-center gap-2">
-        <img src="/favicon.svg" alt="" class="h-6 w-6" />
-        <span class="font-display font-bold">DirtBike<span class="text-dirt-500">X</span></span>
-      </div>
-      <p class="text-sm text-clay-600 dark:text-clay-400 max-w-md">
-        {t('footer.tagline')}
-      </p>
-      <AppStoreBadge size="sm" class="mt-2 self-start" />
+<footer class="site-footer">
+  <div class="container-narrow site-footer__inner">
+    <div>
+      <a href={home} class="site-brand">
+        <img src="/brand/logo-lockup.svg" alt="DirtBikeX" class="site-brand__lockup" />
+      </a>
+      <p class="site-footer__tag">{t('footer.tagline')}</p>
+      <div style="margin-top: 20px;"><AppStoreBadge /></div>
     </div>
 
-    <nav class="flex flex-col sm:items-end gap-2 text-sm">
-      <a href="https://forum.dirtbikex.com" class="hover:text-dirt-600">{t('footer.forum')}</a>
-      <a href={localizedPath(lang, '/privacy')} class="hover:text-dirt-600">{t('footer.legal.privacy')}</a>
-      <a href={localizedPath(lang, '/terms')} class="hover:text-dirt-600">{t('footer.legal.terms')}</a>
+    <nav class="site-footer__nav">
+      <a href="https://forum.dirtbikex.com" target="_blank" rel="noopener">{t('footer.forum')}</a>
+      <a href={localizedPath(lang, '/contact')}>{t('footer.contact')}</a>
+      <a href={localizedPath(lang, '/founders')}>{t('footer.founders')}</a>
+      <a href={localizedPath(lang, '/privacy')}>{t('footer.legal.privacy')}</a>
+      <a href={localizedPath(lang, '/terms')}>{t('footer.legal.terms')}</a>
+      <a href={localizedPath(lang, '/community-guidelines')}>{t('footer.legal.community')}</a>
+      <a href={localizedPath(lang, '/cookies')}>{t('footer.legal.cookies')}</a>
+      <a href={localizedPath(lang, '/dmca')}>{t('footer.legal.dmca')}</a>
+      <a href={localizedPath(lang, '/safety')}>{t('footer.legal.safety')}</a>
+      <a href={localizedPath(lang, '/sponsor-terms')}>{t('footer.legal.sponsors')}</a>
     </nav>
   </div>
-  <div class="container-narrow pb-8">
-    <p class="text-xs text-clay-500 dark:text-clay-500">
-      {t('footer.copyright', { year })}
-    </p>
+  <div class="container-narrow">
+    <div class="site-footer__locales">
+      <span class="site-footer__locales-label">{t('footer.localesLabel')}</span>
+      <span class="site-footer__locales-list">
+        {localeEntries.map((e) => (
+          <a href={e.href} hreflang={e.code} class={e.active ? 'active' : ''}>{e.native}</a>
+        ))}
+      </span>
+    </div>
+    <p class="site-footer__copy">{t('footer.copyright', { year })}</p>
   </div>
 </footer>

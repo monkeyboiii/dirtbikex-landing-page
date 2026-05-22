@@ -1,0 +1,18 @@
+---
+import { getLangFromUrl, useTranslations } from '../i18n/utils';
+import { languages } from '../i18n/ui';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+
+const localeNative = languages[lang]?.native ?? lang;
+const isEnOnlyDoc = Astro.props.scope === 'en-only';
+const message = isEnOnlyDoc
+  ? t('legal.noticeOnlyEn')
+  : t('legal.noticeFallback', { locale: localeNative });
+---
+
+<aside class="legal-notice" role="note">
+  <span class="legal-notice__icon" aria-hidden="true">📄</span>
+  <p class="legal-notice__body">{message}</p>
+</aside>

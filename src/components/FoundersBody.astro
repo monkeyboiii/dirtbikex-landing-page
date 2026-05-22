@@ -1,0 +1,13 @@
+---
+import { getLangFromUrl, useTranslations } from '../i18n/utils';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+---
+
+<section class="container-narrow py-20 text-center">
+  <h1 class="t-display-3">{t('founders.title')}</h1>
+  <p class="t-body-lg mt-6 mx-auto max-w-prose" style="color: var(--fg-secondary);">
+    {t('founders.placeholder')}
+  </p>
+</section>

@@ -1,29 +1,84 @@
 ---
+import Icon from './Icon.astro';
 import { getLangFromUrl, useTranslations } from '../i18n/utils';
 
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
+const isZh = lang === 'zh';
+
 const items = [
   { q: t('faq.q1.q'), a: t('faq.q1.a') },
   { q: t('faq.q2.q'), a: t('faq.q2.a') },
   { q: t('faq.q3.q'), a: t('faq.q3.a') },
   { q: t('faq.q4.q'), a: t('faq.q4.a') },
 ];
+
+const quote = isZh
+  ? {
+      body: '“问个问题,总会有人愿意回。这里是我们互相学习的地方。”',
+      name: 'Magnus A.',
+      role: '老车手 · 8 年资历',
+      av: 'MA',
+    }
+  : {
+      body: '“Ask anything. Somebody here has been through it — and they’ll tell you what actually worked.”',
+      name: 'Magnus A.',
+      role: 'Veteran rider · 8 years on the forum',
+      av: 'MA',
+    };
 ---
 
-<section id="faq" class="container-narrow py-20 scroll-mt-20">
-  <h2 class="text-3xl md:text-4xl font-bold tracking-tight text-center">
-    {t('faq.title')}
-  </h2>
-  <div class="mt-10 mx-auto max-w-3xl divide-y divide-clay-200 dark:divide-clay-800 border border-clay-200 dark:border-clay-800 rounded-2xl bg-white dark:bg-clay-900">
-    {items.map((it) => (
-      <details class="group p-5">
-        <summary class="cursor-pointer list-none flex items-center justify-between font-medium">
-          <span>{it.q}</span>
-          <span class="ml-4 text-dirt-500 transition-transform group-open:rotate-45 text-xl leading-none">+</span>
-        </summary>
-        <p class="mt-3 text-clay-700 dark:text-clay-300 leading-relaxed">{it.a}</p>
-      </details>
-    ))}
+<section class="section faq-section" id="faq">
+  <div class="container-narrow">
+    <div class="faq-layout">
+      <aside class="faq-aside">
+        <div class="section__eyebrow">{t('faq.eyebrow')}</div>
+        <h2 class="section__title">{t('faq.title')}</h2>
+        <p class="section__sub">
+          {isZh ? '仅仅是入门。更深入的讨论都在论坛里。' : 'Just the basics. The harder questions live on the forum.'}
+        </p>
+        <div class="faq-quote">
+          <div class="faq-quote__body">{quote.body}</div>
+          <div class="faq-quote__foot">
+            <div class="faq-quote__av">{quote.av}</div>
+            <div>
+              <div class="faq-quote__name">{quote.name}</div>
+              <div class="faq-quote__role">{quote.role}</div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <div>
+        <div class="faq-list">
+          {items.map((it, i) => {
+            const num = 'Q ' + String(i + 1).padStart(2, '0');
+            return (
+              <details class="faq-item" open={i === 0}>
+                <summary class="faq-item__q">
+                  <span class="faq-item__num">{num}</span>
+                  <span class="faq-item__qtxt">{it.q}</span>
+                  <span class="faq-item__cross">+</span>
+                </summary>
+                <div class="faq-item__a">
+                  <div class="faq-item__a-body">{it.a}</div>
+                </div>
+              </details>
+            );
+          })}
+        </div>
+
+        <div class="faq-cta">
+          <div class="faq-cta__txt">
+            <div class="faq-cta__title">{t('faq.cta.title')}</div>
+            <div class="faq-cta__sub">{t('faq.cta.sub')}</div>
+          </div>
+          <a href="https://forum.dirtbikex.com" target="_blank" rel="noopener" class="btn btn--primary">
+            {t('faq.cta.btn')}
+            <Icon name="arrow-right" size={14} />
+          </a>
+        </div>
+      </div>
+    </div>
   </div>
 </section>

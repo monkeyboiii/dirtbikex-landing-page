@@ -1,0 +1,126 @@
+---
+import Icon from './Icon.astro';
+import { getLangFromUrl, useTranslations } from '../i18n/utils';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+---
+
+<section class="section" id="community">
+  <div class="container-narrow">
+    <div class="featured-head">
+      <div class="featured-head__copy">
+        <div class="section__eyebrow">{t('featured.eyebrow')}</div>
+        <h2 class="section__title">{t('featured.title')}</h2>
+        <p class="section__sub">{t('featured.subtitle')}</p>
+      </div>
+    </div>
+
+    <div class="featured-grid" id="featured-grid" data-pending="1">
+      {[0, 1, 2, 3, 4].map((i) => (
+        <a class={`thread-card skeleton${i === 0 ? ' featured' : ''}`} href="#" aria-hidden="true" tabindex="-1">
+          <div class="thread-card__pin-row"><span class="thread-card__pill cat">·</span></div>
+          <div class="sk-line title"></div>
+          <div class="sk-line short"></div>
+          <div class="thread-card__foot">
+            <div class="thread-card__av"></div>
+            <div class="sk-line short" style="width:40%"></div>
+          </div>
+        </a>
+      ))}
+    </div>
+
+    <div class="featured-foot">
+      <a href="https://forum.dirtbikex.com" target="_blank" rel="noopener">
+        {t('featured.cta')}
+        <Icon name="arrow-right" size={14} />
+      </a>
+    </div>
+  </div>
+</section>
+
+<script is:inline define:vars={{ liveLabel: t('featured.live'), solvedLabel: t('featured.solved') }}>
+  (function () {
+    const grid = document.getElementById('featured-grid');
+    if (!grid) return;
+
+    fetch('/api/forum/featured.json', { headers: { accept: 'application/json' } })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (!data || !Array.isArray(data.topics) || data.topics.length === 0) return;
+        const forumBase = data.forum_base || 'https://forum.dirtbikex.com';
+        const topics = data.topics.slice(0, 5);
+
+        const escapeHtml = (s) =>
+          String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+        // Mirrors iOS URL+Forum.swift: handle protocol-relative, absolute, root-relative, and bare paths.
+        const absoluteForumUrl = (input) => {
+          if (!input) return '';
+          if (input.startsWith('//')) return 'https:' + input;
+          if (input.startsWith('http://') || input.startsWith('https://')) return input;
+          return forumBase + (input.startsWith('/') ? input : '/' + input);
+        };
+
+        // Discourse aliases a few shortcodes that aren't valid filenames in DiscourseAssetKit.
+        const emojiAlias = { '+1': 'plus_one', '-1': 'minus_one' };
+
+        // Apply AFTER escapeHtml — shortcodes are [A-Za-z0-9_+-] so they survive escaping unchanged.
+        const decodeEmoji = (escapedText) =>
+          escapedText.replace(/:([a-z0-9_+\-]{1,64}):/gi, (_match, raw) => {
+            const name = String(raw).toLowerCase();
+            const file = emojiAlias[name] || name;
+            return `<img class="thread-card__emoji" src="/emojis/${file}.png" alt=":${name}:" loading="lazy" onerror="this.replaceWith(document.createTextNode(this.alt))" />`;
+          });
+
+        const initials = (name) =>
+          (name || '?').split(/\s+/).slice(0, 2).map((w) => w.charAt(0).toUpperCase()).join('') || '?';
+
+        const cards = topics.map((topic, i) => {
+          const isFeatured = i === 0;
+          const url = `${forumBase}/t/${encodeURIComponent(topic.slug || 'topic')}/${topic.id}`;
+          const title = topic.fancy_title || topic.title || '';
+          const excerpt = topic.excerpt || '';
+          const tag = (topic.tags && topic.tags[0] && topic.tags[0].name) || '';
+          const poster = topic.poster || {};
+          const author = poster.name || poster.username || '';
+          const avatarUrl = poster.avatar_template
+            ? absoluteForumUrl(poster.avatar_template.replace('{size}', '48'))
+            : '';
+          const coverUrl = isFeatured && topic.image_url ? absoluteForumUrl(topic.image_url) : '';
+          const replies = typeof topic.posts_count === 'number' ? Math.max(0, topic.posts_count - 1) : 0;
+
+          const pinRow = [];
+          if (isFeatured) pinRow.push(`<span class="thread-card__pill live">${escapeHtml(liveLabel)}</span>`);
+          if (tag) pinRow.push(`<span class="thread-card__pill cat">${escapeHtml(tag)}</span>`);
+
+          const avatarHtml = avatarUrl
+            ? `<img src="${escapeHtml(avatarUrl)}" alt="" loading="lazy" />`
+            : escapeHtml(initials(author));
+
+          const coverHtml = coverUrl
+            ? `<div class="thread-card__cover"><img src="${escapeHtml(coverUrl)}" alt="" loading="lazy" /></div>`
+            : '';
+
+          return `
+            <a class="thread-card${isFeatured ? ' featured' : ''}" href="${escapeHtml(url)}" target="_blank" rel="noopener">
+              ${coverHtml}
+              <div class="thread-card__pin-row">${pinRow.join('')}</div>
+              <div class="thread-card__title">${decodeEmoji(escapeHtml(title))}</div>
+              <div class="thread-card__excerpt">${decodeEmoji(escapeHtml(excerpt))}</div>
+              <div class="thread-card__foot">
+                <div class="thread-card__av">${avatarHtml}</div>
+                <div class="thread-card__author">${escapeHtml(author)}</div>
+                <div class="thread-card__meta">
+                  <span><span class="${isFeatured ? 'brand' : ''}">${replies}</span></span>
+                </div>
+              </div>
+            </a>`;
+        });
+
+        grid.innerHTML = cards.join('');
+        grid.removeAttribute('data-pending');
+      })
+      .catch(() => {});
+  })();
+</script>

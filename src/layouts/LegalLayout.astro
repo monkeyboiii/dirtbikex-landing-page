@@ -1,27 +1,38 @@
 ---
 import BaseLayout from './BaseLayout.astro';
+import LegalLocaleNotice from '../components/LegalLocaleNotice.astro';
 import { getLangFromUrl, useTranslations, localizedPath } from '../i18n/utils';
 
 interface Props {
   title: string;
   lastUpdated: string;
+  /**
+   * Set when rendering an EN MDX under a non-EN locale URL — shows a
+   * notice that the localized version isn't available yet. Pass
+   * `'en-only'` when the doc has no localized version at all (the 5
+   * newer legal docs), or `'fallback'` when a localized version
+   * exists for some locales but not the current one.
+   */
+  fallbackScope?: 'en-only' | 'fallback' | null;
 }
 
-const { title, lastUpdated } = Astro.props;
+const { title, lastUpdated, fallbackScope = null } = Astro.props;
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
+const showNotice = fallbackScope && lang !== 'en';
 ---
 
 <BaseLayout title={`${title} — DirtBikeX`}>
   <article class="container-narrow py-16">
-    <a href={localizedPath(lang, '/')} class="text-sm text-dirt-600 hover:underline">
+    <a href={localizedPath(lang, '/')} class="t-mono-sm" style="color: var(--brand);">
       {t('legal.backHome')}
     </a>
-    <h1 class="mt-4 text-4xl font-bold tracking-tight">{title}</h1>
-    <p class="mt-2 text-sm text-clay-500 dark:text-clay-400">
+    <h1 class="t-h1 mt-4">{title}</h1>
+    <p class="t-mono-sm mt-2" style="color: var(--fg-tertiary);">
       {t('legal.lastUpdated')}: {lastUpdated}
     </p>
-    <div class="prose prose-clay dark:prose-invert mt-8 max-w-none">
+    {showNotice && <LegalLocaleNotice scope={fallbackScope} />}
+    <div class="prose dark:prose-invert mt-8 max-w-none">
       <slot />
     </div>
   </article>

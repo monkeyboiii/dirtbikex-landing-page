@@ -1,0 +1,19 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Hero from '../../components/Hero.astro';
+import Features from '../../components/Features.astro';
+import FeaturedTopics from '../../components/FeaturedTopics.astro';
+import FAQ from '../../components/FAQ.astro';
+import { nonEnLocales } from '../../i18n/ui';
+
+export function getStaticPaths() {
+  return nonEnLocales.map((lang) => ({ params: { lang } }));
+}
+---
+
+<BaseLayout>
+  <Hero />
+  <Features />
+  <FeaturedTopics />
+  <FAQ />
+</BaseLayout>

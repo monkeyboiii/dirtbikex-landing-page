@@ -1,0 +1,8 @@
+
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" aria-label="DirtBikeX">
+  <rect width="64" height="64" rx="14" fill="#faf8f4"></rect>
+  <rect x="6" y="35" width="52" height="2.2" fill="#ed6b00" opacity="0.45"></rect>
+  <path d="M14 14 L50 50" stroke="#ed6b00" stroke-width="8" stroke-linecap="round"></path>
+  <path d="M50 14 L14 50" stroke="#ed6b00" stroke-width="8" stroke-linecap="round"></path>
+  <circle cx="32" cy="32" r="3.6" fill="#faf8f4" stroke="#ed6b00" stroke-width="2"></circle>
+</svg>

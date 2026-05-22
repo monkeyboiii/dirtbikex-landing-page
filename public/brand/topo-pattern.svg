@@ -1,0 +1,17 @@
+
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" fill="none">
+  <defs>
+    <pattern id="topo" x="0" y="0" width="400" height="400" patternUnits="userSpaceOnUse">
+      <g stroke="currentColor" stroke-width="1.2" fill="none" opacity="0.55">
+        <path d="M -20 60 Q 80 20 180 80 T 380 100 T 580 60"></path>
+        <path d="M -20 100 Q 90 70 200 130 T 410 160 T 600 120"></path>
+        <path d="M -20 150 Q 100 130 210 190 T 420 220 T 620 180"></path>
+        <path d="M -20 210 Q 120 200 240 250 T 460 280 T 660 240"></path>
+        <path d="M -20 280 Q 140 280 260 320 T 480 340 T 680 300"></path>
+        <path d="M -20 350 Q 160 340 280 380 T 500 400 T 700 360"></path>
+        <path d="M -20 30 Q 90 -10 210 40 T 420 50"></path>
+      </g>
+    </pattern>
+  </defs>
+  <rect width="400" height="400" fill="url(#topo)"></rect>
+</svg>

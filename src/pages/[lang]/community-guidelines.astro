@@ -1,0 +1,13 @@
+---
+import LegalLayout from '../../layouts/LegalLayout.astro';
+import { Content, frontmatter } from '../../content/legal/community-guidelines.en.mdx';
+import { nonEnLocales } from '../../i18n/ui';
+
+export function getStaticPaths() {
+  return nonEnLocales.map((lang) => ({ params: { lang } }));
+}
+---
+
+<LegalLayout title={frontmatter.title} lastUpdated={frontmatter.lastUpdated} fallbackScope="en-only">
+  <Content />
+</LegalLayout>

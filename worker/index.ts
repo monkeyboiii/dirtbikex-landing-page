@@ -1,5 +1,7 @@
 import { lookupInvite, type LookupResult } from './_lib/inviteLookup';
 import { renderShareLanding } from './_lib/render';
+import { fetchForumMetrics } from './_lib/forumMetrics';
+import { fetchForumFeatured } from './_lib/forumFeatured';
 import type { PagesEnv, ShareLandingProps } from './_lib/types';
 
 interface Env extends PagesEnv {
@@ -87,12 +89,44 @@ async function handleInvite(request: Request, env: Env, key: string): Promise<Re
   return renderShareLanding(props, request.url, cacheControl ? { cacheControl } : {});
 }
 
+const FORUM_API_CACHE_CONTROL = 'public, max-age=3600, s-maxage=86400';
+
+async function handleForumMetrics(env: Env): Promise<Response> {
+  const result = await fetchForumMetrics(env);
+  if (result.status !== 'ok') {
+    return new Response(JSON.stringify({ error: 'unreachable' }), {
+      status: 503,
+      headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
+    });
+  }
+  return new Response(JSON.stringify(result.payload), {
+    headers: { 'Content-Type': 'application/json', 'Cache-Control': FORUM_API_CACHE_CONTROL },
+  });
+}
+
+async function handleForumFeatured(env: Env): Promise<Response> {
+  const result = await fetchForumFeatured(env);
+  if (result.status !== 'ok') {
+    return new Response(JSON.stringify({ error: 'unreachable' }), {
+      status: 503,
+      headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
+    });
+  }
+  return new Response(JSON.stringify(result.payload), {
+    headers: { 'Content-Type': 'application/json', 'Cache-Control': FORUM_API_CACHE_CONTROL },
+  });
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
     const m = url.pathname.match(/^\/s\/i\/([^/]+)\/?$/);
     if (m && request.method === 'GET') {
       return handleInvite(request, env, m[1]);
+    }
+    if (request.method === 'GET') {
+      if (url.pathname === '/api/forum/metrics.json') return handleForumMetrics(env);
+      if (url.pathname === '/api/forum/featured.json') return handleForumFeatured(env);
     }
     return env.ASSETS.fetch(request);
   },

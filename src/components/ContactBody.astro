@@ -1,0 +1,107 @@
+---
+import { getLangFromUrl, useTranslations } from '../i18n/utils';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+
+const socials = [
+  { key: 'contact.social.x', handle: '@dirtbikex', url: '#' },
+  { key: 'contact.social.instagram', handle: '@dirtbikex', url: '#' },
+  { key: 'contact.social.youtube', handle: '@dirtbikex', url: '#' },
+  { key: 'contact.social.tiktok', handle: '@dirtbikex', url: '#' },
+] as const;
+---
+
+<section class="container-narrow py-16">
+  <header class="text-center">
+    <h1 class="t-display-3">{t('contact.title')}</h1>
+    <p class="t-body-lg mt-4 mx-auto max-w-prose" style="color: var(--fg-secondary);">
+      {t('contact.subtitle')}
+    </p>
+  </header>
+
+  <section class="mt-16">
+    <div
+      class="rounded-2xl p-8 sm:p-10"
+      style="background: var(--bg-elevated); border: 1px solid var(--border);"
+    >
+      <h2 class="t-h2">{t('contact.forum.title')}</h2>
+      <p class="t-body mt-3 max-w-prose" style="color: var(--fg-secondary);">
+        {t('contact.forum.body')}
+      </p>
+      <a
+        href="https://forum.dirtbikex.com"
+        target="_blank"
+        rel="noopener"
+        class="inline-flex items-center gap-2 mt-6 px-5 py-3 rounded-full font-medium"
+        style="background: var(--brand); color: var(--brand-fg);"
+      >
+        {t('contact.forum.cta')} →
+      </a>
+    </div>
+  </section>
+
+  <section class="mt-16">
+    <div
+      class="rounded-2xl p-8 sm:p-10"
+      style="background: var(--bg-elevated); border: 1px solid var(--border);"
+    >
+      <h2 class="t-h2">{t('contact.email.title')}</h2>
+      <p class="t-body mt-3 max-w-prose" style="color: var(--fg-secondary);">
+        {t('contact.email.intro')}
+      </p>
+      <a
+        href="mailto:support@dirtbikex.com"
+        class="inline-flex items-center gap-2 mt-6 px-5 py-3 rounded-full font-medium"
+        style="background: var(--brand); color: var(--brand-fg);"
+      >
+        {t('contact.email.cta')} →
+      </a>
+    </div>
+  </section>
+
+  <section class="mt-16">
+    <h2 class="t-h2">{t('contact.dm.title')}</h2>
+    <ul class="mt-6 grid gap-3 sm:grid-cols-2">
+      <li
+        class="flex items-center justify-between gap-4 rounded-xl px-4 py-3"
+        style="background: var(--bg-elevated); border: 1px solid var(--border);"
+      >
+        <span class="t-body font-medium">{t('contact.dm.whatsapp')}</span>
+        <span class="t-mono-sm" style="color: var(--fg-tertiary);">
+          {t('contact.dm.placeholder')}
+        </span>
+      </li>
+    </ul>
+  </section>
+
+  <section class="mt-16">
+    <h2 class="t-h2">{t('contact.social.title')}</h2>
+    <p class="t-body mt-3" style="color: var(--fg-secondary);">
+      {t('contact.social.subtitle')}
+    </p>
+    <ul class="mt-6 grid gap-3 sm:grid-cols-2">
+      {socials.map(({ key, handle }) => (
+        <li
+          class="flex items-center justify-between gap-4 rounded-xl px-4 py-3"
+          style="background: var(--bg-elevated); border: 1px solid var(--border);"
+        >
+          <span class="t-body font-medium">{t(key)}</span>
+          <span class="t-mono-sm" style="color: var(--fg-tertiary);">{handle}</span>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <section class="mt-16">
+    <h2 class="t-h2">{t('contact.mail.title')}</h2>
+    <address class="mt-4 not-italic t-body" style="color: var(--fg-secondary);">
+      {t('contact.mail.line1')}<br />
+      {t('contact.mail.line2')}<br />
+      {t('contact.mail.line3')}
+    </address>
+    <p class="t-mono-sm mt-4" style="color: var(--fg-tertiary);">
+      {t('contact.mail.note')}
+    </p>
+  </section>
+</section>

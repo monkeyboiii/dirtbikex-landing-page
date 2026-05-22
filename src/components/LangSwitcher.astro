@@ -3,28 +3,73 @@ import { getLangFromUrl, switchLangPath } from '../i18n/utils';
 import { languages, type Lang } from '../i18n/ui';
 
 const current = getLangFromUrl(Astro.url);
+
 const entries = (Object.keys(languages) as Lang[]).map((code) => ({
   code,
-  label: languages[code],
+  native: languages[code].native,
   href: switchLangPath(Astro.url, code),
   active: code === current,
 }));
+
+const currentEntry = entries.find((e) => e.active) ?? entries[0];
 ---
 
-<div class="flex items-center text-sm">
-  {entries.map((e, i) => (
-    <>
-      {i > 0 && <span class="mx-1 text-clay-400">/</span>}
-      <a
-        href={e.href}
-        hreflang={e.code === 'zh' ? 'zh-CN' : e.code}
-        class:list={[
-          'hover:text-dirt-600',
-          e.active ? 'font-semibold text-dirt-600' : 'text-clay-600 dark:text-clay-300',
-        ]}
-      >
-        {e.label}
-      </a>
-    </>
-  ))}
-</div>
+<details class="langswitch-dd" data-langswitch>
+  <summary class="langswitch-dd__btn" aria-label="Switch language">
+    <span class="langswitch-dd__current">{currentEntry.native}</span>
+    <svg
+      class="langswitch-dd__chevron"
+      width="12"
+      height="12"
+      viewBox="0 0 12 12"
+      fill="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M3 4.5L6 7.5L9 4.5"
+        stroke="currentColor"
+        stroke-width="1.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+    </svg>
+  </summary>
+  <ul class="langswitch-dd__menu" role="menu">
+    {entries.map((e) => (
+      <li role="none">
+        <a
+          role="menuitem"
+          href={e.href}
+          hreflang={e.code}
+          class={`langswitch-dd__item${e.active ? ' active' : ''}`}
+          data-locale={e.code}
+        >
+          <span class="langswitch-dd__item-native">{e.native}</span>
+          <span class="langswitch-dd__item-code">{e.code}</span>
+        </a>
+      </li>
+    ))}
+  </ul>
+</details>
+
+<script is:inline>
+  (function () {
+    // Persist explicit user choice so the auto-redirect (BaseLayout)
+    // doesn't override the next visit. Keyed by clicks within any
+    // LangSwitcher dropdown on the page.
+    document.querySelectorAll('[data-langswitch] [data-locale]').forEach((el) => {
+      el.addEventListener('click', () => {
+        try {
+          localStorage.setItem('dbx-locale-pref', el.getAttribute('data-locale') || '');
+          localStorage.setItem('dbx-locale-source', 'manual');
+        } catch (e) {}
+      });
+    });
+    // Close the dropdown when clicking outside.
+    document.addEventListener('click', (e) => {
+      document.querySelectorAll('details[data-langswitch][open]').forEach((d) => {
+        if (!d.contains(e.target)) d.removeAttribute('open');
+      });
+    });
+  })();
+</script>

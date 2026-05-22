@@ -1,25 +1,115 @@
 ---
 import AppStoreBadge from './AppStoreBadge.astro';
+import Icon from './Icon.astro';
 import { getLangFromUrl, useTranslations } from '../i18n/utils';
+import { appLocales } from '../i18n/ui';
 
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
+const languageCount = appLocales.length;
+
+const chips =
+  lang === 'zh'
+    ? [
+        { txt: '#三有仪', cls: '',      x: '4%',  y: '14%' },
+        { txt: '#该不该换油', cls: 'brand', x: '88%', y: '20%' },
+        { txt: '#周末山道', cls: '',      x: '8%',  y: '74%' },
+        { txt: '#跟胎跳动', cls: 'dark',  x: '85%', y: '76%' },
+        { txt: '#零件渠道', cls: '',      x: '14%', y: '46%' },
+      ]
+    : [
+        { txt: '#two-stroke',     cls: '',      x: '5%',  y: '14%' },
+        { txt: '#tubeless ftw',   cls: 'brand', x: '86%', y: '18%' },
+        { txt: '#enduro · norcal', cls: '',     x: '8%',  y: '74%' },
+        { txt: '#first bike',     cls: 'dark',  x: '85%', y: '76%' },
+        { txt: '#frame swap',     cls: '',      x: '15%', y: '46%' },
+        { txt: '#trail closures', cls: '',      x: '82%', y: '52%' },
+      ];
 ---
 
-<section class="container-narrow pt-20 pb-24 text-center">
-  <p class="text-sm font-medium uppercase tracking-wider text-dirt-600">
-    {t('hero.eyebrow')}
-  </p>
-  <h1 class="mt-4 font-display text-5xl md:text-6xl font-bold tracking-tight">
-    <span class="gradient-text">{t('hero.title')}</span>
-  </h1>
-  <p class="mx-auto mt-6 max-w-2xl text-lg text-clay-700 dark:text-clay-300">
-    {t('hero.subtitle')}
-  </p>
-  <div class="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-    <AppStoreBadge />
-    <a href="#features" class="btn-secondary">
-      {t('hero.cta.secondary')}
-    </a>
+<section class="hero">
+  <div class="hero__topo"></div>
+  <div class="hero__grain"></div>
+  <div class="hero__chips" aria-hidden="true">
+    {chips.map((c) => (
+      <span class={`hero__chip ${c.cls}`} style={`left:${c.x};top:${c.y}`}>{c.txt}</span>
+    ))}
+  </div>
+
+  <div class="container-narrow hero__inner">
+    <div class="hero__eyebrow">{t('hero.eyebrow')}</div>
+    <h1 class="hero__title">
+      {t('hero.title.line1')}<br /><span class="accent">{t('hero.title.line2')}</span>
+    </h1>
+    <p class="hero__sub">{t('hero.subtitle')}</p>
+
+    <div class="hero__cta">
+      <AppStoreBadge size="lg" />
+      <a href="#features" class="btn btn--secondary btn--lg">
+        {t('hero.cta.secondary')}
+        <Icon name="arrow-right" size={16} />
+      </a>
+    </div>
+
+    <div class="hero__strip" id="hero-stats" data-pending="1">
+      <div class="hero__stat">
+        <div class="hero__stat-num" data-stat="users_count">—</div>
+        <div class="hero__stat-label">{t('hero.stat.riders')}</div>
+      </div>
+      <div class="hero__stat-divider"></div>
+      <div class="hero__stat">
+        <div class="hero__stat-num" data-stat="active_users_30_days">—</div>
+        <div class="hero__stat-label">{t('hero.stat.active')}</div>
+      </div>
+      <div class="hero__stat-divider"></div>
+      <div class="hero__stat">
+        <div class="hero__stat-num" data-stat="topics_count">—</div>
+        <div class="hero__stat-label">{t('hero.stat.threads')}</div>
+      </div>
+      <div class="hero__stat-divider"></div>
+      <div class="hero__stat">
+        <div class="hero__stat-num" data-stat="posts_count">—</div>
+        <div class="hero__stat-label">{t('hero.stat.posts')}</div>
+      </div>
+      <div class="hero__stat-divider"></div>
+      <details class="hero__stat hero__stat--pop" data-langpop>
+        <summary class="hero__stat-pop-trigger" aria-label={t('hero.stat.languagesAria')}>
+          <div class="hero__stat-num">{languageCount}</div>
+          <div class="hero__stat-label">
+            {t('hero.stat.languages')}
+            <svg class="hero__stat-pop-chevron" width="10" height="10" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+              <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </div>
+        </summary>
+        <div class="hero__stat-pop-card" role="dialog" aria-label={t('hero.stat.languagesAria')}>
+          <div class="hero__stat-pop-eyebrow">{t('hero.stat.languagesPopEyebrow')}</div>
+          <ul class="hero__stat-pop-list">
+            {appLocales.map((loc) => (
+              <li class="hero__stat-pop-item">{loc.native}</li>
+            ))}
+          </ul>
+        </div>
+      </details>
+    </div>
   </div>
 </section>
+
+<script is:inline>
+  (function () {
+    fetch('/api/forum/metrics.json', { headers: { accept: 'application/json' } })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (!data) return;
+        const strip = document.getElementById('hero-stats');
+        if (!strip) return;
+        const fmt = (n) => (typeof n === 'number' ? n.toLocaleString() : '—');
+        strip.querySelectorAll('[data-stat]').forEach((el) => {
+          const key = el.getAttribute('data-stat');
+          if (key && key in data) el.textContent = fmt(data[key]);
+        });
+        strip.removeAttribute('data-pending');
+      })
+      .catch(() => {});
+  })();
+</script>
