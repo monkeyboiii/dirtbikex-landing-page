@@ -65,7 +65,14 @@
   "cta.appStore.line2": "App Store 下载",
 
   "founders.title": "创始团队",
-  "founders.placeholder": "正式的介绍和照片即将上线。我们是打造 DirtBikeX 的车手们。",
+  "founders.intro": "打造 DirtBikeX 的团队。",
+  "founders.calvin.name": "登山小鲁",
+  "founders.calvin.role": "创始人 / CEO 兼 CTO",
+  "founders.calvin.bio": "白天骑车,夜里写代码——在车座与键盘之间打磨 DirtBikeX。",
+  "founders.calvin.photo_alt": "DirtBikeX 创始人 登山小鲁",
+  "founders.rebecca.name": "Rebecca",
+  "founders.rebecca.role": "首席 UX/UI 设计师",
+  "founders.rebecca.bio": "个人简介即将上线。",
 
   "contact.title": "联系我们",
   "contact.subtitle": "社区相关问题在论坛上回应最快。其他事项,欢迎通过邮件联系。",

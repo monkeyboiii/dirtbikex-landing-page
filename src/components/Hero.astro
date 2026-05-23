@@ -11,19 +11,19 @@ const languageCount = appLocales.length;
 const chips =
   lang === 'zh'
     ? [
-        { txt: '#三有仪', cls: '',      x: '4%',  y: '14%' },
-        { txt: '#该不该换油', cls: 'brand', x: '88%', y: '20%' },
-        { txt: '#周末山道', cls: '',      x: '8%',  y: '74%' },
-        { txt: '#跟胎跳动', cls: 'dark',  x: '85%', y: '76%' },
-        { txt: '#零件渠道', cls: '',      x: '14%', y: '46%' },
+        { txt: '#三有仪',     cls: '',      x: '4%',  y: '14%', xm: '4%',  ym: '6%'  },
+        { txt: '#该不该换油', cls: 'brand', x: '88%', y: '20%', xm: '52%', ym: '4%'  },
+        { txt: '#周末山道',   cls: '',      x: '8%',  y: '74%', xm: '4%',  ym: '88%' },
+        { txt: '#跟胎跳动',   cls: 'dark',  x: '85%', y: '76%', xm: '54%', ym: '92%' },
+        { txt: '#零件渠道',   cls: '',      x: '14%', y: '46%', xm: '50%', ym: '50%' },
       ]
     : [
-        { txt: '#two-stroke',     cls: '',      x: '5%',  y: '14%' },
-        { txt: '#tubeless ftw',   cls: 'brand', x: '86%', y: '18%' },
-        { txt: '#enduro · norcal', cls: '',     x: '8%',  y: '74%' },
-        { txt: '#first bike',     cls: 'dark',  x: '85%', y: '76%' },
-        { txt: '#frame swap',     cls: '',      x: '15%', y: '46%' },
-        { txt: '#trail closures', cls: '',      x: '82%', y: '52%' },
+        { txt: '#two-stroke',      cls: '',      x: '5%',  y: '14%', xm: '4%',  ym: '6%'  },
+        { txt: '#tubeless ftw',    cls: 'brand', x: '86%', y: '18%', xm: '48%', ym: '4%'  },
+        { txt: '#enduro · norcal', cls: '',      x: '8%',  y: '74%', xm: '2%',  ym: '90%' },
+        { txt: '#first bike',      cls: 'dark',  x: '85%', y: '76%', xm: '58%', ym: '94%' },
+        { txt: '#frame swap',      cls: '',      x: '15%', y: '46%', xm: '4%',  ym: '50%' },
+        { txt: '#trail closures',  cls: '',      x: '82%', y: '52%', xm: '54%', ym: '52%' },
       ];
 ---
 
@@ -32,7 +32,7 @@ const chips =
   <div class="hero__grain"></div>
   <div class="hero__chips" aria-hidden="true">
     {chips.map((c) => (
-      <span class={`hero__chip ${c.cls}`} style={`left:${c.x};top:${c.y}`}>{c.txt}</span>
+      <span class={`hero__chip ${c.cls}`} style={`--cx:${c.x};--cy:${c.y};--cx-m:${c.xm};--cy-m:${c.ym}`}>{c.txt}</span>
     ))}
   </div>
 

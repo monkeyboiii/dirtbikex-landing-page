@@ -221,6 +221,7 @@
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
+  html, body { overflow-x: hidden; }
   body {
     background: var(--bg);
     color: var(--fg);
@@ -307,6 +308,12 @@
     margin: 0 auto;
     padding-left: var(--space-6);
     padding-right: var(--space-6);
+  }
+  @media (max-width: 640px) {
+    .container-narrow {
+      padding-left: var(--space-4);
+      padding-right: var(--space-4);
+    }
   }
 
   .gradient-text {

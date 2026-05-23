@@ -3,11 +3,114 @@ import { getLangFromUrl, useTranslations } from '../i18n/utils';
 
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
+
+type Founder = {
+  nameKey: string;
+  roleKey: string;
+  bioKey: string;
+  photo?: { src: string; altKey: string };
+  initials?: string;
+};
+
+const founders: Founder[] = [
+  {
+    nameKey: 'founders.calvin.name',
+    roleKey: 'founders.calvin.role',
+    bioKey: 'founders.calvin.bio',
+    photo: { src: '/founders/calvin.png', altKey: 'founders.calvin.photo_alt' },
+  },
+  {
+    nameKey: 'founders.rebecca.name',
+    roleKey: 'founders.rebecca.role',
+    bioKey: 'founders.rebecca.bio',
+    initials: 'R',
+  },
+];
+
+const socials = [
+  { key: 'contact.social.x', url: '#' },
+  { key: 'contact.social.instagram', url: '#' },
+] as const;
 ---
 
-<section class="container-narrow py-20 text-center">
-  <h1 class="t-display-3">{t('founders.title')}</h1>
-  <p class="t-body-lg mt-6 mx-auto max-w-prose" style="color: var(--fg-secondary);">
-    {t('founders.placeholder')}
-  </p>
+<section class="container-narrow py-20">
+  <header class="text-center">
+    <h1 class="t-display-3">{t('founders.title')}</h1>
+    <p class="t-body-lg mt-6 mx-auto max-w-prose" style="color: var(--fg-secondary);">
+      {t('founders.intro')}
+    </p>
+  </header>
+
+  <ul class="mt-16 grid gap-6 sm:grid-cols-2 list-none p-0">
+    {founders.map((f) => (
+      <li
+        class="rounded-2xl p-8"
+        style="background: var(--bg-elevated); border: 1px solid var(--border);"
+      >
+        <header class="founder-head">
+          <div class="founder-av">
+            {f.photo
+              ? <img src={f.photo.src} alt={t(f.photo.altKey)} loading="lazy" decoding="async" />
+              : <span aria-hidden="true">{f.initials}</span>}
+          </div>
+          <div class="founder-id">
+            <h2 class="t-h2">{t(f.nameKey)}</h2>
+            <p class="t-mono-sm mt-1 uppercase" style="color: var(--fg-secondary);">
+              {t(f.roleKey)}
+            </p>
+          </div>
+        </header>
+        <p class="t-body mt-6" style="color: var(--fg-secondary);">
+          {t(f.bioKey)}
+        </p>
+        <ul class="mt-6 flex gap-2 list-none p-0">
+          {socials.map(({ key, url }) => (
+            <li>
+              <a
+                href={url}
+                target="_blank"
+                rel="noopener"
+                class="inline-flex items-center px-3 py-1.5 rounded-full t-mono-sm"
+                style="background: var(--bone-50); border: 1px solid var(--border); color: var(--fg-secondary);"
+              >
+                {t(key)}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </li>
+    ))}
+  </ul>
 </section>
+
+<style>
+  .founder-head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-5);
+  }
+  .founder-id {
+    min-width: 0;
+    flex: 1;
+  }
+  .founder-av {
+    flex: 0 0 auto;
+    width: 112px;
+    height: 112px;
+    border-radius: 50%;
+    overflow: hidden;
+    display: grid;
+    place-items: center;
+    background: var(--brand);
+    color: #fff;
+    font: 700 44px var(--font-display);
+    box-shadow: var(--shadow-sm);
+    border: 3px solid var(--bg-elevated);
+  }
+  .founder-av img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+</style>

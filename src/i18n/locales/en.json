@@ -65,7 +65,14 @@
   "cta.appStore.line2": "App Store",
 
   "founders.title": "Founders",
-  "founders.placeholder": "Real bios and photos coming soon. We’re the riders building DirtBikeX.",
+  "founders.intro": "The team building DirtBikeX.",
+  "founders.calvin.name": "Calvin",
+  "founders.calvin.role": "Founder, CEO & CTO",
+  "founders.calvin.bio": "Rider by day, coder by night — building DirtBikeX from the saddle and the keyboard.",
+  "founders.calvin.photo_alt": "Calvin, founder of DirtBikeX",
+  "founders.rebecca.name": "Rebecca",
+  "founders.rebecca.role": "Lead UX/UI Designer",
+  "founders.rebecca.bio": "Bio coming soon.",
 
   "contact.title": "Get in touch",
   "contact.subtitle": "The forum is the fastest place for community questions. For everything else, email works best.",

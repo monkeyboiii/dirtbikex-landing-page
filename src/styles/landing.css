@@ -59,6 +59,8 @@
 }
 .hero__chip {
   position: absolute;
+  left: var(--cx);
+  top: var(--cy);
   font: 500 12px var(--font-mono); letter-spacing: 0.04em;
   padding: 6px 11px;
   border-radius: var(--radius-pill);
@@ -102,6 +104,22 @@
 .hero__stat-num { font: 700 32px/1 var(--font-display); letter-spacing: -0.02em; color: var(--fg); font-variant-numeric: tabular-nums; }
 .hero__stat-label { font: var(--text-mono-sm); color: var(--fg-tertiary); text-transform: uppercase; letter-spacing: 0.1em; }
 .hero__stat-divider { width: 1px; height: 36px; background: var(--border); }
+
+/* ---- Mobile: hide quick-jump nav, reposition chips inward, tighten stats ---- */
+@media (max-width: 767px) {
+  .site-nav { display: none; }
+}
+@media (max-width: 640px) {
+  .hero__chip {
+    left: var(--cx-m);
+    top: var(--cy-m);
+    font-size: 11px;
+    padding: 5px 9px;
+  }
+  .hero__strip { gap: var(--space-6); margin-top: var(--space-10); }
+  .hero__stat-num { font-size: 24px; }
+  .hero__stat-divider { height: 28px; }
+}
 
 /* ---- Hero stat popover (languages count → reveals language list) ---- */
 .hero__stat--pop { position: relative; }
