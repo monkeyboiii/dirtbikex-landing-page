@@ -53,7 +53,7 @@ From [`SPLASH_V2_DESIGN.md §6.6`](../../../../iOS/docs/SPLASH_V2_DESIGN.md):
 - **No cancellation, no refund.** Surface this in iOS purchase confirmation AND on `/sponsors/finalize` AND on `/s/g/<token>` claim pages.
 - **Flat pricing:** Hero $89, Featured $79, Supporter $49. 2mo = 2× 1mo. Current-month discount SKUs at ~50% off.
 - **All locales matter eventually.** New pages live under `[lang]/`; English-only at first, structured to localize.
-- **Caddy-level mock/real switching is transparent to clients** ([`SPLASH_V2_DESIGN.md §7.1.1`](../../../../iOS/docs/SPLASH_V2_DESIGN.md#711-mockreal-switching--transparent-to-clients)). Worker code does not need fallback paths for mocked-vs-real backends — Caddy decides per route at request time.
+- **Wire-shape fixtures are test-only**, not runtime-served. See [`SPLASH_V2_DESIGN.md §7.1.1`](../../../../iOS/docs/SPLASH_V2_DESIGN.md#711-wire-shape-fixtures-test-only--revised-2026-05-26). Worker code calls the live API; for local dev before sponsorhub is up, import the JSON fixture from the sponsor repo directly.
 
 ---
 
