@@ -1,0 +1,211 @@
+---
+// /s/g/<claim_token> — admin grant claim page (PLAN_2 §4.3).
+// Static page; the token is a URL param. Worker proxies the lookup +
+// claim calls to sponsorhub. No SSO; recipient self-declares username +
+// email. The high-entropy token is the credential.
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+
+// Astro requires at least one explicit path to pre-render at build time for
+// dynamic routes when the adapter is static. The placeholder never hits prod
+// — real claims are pre-rendered via getStaticPaths === []? Actually static
+// adapter requires getStaticPaths to return at least one entry, OR we set
+// prerender=false and rely on the Worker to serve at runtime. The Worker
+// passes /s/g/* through to env.ASSETS, so Astro must generate a fallback.
+//
+// Approach: pre-render a single placeholder `__token__`; the Worker
+// intercepts /s/g/:token requests and rewrites to /s/g/__token__ before
+// hitting ASSETS, which then loads this page. The client-side JS reads the
+// actual token from `location.pathname`.
+export function getStaticPaths() {
+  return [{ params: { token: '__token__' } }];
+}
+---
+
+<BaseLayout title="Claim your sponsor slot — DirtBikeX">
+  <section class="mx-auto max-w-xl px-4 py-12">
+    <h1 class="text-3xl font-bold mb-2">Claim your sponsor slot</h1>
+
+    <div id="loading" class="text-gray-500 italic">Loading…</div>
+    <div id="not-found" class="hidden p-4 border-l-4 border-amber-500 bg-amber-50 dark:bg-amber-950 text-amber-900 dark:text-amber-100">
+      This claim link doesn't exist, has been used, or has been revoked.
+    </div>
+    <div id="expired" class="hidden p-4 border-l-4 border-amber-500 bg-amber-50 dark:bg-amber-950 text-amber-900 dark:text-amber-100">
+      This claim link has expired.
+    </div>
+    <div id="rate-limited" class="hidden p-4 border-l-4 border-red-500 bg-red-50 dark:bg-red-950 text-red-900 dark:text-red-100">
+      Too many attempts. Try again in a bit.
+    </div>
+
+    <div id="claim-form" class="hidden">
+      <div class="mb-6 p-4 rounded border bg-gray-50 dark:bg-gray-900">
+        <div class="text-sm text-gray-600 dark:text-gray-300">Slot details:</div>
+        <div id="slot-summary" class="mt-1 font-medium"></div>
+        <div id="expires-summary" class="mt-1 text-sm text-gray-500"></div>
+        <div id="message" class="hidden mt-3 italic text-gray-700 dark:text-gray-300"></div>
+      </div>
+
+      <form id="form" class="space-y-4">
+        <label class="block">
+          <span class="block text-sm font-medium mb-1">Forum username</span>
+          <input id="forum-username" type="text" required class="block w-full px-3 py-2 border rounded" placeholder="e.g. hl88usa" />
+          <span class="block text-xs text-gray-500 mt-1">We'll link the slot to this forum profile.</span>
+        </label>
+        <label class="block">
+          <span class="block text-sm font-medium mb-1">Contact email</span>
+          <input id="contact-email" type="email" required class="block w-full px-3 py-2 border rounded" />
+        </label>
+        <div id="nudge" class="hidden p-3 border-l-4 border-yellow-500 bg-yellow-50 dark:bg-yellow-950 text-sm">
+          This grant was reserved for a different email. Proceed anyway?
+          <label class="block mt-2"><input id="confirm-mismatch" type="checkbox" /> Yes, I understand</label>
+        </div>
+        <div class="flex items-center gap-3">
+          <button id="submit" type="submit" class="px-6 py-2 bg-black text-white rounded font-semibold disabled:opacity-50">
+            Claim my sponsor slot
+          </button>
+          <span id="status" class="text-sm text-gray-600"></span>
+        </div>
+      </form>
+
+      <p class="mt-8 text-xs text-gray-500">
+        To upload a custom hero image after claiming, open the DirtBikeX iOS app and go to Profile → My Sponsorships.
+        No refunds or cancellations.
+      </p>
+    </div>
+
+    <div id="done" class="hidden p-6 border rounded bg-green-50 dark:bg-green-950 text-green-900 dark:text-green-100">
+      <h2 class="text-lg font-semibold mb-2">Your sponsor slot is live.</h2>
+      <p class="text-sm">
+        To upload a custom hero image, open the DirtBikeX iOS app and go to Profile → My Sponsorships.
+      </p>
+    </div>
+  </section>
+
+  <script>
+    // Read token from /s/g/<token> path. The Astro static build emits
+    // /s/g/__token__/index.html as a fallback; the Worker rewrites unmatched
+    // /s/g/<actual_token> requests to this asset before serving.
+    function getToken(): string {
+      const m = location.pathname.match(/^\/s\/g\/([^/]+)\/?$/);
+      return m ? decodeURIComponent(m[1]!) : '';
+    }
+    const token = getToken();
+
+    const loadingEl = document.getElementById('loading')!;
+    const notFoundEl = document.getElementById('not-found')!;
+    const expiredEl = document.getElementById('expired')!;
+    const rateLimitedEl = document.getElementById('rate-limited')!;
+    const claimFormEl = document.getElementById('claim-form')!;
+    const slotSummaryEl = document.getElementById('slot-summary')!;
+    const expiresSummaryEl = document.getElementById('expires-summary')!;
+    const messageEl = document.getElementById('message')!;
+    const formEl = document.getElementById('form') as HTMLFormElement;
+    const usernameInput = document.getElementById('forum-username') as HTMLInputElement;
+    const emailInput = document.getElementById('contact-email') as HTMLInputElement;
+    const nudgeEl = document.getElementById('nudge')!;
+    const confirmMismatchInput = document.getElementById('confirm-mismatch') as HTMLInputElement;
+    const submitBtn = document.getElementById('submit') as HTMLButtonElement;
+    const statusEl = document.getElementById('status')!;
+    const doneEl = document.getElementById('done')!;
+
+    function showOnly(el: HTMLElement) {
+      loadingEl.classList.add('hidden');
+      [notFoundEl, expiredEl, rateLimitedEl, claimFormEl, doneEl].forEach((e) => e.classList.add('hidden'));
+      el.classList.remove('hidden');
+    }
+
+    function escapeHTML(s: string): string {
+      return s.replace(/[&<>"']/g, (c) =>
+        ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!),
+      );
+    }
+
+    async function load() {
+      if (!token || token === '__token__') {
+        showOnly(notFoundEl);
+        return;
+      }
+      try {
+        const resp = await fetch(`/s/g/${encodeURIComponent(token)}/api/lookup`, { cache: 'no-store' });
+        if (resp.status === 404) { showOnly(notFoundEl); return; }
+        if (resp.status === 410) {
+          const body = await resp.json().catch(() => ({}));
+          showOnly(body?.reason === 'grant_expired' ? expiredEl : notFoundEl);
+          return;
+        }
+        if (resp.status === 429) { showOnly(rateLimitedEl); return; }
+        if (!resp.ok) { showOnly(notFoundEl); return; }
+        const grant = (await resp.json()) as {
+          section: string;
+          slot_order: number;
+          month: string;
+          grant_mode: 'email_pinned' | 'open';
+          identity_hint: { forum_username?: string; brand_name?: string } | null;
+          grant_message_public: string | null;
+          expires_at: string;
+        };
+        slotSummaryEl.textContent = `${grant.section} slot ${grant.slot_order} — ${grant.month}`;
+        expiresSummaryEl.textContent = `Expires ${new Date(grant.expires_at).toLocaleDateString()}`;
+        if (grant.grant_message_public) {
+          messageEl.textContent = grant.grant_message_public;
+          messageEl.classList.remove('hidden');
+        }
+        if (grant.identity_hint?.forum_username) {
+          usernameInput.value = grant.identity_hint.forum_username;
+        }
+        showOnly(claimFormEl);
+      } catch (err) {
+        console.error('claim:lookup_failed', err);
+        showOnly(notFoundEl);
+      }
+    }
+
+    formEl.addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      submitBtn.disabled = true;
+      statusEl.textContent = 'Submitting…';
+      try {
+        const body: Record<string, unknown> = {
+          forum_username: usernameInput.value.trim(),
+          contact_email: emailInput.value.trim(),
+        };
+        if (!nudgeEl.classList.contains('hidden') && confirmMismatchInput.checked) {
+          body.confirm_email_mismatch = true;
+        }
+        const resp = await fetch(`/s/g/${encodeURIComponent(token)}/api/claim`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        if (resp.status === 429) {
+          statusEl.textContent = 'Too many attempts. Wait an hour.';
+          submitBtn.disabled = false;
+          return;
+        }
+        const respBody = (await resp.json()) as { slot_id?: string | null; email_mismatch_nudge?: boolean; error?: string; reason?: string };
+        if (resp.status === 400 && respBody.reason === 'forum_user_not_found') {
+          statusEl.textContent = `Forum username "${escapeHTML(usernameInput.value)}" not found.`;
+          submitBtn.disabled = false;
+          return;
+        }
+        if (!resp.ok) {
+          statusEl.textContent = `Error: ${respBody.error ?? resp.status}`;
+          submitBtn.disabled = false;
+          return;
+        }
+        if (respBody.email_mismatch_nudge) {
+          nudgeEl.classList.remove('hidden');
+          statusEl.textContent = 'Confirm and re-submit.';
+          submitBtn.disabled = false;
+          return;
+        }
+        showOnly(doneEl);
+      } catch (err) {
+        console.error('claim:submit_failed', err);
+        statusEl.textContent = `Network error: ${String(err)}`;
+        submitBtn.disabled = false;
+      }
+    });
+
+    load();
+  </script>
+</BaseLayout>

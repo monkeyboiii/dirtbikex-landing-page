@@ -1,0 +1,157 @@
+---
+// English-only — admin surface, no [lang] mirror per Phase C.4 plan.
+// Cloudflare Access gates access at the edge before this page is reachable.
+// Operator email comes back as a CF-set header which the Worker forwards
+// to sponsorhub as X-Admin-Email for audit.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Admin — Sponsor uploads">
+  <section class="mx-auto max-w-5xl px-4 py-12">
+    <h1 class="text-3xl font-bold mb-2">Sponsor image moderation</h1>
+    <p class="text-gray-600 dark:text-gray-300 mb-8">
+      Custom hero images awaiting review (§6.9). Approve to flip the slot to
+      <code>image_status=approved</code> — image starts rendering on the splash
+      on the next iOS daily refresh. Reject deletes the OCI object and emails
+      the buyer.
+    </p>
+
+    <div id="queue">
+      <p id="queue-loading" class="text-gray-500 italic">Loading queue…</p>
+      <p id="queue-empty" class="hidden text-gray-500 italic">No pending uploads.</p>
+      <p id="queue-error" class="hidden text-amber-600">Couldn't reach sponsorhub. Check the Worker logs.</p>
+      <ul id="queue-list" class="hidden space-y-4"></ul>
+    </div>
+  </section>
+
+  <script>
+    type Pending = {
+      id: string;
+      section: string;
+      slot_order: number;
+      month: string;
+      discourse_user_id: number | null;
+      brand_name: string | null;
+      custom_image_object_key: string | null;
+      updated_at: string;
+    };
+
+    const listEl = document.getElementById('queue-list') as HTMLUListElement;
+    const loading = document.getElementById('queue-loading')!;
+    const empty = document.getElementById('queue-empty')!;
+    const errorEl = document.getElementById('queue-error')!;
+
+    function escapeHTML(s: string): string {
+      return s.replace(/[&<>"']/g, (c) =>
+        ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!),
+      );
+    }
+
+    function identity(p: Pending): string {
+      if (p.brand_name) return p.brand_name;
+      if (p.discourse_user_id) return `forum user #${p.discourse_user_id}`;
+      return p.id;
+    }
+
+    // The OCI public URL pattern is the same one sponsorhub stamps on
+    // /sponsors.json once approved. Read from the row's object_key + a
+    // cache-buster.
+    const OCI_BASE = 'https://vhcompat.objectstorage.ap-osaka-1.oci.customer-oci.com';
+    const BUCKET = 'dirtbikex-forum-uploads';
+
+    function previewUrl(p: Pending): string | null {
+      if (!p.custom_image_object_key) return null;
+      const v = Date.parse(p.updated_at) || Date.now();
+      return `${OCI_BASE}/${BUCKET}/${p.custom_image_object_key}?v=${v}`;
+    }
+
+    function row(p: Pending): HTMLLIElement {
+      const li = document.createElement('li');
+      li.className = 'border rounded-lg p-4 flex gap-4 items-start';
+      const url = previewUrl(p);
+      const img = url
+        ? `<img src="${escapeHTML(url)}" alt="" class="w-32 h-32 object-cover rounded" />`
+        : `<div class="w-32 h-32 bg-gray-200 rounded flex items-center justify-center text-xs text-gray-500">no preview</div>`;
+      const ageMs = Date.now() - Date.parse(p.updated_at);
+      const ageH = Math.max(1, Math.round(ageMs / 36e5));
+      li.innerHTML = `
+        ${img}
+        <div class="flex-1">
+          <div class="font-semibold">${escapeHTML(identity(p))}</div>
+          <div class="text-sm text-gray-600 dark:text-gray-300">
+            ${escapeHTML(p.section)} · slot ${p.slot_order} · ${escapeHTML(p.month)}
+          </div>
+          <div class="text-xs text-gray-500 mt-1">${ageH}h since upload</div>
+          <div class="mt-3 flex gap-2 items-center">
+            <button data-action="approve" data-slot="${escapeHTML(p.id)}" class="px-4 py-2 bg-green-600 text-white rounded font-medium hover:bg-green-700">Approve</button>
+            <input type="text" placeholder="Rejection reason (optional)" data-reason-for="${escapeHTML(p.id)}" class="flex-1 px-2 py-1 border rounded text-sm" />
+            <button data-action="reject" data-slot="${escapeHTML(p.id)}" class="px-4 py-2 bg-red-600 text-white rounded font-medium hover:bg-red-700">Reject</button>
+          </div>
+          <div data-result-for="${escapeHTML(p.id)}" class="text-sm mt-2"></div>
+        </div>
+      `;
+      return li;
+    }
+
+    async function load() {
+      try {
+        const resp = await fetch('/admin/uploads/api/queue', { cache: 'no-store' });
+        if (resp.status === 401) {
+          errorEl.textContent = 'Not authenticated. Refresh to re-trigger CF Access.';
+          loading.classList.add('hidden');
+          errorEl.classList.remove('hidden');
+          return;
+        }
+        if (!resp.ok) throw new Error(`status ${resp.status}`);
+        const body = (await resp.json()) as { slots: Pending[] };
+        loading.classList.add('hidden');
+        if (body.slots.length === 0) { empty.classList.remove('hidden'); return; }
+        body.slots.forEach((p) => listEl.appendChild(row(p)));
+        listEl.classList.remove('hidden');
+      } catch (err) {
+        console.error('queue:load_failed', err);
+        loading.classList.add('hidden');
+        errorEl.classList.remove('hidden');
+      }
+    }
+
+    listEl.addEventListener('click', async (ev) => {
+      const btn = (ev.target as HTMLElement).closest<HTMLButtonElement>('button[data-action]');
+      if (!btn) return;
+      const slotId = btn.dataset.slot!;
+      const action = btn.dataset.action!;
+      const resultEl = listEl.querySelector<HTMLDivElement>(`[data-result-for="${slotId}"]`)!;
+      btn.disabled = true;
+      try {
+        const body: Record<string, string> = {};
+        if (action === 'reject') {
+          const reasonEl = listEl.querySelector<HTMLInputElement>(`[data-reason-for="${slotId}"]`);
+          if (reasonEl?.value) body.reason = reasonEl.value;
+        }
+        const resp = await fetch(`/admin/uploads/api/${encodeURIComponent(slotId)}/${action}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        if (!resp.ok) {
+          const text = await resp.text();
+          resultEl.textContent = `error: ${resp.status} ${text}`;
+          resultEl.className = 'text-sm mt-2 text-red-600';
+          btn.disabled = false;
+          return;
+        }
+        resultEl.textContent = action === 'approve' ? 'approved' : 'rejected';
+        resultEl.className = 'text-sm mt-2 text-green-700';
+        // Hide the row's action buttons; leave the row in place for the
+        // operator's visual confirmation. A page refresh re-fetches the queue.
+        btn.closest('li')?.querySelectorAll('button').forEach((b) => ((b as HTMLButtonElement).disabled = true));
+      } catch (err) {
+        resultEl.textContent = `network error: ${String(err)}`;
+        resultEl.className = 'text-sm mt-2 text-red-600';
+        btn.disabled = false;
+      }
+    });
+
+    load();
+  </script>
+</BaseLayout>

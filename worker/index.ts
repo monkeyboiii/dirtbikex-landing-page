@@ -2,6 +2,10 @@ import { lookupInvite, type LookupResult } from './_lib/inviteLookup';
 import { renderShareLanding } from './_lib/render';
 import { fetchForumMetrics } from './_lib/forumMetrics';
 import { fetchForumFeatured } from './_lib/forumFeatured';
+import { fetchSponsors, fetchLeaderboard } from './_lib/sponsorProxy';
+import { forwardAdmin } from './_lib/adminProxy';
+import { handleFinalizePresign, handleFinalizeComplete } from './_lib/finalize';
+import { handleClaimLookup, handleClaimCommit } from './_lib/grantClaim';
 import type { PagesEnv, ShareLandingProps } from './_lib/types';
 
 interface Env extends PagesEnv {
@@ -127,7 +131,53 @@ export default {
     if (request.method === 'GET') {
       if (url.pathname === '/api/forum/metrics.json') return handleForumMetrics(env);
       if (url.pathname === '/api/forum/featured.json') return handleForumFeatured(env);
+      if (url.pathname === '/api/proxy/sponsors') return fetchSponsors(env);
+      const lb = url.pathname.match(/^\/api\/proxy\/leaderboard\/([a-z_]+)\.json$/);
+      if (lb) return fetchLeaderboard(env, lb[1]!);
     }
+
+    // /admin/uploads/* — CF-Access-gated. The HTML page is a static asset
+    // (served via ASSETS); only the api/ subpaths proxy to sponsorhub.
+    // Path mapping:
+    //   GET  /admin/uploads/api/queue                → GET  /admin/uploads
+    //   POST /admin/uploads/api/:slotId/approve      → POST /admin/uploads/:slotId/approve
+    //   POST /admin/uploads/api/:slotId/reject       → POST /admin/uploads/:slotId/reject
+    if (url.pathname === '/admin/uploads/api/queue' && request.method === 'GET') {
+      return forwardAdmin(request, env, '/admin/uploads');
+    }
+    const modOp = url.pathname.match(/^\/admin\/uploads\/api\/([0-9a-fA-F-]+)\/(approve|reject)$/);
+    if (modOp && request.method === 'POST') {
+      return forwardAdmin(request, env, `/admin/uploads/${modOp[1]}/${modOp[2]}`);
+    }
+
+    // /sponsors/finalize?token=<>  — magic-link upload (PLAN_2 §4.2).
+    // Page is static; Worker handles the two API steps.
+    if (url.pathname === '/sponsors/finalize/api/presign' && request.method === 'POST') {
+      return handleFinalizePresign(request, env, url.searchParams.get('token') ?? '');
+    }
+    if (url.pathname === '/sponsors/finalize/api/complete' && request.method === 'POST') {
+      return handleFinalizeComplete(request, env, url.searchParams.get('token') ?? '');
+    }
+
+    // /s/g/<token> grant claim (PLAN_2 §4.3). The API subpaths proxy to
+    // sponsorhub; the bare GET serves the static template at /s/g/__token__/.
+    const claimLookup = url.pathname.match(/^\/s\/g\/([^/]+)\/api\/lookup$/);
+    if (claimLookup && request.method === 'GET') {
+      return handleClaimLookup(request, env, claimLookup[1]!);
+    }
+    const claimCommit = url.pathname.match(/^\/s\/g\/([^/]+)\/api\/claim$/);
+    if (claimCommit && request.method === 'POST') {
+      return handleClaimCommit(request, env, claimCommit[1]!);
+    }
+    const claimPage = url.pathname.match(/^\/s\/g\/([^/]+)\/?$/);
+    if (claimPage && request.method === 'GET') {
+      // Rewrite to the static template; the page's JS reads the real token
+      // from the original URL via location.pathname.
+      const rewritten = new URL(request.url);
+      rewritten.pathname = '/s/g/__token__/';
+      return env.ASSETS.fetch(new Request(rewritten.toString(), request));
+    }
+
     return env.ASSETS.fetch(request);
   },
 };

@@ -7,8 +7,8 @@
 import { fileURLToPath } from 'node:url';
 import fs from 'node:fs';
 import path from 'node:path';
-import type { Sponsor } from './sponsor-types';
-import { SECTION_MAX_SLOTS } from './sponsor-types';
+import type { Sponsor } from '../lib/sponsor-types';
+import { SECTION_MAX_SLOTS } from '../lib/sponsor-types';
 
 const MAX_IMAGE_BYTES = 500 * 1024;
 const FIRST_PARTY_HOSTS = ['www.dirtbikex.com', 'www.dirtbikechina.com'];

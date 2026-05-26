@@ -22,6 +22,16 @@ export interface PagesEnv {
   FORUM_API_USERNAME?: string;
   /** Discourse `Api-Key` header. Secret — wired via the Pages dashboard, not in wrangler.jsonc. */
   FORUM_API_KEY?: string;
+  /** sponsorhub edge — e.g. `https://api.dirtbikechina.com` (dev) / `https://api.dirtbikex.com` (prod). */
+  SPONSOR_API_BASE?: string;
+  /** KV binding for /sponsors/finalize + /s/g/:token rate-limiting (PLAN_2 §4.2/§4.3). Created via `wrangler kv namespace create` per env. */
+  RATELIMIT_KV?: KVNamespace;
+}
+
+/** Minimal KV shape — we only use the get/put surface; full @cloudflare/workers-types is overkill. */
+export interface KVNamespace {
+  get(key: string): Promise<string | null>;
+  put(key: string, value: string, options?: { expirationTtl?: number }): Promise<void>;
 }
 
 /** Props handed to the shared share-landing renderer. */

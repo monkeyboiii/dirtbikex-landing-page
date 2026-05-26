@@ -5,7 +5,7 @@
 //
 // Schema kept in sync with iOS/App/Caching/Sponsor/Sponsor.swift.
 
-import type { Sponsor, SponsorPayload } from './sponsor-types';
+import type { Sponsor, SponsorPayload } from '../lib/sponsor-types';
 import { validateSponsors } from './sponsor-validation';
 
 const sponsors: Sponsor[] = [

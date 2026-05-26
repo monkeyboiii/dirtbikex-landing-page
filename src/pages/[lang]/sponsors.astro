@@ -1,0 +1,103 @@
+---
+// Locale mirror of /sponsors. Pre-renders for every non-en locale; copy lives
+// in the page itself (i18n strings can be wired in later — sponsor data is
+// language-agnostic). Worker proxy /api/proxy/sponsors is locale-independent.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { APP_STORE_URL } from '../../config';
+import { nonEnLocales } from '../../i18n/ui';
+import type { SponsorSection } from '../../lib/sponsor-types';
+
+export function getStaticPaths() {
+  return nonEnLocales.map((lang) => ({ params: { lang } }));
+}
+
+const STRIP_SECTIONS: SponsorSection[] = ['header', 'mid_with_text', 'bottom_icon'];
+const SECTION_TITLES: Record<SponsorSection, string> = {
+  header: 'Header',
+  hero: 'Hero',
+  mid_with_text: 'Featured',
+  bottom_icon: 'Supporters',
+};
+---
+
+<BaseLayout title="Sponsors — DirtBikeX">
+  <section class="mx-auto max-w-4xl px-4 py-16">
+    <h1 class="text-4xl font-bold mb-4">Sponsors</h1>
+    <p class="text-gray-600 dark:text-gray-300 mb-12">
+      The brands and individuals supporting the DirtBikeX community.
+    </p>
+
+    <div id="sponsors-app" data-sections={JSON.stringify(STRIP_SECTIONS)} data-titles={JSON.stringify(SECTION_TITLES)}>
+      <p id="sponsors-loading" class="text-gray-500 italic">Loading sponsors…</p>
+      <div id="sponsors-error" class="hidden text-amber-600 dark:text-amber-300">
+        Couldn't load sponsors right now. Try again later.
+      </div>
+      <div id="sponsors-content" class="hidden"></div>
+      <div id="sponsors-empty" class="hidden text-gray-500 italic">
+        No active sponsors yet.
+        <a href={APP_STORE_URL} class="text-blue-600 underline">Get DirtBikeX</a> and grab a slot.
+      </div>
+    </div>
+
+    <div class="mt-12 border-t pt-8">
+      <a href={APP_STORE_URL} class="inline-block px-6 py-3 bg-black text-white rounded-lg font-semibold hover:bg-gray-800">
+        Become a sponsor — get DirtBikeX
+      </a>
+    </div>
+  </section>
+
+  <script>
+    // Inline-duplicated from /sponsors.astro. Astro doesn't share <script>
+    // hydration between page variants — re-importing the same TS module
+    // bundles it twice. For ~150 lines of view logic that's fine; if it
+    // grows, lift to a Web Component or an Astro island.
+    type Rider = { username: string | null; label: string; avatar_url: string | null; navigable: boolean; brand_link_url?: string };
+    type Sponsor = { id: string; section: 'header'|'hero'|'mid_with_text'|'bottom_icon'; logo_url?: string|null; name?: string|null; name_logo_url?: string|null; photo_url?: string|null; username?: string|null; brand_link_url?: string|null };
+    type Payload = { version: number; sponsors: Sponsor[]; sponsor_podium: { center: Rider; pool: Rider[] } };
+    const root = document.getElementById('sponsors-app')!;
+    const loading = document.getElementById('sponsors-loading')!;
+    const errorEl = document.getElementById('sponsors-error')!;
+    const content = document.getElementById('sponsors-content')!;
+    const empty = document.getElementById('sponsors-empty')!;
+    const stripSections = JSON.parse(root.dataset.sections!) as Sponsor['section'][];
+    const titles = JSON.parse(root.dataset.titles!) as Record<string, string>;
+    const FORUM_BASE = 'https://forum.dirtbikex.com';
+    function escapeHTML(s: string): string { return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!)); }
+    function avatarFor(s: Sponsor | Rider): string | null { if ('photo_url' in s && s.photo_url) return s.photo_url; if ('avatar_url' in s && s.avatar_url) return s.avatar_url; if ('logo_url' in s && s.logo_url) return s.logo_url; return null; }
+    function nameFor(s: Sponsor): string { return s.name || s.username || s.id; }
+    function hrefFor(s: { username?: string | null; brand_link_url?: string | null }): string | null { if (s.brand_link_url) return s.brand_link_url; if (s.username) return `${FORUM_BASE}/u/${encodeURIComponent(s.username)}`; return null; }
+    function renderItem(label: string, url: string | null, href: string | null): string {
+      const img = url ? `<img src="${escapeHTML(url)}" alt="${escapeHTML(label)}" class="w-24 h-24 rounded-full object-cover mb-2" loading="lazy" />` : `<div class="w-24 h-24 rounded-full bg-gray-200 dark:bg-gray-700 mb-2"></div>`;
+      const inner = `${img}<span class="text-sm font-medium">${escapeHTML(label)}</span>`;
+      return href ? `<li><a href="${escapeHTML(href)}" class="flex flex-col items-center text-center hover:opacity-80" target="_blank" rel="noopener noreferrer">${inner}</a></li>` : `<li class="flex flex-col items-center text-center">${inner}</li>`;
+    }
+    function renderSection(section: Sponsor['section'], sponsors: Sponsor[]): string {
+      const items = sponsors.filter((s) => s.section === section);
+      if (items.length === 0) return '';
+      const cells = items.map((s) => renderItem(nameFor(s), avatarFor(s), hrefFor(s))).join('');
+      return `<div class="mb-12"><h2 class="text-2xl font-semibold mb-6">${escapeHTML(titles[section])}</h2><ul class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">${cells}</ul></div>`;
+    }
+    function renderPodium(podium: Payload['sponsor_podium']): string {
+      const riders = [podium.center, ...podium.pool];
+      const cells = riders.map((r) => renderItem(r.label, r.avatar_url, hrefFor(r))).join('');
+      return `<div class="mb-12"><h2 class="text-2xl font-semibold mb-6">${escapeHTML(titles.hero)}</h2><ul class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">${cells}</ul></div>`;
+    }
+    async function load() {
+      try {
+        const resp = await fetch('/api/proxy/sponsors', { cache: 'no-store' });
+        if (!resp.ok) throw new Error(`status ${resp.status}`);
+        const payload = (await resp.json()) as Payload;
+        loading.classList.add('hidden');
+        const html = [renderPodium(payload.sponsor_podium), ...stripSections.map((s) => renderSection(s, payload.sponsors))].join('');
+        if (!html.trim() && payload.sponsor_podium.pool.length === 0) { empty.classList.remove('hidden'); return; }
+        content.innerHTML = html;
+        content.classList.remove('hidden');
+      } catch (err) {
+        console.error('sponsors:load_failed', err);
+        loading.classList.add('hidden');
+        errorEl.classList.remove('hidden');
+      }
+    }
+    load();
+  </script>
+</BaseLayout>

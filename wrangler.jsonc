@@ -26,7 +26,8 @@
     "FORUM_BASE": "https://forum.dirtbikex.com",
     // TODO: set to the production Data Explorer query ID.
     "FORUM_INVITE_QUERY_ID": "",
-    "FORUM_API_USERNAME": "system"
+    "FORUM_API_USERNAME": "system",
+    "SPONSOR_API_BASE": "https://api.dirtbikex.com"
   },
   "env": {
     "preview": {
@@ -34,7 +35,8 @@
       "vars": {
         "FORUM_BASE": "https://forum.dirtbikechina.com",
         "FORUM_INVITE_QUERY_ID": "2",
-        "FORUM_API_USERNAME": "system"
+        "FORUM_API_USERNAME": "system",
+        "SPONSOR_API_BASE": "https://api.dirtbikechina.com"
       },
       "assets": {
         "directory": "./dist",
