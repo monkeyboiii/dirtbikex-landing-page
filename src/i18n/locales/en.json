@@ -123,5 +123,9 @@
   "legal.lastUpdated": "Last updated",
   "legal.backHome": "← Back home",
   "legal.noticeOnlyEn": "This document is provided in English only. The English version is the authoritative version of these terms.",
-  "legal.noticeFallback": "{locale} translation is not yet available. The English version below is the authoritative version of these terms."
+  "legal.noticeFallback": "{locale} translation is not yet available. The English version below is the authoritative version of these terms.",
+
+  "notfound.title": "Page not found",
+  "notfound.body": "The page you’re looking for doesn’t exist or has moved.",
+  "notfound.cta": "Back to home"
 }

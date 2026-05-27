@@ -116,5 +116,9 @@
   "legal.lastUpdated": "Terakhir diperbarui",
   "legal.backHome": "← Kembali ke beranda",
   "legal.noticeOnlyEn": "Dokumen ini hanya tersedia dalam bahasa Inggris. Versi bahasa Inggris adalah versi resmi dari ketentuan ini.",
-  "legal.noticeFallback": "Terjemahan {locale} belum tersedia. Versi bahasa Inggris di bawah ini adalah versi resmi dari ketentuan ini."
+  "legal.noticeFallback": "Terjemahan {locale} belum tersedia. Versi bahasa Inggris di bawah ini adalah versi resmi dari ketentuan ini.",
+
+  "notfound.title": "Halaman tidak ditemukan",
+  "notfound.body": "Halaman yang Anda cari tidak ada atau telah dipindahkan.",
+  "notfound.cta": "Kembali ke beranda"
 }

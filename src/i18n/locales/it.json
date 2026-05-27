@@ -116,5 +116,9 @@
   "legal.lastUpdated": "Ultimo aggiornamento",
   "legal.backHome": "← Torna alla home",
   "legal.noticeOnlyEn": "Questo documento è fornito solo in inglese. La versione inglese è quella ufficiale di questi termini.",
-  "legal.noticeFallback": "La traduzione in {locale} non è ancora disponibile. La versione inglese qui sotto è quella ufficiale di questi termini."
+  "legal.noticeFallback": "La traduzione in {locale} non è ancora disponibile. La versione inglese qui sotto è quella ufficiale di questi termini.",
+
+  "notfound.title": "Pagina non trovata",
+  "notfound.body": "La pagina che cerchi non esiste o è stata spostata.",
+  "notfound.cta": "Torna alla home"
 }

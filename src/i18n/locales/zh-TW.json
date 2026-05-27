@@ -116,5 +116,9 @@
   "legal.lastUpdated": "最近更新",
   "legal.backHome": "← 回首頁",
   "legal.noticeOnlyEn": "本文件僅提供英文版本。英文版本為本條款的正式版本。",
-  "legal.noticeFallback": "{locale} 翻譯版本尚未上線。下方英文版本為本條款的正式版本。"
+  "legal.noticeFallback": "{locale} 翻譯版本尚未上線。下方英文版本為本條款的正式版本。",
+
+  "notfound.title": "找不到頁面",
+  "notfound.body": "您要找的頁面不存在或已被移動。",
+  "notfound.cta": "返回首頁"
 }

@@ -1,0 +1,17 @@
+---
+import { getLangFromUrl, useTranslations, localizedPath } from '../i18n/utils';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+---
+
+<section class="container-narrow py-24 text-center">
+  <p class="t-mono-sm" style="color: var(--brand);">404</p>
+  <h1 class="t-display-3 mt-4">{t('notfound.title')}</h1>
+  <p class="t-body-lg mt-4 mx-auto max-w-prose" style="color: var(--fg-secondary);">
+    {t('notfound.body')}
+  </p>
+  <a href={localizedPath(lang, '/')} class="btn btn--primary btn--lg mt-8">
+    {t('notfound.cta')}
+  </a>
+</section>

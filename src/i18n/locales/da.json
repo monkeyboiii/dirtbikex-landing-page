@@ -116,5 +116,9 @@
   "legal.lastUpdated": "Senest opdateret",
   "legal.backHome": "← Tilbage til forsiden",
   "legal.noticeOnlyEn": "Dette dokument findes kun på engelsk. Den engelske version er den officielle version af disse vilkår.",
-  "legal.noticeFallback": "Oversættelsen til {locale} er endnu ikke tilgængelig. Den engelske version nedenfor er den officielle version af disse vilkår."
+  "legal.noticeFallback": "Oversættelsen til {locale} er endnu ikke tilgængelig. Den engelske version nedenfor er den officielle version af disse vilkår.",
+
+  "notfound.title": "Siden blev ikke fundet",
+  "notfound.body": "Den side, du leder efter, findes ikke eller er blevet flyttet.",
+  "notfound.cta": "Tilbage til forsiden"
 }

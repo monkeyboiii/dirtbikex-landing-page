@@ -116,5 +116,9 @@
   "legal.lastUpdated": "최근 업데이트",
   "legal.backHome": "← 홈으로",
   "legal.noticeOnlyEn": "이 문서는 영어로만 제공됩니다. 영어 버전이 본 약관의 정식 버전입니다.",
-  "legal.noticeFallback": "{locale} 번역 버전은 아직 준비되지 않았습니다. 아래 영어 버전이 본 약관의 정식 버전입니다."
+  "legal.noticeFallback": "{locale} 번역 버전은 아직 준비되지 않았습니다. 아래 영어 버전이 본 약관의 정식 버전입니다.",
+
+  "notfound.title": "페이지를 찾을 수 없습니다",
+  "notfound.body": "찾으시는 페이지가 존재하지 않거나 이동되었습니다.",
+  "notfound.cta": "홈으로 돌아가기"
 }

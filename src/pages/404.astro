@@ -1,0 +1,12 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import NotFoundBody from '../components/NotFoundBody.astro';
+import { getLangFromUrl, useTranslations } from '../i18n/utils';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+---
+
+<BaseLayout title={`${t('notfound.title')} — DirtBikeX`}>
+  <NotFoundBody />
+</BaseLayout>

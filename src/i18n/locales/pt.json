@@ -116,5 +116,9 @@
   "legal.lastUpdated": "Última atualização",
   "legal.backHome": "← Voltar para a página inicial",
   "legal.noticeOnlyEn": "Este documento está disponível apenas em inglês. A versão em inglês é a versão oficial destes termos.",
-  "legal.noticeFallback": "A tradução para {locale} ainda não está disponível. A versão em inglês abaixo é a versão oficial destes termos."
+  "legal.noticeFallback": "A tradução para {locale} ainda não está disponível. A versão em inglês abaixo é a versão oficial destes termos.",
+
+  "notfound.title": "Página não encontrada",
+  "notfound.body": "A página que você procura não existe ou foi movida.",
+  "notfound.cta": "Voltar ao início"
 }

@@ -123,5 +123,9 @@
   "legal.lastUpdated": "最近更新",
   "legal.backHome": "← 返回首页",
   "legal.noticeOnlyEn": "本文档仅提供英文版本。英文版本为本条款的权威版本。",
-  "legal.noticeFallback": "{locale} 翻译版本暂未上线。下方英文版本为本条款的权威版本。"
+  "legal.noticeFallback": "{locale} 翻译版本暂未上线。下方英文版本为本条款的权威版本。",
+
+  "notfound.title": "页面未找到",
+  "notfound.body": "您访问的页面不存在或已被移动。",
+  "notfound.cta": "返回首页"
 }

@@ -41,6 +41,14 @@ export async function forwardAdmin(request: Request, env: PagesEnv, upstreamPath
   const incomingCT = request.headers.get('Content-Type');
   if (incomingCT) headers.set('Content-Type', incomingCT);
 
+  // SPONSOR_API_BASE/admin/* sits behind CF Access; present the service token so
+  // this Worker-originated request authenticates to it (the operator's browser
+  // session doesn't carry to the upstream fetch). Without it CF Access returns a 302.
+  if (env.SPONSOR_CF_ACCESS_CLIENT_ID && env.SPONSOR_CF_ACCESS_CLIENT_SECRET) {
+    headers.set('CF-Access-Client-Id', env.SPONSOR_CF_ACCESS_CLIENT_ID);
+    headers.set('CF-Access-Client-Secret', env.SPONSOR_CF_ACCESS_CLIENT_SECRET);
+  }
+
   const init: RequestInit = {
     method: request.method,
     headers,

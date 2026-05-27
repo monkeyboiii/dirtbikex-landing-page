@@ -24,6 +24,11 @@ export interface PagesEnv {
   FORUM_API_KEY?: string;
   /** sponsorhub edge — e.g. `https://api.dirtbikechina.com` (dev) / `https://api.dirtbikex.com` (prod). */
   SPONSOR_API_BASE?: string;
+  /** CF Access service-token credentials for the Worker's calls to `SPONSOR_API_BASE/admin/*`,
+   *  which sits behind CF Access. Secrets — set via `wrangler secret put`, not wrangler.jsonc.
+   *  Without them the upstream admin call is bounced by CF Access with a 302. */
+  SPONSOR_CF_ACCESS_CLIENT_ID?: string;
+  SPONSOR_CF_ACCESS_CLIENT_SECRET?: string;
   /** KV binding for /sponsors/finalize + /s/g/:token rate-limiting (PLAN_2 §4.2/§4.3). Created via `wrangler kv namespace create` per env. */
   RATELIMIT_KV?: KVNamespace;
 }

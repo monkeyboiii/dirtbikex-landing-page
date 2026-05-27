@@ -116,5 +116,9 @@
   "legal.lastUpdated": "最終更新",
   "legal.backHome": "← ホームへ戻る",
   "legal.noticeOnlyEn": "本ドキュメントは英語のみで提供されています。本規約の正式な版は英語版です。",
-  "legal.noticeFallback": "{locale} 版の翻訳はまだ用意できていません。下の英語版が本規約の正式な版となります。"
+  "legal.noticeFallback": "{locale} 版の翻訳はまだ用意できていません。下の英語版が本規約の正式な版となります。",
+
+  "notfound.title": "ページが見つかりません",
+  "notfound.body": "お探しのページは存在しないか、移動された可能性があります。",
+  "notfound.cta": "ホームへ戻る"
 }

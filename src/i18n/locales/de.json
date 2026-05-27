@@ -116,5 +116,9 @@
   "legal.lastUpdated": "Zuletzt aktualisiert",
   "legal.backHome": "← Zurück zur Startseite",
   "legal.noticeOnlyEn": "Dieses Dokument ist nur auf Englisch verfügbar. Die englische Fassung ist die maßgebliche Version dieser Bedingungen.",
-  "legal.noticeFallback": "Eine Übersetzung in {locale} ist noch nicht verfügbar. Die englische Fassung unten ist die maßgebliche Version dieser Bedingungen."
+  "legal.noticeFallback": "Eine Übersetzung in {locale} ist noch nicht verfügbar. Die englische Fassung unten ist die maßgebliche Version dieser Bedingungen.",
+
+  "notfound.title": "Seite nicht gefunden",
+  "notfound.body": "Die gesuchte Seite existiert nicht oder wurde verschoben.",
+  "notfound.cta": "Zurück zur Startseite"
 }

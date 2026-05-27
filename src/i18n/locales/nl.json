@@ -116,5 +116,9 @@
   "legal.lastUpdated": "Laatst bijgewerkt",
   "legal.backHome": "← Terug naar home",
   "legal.noticeOnlyEn": "Dit document is alleen in het Engels beschikbaar. De Engelse versie is de officiële versie van deze voorwaarden.",
-  "legal.noticeFallback": "De vertaling naar {locale} is nog niet beschikbaar. De Engelse versie hieronder is de officiële versie van deze voorwaarden."
+  "legal.noticeFallback": "De vertaling naar {locale} is nog niet beschikbaar. De Engelse versie hieronder is de officiële versie van deze voorwaarden.",
+
+  "notfound.title": "Pagina niet gevonden",
+  "notfound.body": "De pagina die u zoekt bestaat niet of is verplaatst.",
+  "notfound.cta": "Terug naar home"
 }

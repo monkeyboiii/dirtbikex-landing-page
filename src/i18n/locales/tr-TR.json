@@ -116,5 +116,9 @@
   "legal.lastUpdated": "Son güncelleme",
   "legal.backHome": "← Anasayfaya dön",
   "legal.noticeOnlyEn": "Bu belge yalnızca İngilizce sunulmaktadır. İngilizce sürüm bu şartların resmi sürümüdür.",
-  "legal.noticeFallback": "{locale} çevirisi henüz mevcut değil. Aşağıdaki İngilizce sürüm bu şartların resmi sürümüdür."
+  "legal.noticeFallback": "{locale} çevirisi henüz mevcut değil. Aşağıdaki İngilizce sürüm bu şartların resmi sürümüdür.",
+
+  "notfound.title": "Sayfa bulunamadı",
+  "notfound.body": "Aradığınız sayfa mevcut değil veya taşınmış.",
+  "notfound.cta": "Ana sayfaya dön"
 }

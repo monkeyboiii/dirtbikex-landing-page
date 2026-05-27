@@ -116,5 +116,9 @@
   "legal.lastUpdated": "Cập nhật lần cuối",
   "legal.backHome": "← Trở về trang chủ",
   "legal.noticeOnlyEn": "Tài liệu này chỉ có sẵn bằng tiếng Anh. Bản tiếng Anh là bản chính thức của các điều khoản này.",
-  "legal.noticeFallback": "Bản dịch {locale} hiện chưa có. Bản tiếng Anh bên dưới là bản chính thức của các điều khoản này."
+  "legal.noticeFallback": "Bản dịch {locale} hiện chưa có. Bản tiếng Anh bên dưới là bản chính thức của các điều khoản này.",
+
+  "notfound.title": "Không tìm thấy trang",
+  "notfound.body": "Trang bạn đang tìm không tồn tại hoặc đã được di chuyển.",
+  "notfound.cta": "Quay về trang chủ"
 }

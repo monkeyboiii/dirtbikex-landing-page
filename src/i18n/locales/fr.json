@@ -116,5 +116,9 @@
   "legal.lastUpdated": "Dernière mise à jour",
   "legal.backHome": "← Retour à l'accueil",
   "legal.noticeOnlyEn": "Ce document n'est disponible qu'en anglais. La version anglaise fait foi pour ces conditions.",
-  "legal.noticeFallback": "La traduction en {locale} n'est pas encore disponible. La version anglaise ci-dessous fait foi pour ces conditions."
+  "legal.noticeFallback": "La traduction en {locale} n'est pas encore disponible. La version anglaise ci-dessous fait foi pour ces conditions.",
+
+  "notfound.title": "Page introuvable",
+  "notfound.body": "La page que vous recherchez n’existe pas ou a été déplacée.",
+  "notfound.cta": "Retour à l’accueil"
 }

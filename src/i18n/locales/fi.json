@@ -116,5 +116,9 @@
   "legal.lastUpdated": "Viimeksi päivitetty",
   "legal.backHome": "← Takaisin etusivulle",
   "legal.noticeOnlyEn": "Tämä asiakirja on saatavilla vain englanniksi. Englanninkielinen versio on näiden ehtojen virallinen versio.",
-  "legal.noticeFallback": "Käännöstä kielelle {locale} ei ole vielä saatavilla. Alla oleva englanninkielinen versio on näiden ehtojen virallinen versio."
+  "legal.noticeFallback": "Käännöstä kielelle {locale} ei ole vielä saatavilla. Alla oleva englanninkielinen versio on näiden ehtojen virallinen versio.",
+
+  "notfound.title": "Sivua ei löytynyt",
+  "notfound.body": "Etsimääsi sivua ei ole olemassa tai se on siirretty.",
+  "notfound.cta": "Takaisin etusivulle"
 }
