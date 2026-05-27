@@ -51,8 +51,11 @@
   Content-Type: application/json
   Cache-Control: public, max-age=3600, s-maxage=86400
 
+# Per-token/per-key dynamic routes (rendered by the worker). Never edge-cache:
+# during a worker deploy gap the asset layer serves a 404-page here, and any
+# s-maxage would pin that transient 404 at a CF PoP for hours.
 /s/*
-  Cache-Control: public, max-age=60
+  Cache-Control: no-store
 
 /*
   Cache-Control: public, max-age=300, s-maxage=86400
