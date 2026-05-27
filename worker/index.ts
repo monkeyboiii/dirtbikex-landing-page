@@ -175,7 +175,13 @@ export default {
       // from the original URL via location.pathname.
       const rewritten = new URL(request.url);
       rewritten.pathname = '/s/g/__token__/';
-      return env.ASSETS.fetch(new Request(rewritten.toString(), request));
+      // Never edge-cache a per-token URL: the static asset carries s-maxage=86400,
+      // which otherwise pins a transient 404 (e.g. a request racing a deploy) for
+      // 24h per CF PoP. Claim state is resolved client-side via the no-store lookup.
+      const res = await env.ASSETS.fetch(new Request(rewritten.toString(), request));
+      const out = new Response(res.body, res);
+      out.headers.set('Cache-Control', 'no-store');
+      return out;
     }
 
     return env.ASSETS.fetch(request);
