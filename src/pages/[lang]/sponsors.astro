@@ -3,7 +3,7 @@
 // in the page itself (i18n strings can be wired in later — sponsor data is
 // language-agnostic). Worker proxy /api/proxy/sponsors is locale-independent.
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { APP_STORE_URL } from '../../config';
+import { APP_STORE_URL, FORUM_BASE } from '../../config';
 import { nonEnLocales } from '../../i18n/ui';
 import type { SponsorSection } from '../../lib/sponsor-types';
 
@@ -27,7 +27,7 @@ const SECTION_TITLES: Record<SponsorSection, string> = {
       The brands and individuals supporting the DirtBikeX community.
     </p>
 
-    <div id="sponsors-app" data-sections={JSON.stringify(STRIP_SECTIONS)} data-titles={JSON.stringify(SECTION_TITLES)}>
+    <div id="sponsors-app" data-sections={JSON.stringify(STRIP_SECTIONS)} data-titles={JSON.stringify(SECTION_TITLES)} data-forum-base={FORUM_BASE}>
       <p id="sponsors-loading" class="text-gray-500 italic">Loading sponsors…</p>
       <div id="sponsors-error" class="hidden text-amber-600 dark:text-amber-300">
         Couldn't load sponsors right now. Try again later.
@@ -61,7 +61,7 @@ const SECTION_TITLES: Record<SponsorSection, string> = {
     const empty = document.getElementById('sponsors-empty')!;
     const stripSections = JSON.parse(root.dataset.sections!) as Sponsor['section'][];
     const titles = JSON.parse(root.dataset.titles!) as Record<string, string>;
-    const FORUM_BASE = 'https://forum.dirtbikex.com';
+    const FORUM_BASE = root.dataset.forumBase!;
     function escapeHTML(s: string): string { return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!)); }
     function avatarFor(s: Sponsor | Rider): string | null { if ('photo_url' in s && s.photo_url) return s.photo_url; if ('avatar_url' in s && s.avatar_url) return s.avatar_url; if ('logo_url' in s && s.logo_url) return s.logo_url; return null; }
     function nameFor(s: Sponsor): string { return s.name || s.username || s.id; }

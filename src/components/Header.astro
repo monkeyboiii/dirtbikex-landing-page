@@ -1,6 +1,6 @@
 ---
 import { getLangFromUrl, useTranslations, localizedPath } from '../i18n/utils';
-import { APP_STORE_URL } from '../config';
+import { APP_STORE_URL, FORUM_BASE } from '../config';
 import LangSwitcher from './LangSwitcher.astro';
 import Icon from './Icon.astro';
 
@@ -18,7 +18,7 @@ const home = localizedPath(lang, '/');
     <nav class="site-nav">
       <a href={`${home}#features`}>{t('nav.features')}</a>
       <a href={`${home}#faq`}>{t('nav.faq')}</a>
-      <a href="https://forum.dirtbikex.com" target="_blank" rel="noopener">{t('nav.community')}</a>
+      <a href={FORUM_BASE} target="_blank" rel="noopener">{t('nav.community')}</a>
     </nav>
 
     <div class="site-tools">

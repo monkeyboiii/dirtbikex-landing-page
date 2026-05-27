@@ -1,6 +1,7 @@
 ---
 import Icon from './Icon.astro';
 import { getLangFromUrl, useTranslations } from '../i18n/utils';
+import { FORUM_BASE } from '../config';
 
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
@@ -31,7 +32,7 @@ const t = useTranslations(lang);
     </div>
 
     <div class="featured-foot">
-      <a href="https://forum.dirtbikex.com" target="_blank" rel="noopener">
+      <a href={FORUM_BASE} target="_blank" rel="noopener">
         {t('featured.cta')}
         <Icon name="arrow-right" size={14} />
       </a>
@@ -39,7 +40,7 @@ const t = useTranslations(lang);
   </div>
 </section>
 
-<script is:inline define:vars={{ liveLabel: t('featured.live'), solvedLabel: t('featured.solved') }}>
+<script is:inline define:vars={{ liveLabel: t('featured.live'), solvedLabel: t('featured.solved'), forumBaseFallback: FORUM_BASE }}>
   (function () {
     const grid = document.getElementById('featured-grid');
     if (!grid) return;
@@ -48,7 +49,7 @@ const t = useTranslations(lang);
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
         if (!data || !Array.isArray(data.topics) || data.topics.length === 0) return;
-        const forumBase = data.forum_base || 'https://forum.dirtbikex.com';
+        const forumBase = data.forum_base || forumBaseFallback;
         const topics = data.topics.slice(0, 5);
 
         const escapeHtml = (s) =>

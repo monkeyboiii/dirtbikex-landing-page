@@ -1,6 +1,7 @@
 ---
 import { getLangFromUrl, useTranslations, localizedPath, switchLangPath } from '../i18n/utils';
 import { languages, type Lang } from '../i18n/ui';
+import { FORUM_BASE } from '../config';
 import AppStoreBadge from './AppStoreBadge.astro';
 
 const lang = getLangFromUrl(Astro.url);
@@ -26,7 +27,7 @@ const localeEntries = (Object.keys(languages) as Lang[]).map((code) => ({
     </div>
 
     <nav class="site-footer__nav">
-      <a href="https://forum.dirtbikex.com" target="_blank" rel="noopener">{t('footer.forum')}</a>
+      <a href={FORUM_BASE} target="_blank" rel="noopener">{t('footer.forum')}</a>
       <a href={localizedPath(lang, '/contact')}>{t('footer.contact')}</a>
       <a href={localizedPath(lang, '/founders')}>{t('footer.founders')}</a>
       <a href={localizedPath(lang, '/privacy')}>{t('footer.legal.privacy')}</a>

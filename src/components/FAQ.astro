@@ -1,6 +1,7 @@
 ---
 import Icon from './Icon.astro';
 import { getLangFromUrl, useTranslations } from '../i18n/utils';
+import { FORUM_BASE } from '../config';
 
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
@@ -73,7 +74,7 @@ const quote = isZh
             <div class="faq-cta__title">{t('faq.cta.title')}</div>
             <div class="faq-cta__sub">{t('faq.cta.sub')}</div>
           </div>
-          <a href="https://forum.dirtbikex.com" target="_blank" rel="noopener" class="btn btn--primary">
+          <a href={FORUM_BASE} target="_blank" rel="noopener" class="btn btn--primary">
             {t('faq.cta.btn')}
             <Icon name="arrow-right" size={14} />
           </a>

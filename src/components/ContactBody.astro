@@ -1,5 +1,6 @@
 ---
 import { getLangFromUrl, useTranslations } from '../i18n/utils';
+import { FORUM_BASE } from '../config';
 
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
@@ -30,7 +31,7 @@ const socials = [
         {t('contact.forum.body')}
       </p>
       <a
-        href="https://forum.dirtbikex.com"
+        href={FORUM_BASE}
         target="_blank"
         rel="noopener"
         class="inline-flex items-center gap-2 mt-6 px-5 py-3 rounded-full font-medium"
