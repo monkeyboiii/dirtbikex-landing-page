@@ -6,7 +6,8 @@ import { fetchSponsors, fetchLeaderboard } from './_lib/sponsorProxy';
 import { forwardAdmin } from './_lib/adminProxy';
 import { handleFinalizePresign, handleFinalizeComplete } from './_lib/finalize';
 import { handleClaimLookup, handleClaimCommit } from './_lib/grantClaim';
-import type { PagesEnv, ShareLandingProps } from './_lib/types';
+import { handleLogtoSms } from './_lib/logtoSms';
+import type { Lang, PagesEnv, ShareLandingProps } from './_lib/types';
 
 interface Env extends PagesEnv {
   /** Static-assets binding (serves files from `dist/`). Minimal inline shape — */
@@ -21,7 +22,20 @@ interface Env extends PagesEnv {
  */
 const APP_STORE_URL = 'https://apps.apple.com/app/id0000000000';
 
-const COPY = {
+interface Copy {
+  ctaLabel: string;
+  returnTap: string;
+  expiredTitle: string;
+  expiredSubtitle: string;
+  notFoundTitle: string;
+  notFoundSubtitle: string;
+  fallbackTitle: string;
+}
+
+// Locales not present here fall back to `en` via `getCopy()`. Add more
+// translations in-place; the translation pipeline that fans out
+// `src/i18n/locales/*.json` doesn't currently cover this worker-side copy.
+const COPY: Partial<Record<Lang, Copy>> = {
   en: {
     ctaLabel: 'Get DirtBikeX',
     returnTap: 'Already installed? Tap the link again to open it in the app.',
@@ -31,7 +45,7 @@ const COPY = {
     notFoundSubtitle: "This link doesn't exist. Get DirtBikeX to start riding.",
     fallbackTitle: 'Get DirtBikeX',
   },
-  zh: {
+  'zh-CN': {
     ctaLabel: '下载 DirtBikeX',
     returnTap: '已经安装了？再次点击链接即可在应用内打开。',
     expiredTitle: '邀请已过期',
@@ -40,18 +54,51 @@ const COPY = {
     notFoundSubtitle: '该链接无效。下载 DirtBikeX 开始骑行。',
     fallbackTitle: '下载 DirtBikeX',
   },
-} as const;
+};
 
-type Copy = typeof COPY['en' | 'zh'];
+function getCopy(locale: Lang): Copy {
+  return COPY[locale] ?? COPY.en!;
+}
 
-function pickLocale(acceptLanguage: string | null): 'en' | 'zh' {
-  return acceptLanguage && /\bzh\b/i.test(acceptLanguage) ? 'zh' : 'en';
+const LOCALES: readonly Lang[] = [
+  'en', 'zh-CN', 'zh-TW', 'ja', 'ko', 'de', 'it', 'fr', 'es', 'ar',
+  'da', 'el', 'fa-IR', 'fi', 'id', 'nl', 'pt', 'tr-TR', 'th', 'vi',
+];
+
+/**
+ * Resolve a locale for `/s/i/<key>` (and any future `/s/<kind>/<token>` page).
+ * `?lang=` wins so a shared URL like `/s/i/<key>?lang=zh-CN` renders
+ * deterministically — and the URL pattern stays under `/s/*` (path unchanged),
+ * preserving the AASA universal-link contract.
+ */
+function pickLocale(url: URL, acceptLanguage: string | null): Lang {
+  const qs = url.searchParams.get('lang');
+  if (qs && (LOCALES as readonly string[]).includes(qs)) return qs as Lang;
+
+  if (!acceptLanguage) return 'en';
+  const tags = acceptLanguage
+    .split(',')
+    .map((t) => t.trim().split(';')[0]!.trim())
+    .filter(Boolean);
+  for (const raw of tags) {
+    const tag = raw.toLowerCase();
+    const exact = LOCALES.find((l) => l.toLowerCase() === tag);
+    if (exact) return exact;
+    const base = tag.split('-')[0]!;
+    if (base === 'zh') {
+      const want: Lang = /hant|tw|hk|mo/.test(tag) ? 'zh-TW' : 'zh-CN';
+      if (LOCALES.includes(want)) return want;
+    }
+    const byBase = LOCALES.find((l) => l.toLowerCase().split('-')[0] === base);
+    if (byBase) return byBase;
+  }
+  return 'en';
 }
 
 function buildProps(
   result: LookupResult,
   copy: Copy,
-  locale: 'en' | 'zh',
+  locale: Lang,
   forumBase: string,
 ): { props: ShareLandingProps; cacheControl?: string } {
   const base: Pick<ShareLandingProps, 'kind' | 'locale' | 'primaryCTA' | 'returnTapCopy' | 'forumBase'> = {
@@ -84,8 +131,9 @@ function buildProps(
 }
 
 async function handleInvite(request: Request, env: Env, key: string): Promise<Response> {
-  const locale = pickLocale(request.headers.get('accept-language'));
-  const copy = COPY[locale];
+  const url = new URL(request.url);
+  const locale = pickLocale(url, request.headers.get('accept-language'));
+  const copy = getCopy(locale);
   const forumBase = env.FORUM_BASE ?? '';
 
   const result = await lookupInvite(env, key);
@@ -169,6 +217,11 @@ export default {
     if (claimCommit && request.method === 'POST') {
       return handleClaimCommit(request, env, claimCommit[1]!);
     }
+    // /api/logto/sms — Logto HTTP SMS connector. See docs/sms-gateway.md.
+    if (url.pathname === '/api/logto/sms' && request.method === 'POST') {
+      return handleLogtoSms(request, env);
+    }
+
     const claimPage = url.pathname.match(/^\/s\/g\/([^/]+)\/?$/);
     if (claimPage && request.method === 'GET') {
       // Rewrite to the static template; the page's JS reads the real token

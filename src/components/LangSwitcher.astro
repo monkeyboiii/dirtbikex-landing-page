@@ -54,6 +54,23 @@ const currentEntry = entries.find((e) => e.active) ?? entries[0];
 
 <script is:inline>
   (function () {
+    // On worker-rendered share pages (/s/<kind>/<token>) the build-time
+    // hrefs bake the prerender placeholder (e.g. /s/g/__token__/) into
+    // each locale link, which then 404s. Worse, those /<locale>/s/...
+    // URLs sit outside the AASA `/s/*` deep-link contract. Rewrite at
+    // runtime: keep location.pathname intact and put the target locale
+    // in ?lang= so the URL remains a valid universal link.
+    if (location.pathname.startsWith('/s/')) {
+      var defaultLang = 'en';
+      document.querySelectorAll('[data-langswitch] [data-locale]').forEach(function (el) {
+        var target = el.getAttribute('data-locale') || defaultLang;
+        var href = target === defaultLang
+          ? location.pathname
+          : location.pathname + '?lang=' + encodeURIComponent(target);
+        el.setAttribute('href', href);
+      });
+    }
+
     // Persist explicit user choice so the auto-redirect (BaseLayout)
     // doesn't override the next visit. Keyed by clicks within any
     // LangSwitcher dropdown on the page.

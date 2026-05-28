@@ -31,6 +31,27 @@ export interface PagesEnv {
   SPONSOR_CF_ACCESS_CLIENT_SECRET?: string;
   /** KV binding for /sponsors/finalize + /s/g/:token rate-limiting (PLAN_2 §4.2/§4.3). Created via `wrangler kv namespace create` per env. */
   RATELIMIT_KV?: KVNamespace;
+
+  // --- /api/logto/sms — Logto HTTP SMS connector gateway. See docs/sms-gateway.md.
+  /** Shared bearer that Logto sends in `Authorization: Bearer …`. Secret. */
+  LOGTO_SMS_TOKEN?: string;
+  /** Comma-separated ISO 3166-1 alpha-2 list, e.g. "CN,US". Phones outside → 403. */
+  LOGTO_SMS_ALLOWED_COUNTRIES?: string;
+  /** Optional override for the 400/day global cap (testing); falls back to 400. */
+  LOGTO_SMS_GLOBAL_DAILY_CAP?: string;
+
+  // Aliyun SMS (China). Secrets: AccessKey pair. Public: sign-name + template code + region.
+  ALIYUN_ACCESS_KEY_ID?: string;
+  ALIYUN_ACCESS_KEY_SECRET?: string;
+  ALIYUN_SMS_SIGN_NAME?: string;
+  ALIYUN_SMS_TEMPLATE_CODE?: string;
+  ALIYUN_REGION?: string;
+
+  // AWS SNS (US). Secrets: AccessKey pair. Public: region + optional sender ID.
+  AWS_ACCESS_KEY_ID?: string;
+  AWS_SECRET_ACCESS_KEY?: string;
+  AWS_SNS_REGION?: string;
+  AWS_SNS_SENDER_ID?: string;
 }
 
 /** Minimal KV shape — we only use the get/put surface; full @cloudflare/workers-types is overkill. */
@@ -39,11 +60,20 @@ export interface KVNamespace {
   put(key: string, value: string, options?: { expirationTtl?: number }): Promise<void>;
 }
 
+/**
+ * Locale tags the worker honors. Mirrors `src/i18n/ui.ts`'s `languages` keys —
+ * kept duplicated here so the worker bundle stays self-contained (no cross-
+ * import from `src/`). Update both when adding/removing a locale.
+ */
+export type Lang =
+  | 'en' | 'zh-CN' | 'zh-TW' | 'ja' | 'ko' | 'de' | 'it' | 'fr' | 'es' | 'ar'
+  | 'da' | 'el' | 'fa-IR' | 'fi' | 'id' | 'nl' | 'pt' | 'tr-TR' | 'th' | 'vi';
+
 /** Props handed to the shared share-landing renderer. */
 export interface ShareLandingProps {
   /** Discriminator. Currently only `'i'` (invite); future kinds add raw values per ShareKind. */
   kind: 'i';
-  locale: 'en' | 'zh';
+  locale: Lang;
   primaryCTA: { label: string; url: string };
   returnTapCopy: string;
   /** Forum origin (e.g. `https://forum.dirtbikex.com`) — needed to resolve `avatar_template`. */

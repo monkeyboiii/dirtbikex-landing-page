@@ -1,4 +1,4 @@
-import type { InviteRow, ShareLandingProps } from './types';
+import type { InviteRow, Lang, ShareLandingProps } from './types';
 
 /**
  * Render a share-link landing page response. Inline styles; no Astro layout
@@ -35,7 +35,9 @@ interface HeroCopy {
   spotsBadge: (n: number) => string;
 }
 
-const HERO_COPY: Record<'en' | 'zh', HeroCopy> = {
+// Locales not present here fall back to `en` via `getHeroCopy()`. Add more
+// translations in-place.
+const HERO_COPY: Partial<Record<Lang, HeroCopy>> = {
   en: {
     appInvite: (i) => `${i} invited you to DirtBikeX`,
     groupInvite: (i, g) => `${i} invited you to join ${g}`,
@@ -44,7 +46,7 @@ const HERO_COPY: Record<'en' | 'zh', HeroCopy> = {
     expiresBadge: (r) => `Expires ${r}`,
     spotsBadge: (n) => `${n} ${n === 1 ? 'spot' : 'spots'} left`,
   },
-  zh: {
+  'zh-CN': {
     appInvite: (i) => `${i} 邀请你加入 DirtBikeX`,
     groupInvite: (i, g) => `${i} 邀请你加入 ${g}`,
     andMore: (n) => `等 ${n} 个`,
@@ -53,6 +55,10 @@ const HERO_COPY: Record<'en' | 'zh', HeroCopy> = {
     spotsBadge: (n) => `还剩 ${n} 个名额`,
   },
 };
+
+function getHeroCopy(locale: Lang): HeroCopy {
+  return HERO_COPY[locale] ?? HERO_COPY.en!;
+}
 
 /* ============================================================
    HTML
@@ -106,9 +112,9 @@ function errorBody(props: ShareLandingProps): string {
 </main>`;
 }
 
-function heroCardBody(invite: InviteRow, props: ShareLandingProps, locale: 'en' | 'zh'): string {
+function heroCardBody(invite: InviteRow, props: ShareLandingProps, locale: Lang): string {
   const { primaryCTA, returnTapCopy, forumBase } = props;
-  const copy = HERO_COPY[locale];
+  const copy = getHeroCopy(locale);
   const { invited_by, description, groups, topics, expires_at, max_redemptions_allowed, redemption_count } = invite;
 
   const displayName = invited_by.name?.trim() || invited_by.username;
@@ -183,8 +189,8 @@ function buildOgImage(props: ShareLandingProps): string | null {
   return `${props.forumBase}${template.replace('{size}', '288')}`;
 }
 
-function buildHeadline(invite: InviteRow, locale: 'en' | 'zh'): string {
-  const copy = HERO_COPY[locale];
+function buildHeadline(invite: InviteRow, locale: Lang): string {
+  const copy = getHeroCopy(locale);
   const inviter = invite.invited_by.name?.trim() || invite.invited_by.username;
   if (invite.groups.length === 0) return copy.appInvite(inviter);
 
@@ -197,19 +203,19 @@ function buildHeadline(invite: InviteRow, locale: 'en' | 'zh'): string {
   return copy.groupInvite(inviter, list + tail);
 }
 
-function formatList(items: string[], locale: 'en' | 'zh'): string {
+function formatList(items: string[], locale: Lang): string {
   if (typeof Intl !== 'undefined' && typeof Intl.ListFormat === 'function') {
-    return new Intl.ListFormat(locale === 'zh' ? 'zh-CN' : 'en', {
-      style: 'long',
-      type: 'conjunction',
-    }).format(items);
+    // BCP-47 tags pass through to Intl directly; unsupported locales degrade
+    // gracefully to a sensible fallback.
+    return new Intl.ListFormat(locale, { style: 'long', type: 'conjunction' }).format(items);
   }
   if (items.length <= 1) return items[0] ?? '';
-  const sep = locale === 'zh' ? '、' : ', ';
-  return items.slice(0, -1).join(sep) + (locale === 'zh' ? ' 和 ' : ' and ') + items[items.length - 1];
+  const isZh = locale === 'zh-CN' || locale === 'zh-TW';
+  const sep = isZh ? '、' : ', ';
+  return items.slice(0, -1).join(sep) + (isZh ? ' 和 ' : ' and ') + items[items.length - 1];
 }
 
-function formatRelativeFuture(iso: string, locale: 'en' | 'zh'): string | null {
+function formatRelativeFuture(iso: string, locale: Lang): string | null {
   const target = Date.parse(iso);
   if (Number.isNaN(target)) return null;
   const diffMs = target - Date.now();
@@ -220,7 +226,7 @@ function formatRelativeFuture(iso: string, locale: 'en' | 'zh'): string | null {
   const days = Math.round(diffMs / 86400000);
   const months = Math.round(diffMs / (86400000 * 30));
 
-  const rtf = new Intl.RelativeTimeFormat(locale === 'zh' ? 'zh-CN' : 'en', { numeric: 'auto' });
+  const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
   if (minutes < 60) return rtf.format(minutes, 'minute');
   if (hours < 24) return rtf.format(hours, 'hour');
   if (days < 30) return rtf.format(days, 'day');

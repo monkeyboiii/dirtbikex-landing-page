@@ -153,6 +153,12 @@ export function getStaticPaths() {
     ) as ClaimI18n;
 
     function pickLang(): string {
+      // ?lang= wins so a shared URL like /s/g/<token>?lang=zh-CN renders
+      // deterministically. The LangSwitcher writes this form on /s/* pages
+      // (preserves the AASA `/s/*` universal-link contract).
+      const qs = new URLSearchParams(location.search).get('lang');
+      if (qs && i18n.langs.includes(qs)) return qs;
+
       const navLangs = navigator.languages?.length
         ? navigator.languages
         : [navigator.language || i18n.defaultLang];

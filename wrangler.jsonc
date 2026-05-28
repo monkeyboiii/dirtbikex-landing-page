@@ -12,6 +12,9 @@
 //   - FORUM_INVITE_QUERY_ID  (public) Data Explorer query ID for invite lookup
 //   - FORUM_API_USERNAME     (public) Discourse Api-Username header, defaults to "system"
 //   - FORUM_API_KEY          (SECRET) set via `wrangler secret put FORUM_API_KEY [--env preview]`
+//
+// /api/logto/sms (Logto HTTP SMS gateway) — see docs/sms-gateway.md for the
+// full secret list, KV binding setup, and Logto/Brevo/DNS config steps.
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "dirtbikex-landing-page",
@@ -24,7 +27,7 @@
     // The worker owns these dynamic routes; running it first stops the static-asset
     // / 404-page layer from preempting (and edge-caching) them. Other paths still
     // serve static assets directly.
-    "run_worker_first": ["/s/*", "/admin/*", "/sponsors/finalize/*", "/api/proxy/*", "/api/forum/*"]
+    "run_worker_first": ["/s/*", "/admin/*", "/sponsors/finalize/*", "/api/proxy/*", "/api/forum/*", "/api/logto/*"]
   },
   "vars": {
     // Production defaults. Override per-env below.
@@ -32,8 +35,21 @@
     // TODO: set to the production Data Explorer query ID.
     "FORUM_INVITE_QUERY_ID": "",
     "FORUM_API_USERNAME": "system",
-    "SPONSOR_API_BASE": "https://api.dirtbikex.com"
+    "SPONSOR_API_BASE": "https://api.dirtbikex.com",
+    // SMS gateway (non-secret). Secrets via `wrangler secret put`.
+    "LOGTO_SMS_ALLOWED_COUNTRIES": "CN,US",
+    "ALIYUN_REGION": "cn-hangzhou",
+    "ALIYUN_SMS_SIGN_NAME": "",
+    "ALIYUN_SMS_TEMPLATE_CODE": "",
+    "AWS_SNS_REGION": "us-east-1"
   },
+  "kv_namespaces": [
+    // Replace `id` with the prod namespace from `wrangler kv namespace list`.
+    // Without this binding the SMS gateway fails closed (503); finalize/claim
+    // warn-and-allow. Run `wrangler kv namespace create RATELIMIT_KV` once
+    // if it doesn't exist, then paste the returned id here.
+    { "binding": "RATELIMIT_KV", "id": "REPLACE_WITH_PROD_KV_NAMESPACE_ID" }
+  ],
   "env": {
     "preview": {
       "name": "dirtbikex-landing-page-preview",
@@ -41,14 +57,23 @@
         "FORUM_BASE": "https://forum.dirtbikechina.com",
         "FORUM_INVITE_QUERY_ID": "2",
         "FORUM_API_USERNAME": "system",
-        "SPONSOR_API_BASE": "https://api.dirtbikechina.com"
+        "SPONSOR_API_BASE": "https://api.dirtbikechina.com",
+        "LOGTO_SMS_ALLOWED_COUNTRIES": "CN,US",
+        "LOGTO_SMS_GLOBAL_DAILY_CAP": "20",
+        "ALIYUN_REGION": "cn-hangzhou",
+        "ALIYUN_SMS_SIGN_NAME": "",
+        "ALIYUN_SMS_TEMPLATE_CODE": "",
+        "AWS_SNS_REGION": "us-east-1"
       },
       "assets": {
         "directory": "./dist",
         "binding": "ASSETS",
         "not_found_handling": "404-page",
-        "run_worker_first": ["/s/*", "/admin/*", "/sponsors/finalize/*", "/api/proxy/*", "/api/forum/*"]
-      }
+        "run_worker_first": ["/s/*", "/admin/*", "/sponsors/finalize/*", "/api/proxy/*", "/api/forum/*", "/api/logto/*"]
+      },
+      "kv_namespaces": [
+        { "binding": "RATELIMIT_KV", "id": "REPLACE_WITH_PREVIEW_KV_NAMESPACE_ID" }
+      ]
     }
   }
 }
