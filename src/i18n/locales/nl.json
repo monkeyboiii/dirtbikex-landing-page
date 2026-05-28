@@ -120,5 +120,30 @@
 
   "notfound.title": "Pagina niet gevonden",
   "notfound.body": "De pagina die u zoekt bestaat niet of is verplaatst.",
-  "notfound.cta": "Terug naar home"
+  "notfound.cta": "Terug naar home",
+
+  "claim.title": "Claim je sponsorplek",
+  "claim.loading": "Laden…",
+  "claim.notFound": "Deze claimlink bestaat niet, is al gebruikt of is ingetrokken.",
+  "claim.expired": "Deze claimlink is verlopen.",
+  "claim.rateLimited": "Te veel pogingen. Probeer het zo opnieuw.",
+  "claim.slotDetails": "Plekdetails:",
+  "claim.username.label": "Forumgebruikersnaam",
+  "claim.username.placeholder": "Voer je forumgebruikersnaam in",
+  "claim.username.hint": "We koppelen de plek aan dit forumprofiel.",
+  "claim.email.label": "Contact-e-mail",
+  "claim.nudge": "Deze toewijzing was gereserveerd voor een ander e-mailadres. Toch doorgaan?",
+  "claim.nudge.confirm": "Ja, ik begrijp het",
+  "claim.submit": "Mijn sponsorplek claimen",
+  "claim.uploadNote": "Om na het claimen een aangepaste hero-afbeelding te uploaden, open je de DirtBikeX iOS-app en ga je naar Profiel → Mijn sponsoringen. Geen restituties of annuleringen.",
+  "claim.done.title": "Je sponsorplek staat live.",
+  "claim.done.body": "Om een aangepaste hero-afbeelding te uploaden, open je de DirtBikeX iOS-app en ga je naar Profiel → Mijn sponsoringen.",
+  "claim.expires": "Verloopt op {date}",
+  "claim.submitting": "Verzenden…",
+  "claim.tooManyHour": "Te veel pogingen. Wacht een uur.",
+  "claim.userNotFound": "Forumgebruikersnaam ‘{name}’ niet gevonden.",
+  "claim.genericError": "Fout: {error}",
+  "claim.confirmResubmit": "Bevestig en verzend opnieuw.",
+  "claim.networkError": "Netwerkfout: {error}",
+  "claim.slotSummary": "{section} plek {slotOrder} — {month}"
 }

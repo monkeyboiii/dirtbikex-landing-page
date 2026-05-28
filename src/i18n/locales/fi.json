@@ -120,5 +120,30 @@
 
   "notfound.title": "Sivua ei löytynyt",
   "notfound.body": "Etsimääsi sivua ei ole olemassa tai se on siirretty.",
-  "notfound.cta": "Takaisin etusivulle"
+  "notfound.cta": "Takaisin etusivulle",
+
+  "claim.title": "Lunasta sponsoripaikkasi",
+  "claim.loading": "Ladataan…",
+  "claim.notFound": "Tätä lunastuslinkkiä ei ole olemassa, se on jo käytetty tai se on peruutettu.",
+  "claim.expired": "Tämä lunastuslinkki on vanhentunut.",
+  "claim.rateLimited": "Liian monta yritystä. Yritä hetken kuluttua uudelleen.",
+  "claim.slotDetails": "Paikan tiedot:",
+  "claim.username.label": "Foorumin käyttäjänimi",
+  "claim.username.placeholder": "Anna foorumin käyttäjänimesi",
+  "claim.username.hint": "Linkitämme paikan tähän foorumiprofiiliin.",
+  "claim.email.label": "Yhteyssähköposti",
+  "claim.nudge": "Tämä myöntö oli varattu toiselle sähköpostiosoitteelle. Jatketaanko silti?",
+  "claim.nudge.confirm": "Kyllä, ymmärrän",
+  "claim.submit": "Lunasta sponsoripaikkani",
+  "claim.uploadNote": "Ladataksesi mukautetun pääkuvan lunastuksen jälkeen avaa DirtBikeX-iOS-sovellus ja siirry kohtaan Profiili → Omat sponsoroinnit. Ei palautuksia tai peruutuksia.",
+  "claim.done.title": "Sponsoripaikkasi on käytössä.",
+  "claim.done.body": "Ladataksesi mukautetun pääkuvan avaa DirtBikeX-iOS-sovellus ja siirry kohtaan Profiili → Omat sponsoroinnit.",
+  "claim.expires": "Vanhenee {date}",
+  "claim.submitting": "Lähetetään…",
+  "claim.tooManyHour": "Liian monta yritystä. Odota tunti.",
+  "claim.userNotFound": "Foorumin käyttäjänimeä ”{name}” ei löytynyt.",
+  "claim.genericError": "Virhe: {error}",
+  "claim.confirmResubmit": "Vahvista ja lähetä uudelleen.",
+  "claim.networkError": "Verkkovirhe: {error}",
+  "claim.slotSummary": "{section} paikka {slotOrder} — {month}"
 }

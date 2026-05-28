@@ -127,5 +127,30 @@
 
   "notfound.title": "Page not found",
   "notfound.body": "The page you’re looking for doesn’t exist or has moved.",
-  "notfound.cta": "Back to home"
+  "notfound.cta": "Back to home",
+
+  "claim.title": "Claim your sponsor slot",
+  "claim.loading": "Loading…",
+  "claim.notFound": "This claim link doesn't exist, has been used, or has been revoked.",
+  "claim.expired": "This claim link has expired.",
+  "claim.rateLimited": "Too many attempts. Try again in a bit.",
+  "claim.slotDetails": "Slot details:",
+  "claim.username.label": "Forum username",
+  "claim.username.placeholder": "Enter your forum username",
+  "claim.username.hint": "We'll link the slot to this forum profile.",
+  "claim.email.label": "Contact email",
+  "claim.nudge": "This grant was reserved for a different email. Proceed anyway?",
+  "claim.nudge.confirm": "Yes, I understand",
+  "claim.submit": "Claim my sponsor slot",
+  "claim.uploadNote": "To upload a custom hero image after claiming, open the DirtBikeX iOS app and go to Profile → My Sponsorships. No refunds or cancellations.",
+  "claim.done.title": "Your sponsor slot is live.",
+  "claim.done.body": "To upload a custom hero image, open the DirtBikeX iOS app and go to Profile → My Sponsorships.",
+  "claim.expires": "Expires {date}",
+  "claim.submitting": "Submitting…",
+  "claim.tooManyHour": "Too many attempts. Wait an hour.",
+  "claim.userNotFound": "Forum username \"{name}\" not found.",
+  "claim.genericError": "Error: {error}",
+  "claim.confirmResubmit": "Confirm and re-submit.",
+  "claim.networkError": "Network error: {error}",
+  "claim.slotSummary": "{section} slot {slotOrder} — {month}"
 }

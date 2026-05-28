@@ -120,5 +120,30 @@
 
   "notfound.title": "Không tìm thấy trang",
   "notfound.body": "Trang bạn đang tìm không tồn tại hoặc đã được di chuyển.",
-  "notfound.cta": "Quay về trang chủ"
+  "notfound.cta": "Quay về trang chủ",
+
+  "claim.title": "Nhận vị trí tài trợ của bạn",
+  "claim.loading": "Đang tải…",
+  "claim.notFound": "Liên kết nhận này không tồn tại, đã được sử dụng hoặc đã bị thu hồi.",
+  "claim.expired": "Liên kết nhận này đã hết hạn.",
+  "claim.rateLimited": "Quá nhiều lần thử. Vui lòng thử lại sau giây lát.",
+  "claim.slotDetails": "Chi tiết vị trí:",
+  "claim.username.label": "Tên người dùng diễn đàn",
+  "claim.username.placeholder": "Nhập tên người dùng diễn đàn của bạn",
+  "claim.username.hint": "Chúng tôi sẽ liên kết vị trí này với hồ sơ diễn đàn này.",
+  "claim.email.label": "Email liên hệ",
+  "claim.nudge": "Khoản cấp này đã được dành cho một email khác. Vẫn tiếp tục chứ?",
+  "claim.nudge.confirm": "Vâng, tôi hiểu",
+  "claim.submit": "Nhận vị trí tài trợ của tôi",
+  "claim.uploadNote": "Để tải lên ảnh chính tùy chỉnh sau khi nhận, hãy mở ứng dụng iOS DirtBikeX và vào Hồ sơ → Tài trợ của tôi. Không hoàn tiền hoặc hủy.",
+  "claim.done.title": "Vị trí tài trợ của bạn đã hoạt động.",
+  "claim.done.body": "Để tải lên ảnh chính tùy chỉnh, hãy mở ứng dụng iOS DirtBikeX và vào Hồ sơ → Tài trợ của tôi.",
+  "claim.expires": "Hết hạn vào {date}",
+  "claim.submitting": "Đang gửi…",
+  "claim.tooManyHour": "Quá nhiều lần thử. Vui lòng đợi một giờ.",
+  "claim.userNotFound": "Không tìm thấy tên người dùng diễn đàn \"{name}\".",
+  "claim.genericError": "Lỗi: {error}",
+  "claim.confirmResubmit": "Xác nhận và gửi lại.",
+  "claim.networkError": "Lỗi mạng: {error}",
+  "claim.slotSummary": "{section} vị trí {slotOrder} — {month}"
 }

@@ -120,5 +120,30 @@
 
   "notfound.title": "صفحه پیدا نشد",
   "notfound.body": "صفحه‌ای که به دنبال آن هستید وجود ندارد یا منتقل شده است.",
-  "notfound.cta": "بازگشت به خانه"
+  "notfound.cta": "بازگشت به خانه",
+
+  "claim.title": "جایگاه حمایت مالی خود را دریافت کنید",
+  "claim.loading": "در حال بارگذاری…",
+  "claim.notFound": "این پیوند دریافت وجود ندارد، قبلاً استفاده شده یا لغو شده است.",
+  "claim.expired": "این پیوند دریافت منقضی شده است.",
+  "claim.rateLimited": "تلاش‌های بیش از حد. کمی بعد دوباره تلاش کنید.",
+  "claim.slotDetails": "جزئیات جایگاه:",
+  "claim.username.label": "نام کاربری انجمن",
+  "claim.username.placeholder": "نام کاربری انجمن خود را وارد کنید",
+  "claim.username.hint": "ما این جایگاه را به این نمایه انجمن پیوند می‌دهیم.",
+  "claim.email.label": "ایمیل تماس",
+  "claim.nudge": "این اعطا برای ایمیل دیگری رزرو شده بود. آیا با این حال ادامه می‌دهید؟",
+  "claim.nudge.confirm": "بله، متوجه شدم",
+  "claim.submit": "دریافت جایگاه حمایت مالی من",
+  "claim.uploadNote": "برای بارگذاری تصویر اصلی سفارشی پس از دریافت، اپلیکیشن DirtBikeX را در iOS باز کنید و به نمایه ← حمایت‌های من بروید. بازپرداخت یا لغوی وجود ندارد.",
+  "claim.done.title": "جایگاه حمایت مالی شما فعال شد.",
+  "claim.done.body": "برای بارگذاری تصویر اصلی سفارشی، اپلیکیشن DirtBikeX را در iOS باز کنید و به نمایه ← حمایت‌های من بروید.",
+  "claim.expires": "انقضا در {date}",
+  "claim.submitting": "در حال ارسال…",
+  "claim.tooManyHour": "تلاش‌های بیش از حد. یک ساعت صبر کنید.",
+  "claim.userNotFound": "نام کاربری انجمن «{name}» یافت نشد.",
+  "claim.genericError": "خطا: {error}",
+  "claim.confirmResubmit": "تأیید کنید و دوباره ارسال کنید.",
+  "claim.networkError": "خطای شبکه: {error}",
+  "claim.slotSummary": "{section} جایگاه {slotOrder} — {month}"
 }

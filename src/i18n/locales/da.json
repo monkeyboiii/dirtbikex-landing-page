@@ -120,5 +120,30 @@
 
   "notfound.title": "Siden blev ikke fundet",
   "notfound.body": "Den side, du leder efter, findes ikke eller er blevet flyttet.",
-  "notfound.cta": "Tilbage til forsiden"
+  "notfound.cta": "Tilbage til forsiden",
+
+  "claim.title": "Gør krav på din sponsorplads",
+  "claim.loading": "Indlæser…",
+  "claim.notFound": "Dette krav-link findes ikke, er allerede brugt eller er blevet tilbagekaldt.",
+  "claim.expired": "Dette krav-link er udløbet.",
+  "claim.rateLimited": "For mange forsøg. Prøv igen om lidt.",
+  "claim.slotDetails": "Pladsdetaljer:",
+  "claim.username.label": "Brugernavn på forummet",
+  "claim.username.placeholder": "Indtast dit brugernavn på forummet",
+  "claim.username.hint": "Vi knytter pladsen til denne forumprofil.",
+  "claim.email.label": "Kontakt-e-mail",
+  "claim.nudge": "Denne tildeling var reserveret til en anden e-mail. Vil du fortsætte alligevel?",
+  "claim.nudge.confirm": "Ja, jeg forstår",
+  "claim.submit": "Gør krav på min sponsorplads",
+  "claim.uploadNote": "For at uploade et tilpasset hero-billede efter du har gjort krav, skal du åbne DirtBikeX iOS-appen og gå til Profil → Mine sponsorater. Ingen refusioner eller annulleringer.",
+  "claim.done.title": "Din sponsorplads er live.",
+  "claim.done.body": "For at uploade et tilpasset hero-billede skal du åbne DirtBikeX iOS-appen og gå til Profil → Mine sponsorater.",
+  "claim.expires": "Udløber den {date}",
+  "claim.submitting": "Sender…",
+  "claim.tooManyHour": "For mange forsøg. Vent en time.",
+  "claim.userNotFound": "Brugernavnet \"{name}\" på forummet blev ikke fundet.",
+  "claim.genericError": "Fejl: {error}",
+  "claim.confirmResubmit": "Bekræft og send igen.",
+  "claim.networkError": "Netværksfejl: {error}",
+  "claim.slotSummary": "{section} plads {slotOrder} — {month}"
 }

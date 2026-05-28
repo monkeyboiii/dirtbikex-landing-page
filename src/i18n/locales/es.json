@@ -120,5 +120,30 @@
 
   "notfound.title": "Página no encontrada",
   "notfound.body": "La página que buscas no existe o se ha movido.",
-  "notfound.cta": "Volver al inicio"
+  "notfound.cta": "Volver al inicio",
+
+  "claim.title": "Reclama tu espacio de patrocinio",
+  "claim.loading": "Cargando…",
+  "claim.notFound": "Este enlace de reclamación no existe, ya se ha usado o se ha revocado.",
+  "claim.expired": "Este enlace de reclamación ha caducado.",
+  "claim.rateLimited": "Demasiados intentos. Inténtalo de nuevo en un momento.",
+  "claim.slotDetails": "Detalles del espacio:",
+  "claim.username.label": "Nombre de usuario del foro",
+  "claim.username.placeholder": "Introduce tu nombre de usuario del foro",
+  "claim.username.hint": "Vincularemos el espacio a este perfil del foro.",
+  "claim.email.label": "Correo de contacto",
+  "claim.nudge": "Esta concesión estaba reservada para otro correo. ¿Continuar de todos modos?",
+  "claim.nudge.confirm": "Sí, lo entiendo",
+  "claim.submit": "Reclamar mi espacio de patrocinio",
+  "claim.uploadNote": "Para subir una imagen principal personalizada tras la reclamación, abre la app de iOS de DirtBikeX y ve a Perfil → Mis patrocinios. Sin reembolsos ni cancelaciones.",
+  "claim.done.title": "Tu espacio de patrocinio está activo.",
+  "claim.done.body": "Para subir una imagen principal personalizada, abre la app de iOS de DirtBikeX y ve a Perfil → Mis patrocinios.",
+  "claim.expires": "Caduca el {date}",
+  "claim.submitting": "Enviando…",
+  "claim.tooManyHour": "Demasiados intentos. Espera una hora.",
+  "claim.userNotFound": "No se encontró el nombre de usuario del foro «{name}».",
+  "claim.genericError": "Error: {error}",
+  "claim.confirmResubmit": "Confirma y vuelve a enviar.",
+  "claim.networkError": "Error de red: {error}",
+  "claim.slotSummary": "{section} espacio {slotOrder} — {month}"
 }
