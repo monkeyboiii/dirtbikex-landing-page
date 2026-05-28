@@ -72,6 +72,9 @@ const hreflangs = (Object.keys(languages) as Lang[]).map((code) => ({
           for (let i = 0; i < prefixes.length; i++) {
             if (path === prefixes[i] || path.indexOf(prefixes[i] + '/') === 0) return;
           }
+          // Worker-handled share routes use ?lang= (URL-prefix would break the
+          // AASA `/s/*` deep-link contract and 404 on the asset layer).
+          if (path.indexOf('/s/') === 0) return;
           const pref = localStorage.getItem('dbx-locale-pref');
           if (pref === 'en') return;
           if (pref && pref !== 'en') {
