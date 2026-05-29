@@ -72,7 +72,7 @@
         "run_worker_first": ["/s/*", "/admin/*", "/sponsors/finalize/*", "/api/proxy/*", "/api/forum/*", "/api/logto/*"]
       },
       "kv_namespaces": [
-        { "binding": "RATELIMIT_KV", "id": "REPLACE_WITH_PREVIEW_KV_NAMESPACE_ID" }
+        { "binding": "RATELIMIT_KV", "id": "eb95a24345d548efb72feb21244df875" }
       ]
     }
   }
