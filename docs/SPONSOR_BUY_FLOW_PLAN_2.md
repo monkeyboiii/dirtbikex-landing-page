@@ -1,8 +1,8 @@
 # Sponsor Buy Flow — Landing Page Architecture (IAP-first)
 
-**Status:** Active. **Canonical for the web-side surface** (2026-05-26 onward) — when this doc and `SPLASH_V2_DESIGN.md` disagree on a web-side detail, this doc wins. Supersedes [`SPONSOR_BUY_FLOW_PLAN.md`](../../../../iOS/docs/SPONSOR_BUY_FLOW_PLAN.md) (deprecated 2026-05-25).
-**Companion doc:** [`iOS/docs/SPLASH_V2_DESIGN.md`](../../../../iOS/docs/SPLASH_V2_DESIGN.md) is the system-level design (data model, iOS-side, IAP/availability rules).
-**Backend repo:** [`infra/submodules/dirtbikex-sponsors/`](../../dirtbikex-sponsors/) — Hono + TypeScript service implementing the API endpoints referenced here. Phase A complete (read/write/admin/jobs); see [`dirtbikex-sponsors/progress.md`](../../dirtbikex-sponsors/progress.md).
+**Status:** Active. **Canonical for the web-side surface** (2026-05-26 onward) — when this doc and the backend [`SPONSORSHIP.md`](../../dirtbikex-sponsors/docs/SPONSORSHIP.md) disagree on a web-side detail, this doc wins. Supersedes the original web-first buy flow (retired 2026-05-25).
+**Backend doc:** [`dirtbikex-sponsors/docs/SPONSORSHIP.md`](../../dirtbikex-sponsors/docs/SPONSORSHIP.md) — data model, IAP/pricing, API contract, admin/moderation. iOS surface: [`iOS/docs/SPONSOR_MODULE.md`](../../../../iOS/docs/SPONSOR_MODULE.md).
+**Backend repo:** [`infra/submodules/dirtbikex-sponsors/`](../../dirtbikex-sponsors/) — Hono + TypeScript service implementing the API endpoints referenced here.
 **Owners:** Calvin (product + iOS + web).
 
 ---
@@ -19,7 +19,7 @@ iOS owns the buyer-facing surface (checkout, upload, stats). Web owns the public
 | Image upload — desktop convenience | Web `/sponsors/finalize?token=<>` | single-use `finalize_token` from receipt email |
 | Stats dashboard | iOS `GET /sponsors/me` | Discourse session |
 | Admin grant claim | Web `/s/g/<token>` | claim-token-in-URL; recipient self-declares forum username; **no finalize_token issued** — image upload happens later via iOS Discourse session |
-| Image moderation portal | Web `/admin/uploads` | Cloudflare Access (admin email allowlist; see [`SPLASH_V2_DESIGN.md §6.10`](../../../../iOS/docs/SPLASH_V2_DESIGN.md#610-admin-authentication--decided-cloudflare-access)) |
+| Image moderation portal | Web `/admin/uploads` | Cloudflare Access (admin email allowlist; see [`SPONSORSHIP.md §6.10`](../../dirtbikex-sponsors/docs/SPONSORSHIP.md#610-admin-authentication--decided-cloudflare-access)) |
 | Admin surface | sponsorhub `/admin/*` | Cloudflare Access (same allowlist; Worker forwards `X-Admin-Email`) |
 
 ---
@@ -31,7 +31,7 @@ Four routes on `www.<apex>`:
 1. **`/sponsors`** — public, read-only "who's sponsoring right now" gallery. Live data from `api.<apex>`.
 2. **`/sponsors/finalize?token=<finalize_token>`** — **optional desktop convenience for IAP buyers only.** Magic-link upload page. Single-use, 7-day TTL. Lower priority than the iOS path. **Not used by the grant-claim flow** — see §4.3.
 3. **`/s/g/<claim_token>`** — admin grant claim flow. No SSO; claim-token-as-credential. **Does not issue a finalize_token** on successful claim (revised 2026-05-26).
-4. **`/admin/uploads`** — image moderation portal. Cloudflare Access gated via admin email allowlist (see [`SPLASH_V2_DESIGN.md §6.10`](../../../../iOS/docs/SPLASH_V2_DESIGN.md#610-admin-authentication--decided-cloudflare-access)). Lists pending custom-image uploads with image preview + slot context + approve/reject actions. Required for Apple Guideline 1.2 (UGC moderation) compliance.
+4. **`/admin/uploads`** — image moderation portal. Cloudflare Access gated via admin email allowlist (see [`SPONSORSHIP.md §6.10`](../../dirtbikex-sponsors/docs/SPONSORSHIP.md#610-admin-authentication--decided-cloudflare-access)). Lists pending custom-image uploads with image preview + slot context + approve/reject actions. Required for Apple Guideline 1.2 (UGC moderation) compliance.
 
 What's **not** on the landing page in v1:
 - No slot picker (iOS-only).
@@ -45,7 +45,7 @@ Brand-only sponsors arrive via admin grant. No web-side self-serve for brands in
 
 ## 3. Inherited constraints
 
-From [`SPLASH_V2_DESIGN.md §6.6`](../../../../iOS/docs/SPLASH_V2_DESIGN.md):
+From [`SPONSORSHIP.md §6.6`](../../dirtbikex-sponsors/docs/SPONSORSHIP.md):
 
 - **Apple IAP only in v1.** No Stripe, no Alipay, no web-side card capture.
 - **Forum users only as IAP buyers** in v1. Brand sponsors arrive via admin grant.
@@ -53,7 +53,7 @@ From [`SPLASH_V2_DESIGN.md §6.6`](../../../../iOS/docs/SPLASH_V2_DESIGN.md):
 - **No cancellation, no refund.** Surface this in iOS purchase confirmation AND on `/sponsors/finalize` AND on `/s/g/<token>` claim pages.
 - **Flat pricing:** Hero $89, Featured $79, Supporter $49. 2mo = 2× 1mo. Current-month discount SKUs at ~50% off.
 - **All locales matter eventually.** New pages live under `[lang]/`; English-only at first, structured to localize.
-- **Wire-shape fixtures are test-only**, not runtime-served. See [`SPLASH_V2_DESIGN.md §7.1.1`](../../../../iOS/docs/SPLASH_V2_DESIGN.md#711-wire-shape-fixtures-test-only--revised-2026-05-26). Worker code calls the live API; for local dev before sponsorhub is up, import the JSON fixture from the sponsor repo directly.
+- **Wire-shape fixtures are test-only**, not runtime-served. See [`SPONSORSHIP.md §7.1.1`](../../dirtbikex-sponsors/docs/SPONSORSHIP.md#711-wire-shape-fixtures-test-only--revised-2026-05-26). Worker code calls the live API; for local dev before sponsorhub is up, import the JSON fixture from the sponsor repo directly.
 
 ---
 
@@ -66,7 +66,7 @@ Live gallery, fetched on page load via the Cloudflare Worker `/api/proxy/sponsor
 The "Become a sponsor" CTA points to the **iOS App Store Smart App Banner** to drive install. Actual buy flow happens inside the app after install — no web checkout in v1.
 
 - Forum-user sponsors: avatar links to `forum.<apex>/u/<username>`.
-- Brand sponsors with `brand_link_url`: tap opens an "External link" interstitial page (web equivalent of the iOS confirmation alert per [`SPLASH_V2_DESIGN.md §6.5`](../../../../iOS/docs/SPLASH_V2_DESIGN.md)), then jumps to the brand URL in a new tab.
+- Brand sponsors with `brand_link_url`: tap opens an "External link" interstitial page (web equivalent of the iOS confirmation alert per [`SPONSORSHIP.md §6.5`](../../dirtbikex-sponsors/docs/SPONSORSHIP.md)), then jumps to the brand URL in a new tab.
 
 Replaces the current static-from-TS rendering. Delete `src/data/sponsors.ts`, `src/data/sponsor-validation.ts`, and `src/pages/api/sponsors.json.ts` after sponsorhub serves one full daily refresh cycle without regressions.
 
@@ -89,7 +89,7 @@ Magic-link upload page. **Optional** — most buyers should upload from the iOS 
 
 - Slot summary card: section, slot_order, month(s), tier, paid price, "No refunds" disclosure.
 - Custom-image upload widget:
-  - File picker, PNG only, ≤500KB (matches [`SPONSOR_SPLASH_UX.md`](../../../../iOS/docs/SPONSOR_SPLASH_UX.md) image rules).
+  - File picker, PNG only, ≤500KB (matches the image rules in [`SPONSORSHIP.md`](../../dirtbikex-sponsors/docs/SPONSORSHIP.md)).
   - **Live preview** via a client-side blob URL — the splash render code is also available server-rendered on this page for the preview frame.
   - "Use forum avatar instead" button — POSTs the slot complete with `custom_image_object_key = null`, no upload needed.
 - "Upload & finish" CTA → presigned PUT to OCI at the stable key `sponsors/<slot_id>/hero.png` → on PUT success, `POST /uploads/sponsor-image/complete?token=<finalize_token>` marks slot ready and consumes the token.
@@ -100,7 +100,7 @@ Magic-link upload page. **Optional** — most buyers should upload from the iOS 
 
 Mirrors the existing `/s/i/<invite_key>` invite-lookup pattern in [`worker/_lib/inviteLookup.ts`](../worker/_lib/inviteLookup.ts).
 
-**Two grant modes** (per [`SPLASH_V2_DESIGN.md §6.8`](../../../../iOS/docs/SPLASH_V2_DESIGN.md)):
+**Two grant modes** (per [`SPONSORSHIP.md §6.8`](../../dirtbikex-sponsors/docs/SPONSORSHIP.md)):
 
 - `email_pinned` — admin enters `granted_to_email` as a hint. The claim form pre-fills it but the claimer can override (with a soft "this grant was reserved for a different email — proceed anyway?" nudge). Pinning is a UX guardrail, not a security boundary.
 - `open` — anyone with the URL can claim; first claim wins. Use for community giveaways.
@@ -138,13 +138,13 @@ A nightly job flips expired pending grants to `expired` and reopens the slot to 
 - `grant_reason_internal` is **never** shown on the claim page or anywhere recipient-facing. Audit-log only.
 - `grant_message_public` is optional, surfaced on the claim page if set.
 
-Recipient SSO is deferred (see [`SPLASH_V2_DESIGN.md §6.8`](../../../../iOS/docs/SPLASH_V2_DESIGN.md#68-admin-grants--decided-revised-2026-05-25-no-recipient-side-sso) for rationale).
+Recipient SSO is deferred (see [`SPONSORSHIP.md §6.8`](../../dirtbikex-sponsors/docs/SPONSORSHIP.md#68-admin-grants--decided-revised-2026-05-25-no-recipient-side-sso) for rationale).
 
 ### 4.4 `/admin/uploads` — image moderation portal
 
-Pre-publish admin review of custom sponsor images. Required by Apple Guideline 1.2 (UGC moderation). Lifecycle + render rules in [`SPLASH_V2_DESIGN.md §6.9`](../../../../iOS/docs/SPLASH_V2_DESIGN.md#69-image-moderation--decided-pre-publish-admin-queue).
+Pre-publish admin review of custom sponsor images. Required by Apple Guideline 1.2 (UGC moderation). Lifecycle + render rules in [`SPONSORSHIP.md §6.9`](../../dirtbikex-sponsors/docs/SPONSORSHIP.md#69-image-moderation--decided-pre-publish-admin-queue).
 
-**Auth:** Cloudflare Access (admin email allowlist; see [`SPLASH_V2_DESIGN.md §6.10`](../../../../iOS/docs/SPLASH_V2_DESIGN.md#610-admin-authentication--decided-cloudflare-access)). Same gate as sponsorhub `/admin/*`. Operator-only surface. The landing-page Worker reads `Cf-Access-Authenticated-User-Email` from the gated request and forwards it as `X-Admin-Email` on the upstream `POST api.<apex>/admin/uploads/<slot_id>/approve` (or `/reject`) call — sponsorhub records the operator email in `audit_log`.
+**Auth:** Cloudflare Access (admin email allowlist; see [`SPONSORSHIP.md §6.10`](../../dirtbikex-sponsors/docs/SPONSORSHIP.md#610-admin-authentication--decided-cloudflare-access)). Same gate as sponsorhub `/admin/*`. Operator-only surface. The landing-page Worker reads `Cf-Access-Authenticated-User-Email` from the gated request and forwards it as `X-Admin-Email` on the upstream `POST api.<apex>/admin/uploads/<slot_id>/approve` (or `/reject`) call — sponsorhub records the operator email in `audit_log`.
 
 **Page layout:**
 
@@ -246,17 +246,17 @@ Landing page stays static-built (Astro pre-render). Anything dynamic goes throug
 | iOS `POST /bookings` | Discourse session token (already wired) |
 | iOS `POST /uploads/sponsor-image` (direct upload — both IAP buyers AND grant recipients) | Discourse session token; slot ownership check via `discourse_user_id == caller_id` |
 | iOS `GET /sponsors/me` (stats) | Discourse session token |
-| `/admin/uploads` (image moderation portal) | Cloudflare Access (admin email allowlist; [§6.10](../../../../iOS/docs/SPLASH_V2_DESIGN.md#610-admin-authentication--decided-cloudflare-access)) |
+| `/admin/uploads` (image moderation portal) | Cloudflare Access (admin email allowlist; [§6.10](../../dirtbikex-sponsors/docs/SPONSORSHIP.md#610-admin-authentication--decided-cloudflare-access)) |
 | `/admin/*` (grants, slot edits, revocation) | Cloudflare Access (same allowlist; Worker forwards `X-Admin-Email` to sponsorhub) |
 | `sdcup grant` CLI | Cloudflare Access Service Token (Client-ID + Client-Secret; same dashboard) |
 
-**Cloudflare Access's role:** operator admin only (`/admin/*` and `/admin/uploads`). Not on the recipient side, not on the buyer side. Smallest auth surface possible for v1. Logto is **not** used for v1 sponsor admin — see [`SPLASH_V2_DESIGN.md §6.10`](../../../../iOS/docs/SPLASH_V2_DESIGN.md#610-admin-authentication--decided-cloudflare-access) for the migration rationale.
+**Cloudflare Access's role:** operator admin only (`/admin/*` and `/admin/uploads`). Not on the recipient side, not on the buyer side. Smallest auth surface possible for v1. Logto is **not** used for v1 sponsor admin — see [`SPONSORSHIP.md §6.10`](../../dirtbikex-sponsors/docs/SPONSORSHIP.md#610-admin-authentication--decided-cloudflare-access) for the migration rationale.
 
 ---
 
 ## 8. OCI bucket setup
 
-The existing [`infra/bucket.sh`](../../../bucket.sh) provisions `dirtbikex-forum-uploads` (used by Discourse). Sponsor images live in the same bucket under a `sponsors/` prefix per [`SPLASH_V2_DESIGN.md §6.5`](../../../../iOS/docs/SPLASH_V2_DESIGN.md).
+The existing [`infra/bucket.sh`](../../../bucket.sh) provisions `dirtbikex-forum-uploads` (used by Discourse). Sponsor images live in the same bucket under a `sponsors/` prefix per [`SPONSORSHIP.md §6.5`](../../dirtbikex-sponsors/docs/SPONSORSHIP.md).
 
 Three additions:
 
@@ -287,18 +287,18 @@ Cut once sponsorhub serves all sponsor JSON for at least one full daily refresh 
 | **L1. Worker proxy** | `/api/proxy/sponsors` against `api.dirtbikechina.com` preview first | Worker can fetch sponsorhub server-side |
 | **L2. `/sponsors` refactor** | page reads via Worker proxy; month selector; CTA points to App Store Smart App Banner | live data on the public page; no buy flow yet |
 | **L3. OCI prefix + presigned uploads** | new `sponsorhub-s3` IAM user, scoped policy, CORS for iOS app + web origins, `/uploads/sponsor-image` presign endpoint, `image_status = 'pending'` on upload | manual `curl` PUT to a presigned URL works from both iOS and web origins; upload flips slot to pending |
-| **L4. `/admin/uploads` moderation portal** | Cloudflare Access gated page (admin email allowlist; see [`SPLASH_V2_DESIGN.md §6.10`](../../../../iOS/docs/SPLASH_V2_DESIGN.md#610-admin-authentication--decided-cloudflare-access)); Worker forwards `X-Admin-Email` to sponsorhub for audit; approve/reject actions; trigger `/sponsors.json` rebuild on approve; OCI DELETE on reject | operator can clear the pending queue; approved images render on splash via next refresh; audit log captures actor email |
+| **L4. `/admin/uploads` moderation portal** | Cloudflare Access gated page (admin email allowlist; see [`SPONSORSHIP.md §6.10`](../../dirtbikex-sponsors/docs/SPONSORSHIP.md#610-admin-authentication--decided-cloudflare-access)); Worker forwards `X-Admin-Email` to sponsorhub for audit; approve/reject actions; trigger `/sponsors.json` rebuild on approve; OCI DELETE on reject | operator can clear the pending queue; approved images render on splash via next refresh; audit log captures actor email |
 | **L5. `/sponsors/finalize?token=<>`** | IAP-path-only magic-link upload page with live preview, single-use token validation; upload flips slot to `pending` (then through moderation per L4) | end-to-end test with a dev-mode booking; verifies the desktop escape hatch |
 | **L6. `/s/g/<token>` claim flow** | both `email_pinned` and `open` grant modes; no SSO; **no `finalize_token` returned**; recipient instructed to upload via iOS later | admin can grant + recipient can claim, both modes |
 | **L7. Retire static surface** | delete files listed in §9 | sponsorhub is sole source of truth |
 
-**iOS in-app upload (the primary path) is in [`SPLASH_V2_DESIGN.md §8`](../../../../iOS/docs/SPLASH_V2_DESIGN.md#8-ios-side-change-footprint-preview) — it ships in iOS phase 4 independent of web phase L5.** L5 is the desktop convenience and is lower priority; ship after L4 (moderation portal) lands, but don't gate the iOS launch on it. **L4 (moderation portal) IS required before any custom-image upload can go live** — without it there is no way to approve images, and the splash never renders them.
+**iOS in-app upload (the primary path) is in [`SPONSORSHIP.md §8`](../../dirtbikex-sponsors/docs/SPONSORSHIP.md#8-ios-side-change-footprint-preview) — it ships in iOS phase 4 independent of web phase L5.** L5 is the desktop convenience and is lower priority; ship after L4 (moderation portal) lands, but don't gate the iOS launch on it. **L4 (moderation portal) IS required before any custom-image upload can go live** — without it there is no way to approve images, and the splash never renders them.
 
 ---
 
 ## 11. What's deferred (next planning round)
 
-- **Web-side buy flow.** Returns when Stripe/Alipay come online. Use the deprecated [`SPONSOR_BUY_FLOW_PLAN.md`](../../../../iOS/docs/SPONSOR_BUY_FLOW_PLAN.md) as starting reference.
+- **Web-side buy flow.** Returns when Stripe/Alipay come online (the original web-first buy flow, retired 2026-05-25, is in git history if needed as a starting reference).
 - **Web sponsor stats dashboard.** Returns with the Stripe/Alipay phase. v1 = iOS-only via `GET /sponsors/me`. Brand sponsors get stats via operator email until then.
 - **`/sponsor/<username>` per-sponsor mini-profiles.** Low priority; gallery already provides visibility.
 - **Discord-style social proof on `/sponsors`.** "X new sponsors this month" badges, hover-to-see-recent-activity, etc. Wait for product signal.
@@ -312,7 +312,7 @@ Cut once sponsorhub serves all sponsor JSON for at least one full daily refresh 
 1. **Rate-limit values.** `/sponsors/finalize?token=<>` proposed at 10/hr/token, /IP. `/s/g/<token>/claim` proposed at 5/hr/token, /IP. Confirm or override.
 2. **Where the `finalize_token` magic-link is shown on iOS.** Post-purchase confirmation card AND recoverable from `/sponsors/me` "Send me a new upload link"? Default yes to both.
 3. **KV key structure for rate limit.** Token-scoped (`ratelimit:finalize:<token>`, `ratelimit:claim:<token>`) plus IP-scoped (`ratelimit:ip:<ip>`) for bot defense? Default yes.
-4. **Refund handling UX (flagged for next iteration).** Apple lets buyers request a refund within ~48h of purchase regardless of our "no refund" policy. The ASSN-v2 `REFUND` webhook is the system-level fallback ([`SPLASH_V2_DESIGN.md §6.6`](../../../../iOS/docs/SPLASH_V2_DESIGN.md)), which flips `payments.status = 'revoked'` → next `/sponsors.json` drops the slot. Open: how the iOS "My sponsorships" surface presents `status = 'refunded'`, buyer notification on refund, whether to auto-DELETE the OCI image on REFUND, brand-sponsor-style operator manual recovery. Not blocking MVP; iterate next round.
+4. **Refund handling UX (flagged for next iteration).** Apple lets buyers request a refund within ~48h of purchase regardless of our "no refund" policy. The ASSN-v2 `REFUND` webhook is the system-level fallback ([`SPONSORSHIP.md §6.6`](../../dirtbikex-sponsors/docs/SPONSORSHIP.md)), which flips `payments.status = 'revoked'` → next `/sponsors.json` drops the slot. Open: how the iOS "My sponsorships" surface presents `status = 'refunded'`, buyer notification on refund, whether to auto-DELETE the OCI image on REFUND, brand-sponsor-style operator manual recovery. Not blocking MVP; iterate next round.
 5. **Auto-moderation pre-filter for L4.** Optional Cloudflare image classification (or similar) to flag obvious NSFW before queueing. Deferred — manual review at MVP volume is fine.
 
 Questions 1, 3 unblock L4/L5. Questions 2, 4, 5 are non-blocking refinements.
