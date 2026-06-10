@@ -27,6 +27,8 @@ interface Copy {
   /** Desktop CTA label — there's no app to install, so the button opens the
    *  forum's web invite-accept page instead (see `buildProps` valid case). */
   webCtaLabel: string;
+  /** Secondary mobile CTA — deep-links into the app (funnels the invite). */
+  openInAppLabel: string;
   returnTap: string;
   expiredTitle: string;
   expiredSubtitle: string;
@@ -42,22 +44,233 @@ const COPY: Partial<Record<Lang, Copy>> = {
   en: {
     ctaLabel: 'Get DirtBikeX',
     webCtaLabel: 'Open in browser',
-    returnTap: 'Already installed? Tap the link again to open it in the app.',
+    openInAppLabel: 'Open in the app',
+    returnTap: 'Just installed? Tap Open in the app to finish joining.',
     expiredTitle: 'This invite has expired',
     expiredSubtitle: 'Get the app to join DirtBikeX.',
-    notFoundTitle: 'Invite not found',
-    notFoundSubtitle: "This link doesn't exist. Get DirtBikeX to start riding.",
+    notFoundTitle: 'Check your invite link',
+    notFoundSubtitle: 'You may have the wrong invite key — but you can still join DirtBikeX.',
     fallbackTitle: 'Get DirtBikeX',
   },
   'zh-CN': {
     ctaLabel: '下载 DirtBikeX',
     webCtaLabel: '在浏览器中打开',
-    returnTap: '已经安装了？再次点击链接即可在应用内打开。',
+    openInAppLabel: '在应用中打开',
+    returnTap: '刚安装好？点按“在应用中打开”即可完成加入。',
     expiredTitle: '邀请已过期',
     expiredSubtitle: '下载应用，加入 DirtBikeX。',
-    notFoundTitle: '邀请不存在',
-    notFoundSubtitle: '该链接无效。下载 DirtBikeX 开始骑行。',
+    notFoundTitle: '请检查邀请链接',
+    notFoundSubtitle: '邀请密钥可能有误——但你仍然可以加入 DirtBikeX。',
     fallbackTitle: '下载 DirtBikeX',
+  },
+  'zh-TW': {
+    ctaLabel: '下載 DirtBikeX',
+    webCtaLabel: '在瀏覽器中開啟',
+    openInAppLabel: '在 App 中開啟',
+    returnTap: '剛安裝好？點按「在 App 中開啟」即可完成加入。',
+    expiredTitle: '邀請已過期',
+    expiredSubtitle: '下載 App，加入 DirtBikeX。',
+    notFoundTitle: '請檢查邀請連結',
+    notFoundSubtitle: '邀請金鑰可能有誤——但你仍然可以加入 DirtBikeX。',
+    fallbackTitle: '下載 DirtBikeX',
+  },
+  ja: {
+    ctaLabel: 'DirtBikeX を入手',
+    webCtaLabel: 'ブラウザで開く',
+    openInAppLabel: 'アプリで開く',
+    returnTap: 'インストールしたばかりですか？「アプリで開く」をタップして参加を完了しましょう。',
+    expiredTitle: 'この招待は有効期限が切れています',
+    expiredSubtitle: 'アプリを入手して DirtBikeX に参加しましょう。',
+    notFoundTitle: '招待リンクをご確認ください',
+    notFoundSubtitle: '招待キーが間違っているかもしれません。それでも DirtBikeX に参加できます。',
+    fallbackTitle: 'DirtBikeX を入手',
+  },
+  ko: {
+    ctaLabel: 'DirtBikeX 받기',
+    webCtaLabel: '브라우저에서 열기',
+    openInAppLabel: '앱에서 열기',
+    returnTap: '방금 설치하셨나요? ‘앱에서 열기’를 눌러 참여를 완료하세요.',
+    expiredTitle: '이 초대가 만료되었습니다',
+    expiredSubtitle: '앱을 받아 DirtBikeX에 참여하세요.',
+    notFoundTitle: '초대 링크를 확인해 주세요',
+    notFoundSubtitle: '초대 키가 잘못되었을 수 있어요. 그래도 DirtBikeX에 참여할 수 있습니다.',
+    fallbackTitle: 'DirtBikeX 받기',
+  },
+  de: {
+    ctaLabel: 'DirtBikeX holen',
+    webCtaLabel: 'Im Browser öffnen',
+    openInAppLabel: 'In der App öffnen',
+    returnTap: 'Gerade installiert? Tippe auf „In der App öffnen“, um beizutreten.',
+    expiredTitle: 'Diese Einladung ist abgelaufen',
+    expiredSubtitle: 'Hol dir die App, um DirtBikeX beizutreten.',
+    notFoundTitle: 'Prüf deinen Einladungslink',
+    notFoundSubtitle: 'Der Einladungsschlüssel ist vielleicht falsch – aber du kannst DirtBikeX trotzdem beitreten.',
+    fallbackTitle: 'DirtBikeX holen',
+  },
+  it: {
+    ctaLabel: 'Scarica DirtBikeX',
+    webCtaLabel: 'Apri nel browser',
+    openInAppLabel: "Apri nell'app",
+    returnTap: "Appena installata? Tocca “Apri nell'app” per completare l'iscrizione.",
+    expiredTitle: 'Questo invito è scaduto',
+    expiredSubtitle: "Scarica l'app per unirti a DirtBikeX.",
+    notFoundTitle: "Controlla il link d'invito",
+    notFoundSubtitle: "La chiave d'invito potrebbe essere errata, ma puoi comunque unirti a DirtBikeX.",
+    fallbackTitle: 'Scarica DirtBikeX',
+  },
+  fr: {
+    ctaLabel: 'Télécharger DirtBikeX',
+    webCtaLabel: 'Ouvrir dans le navigateur',
+    openInAppLabel: "Ouvrir dans l'app",
+    returnTap: "Vous venez de l'installer ? Touchez « Ouvrir dans l'app » pour terminer.",
+    expiredTitle: 'Cette invitation a expiré',
+    expiredSubtitle: "Téléchargez l'app pour rejoindre DirtBikeX.",
+    notFoundTitle: "Vérifiez votre lien d'invitation",
+    notFoundSubtitle: "La clé d'invitation est peut-être incorrecte, mais vous pouvez quand même rejoindre DirtBikeX.",
+    fallbackTitle: 'Télécharger DirtBikeX',
+  },
+  es: {
+    ctaLabel: 'Descargar DirtBikeX',
+    webCtaLabel: 'Abrir en el navegador',
+    openInAppLabel: 'Abrir en la app',
+    returnTap: '¿Acabas de instalarla? Toca “Abrir en la app” para completar tu ingreso.',
+    expiredTitle: 'Esta invitación ha caducado',
+    expiredSubtitle: 'Descarga la app para unirte a DirtBikeX.',
+    notFoundTitle: 'Revisa tu enlace de invitación',
+    notFoundSubtitle: 'Puede que la clave de invitación sea incorrecta, pero aún puedes unirte a DirtBikeX.',
+    fallbackTitle: 'Descargar DirtBikeX',
+  },
+  ar: {
+    ctaLabel: 'احصل على DirtBikeX',
+    webCtaLabel: 'افتح في المتصفح',
+    openInAppLabel: 'افتح في التطبيق',
+    returnTap: 'ثبّتّه للتو؟ اضغط على «افتح في التطبيق» لإكمال الانضمام.',
+    expiredTitle: 'انتهت صلاحية هذه الدعوة',
+    expiredSubtitle: 'احصل على التطبيق للانضمام إلى DirtBikeX.',
+    notFoundTitle: 'تحقّق من رابط الدعوة',
+    notFoundSubtitle: 'قد يكون مفتاح الدعوة غير صحيح — لكن لا يزال بإمكانك الانضمام إلى DirtBikeX.',
+    fallbackTitle: 'احصل على DirtBikeX',
+  },
+  da: {
+    ctaLabel: 'Hent DirtBikeX',
+    webCtaLabel: 'Åbn i browseren',
+    openInAppLabel: 'Åbn i appen',
+    returnTap: 'Lige installeret? Tryk på “Åbn i appen” for at gøre det færdigt.',
+    expiredTitle: 'Denne invitation er udløbet',
+    expiredSubtitle: 'Hent appen for at deltage i DirtBikeX.',
+    notFoundTitle: 'Tjek dit invitationslink',
+    notFoundSubtitle: 'Invitationsnøglen er måske forkert – men du kan stadig være med i DirtBikeX.',
+    fallbackTitle: 'Hent DirtBikeX',
+  },
+  el: {
+    ctaLabel: 'Λήψη του DirtBikeX',
+    webCtaLabel: 'Άνοιγμα στο πρόγραμμα περιήγησης',
+    openInAppLabel: 'Άνοιγμα στην εφαρμογή',
+    returnTap: 'Μόλις την εγκατέστησες; Πάτησε «Άνοιγμα στην εφαρμογή» για να ολοκληρώσεις.',
+    expiredTitle: 'Αυτή η πρόσκληση έχει λήξει',
+    expiredSubtitle: 'Κατέβασε την εφαρμογή για να μπεις στο DirtBikeX.',
+    notFoundTitle: 'Έλεγξε τον σύνδεσμο πρόσκλησης',
+    notFoundSubtitle: 'Το κλειδί πρόσκλησης μπορεί να είναι λάθος — αλλά μπορείς ακόμα να μπεις στο DirtBikeX.',
+    fallbackTitle: 'Λήψη του DirtBikeX',
+  },
+  'fa-IR': {
+    ctaLabel: 'دریافت DirtBikeX',
+    webCtaLabel: 'باز کردن در مرورگر',
+    openInAppLabel: 'باز کردن در اپ',
+    returnTap: 'همین حالا نصب کردید؟ روی «باز کردن در اپ» بزنید تا عضویت کامل شود.',
+    expiredTitle: 'این دعوت منقضی شده است',
+    expiredSubtitle: 'برای پیوستن به DirtBikeX اپ را دریافت کنید.',
+    notFoundTitle: 'پیوند دعوت را بررسی کنید',
+    notFoundSubtitle: 'ممکن است کلید دعوت اشتباه باشد — اما همچنان می‌توانید به DirtBikeX بپیوندید.',
+    fallbackTitle: 'دریافت DirtBikeX',
+  },
+  fi: {
+    ctaLabel: 'Hanki DirtBikeX',
+    webCtaLabel: 'Avaa selaimessa',
+    openInAppLabel: 'Avaa sovelluksessa',
+    returnTap: 'Asensitko juuri? Viimeistele liittyminen napauttamalla “Avaa sovelluksessa”.',
+    expiredTitle: 'Tämä kutsu on vanhentunut',
+    expiredSubtitle: 'Hanki sovellus ja liity DirtBikeX-yhteisöön.',
+    notFoundTitle: 'Tarkista kutsulinkkisi',
+    notFoundSubtitle: 'Kutsuavain voi olla väärä – mutta voit silti liittyä DirtBikeX-yhteisöön.',
+    fallbackTitle: 'Hanki DirtBikeX',
+  },
+  id: {
+    ctaLabel: 'Unduh DirtBikeX',
+    webCtaLabel: 'Buka di browser',
+    openInAppLabel: 'Buka di aplikasi',
+    returnTap: 'Baru memasang? Ketuk “Buka di aplikasi” untuk menyelesaikan.',
+    expiredTitle: 'Undangan ini telah kedaluwarsa',
+    expiredSubtitle: 'Unduh aplikasi untuk bergabung dengan DirtBikeX.',
+    notFoundTitle: 'Periksa tautan undanganmu',
+    notFoundSubtitle: 'Kunci undangan mungkin salah — tetapi kamu tetap bisa bergabung dengan DirtBikeX.',
+    fallbackTitle: 'Unduh DirtBikeX',
+  },
+  nl: {
+    ctaLabel: 'Download DirtBikeX',
+    webCtaLabel: 'Openen in browser',
+    openInAppLabel: 'Openen in de app',
+    returnTap: 'Net geïnstalleerd? Tik op “Openen in de app” om je aanmelding te voltooien.',
+    expiredTitle: 'Deze uitnodiging is verlopen',
+    expiredSubtitle: 'Download de app om lid te worden van DirtBikeX.',
+    notFoundTitle: 'Controleer je uitnodigingslink',
+    notFoundSubtitle: 'De uitnodigingssleutel klopt mogelijk niet — maar je kunt nog steeds lid worden van DirtBikeX.',
+    fallbackTitle: 'Download DirtBikeX',
+  },
+  pt: {
+    ctaLabel: 'Baixar o DirtBikeX',
+    webCtaLabel: 'Abrir no navegador',
+    openInAppLabel: 'Abrir no app',
+    returnTap: 'Acabou de instalar? Toque em “Abrir no app” para concluir.',
+    expiredTitle: 'Este convite expirou',
+    expiredSubtitle: 'Baixe o app para entrar no DirtBikeX.',
+    notFoundTitle: 'Verifique seu link de convite',
+    notFoundSubtitle: 'A chave de convite pode estar incorreta — mas você ainda pode entrar no DirtBikeX.',
+    fallbackTitle: 'Baixar o DirtBikeX',
+  },
+  'tr-TR': {
+    ctaLabel: "DirtBikeX'i indir",
+    webCtaLabel: 'Tarayıcıda aç',
+    openInAppLabel: 'Uygulamada aç',
+    returnTap: 'Yeni mi yükledin? Katılmak için “Uygulamada aç”a dokun.',
+    expiredTitle: 'Bu davetin süresi dolmuş',
+    expiredSubtitle: "DirtBikeX'e katılmak için uygulamayı indir.",
+    notFoundTitle: 'Davet bağlantını kontrol et',
+    notFoundSubtitle: "Davet anahtarı yanlış olabilir — ama yine de DirtBikeX'e katılabilirsin.",
+    fallbackTitle: "DirtBikeX'i indir",
+  },
+  th: {
+    ctaLabel: 'ดาวน์โหลด DirtBikeX',
+    webCtaLabel: 'เปิดในเบราว์เซอร์',
+    openInAppLabel: 'เปิดในแอป',
+    returnTap: 'เพิ่งติดตั้งใช่ไหม? แตะ “เปิดในแอป” เพื่อเข้าร่วมให้เสร็จ',
+    expiredTitle: 'คำเชิญนี้หมดอายุแล้ว',
+    expiredSubtitle: 'ดาวน์โหลดแอปเพื่อเข้าร่วม DirtBikeX',
+    notFoundTitle: 'ตรวจสอบลิงก์คำเชิญของคุณ',
+    notFoundSubtitle: 'คีย์คำเชิญอาจไม่ถูกต้อง แต่คุณยังเข้าร่วม DirtBikeX ได้',
+    fallbackTitle: 'ดาวน์โหลด DirtBikeX',
+  },
+  vi: {
+    ctaLabel: 'Tải DirtBikeX',
+    webCtaLabel: 'Mở trong trình duyệt',
+    openInAppLabel: 'Mở trong ứng dụng',
+    returnTap: 'Vừa cài xong? Nhấn “Mở trong ứng dụng” để hoàn tất tham gia.',
+    expiredTitle: 'Lời mời này đã hết hạn',
+    expiredSubtitle: 'Tải app để tham gia DirtBikeX.',
+    notFoundTitle: 'Kiểm tra liên kết lời mời của bạn',
+    notFoundSubtitle: 'Có thể khóa lời mời không đúng — nhưng bạn vẫn có thể tham gia DirtBikeX.',
+    fallbackTitle: 'Tải DirtBikeX',
+  },
+  sv: {
+    ctaLabel: 'Hämta DirtBikeX',
+    webCtaLabel: 'Öppna i webbläsaren',
+    openInAppLabel: 'Öppna i appen',
+    returnTap: 'Nyss installerat? Tryck på “Öppna i appen” för att slutföra.',
+    expiredTitle: 'Den här inbjudan har gått ut',
+    expiredSubtitle: 'Hämta appen för att gå med i DirtBikeX.',
+    notFoundTitle: 'Kontrollera din inbjudningslänk',
+    notFoundSubtitle: 'Inbjudningsnyckeln kan vara fel – men du kan ändå gå med i DirtBikeX.',
+    fallbackTitle: 'Hämta DirtBikeX',
   },
 };
 
@@ -67,7 +280,7 @@ function getCopy(locale: Lang): Copy {
 
 const LOCALES: readonly Lang[] = [
   'en', 'zh-CN', 'zh-TW', 'ja', 'ko', 'de', 'it', 'fr', 'es', 'ar',
-  'da', 'el', 'fa-IR', 'fi', 'id', 'nl', 'pt', 'tr-TR', 'th', 'vi',
+  'da', 'el', 'fa-IR', 'fi', 'id', 'nl', 'pt', 'tr-TR', 'th', 'vi', 'sv',
 ];
 
 /**
@@ -77,8 +290,15 @@ const LOCALES: readonly Lang[] = [
  * preserving the AASA universal-link contract.
  */
 function pickLocale(url: URL, acceptLanguage: string | null): Lang {
+  // `?lang=auto` is the iOS share-link default (ShareLookup.shareURL) — it
+  // explicitly defers to Accept-Language negotiation below. Any other value
+  // pins the card; matched leniently via `matchTag` so `?lang=zh-cn`, `zh`,
+  // or `ZH_CN` all resolve like `zh-CN` (case/format no longer has to be exact).
   const qs = url.searchParams.get('lang');
-  if (qs && (LOCALES as readonly string[]).includes(qs)) return qs as Lang;
+  if (qs && qs !== 'auto') {
+    const pinned = matchTag(qs);
+    if (pinned) return pinned;
+  }
 
   if (!acceptLanguage) return 'en';
   const tags = acceptLanguage
@@ -86,18 +306,27 @@ function pickLocale(url: URL, acceptLanguage: string | null): Lang {
     .map((t) => t.trim().split(';')[0]!.trim())
     .filter(Boolean);
   for (const raw of tags) {
-    const tag = raw.toLowerCase();
-    const exact = LOCALES.find((l) => l.toLowerCase() === tag);
-    if (exact) return exact;
-    const base = tag.split('-')[0]!;
-    if (base === 'zh') {
-      const want: Lang = /hant|tw|hk|mo/.test(tag) ? 'zh-TW' : 'zh-CN';
-      if (LOCALES.includes(want)) return want;
-    }
-    const byBase = LOCALES.find((l) => l.toLowerCase().split('-')[0] === base);
-    if (byBase) return byBase;
+    const m = matchTag(raw);
+    if (m) return m;
   }
   return 'en';
+}
+
+/**
+ * Resolve one BCP-47-ish tag to a supported `Lang`, or null. Case-insensitive;
+ * accepts `-` or `_` separators; falls back to the base language (`en-GB` → `en`)
+ * and maps any `zh` variant to `zh-TW` (Traditional) or `zh-CN` (Simplified).
+ */
+function matchTag(tag: string): Lang | null {
+  const lower = tag.toLowerCase();
+  const exact = LOCALES.find((l) => l.toLowerCase() === lower);
+  if (exact) return exact;
+  const base = lower.split(/[-_]/)[0]!;
+  if (base === 'zh') {
+    const want: Lang = /hant|tw|hk|mo/.test(lower) ? 'zh-TW' : 'zh-CN';
+    if (LOCALES.includes(want)) return want;
+  }
+  return LOCALES.find((l) => l.toLowerCase().split('-')[0] === base) ?? null;
 }
 
 /**
@@ -126,27 +355,38 @@ function buildProps(
     forumBase,
   };
 
+  const errorCTA = desktop && forumBase
+    ? { label: copy.webCtaLabel, url: forumBase }
+    : base.primaryCTA;
+
   switch (result.status) {
     case 'valid': {
-      // Desktop: open the forum's web invite-accept page (no app to install).
-      const primaryCTA = desktop
-        ? { label: copy.webCtaLabel, url: `${forumBase}/invites/${result.invite.invite_key}` }
-        : base.primaryCTA;
-      return { props: { ...base, primaryCTA, invite: result.invite } };
+      // Desktop has no app: single CTA to the forum's web invite-accept page.
+      if (desktop) {
+        const primaryCTA = { label: copy.webCtaLabel, url: `${forumBase}/invites/${result.invite.invite_key}` };
+        return { props: { ...base, primaryCTA, invite: result.invite } };
+      }
+      // Mobile: App Store primary ("Get DirtBikeX") + an "open in the app" deep
+      // link that funnels the invite into the app for users who already have it
+      // (the install→return path the returnTap helper describes).
+      const appCTA = { label: copy.openInAppLabel, url: `dirtbikex://s/i/${result.invite.invite_key}` };
+      return { props: { ...base, appCTA, invite: result.invite } };
     }
+    // Error states carry no invite key, so desktop "open in browser" goes to
+    // the forum home (not /invites/<key>); mobile keeps the App Store CTA.
     case 'expired':
       return {
-        props: { ...base, title: copy.expiredTitle, subtitle: copy.expiredSubtitle },
+        props: { ...base, primaryCTA: errorCTA, title: copy.expiredTitle, subtitle: copy.expiredSubtitle },
         cacheControl: 'no-cache',
       };
     case 'not_found':
       return {
-        props: { ...base, title: copy.notFoundTitle, subtitle: copy.notFoundSubtitle },
+        props: { ...base, primaryCTA: errorCTA, title: copy.notFoundTitle, subtitle: copy.notFoundSubtitle },
         cacheControl: 'no-cache',
       };
     case 'unreachable':
       return {
-        props: { ...base, title: copy.fallbackTitle },
+        props: { ...base, primaryCTA: errorCTA, title: copy.fallbackTitle },
         cacheControl: 'no-cache',
       };
   }

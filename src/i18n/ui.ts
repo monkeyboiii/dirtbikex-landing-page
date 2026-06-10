@@ -18,6 +18,7 @@ import pt from './locales/pt.json';
 import trTR from './locales/tr-TR.json';
 import th from './locales/th.json';
 import vi from './locales/vi.json';
+import sv from './locales/sv.json';
 
 /**
  * Locales the landing-page site is routed for — full parity with the
@@ -50,6 +51,7 @@ export const languages = {
   'tr-TR': { name: 'Turkish',               native: 'Türkçe'   },
   'th':    { name: 'Thai',                  native: 'ไทย'      },
   'vi':    { name: 'Vietnamese',            native: 'Tiếng Việt' },
+  'sv':    { name: 'Swedish',               native: 'Svenska' },
 } as const;
 
 export const defaultLang = 'en' as const;
@@ -82,6 +84,7 @@ export const ui: Record<Lang, Partial<Record<UIKey, string>>> = {
   'tr-TR': trTR,
   'th':    th,
   'vi':    vi,
+  'sv':    sv,
 };
 
 /** Non-default locales — used for `getStaticPaths` across [lang]/ pages. */
@@ -119,4 +122,5 @@ export const appLocales = [
   { code: 'tr-TR', native: 'Türkçe'     },
   { code: 'th',    native: 'ไทย'        },
   { code: 'vi',    native: 'Tiếng Việt' },
+  { code: 'sv',    native: 'Svenska'    },
 ] as const;

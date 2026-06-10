@@ -67,7 +67,7 @@ export interface KVNamespace {
  */
 export type Lang =
   | 'en' | 'zh-CN' | 'zh-TW' | 'ja' | 'ko' | 'de' | 'it' | 'fr' | 'es' | 'ar'
-  | 'da' | 'el' | 'fa-IR' | 'fi' | 'id' | 'nl' | 'pt' | 'tr-TR' | 'th' | 'vi';
+  | 'da' | 'el' | 'fa-IR' | 'fi' | 'id' | 'nl' | 'pt' | 'tr-TR' | 'th' | 'vi' | 'sv';
 
 /** Props handed to the shared share-landing renderer. */
 export interface ShareLandingProps {
@@ -75,6 +75,10 @@ export interface ShareLandingProps {
   kind: 'i';
   locale: Lang;
   primaryCTA: { label: string; url: string };
+  /** Optional secondary CTA — the "open in the app" deep link. Set only for a
+   *  mobile valid-invite card; funnels the invite into the app via `dirtbikex://`. */
+  appCTA?: { label: string; url: string };
+  /** Shown only beneath `appCTA` (the install→return helper). */
   returnTapCopy: string;
   /** Forum origin (e.g. `https://forum.dirtbikex.com`) — needed to resolve `avatar_template`. */
   forumBase: string;

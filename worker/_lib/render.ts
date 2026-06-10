@@ -54,6 +54,158 @@ const HERO_COPY: Partial<Record<Lang, HeroCopy>> = {
     expiresBadge: (r) => `${r}过期`,
     spotsBadge: (n) => `还剩 ${n} 个名额`,
   },
+  'zh-TW': {
+    appInvite: (i) => `${i} 邀請你加入 DirtBikeX`,
+    groupInvite: (i, g) => `${i} 邀請你加入 ${g}`,
+    andMore: (n) => `等 ${n} 個`,
+    topicPrefix: '📍',
+    expiresBadge: (r) => `${r}過期`,
+    spotsBadge: (n) => `還剩 ${n} 個名額`,
+  },
+  ja: {
+    appInvite: (i) => `${i}さんがあなたを DirtBikeX に招待しました`,
+    groupInvite: (i, g) => `${i}さんがあなたを ${g} に招待しました`,
+    andMore: (n) => `他 ${n} 件`,
+    topicPrefix: '📍',
+    expiresBadge: (r) => `${r}に期限切れ`,
+    spotsBadge: (n) => `残り ${n} 枠`,
+  },
+  ko: {
+    appInvite: (i) => `${i}님이 DirtBikeX에 초대했습니다`,
+    groupInvite: (i, g) => `${i}님이 ${g}에 초대했습니다`,
+    andMore: (n) => `외 ${n}개`,
+    topicPrefix: '📍',
+    expiresBadge: (r) => `${r} 만료`,
+    spotsBadge: (n) => `${n}자리 남음`,
+  },
+  de: {
+    appInvite: (i) => `${i} hat dich zu DirtBikeX eingeladen`,
+    groupInvite: (i, g) => `${i} hat dich zu ${g} eingeladen`,
+    andMore: (n) => `+${n} weitere`,
+    topicPrefix: '📍',
+    expiresBadge: (r) => `Läuft ${r} ab`,
+    spotsBadge: (n) => `Noch ${n} ${n === 1 ? 'Platz' : 'Plätze'} frei`,
+  },
+  it: {
+    appInvite: (i) => `${i} ti ha invitato su DirtBikeX`,
+    groupInvite: (i, g) => `${i} ti ha invitato a unirti a ${g}`,
+    andMore: (n) => `+${n} altri`,
+    topicPrefix: '📍',
+    expiresBadge: (r) => `Scade ${r}`,
+    spotsBadge: (n) => `${n} ${n === 1 ? 'posto rimasto' : 'posti rimasti'}`,
+  },
+  fr: {
+    appInvite: (i) => `${i} vous a invité sur DirtBikeX`,
+    groupInvite: (i, g) => `${i} vous a invité à rejoindre ${g}`,
+    andMore: (n) => `+${n} autres`,
+    topicPrefix: '📍',
+    expiresBadge: (r) => `Expire ${r}`,
+    spotsBadge: (n) => `${n} ${n === 1 ? 'place restante' : 'places restantes'}`,
+  },
+  es: {
+    appInvite: (i) => `${i} te ha invitado a DirtBikeX`,
+    groupInvite: (i, g) => `${i} te ha invitado a unirte a ${g}`,
+    andMore: (n) => `+${n} más`,
+    topicPrefix: '📍',
+    expiresBadge: (r) => `Caduca ${r}`,
+    spotsBadge: (n) => `${n} ${n === 1 ? 'lugar disponible' : 'lugares disponibles'}`,
+  },
+  ar: {
+    appInvite: (i) => `دعاك ${i} للانضمام إلى DirtBikeX`,
+    groupInvite: (i, g) => `دعاك ${i} للانضمام إلى ${g}`,
+    andMore: (n) => `+${n} أخرى`,
+    topicPrefix: '📍',
+    expiresBadge: (r) => `تنتهي ${r}`,
+    spotsBadge: (n) => `أماكن متبقية: ${n}`,
+  },
+  da: {
+    appInvite: (i) => `${i} har inviteret dig til DirtBikeX`,
+    groupInvite: (i, g) => `${i} har inviteret dig til at deltage i ${g}`,
+    andMore: (n) => `+${n} flere`,
+    topicPrefix: '📍',
+    expiresBadge: (r) => `Udløber ${r}`,
+    spotsBadge: (n) => `${n} ${n === 1 ? 'plads' : 'pladser'} tilbage`,
+  },
+  el: {
+    appInvite: (i) => `Ο/Η ${i} σε προσκάλεσε στο DirtBikeX`,
+    groupInvite: (i, g) => `Ο/Η ${i} σε προσκάλεσε να μπεις στο ${g}`,
+    andMore: (n) => `+${n} ακόμη`,
+    topicPrefix: '📍',
+    expiresBadge: (r) => `Λήγει ${r}`,
+    spotsBadge: (n) => `${n === 1 ? 'Απομένει' : 'Απομένουν'} ${n} ${n === 1 ? 'θέση' : 'θέσεις'}`,
+  },
+  'fa-IR': {
+    appInvite: (i) => `${i} شما را به DirtBikeX دعوت کرد`,
+    groupInvite: (i, g) => `${i} شما را به پیوستن به ${g} دعوت کرد`,
+    andMore: (n) => `+${n} مورد دیگر`,
+    topicPrefix: '📍',
+    expiresBadge: (r) => `${r} منقضی می‌شود`,
+    spotsBadge: (n) => `${n} جای باقی‌مانده`,
+  },
+  fi: {
+    appInvite: (i) => `${i} kutsui sinut DirtBikeX-yhteisöön`,
+    groupInvite: (i, g) => `${i} kutsui sinut ryhmään ${g}`,
+    andMore: (n) => `+${n} muuta`,
+    topicPrefix: '📍',
+    expiresBadge: (r) => `Vanhenee ${r}`,
+    spotsBadge: (n) => `${n} ${n === 1 ? 'paikka' : 'paikkaa'} jäljellä`,
+  },
+  id: {
+    appInvite: (i) => `${i} mengundang kamu ke DirtBikeX`,
+    groupInvite: (i, g) => `${i} mengundang kamu untuk bergabung dengan ${g}`,
+    andMore: (n) => `+${n} lainnya`,
+    topicPrefix: '📍',
+    expiresBadge: (r) => `Kedaluwarsa ${r}`,
+    spotsBadge: (n) => `${n} tempat tersisa`,
+  },
+  nl: {
+    appInvite: (i) => `${i} heeft je uitgenodigd voor DirtBikeX`,
+    groupInvite: (i, g) => `${i} heeft je uitgenodigd om lid te worden van ${g}`,
+    andMore: (n) => `+${n} meer`,
+    topicPrefix: '📍',
+    expiresBadge: (r) => `Verloopt ${r}`,
+    spotsBadge: (n) => `Nog ${n} ${n === 1 ? 'plek' : 'plekken'}`,
+  },
+  pt: {
+    appInvite: (i) => `${i} convidou você para o DirtBikeX`,
+    groupInvite: (i, g) => `${i} convidou você para entrar em ${g}`,
+    andMore: (n) => `+${n} mais`,
+    topicPrefix: '📍',
+    expiresBadge: (r) => `Expira ${r}`,
+    spotsBadge: (n) => `${n} ${n === 1 ? 'vaga restante' : 'vagas restantes'}`,
+  },
+  'tr-TR': {
+    appInvite: (i) => `${i} seni DirtBikeX'e davet etti`,
+    groupInvite: (i, g) => `${i} seni ${g} grubuna davet etti`,
+    andMore: (n) => `+${n} tane daha`,
+    topicPrefix: '📍',
+    expiresBadge: (r) => `${r} sona erer`,
+    spotsBadge: (n) => `${n} yer kaldı`,
+  },
+  th: {
+    appInvite: (i) => `${i} เชิญคุณเข้าร่วม DirtBikeX`,
+    groupInvite: (i, g) => `${i} เชิญคุณเข้าร่วม ${g}`,
+    andMore: (n) => `และอีก ${n} รายการ`,
+    topicPrefix: '📍',
+    expiresBadge: (r) => `หมดอายุ ${r}`,
+    spotsBadge: (n) => `เหลือ ${n} ที่`,
+  },
+  vi: {
+    appInvite: (i) => `${i} đã mời bạn tham gia DirtBikeX`,
+    groupInvite: (i, g) => `${i} đã mời bạn tham gia ${g}`,
+    andMore: (n) => `+${n} khác`,
+    topicPrefix: '📍',
+    expiresBadge: (r) => `Hết hạn ${r}`,
+    spotsBadge: (n) => `Còn ${n} chỗ`,
+  },
+  sv: {
+    appInvite: (i) => `${i} har bjudit in dig till DirtBikeX`,
+    groupInvite: (i, g) => `${i} har bjudit in dig till ${g}`,
+    andMore: (n) => `+${n} till`,
+    topicPrefix: '📍',
+    expiresBadge: (r) => `Går ut ${r}`,
+    spotsBadge: (n) => `${n} ${n === 1 ? 'plats' : 'platser'} kvar`,
+  },
 };
 
 function getHeroCopy(locale: Lang): HeroCopy {
@@ -66,7 +218,9 @@ function getHeroCopy(locale: Lang): HeroCopy {
 
 function buildHTML(props: ShareLandingProps, requestURL: string): string {
   const { locale } = props;
-  const url = esc(requestURL);
+  // Strip `?lang=` (the iOS link carries `lang=auto`) so crawlers canonicalize
+  // every locale of a share to one `og:url`, not a per-language variant.
+  const url = esc(canonicalURL(requestURL));
   const ogImage = buildOgImage(props);
 
   const head = (titleText: string, description: string | null) => `
@@ -95,25 +249,32 @@ ${ogImage ? `<meta property="og:image" content="${esc(ogImage)}">
   const ogDescription = props.invite?.description ?? props.subtitle ?? null;
 
   return `<!DOCTYPE html>
-<html lang="${locale}">
+<html lang="${locale}" dir="${isRTL(locale) ? 'rtl' : 'ltr'}">
 <head>${head(ogTitle, ogDescription)}</head>
 <body>${body}</body>
 </html>`;
 }
 
+/** Arabic + Persian render right-to-left. */
+function isRTL(locale: Lang): boolean {
+  return locale === 'ar' || locale === 'fa-IR';
+}
+
 function errorBody(props: ShareLandingProps): string {
-  const { title, subtitle, primaryCTA, returnTapCopy } = props;
+  const { title, subtitle, primaryCTA } = props;
+  // No inviter on error states — the avatar slot carries the app logo instead.
+  // No "open in the app" path here: there's no valid invite key to funnel.
   return `
 <main class="card">
+  <div class="avatar"><img src="/icon-512.png" alt="DirtBikeX"></div>
   <h1 class="headline">${esc(title ?? 'DirtBikeX')}</h1>
   ${subtitle ? `<p class="subtitle">${esc(subtitle)}</p>` : ''}
   <a class="cta" href="${esc(primaryCTA.url)}">${esc(primaryCTA.label)}</a>
-  <p class="return-tap">${esc(returnTapCopy)}</p>
 </main>`;
 }
 
 function heroCardBody(invite: InviteRow, props: ShareLandingProps, locale: Lang): string {
-  const { primaryCTA, returnTapCopy, forumBase } = props;
+  const { primaryCTA, appCTA, returnTapCopy, forumBase } = props;
   const copy = getHeroCopy(locale);
   const { invited_by, description, topics, expires_at, max_redemptions_allowed, redemption_count } = invite;
 
@@ -163,7 +324,8 @@ function heroCardBody(invite: InviteRow, props: ShareLandingProps, locale: Lang)
   ${messageHTML}
   ${statusHTML}
   <a class="cta" href="${esc(primaryCTA.url)}">${esc(primaryCTA.label)}</a>
-  <p class="return-tap">${esc(returnTapCopy)}</p>
+  ${appCTA ? `<a class="cta cta-secondary" href="${esc(appCTA.url)}">${esc(appCTA.label)}</a>` : ''}
+  ${appCTA ? `<p class="return-tap">${esc(returnTapCopy)}</p>` : ''}
 </main>`;
 }
 
@@ -263,6 +425,17 @@ function firstGrapheme(s: string): string {
    HTML escape
    ============================================================ */
 
+/** Drop the `lang` query param so `og:url` is the locale-agnostic canonical. */
+function canonicalURL(requestURL: string): string {
+  try {
+    const u = new URL(requestURL);
+    u.searchParams.delete('lang');
+    return u.toString();
+  } catch {
+    return requestURL;
+  }
+}
+
 function esc(s: string): string {
   return s
     .replace(/&/g, '&amp;')
@@ -359,10 +532,11 @@ body {
 .message {
   font-style: italic;
   color: var(--clay-800);
-  border-left: 3px solid var(--dirt-400);
-  padding: 0.25rem 0 0.25rem 0.75rem;
+  border-inline-start: 3px solid var(--dirt-400);
+  padding-block: 0.25rem;
+  padding-inline-start: 0.75rem;
   margin: 1rem 0 0;
-  text-align: left;
+  text-align: start;
   line-height: 1.5;
   font-size: 0.9375rem;
 }
@@ -395,6 +569,13 @@ body {
   transition: background-color 0.15s ease;
 }
 .cta:hover, .cta:active { background: var(--dirt-600); }
+.cta-secondary {
+  margin-top: 0.625rem;
+  background: transparent;
+  color: var(--dirt-600);
+  border: 1.5px solid var(--dirt-500);
+}
+.cta-secondary:hover, .cta-secondary:active { background: var(--dirt-50); }
 .return-tap {
   margin-top: 1rem;
   font-size: 0.8125rem;
@@ -412,6 +593,8 @@ body {
     box-shadow: 0 20px 60px -20px rgba(0,0,0,0.6), 0 4px 12px rgba(0,0,0,0.4);
   }
   .headline { color: var(--clay-50); }
+  .cta-secondary { color: var(--dirt-200); border-color: var(--dirt-400); }
+  .cta-secondary:hover, .cta-secondary:active { background: rgba(243,118,11,0.12); }
   .inviter-title { background: var(--clay-800); color: var(--clay-100); }
   .topic, .subtitle { color: var(--clay-200); }
   .message { color: var(--clay-100); }
