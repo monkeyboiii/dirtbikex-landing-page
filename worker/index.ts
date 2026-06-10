@@ -24,6 +24,9 @@ const APP_STORE_URL = 'https://apps.apple.com/app/id0000000000';
 
 interface Copy {
   ctaLabel: string;
+  /** Desktop CTA label — there's no app to install, so the button opens the
+   *  forum's web invite-accept page instead (see `buildProps` valid case). */
+  webCtaLabel: string;
   returnTap: string;
   expiredTitle: string;
   expiredSubtitle: string;
@@ -38,6 +41,7 @@ interface Copy {
 const COPY: Partial<Record<Lang, Copy>> = {
   en: {
     ctaLabel: 'Get DirtBikeX',
+    webCtaLabel: 'Open in browser',
     returnTap: 'Already installed? Tap the link again to open it in the app.',
     expiredTitle: 'This invite has expired',
     expiredSubtitle: 'Get the app to join DirtBikeX.',
@@ -47,6 +51,7 @@ const COPY: Partial<Record<Lang, Copy>> = {
   },
   'zh-CN': {
     ctaLabel: '下载 DirtBikeX',
+    webCtaLabel: '在浏览器中打开',
     returnTap: '已经安装了？再次点击链接即可在应用内打开。',
     expiredTitle: '邀请已过期',
     expiredSubtitle: '下载应用，加入 DirtBikeX。',
@@ -95,11 +100,23 @@ function pickLocale(url: URL, acceptLanguage: string | null): Lang {
   return 'en';
 }
 
+/**
+ * Coarse server-side device split for the CTA. Mobile (iOS/Android) keeps the
+ * App Store CTA + the install→re-tap return path; desktop has no app to install,
+ * so the valid-invite CTA points at the forum's web accept page instead. `/s/*`
+ * is `no-store` (public/_headers), so per-UA branching can't be poisoned by an
+ * edge cache serving one device's variant to the other.
+ */
+function isDesktopUA(ua: string | null): boolean {
+  return !/Android|iPhone|iPad|iPod|Mobile/i.test(ua ?? '');
+}
+
 function buildProps(
   result: LookupResult,
   copy: Copy,
   locale: Lang,
   forumBase: string,
+  desktop: boolean,
 ): { props: ShareLandingProps; cacheControl?: string } {
   const base: Pick<ShareLandingProps, 'kind' | 'locale' | 'primaryCTA' | 'returnTapCopy' | 'forumBase'> = {
     kind: 'i',
@@ -110,8 +127,13 @@ function buildProps(
   };
 
   switch (result.status) {
-    case 'valid':
-      return { props: { ...base, invite: result.invite } };
+    case 'valid': {
+      // Desktop: open the forum's web invite-accept page (no app to install).
+      const primaryCTA = desktop
+        ? { label: copy.webCtaLabel, url: `${forumBase}/invites/${result.invite.invite_key}` }
+        : base.primaryCTA;
+      return { props: { ...base, primaryCTA, invite: result.invite } };
+    }
     case 'expired':
       return {
         props: { ...base, title: copy.expiredTitle, subtitle: copy.expiredSubtitle },
@@ -137,7 +159,8 @@ async function handleInvite(request: Request, env: Env, key: string): Promise<Re
   const forumBase = env.FORUM_BASE ?? '';
 
   const result = await lookupInvite(env, key);
-  const { props, cacheControl } = buildProps(result, copy, locale, forumBase);
+  const desktop = isDesktopUA(request.headers.get('user-agent'));
+  const { props, cacheControl } = buildProps(result, copy, locale, forumBase, desktop);
   return renderShareLanding(props, request.url, cacheControl ? { cacheControl } : {});
 }
 

@@ -115,17 +115,18 @@ function errorBody(props: ShareLandingProps): string {
 function heroCardBody(invite: InviteRow, props: ShareLandingProps, locale: Lang): string {
   const { primaryCTA, returnTapCopy, forumBase } = props;
   const copy = getHeroCopy(locale);
-  const { invited_by, description, groups, topics, expires_at, max_redemptions_allowed, redemption_count } = invite;
+  const { invited_by, description, topics, expires_at, max_redemptions_allowed, redemption_count } = invite;
 
+  // Inviter name/handle are intentionally not rendered as a separate line: the
+  // headline ("<name> invited you to …") already carries the inviter, so a
+  // name/@handle block would just repeat it. `displayName` survives only for
+  // the avatar (alt text + letter fallback). The title pill stays — it's the
+  // one identity bit the headline doesn't carry.
   const displayName = invited_by.name?.trim() || invited_by.username;
-  const showHandle = invited_by.name?.trim() && invited_by.name.trim() !== invited_by.username;
 
   const avatarHTML = renderAvatar(forumBase, invited_by.avatar_template, displayName, invited_by.username);
   const titlePillHTML = invited_by.title
     ? `<span class="inviter-title">${esc(invited_by.title)}</span>`
-    : '';
-  const handleHTML = showHandle
-    ? `<div class="inviter-handle">@${esc(invited_by.username)}</div>`
     : '';
 
   const headline = buildHeadline(invite, locale);
@@ -138,11 +139,9 @@ function heroCardBody(invite: InviteRow, props: ShareLandingProps, locale: Lang)
     ? `<blockquote class="message">${esc(description.trim())}</blockquote>`
     : '';
 
-  const chipsHTML = groups.length > 0
-    ? `<div class="group-chips">${groups
-        .map((g) => `<span class="chip">${esc(g.full_name?.trim() || g.name)}</span>`)
-        .join('')}</div>`
-    : '';
+  // No group chips: the headline ("… invited you to join <groups>") already
+  // names the destination, so chips would duplicate it (3-name cap + "+N more"
+  // overflow handled in buildHeadline).
 
   const badges: string[] = [];
   if (expires_at) {
@@ -158,15 +157,10 @@ function heroCardBody(invite: InviteRow, props: ShareLandingProps, locale: Lang)
   return `
 <main class="card">
   ${avatarHTML}
-  <div class="inviter">
-    <div class="inviter-name">${esc(displayName)}</div>
-    ${handleHTML}
-    ${titlePillHTML}
-  </div>
+  ${titlePillHTML ? `<div class="inviter">${titlePillHTML}</div>` : ''}
   <h1 class="headline">${esc(headline)}</h1>
   ${topicHTML}
   ${messageHTML}
-  ${chipsHTML}
   ${statusHTML}
   <a class="cta" href="${esc(primaryCTA.url)}">${esc(primaryCTA.label)}</a>
   <p class="return-tap">${esc(returnTapCopy)}</p>
@@ -334,17 +328,6 @@ body {
 .avatar > svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .avatar > img { position: relative; z-index: 1; width: 100%; height: 100%; object-fit: cover; display: block; }
 .inviter { margin-bottom: 0.75rem; }
-.inviter-name {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: #1a1a1a;
-  line-height: 1.3;
-}
-.inviter-handle {
-  font-size: 0.875rem;
-  color: var(--clay-500);
-  margin-top: 0.125rem;
-}
 .inviter-title {
   display: inline-block;
   margin-top: 0.5rem;
@@ -382,22 +365,6 @@ body {
   text-align: left;
   line-height: 1.5;
   font-size: 0.9375rem;
-}
-.group-chips {
-  margin-top: 1rem;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.375rem;
-  justify-content: center;
-}
-.chip {
-  display: inline-block;
-  padding: 0.25rem 0.625rem;
-  background: var(--dirt-50);
-  color: var(--dirt-700);
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 500;
 }
 .status-row {
   margin-top: 1rem;
@@ -444,12 +411,10 @@ body {
     background: #1a1614;
     box-shadow: 0 20px 60px -20px rgba(0,0,0,0.6), 0 4px 12px rgba(0,0,0,0.4);
   }
-  .inviter-name, .headline { color: var(--clay-50); }
-  .inviter-handle { color: var(--clay-200); }
+  .headline { color: var(--clay-50); }
   .inviter-title { background: var(--clay-800); color: var(--clay-100); }
   .topic, .subtitle { color: var(--clay-200); }
   .message { color: var(--clay-100); }
-  .chip { background: rgba(243,118,11,0.15); color: var(--dirt-200); }
   .badge { background: var(--clay-800); color: var(--clay-100); }
   .return-tap { color: var(--clay-200); }
 }
