@@ -6,6 +6,7 @@
   "nav.faq": "FAQ",
   "nav.community": "Community",
   "nav.founders": "Founders",
+  "nav.sponsors": "Sponsors",
   "nav.getApp": "Get the app",
   "nav.toggleTheme": "Toggle theme",
 
@@ -63,6 +64,8 @@
 
   "cta.appStore.line1": "Download on the",
   "cta.appStore.line2": "App Store",
+  "cta.googlePlay.line1": "Coming soon on",
+  "cta.googlePlay.line2": "Google Play",
 
   "founders.title": "Founders",
   "founders.intro": "The team building DirtBikeX.",
@@ -73,6 +76,14 @@
   "founders.rebecca.name": "Rebecca",
   "founders.rebecca.role": "Lead UX/UI Designer",
   "founders.rebecca.bio": "Bio coming soon.",
+  "founders.tba.name": "Coming soon",
+  "founders.tba.role": "Founding team",
+  "sponsorship.eyebrow": "Sponsorship program",
+  "sponsorship.title": "Put your brand on the trail",
+  "sponsorship.body": "We're building a rider-first sponsorship program for brands and individuals who want to reach the global dirt bike community. Details coming soon.",
+  "sponsorship.coming": "Coming soon",
+  "sponsorship.cta.contact": "Get in touch",
+  "sponsorship.cta.wall": "See current sponsors",
 
   "contact.title": "Get in touch",
   "contact.subtitle": "The forum is the fastest place for community questions. For everything else, email works best.",

@@ -16,8 +16,8 @@ const home = localizedPath(lang, '/');
     </a>
 
     <nav class="site-nav">
-      <a href={`${home}#features`}>{t('nav.features')}</a>
-      <a href={`${home}#faq`}>{t('nav.faq')}</a>
+      <a href={localizedPath(lang, '/founders')}>{t('nav.founders')}</a>
+      <a href={localizedPath(lang, '/sponsorship')}>{t('nav.sponsors')}</a>
       <a href={FORUM_BASE} target="_blank" rel="noopener">{t('nav.community')}</a>
     </nav>
 
@@ -43,4 +43,11 @@ const home = localizedPath(lang, '/');
     const isDark = root.classList.toggle('dark');
     try { localStorage.setItem('theme', isDark ? 'dark' : 'light'); } catch (e) {}
   });
+  (function () {
+    const header = document.querySelector('.site-header');
+    if (!header) return;
+    const sync = () => header.toggleAttribute('data-scrolled', window.scrollY > 8);
+    window.addEventListener('scroll', sync, { passive: true });
+    sync();
+  })();
 </script>

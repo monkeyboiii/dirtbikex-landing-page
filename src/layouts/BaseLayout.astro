@@ -4,7 +4,7 @@ import '../styles/landing.css';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import { getLangFromUrl, useTranslations, switchLangPath } from '../i18n/utils';
-import { languages, rtlLocales, type Lang } from '../i18n/ui';
+import { defaultLang, languages, rtlLocales, type Lang } from '../i18n/ui';
 
 interface Props {
   title?: string;
@@ -16,8 +16,9 @@ const t = useTranslations(lang);
 const { title = t('meta.title'), description = t('meta.description') } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const dir = rtlLocales.includes(lang) ? 'rtl' : 'ltr';
+const localeCodes = Object.keys(languages) as Lang[];
 
-const hreflangs = (Object.keys(languages) as Lang[]).map((code) => ({
+const hreflangs = localeCodes.map((code) => ({
   code,
   href: new URL(switchLangPath(Astro.url, code), Astro.site).toString(),
 }));
@@ -51,7 +52,7 @@ const hreflangs = (Object.keys(languages) as Lang[]).map((code) => ({
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content={new URL('/og-image.png', Astro.site).toString()} />
     <meta name="generator" content={Astro.generator} />
-    <script is:inline>
+    <script is:inline define:vars={{ localeCodes, defaultLang }}>
       (function () {
         try {
           const stored = localStorage.getItem('theme');
@@ -68,51 +69,61 @@ const hreflangs = (Object.keys(languages) as Lang[]).map((code) => ({
       (function () {
         try {
           const path = window.location.pathname;
-          const prefixes = ['/zh-CN', '/zh-TW', '/ja', '/ko', '/de', '/it', '/fr', '/es', '/ar', '/da', '/el', '/fa-IR', '/fi', '/id', '/nl', '/pt', '/tr-TR', '/th', '/vi'];
-          for (let i = 0; i < prefixes.length; i++) {
-            if (path === prefixes[i] || path.indexOf(prefixes[i] + '/') === 0) return;
+          const locales = Array.isArray(localeCodes) ? localeCodes : [defaultLang];
+          const localeSet = new Set(locales);
+          const segments = path.split('/').filter(Boolean);
+
+          if (segments.length > 1 && localeSet.has(segments[0]) && segments[1] === segments[0]) {
+            let restStart = 1;
+            while (restStart < segments.length && segments[restStart] === segments[0]) restStart++;
+            const rest = segments.slice(restStart).join('/');
+            const targetPath = '/' + segments[0] + (rest ? '/' + rest + (path.endsWith('/') ? '/' : '') : '/');
+            window.location.replace(targetPath + window.location.search + window.location.hash);
+            return;
           }
+
           // Worker-handled share routes use ?lang= (URL-prefix would break the
           // AASA `/s/*` deep-link contract and 404 on the asset layer).
           if (path.indexOf('/s/') === 0) return;
-          const pref = localStorage.getItem('dbx-locale-pref');
-          if (pref === 'en') return;
-          if (pref && pref !== 'en') {
+
+          for (let i = 0; i < locales.length; i++) {
+            const code = locales[i];
+            if (code === defaultLang) continue;
+            const prefix = '/' + code;
+            if (path === prefix || path.indexOf(prefix + '/') === 0) return;
+          }
+
+          function matchLocale(tag) {
+            const lower = String(tag || '').trim().replace(/_/g, '-').toLowerCase();
+            if (!lower) return null;
+            for (let i = 0; i < locales.length; i++) {
+              if (locales[i].toLowerCase() === lower) return locales[i];
+            }
+            const base = lower.split('-')[0];
+            if (base === 'zh') {
+              const want = /hant|tw|hk|mo/.test(lower) ? 'zh-TW' : 'zh-CN';
+              return localeSet.has(want) ? want : null;
+            }
+            for (let i = 0; i < locales.length; i++) {
+              if (locales[i].toLowerCase().split('-')[0] === base) return locales[i];
+            }
+            return null;
+          }
+
+          const pref = matchLocale(localStorage.getItem('dbx-locale-pref'));
+          if (pref === defaultLang) return;
+          if (pref) {
             const target = '/' + pref + (path === '/' ? '/' : path);
             window.location.replace(target + window.location.search + window.location.hash);
             return;
           }
-          // BCP-47 → shipped-locale matcher. Order matters: more-specific
-          // matches first (zh-Hant before zh, etc.).
-          function matchLocale(lower) {
-            if (lower === 'en' || lower.indexOf('en-') === 0) return 'en';
-            if (lower === 'zh-tw' || lower === 'zh-hk' || lower === 'zh-hant' || lower.indexOf('zh-hant') === 0 || lower.indexOf('zh-mo') === 0) return 'zh-TW';
-            if (lower === 'zh' || lower === 'zh-cn' || lower === 'zh-hans' || lower.indexOf('zh-hans') === 0 || lower.indexOf('zh-sg') === 0) return 'zh-CN';
-            if (lower === 'ja' || lower.indexOf('ja-') === 0) return 'ja';
-            if (lower === 'ko' || lower.indexOf('ko-') === 0) return 'ko';
-            if (lower === 'de' || lower.indexOf('de-') === 0) return 'de';
-            if (lower === 'it' || lower.indexOf('it-') === 0) return 'it';
-            if (lower === 'fr' || lower.indexOf('fr-') === 0) return 'fr';
-            if (lower === 'es' || lower.indexOf('es-') === 0) return 'es';
-            if (lower === 'ar' || lower.indexOf('ar-') === 0) return 'ar';
-            if (lower === 'da' || lower.indexOf('da-') === 0) return 'da';
-            if (lower === 'el' || lower.indexOf('el-') === 0) return 'el';
-            if (lower === 'fa' || lower.indexOf('fa-') === 0) return 'fa-IR';
-            if (lower === 'fi' || lower.indexOf('fi-') === 0) return 'fi';
-            if (lower === 'id' || lower.indexOf('id-') === 0) return 'id';
-            if (lower === 'nl' || lower.indexOf('nl-') === 0) return 'nl';
-            if (lower === 'pt' || lower.indexOf('pt-') === 0) return 'pt';
-            if (lower === 'tr' || lower.indexOf('tr-') === 0) return 'tr-TR';
-            if (lower === 'th' || lower.indexOf('th-') === 0) return 'th';
-            if (lower === 'vi' || lower.indexOf('vi-') === 0) return 'vi';
-            return null;
-          }
+
           const browserLangs = navigator.languages && navigator.languages.length
             ? navigator.languages
-            : [navigator.language || 'en'];
+            : [navigator.language || defaultLang];
           for (let i = 0; i < browserLangs.length; i++) {
-            const match = matchLocale(String(browserLangs[i] || '').toLowerCase());
-            if (match === 'en') return;
+            const match = matchLocale(browserLangs[i]);
+            if (match === defaultLang) return;
             if (match) {
               const target = '/' + match + (path === '/' ? '/' : path);
               window.location.replace(target + window.location.search + window.location.hash);

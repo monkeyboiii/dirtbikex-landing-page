@@ -9,6 +9,11 @@
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--border);
+  transition: background-color var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out);
+}
+.site-header[data-scrolled] {
+  background: color-mix(in oklab, var(--bg) 90%, transparent);
+  box-shadow: var(--shadow-md);
 }
 .site-header__inner { display: flex; align-items: center; justify-content: space-between; height: 64px; }
 .site-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--fg); }
@@ -602,6 +607,17 @@
 .appstore-badge__lines { display: flex; flex-direction: column; line-height: 1.05; }
 .appstore-badge__l1 { font: 500 10px var(--font-sans); opacity: 0.85; }
 .appstore-badge__l2 { font: 700 16px/1.1 var(--font-display); letter-spacing: -0.01em; }
+
+/* Android badge — non-interactive "coming soon" twin of the App Store badge */
+.playstore-badge {
+  background: var(--bg-sunken);
+  color: var(--fg-secondary);
+  border: 1px dashed var(--border-strong);
+  cursor: default;
+}
+.playstore-badge:hover { background: var(--bg-sunken); }
+.playstore-badge svg { opacity: 0.75; }
+.playstore-badge .appstore-badge__l2 { color: var(--fg); }
 
 /* ---- Lang switcher (dropdown) — pill trigger + popover card ---- */
 .langswitch-dd {

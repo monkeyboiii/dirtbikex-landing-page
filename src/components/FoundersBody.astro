@@ -7,24 +7,29 @@ const t = useTranslations(lang);
 type Founder = {
   nameKey: string;
   roleKey: string;
-  bioKey: string;
   photo?: { src: string; altKey: string };
   initials?: string;
+  tba?: boolean;
 };
 
-const founders: Founder[] = [
-  {
-    nameKey: 'founders.calvin.name',
-    roleKey: 'founders.calvin.role',
-    bioKey: 'founders.calvin.bio',
-    photo: { src: '/founders/calvin.png', altKey: 'founders.calvin.photo_alt' },
-  },
+// Lead founder — rendered on a dedicated full-width row.
+const lead = {
+  nameKey: 'founders.calvin.name',
+  roleKey: 'founders.calvin.role',
+  bioKey: 'founders.calvin.bio',
+  photo: { src: '/founders/calvin.png', altKey: 'founders.calvin.photo_alt' },
+};
+
+// Photo-first team row. TBA slots render a placeholder portrait until a
+// real photo + strings are supplied.
+const team: Founder[] = [
   {
     nameKey: 'founders.rebecca.name',
     roleKey: 'founders.rebecca.role',
-    bioKey: 'founders.rebecca.bio',
     initials: 'R',
   },
+  { nameKey: 'founders.tba.name', roleKey: 'founders.tba.role', tba: true },
+  { nameKey: 'founders.tba.name', roleKey: 'founders.tba.role', tba: true },
 ];
 
 const socials = [
@@ -41,76 +46,146 @@ const socials = [
     </p>
   </header>
 
-  <ul class="mt-16 grid gap-6 sm:grid-cols-2 list-none p-0">
-    {founders.map((f) => (
-      <li
-        class="rounded-2xl p-8"
-        style="background: var(--bg-elevated); border: 1px solid var(--border);"
-      >
-        <header class="founder-head">
-          <div class="founder-av">
-            {f.photo
-              ? <img src={f.photo.src} alt={t(f.photo.altKey)} loading="lazy" decoding="async" />
-              : <span aria-hidden="true">{f.initials}</span>}
-          </div>
-          <div class="founder-id">
-            <h2 class="t-h2">{t(f.nameKey)}</h2>
-            <p class="t-mono-sm mt-1 uppercase" style="color: var(--fg-secondary);">
-              {t(f.roleKey)}
-            </p>
-          </div>
-        </header>
-        <p class="t-body mt-6" style="color: var(--fg-secondary);">
-          {t(f.bioKey)}
-        </p>
-        <ul class="mt-6 flex gap-2 list-none p-0">
-          {socials.map(({ key, url }) => (
-            <li>
-              <a
-                href={url}
-                target="_blank"
-                rel="noopener"
-                class="inline-flex items-center px-3 py-1.5 rounded-full t-mono-sm"
-                style="background: var(--bone-50); border: 1px solid var(--border); color: var(--fg-secondary);"
-              >
-                {t(key)}
-              </a>
-            </li>
-          ))}
-        </ul>
+  <article class="founder-lead mt-16">
+    <div class="founder-lead__photo">
+      <img
+        src={lead.photo.src}
+        alt={t(lead.photo.altKey)}
+        loading="eager"
+        fetchpriority="high"
+        decoding="async"
+      />
+    </div>
+    <div class="founder-lead__body">
+      <h2 class="t-display-3">{t(lead.nameKey)}</h2>
+      <p class="t-mono-sm mt-3 uppercase founder-role" style="color: var(--brand);">
+        {t(lead.roleKey)}
+      </p>
+      <p class="t-body-lg mt-5" style="color: var(--fg-secondary);">
+        {t(lead.bioKey)}
+      </p>
+      <ul class="mt-6 flex gap-2 list-none p-0">
+        {socials.map(({ key, url }) => (
+          <li>
+            <a
+              href={url}
+              target="_blank"
+              rel="noopener"
+              class="inline-flex items-center px-3 py-1.5 rounded-full t-mono-sm"
+              style="background: var(--bg-sunken); border: 1px solid var(--border); color: var(--fg-secondary);"
+            >
+              {t(key)}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </article>
+
+  <ul class="founder-grid mt-6 list-none p-0">
+    {team.map((f) => (
+      <li class={`founder-card${f.tba ? ' tba' : ''}`}>
+        <div class="founder-card__photo">
+          {f.photo
+            ? <img src={f.photo.src} alt={t(f.photo.altKey)} loading="lazy" decoding="async" />
+            : f.tba
+              ? <svg class="founder-card__silhouette" viewBox="0 0 120 150" fill="currentColor" aria-hidden="true">
+                  <circle cx="60" cy="52" r="26" />
+                  <path d="M60 88c-30 0-46 20-46 46v16h92v-16c0-26-16-46-46-46z" />
+                </svg>
+              : <span class="founder-card__initials" aria-hidden="true">{f.initials}</span>}
+        </div>
+        <div class="founder-card__meta">
+          <h3 class="t-h3">{t(f.nameKey)}</h3>
+          <p class="t-mono-sm mt-1 uppercase founder-role" style="color: var(--fg-secondary);">
+            {t(f.roleKey)}
+          </p>
+        </div>
       </li>
     ))}
   </ul>
 </section>
 
 <style>
-  .founder-head {
-    display: flex;
-    align-items: center;
-    gap: var(--space-5);
-  }
-  .founder-id {
-    min-width: 0;
-    flex: 1;
-  }
-  .founder-av {
-    flex: 0 0 auto;
-    width: 112px;
-    height: 112px;
-    border-radius: 50%;
-    overflow: hidden;
+  .founder-role { letter-spacing: 0.08em; }
+
+  .founder-lead {
     display: grid;
-    place-items: center;
-    background: var(--brand);
-    color: #fff;
-    font: 700 44px var(--font-display);
+    grid-template-columns: minmax(220px, 320px) 1fr;
+    gap: var(--space-10);
+    align-items: center;
+    padding: var(--space-8);
+    border-radius: var(--radius-xl);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
     box-shadow: var(--shadow-sm);
-    border: 3px solid var(--bg-elevated);
   }
-  .founder-av img {
+  @media (max-width: 700px) {
+    .founder-lead {
+      grid-template-columns: 1fr;
+      gap: var(--space-6);
+    }
+  }
+  .founder-lead__photo {
+    aspect-ratio: 1;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background: var(--bg-sunken);
+  }
+  .founder-lead__photo img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
+  }
+
+  .founder-grid {
+    display: grid;
+    gap: var(--space-4);
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 640px) {
+    .founder-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+  .founder-card {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-xs);
+  }
+  .founder-card.tba { border-style: dashed; }
+  .founder-card__photo {
+    aspect-ratio: 4 / 5;
+    display: grid;
+    place-items: center;
+    background: var(--bg-sunken);
+    border-bottom: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .founder-card.tba .founder-card__photo { border-bottom-style: dashed; }
+  .founder-card__photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .founder-card__initials {
+    width: 45%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: var(--brand);
+    color: #fff;
+    font: 700 clamp(36px, 5vw, 56px) var(--font-display);
+    box-shadow: var(--shadow-brand);
+  }
+  .founder-card__silhouette {
+    width: 50%;
+    color: color-mix(in oklab, var(--fg) 12%, transparent);
+  }
+  .founder-card__meta {
+    padding: var(--space-4) var(--space-5) var(--space-5);
   }
 </style>

@@ -221,7 +221,13 @@
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
+  /* `hidden` makes body a scroll box, which silently kills the sticky
+     header — `clip` clips without that side effect. `hidden` stays as
+     the fallback for engines without `clip` support. */
   html, body { overflow-x: hidden; }
+  @supports (overflow-x: clip) {
+    html, body { overflow-x: clip; }
+  }
   body {
     background: var(--bg);
     color: var(--fg);

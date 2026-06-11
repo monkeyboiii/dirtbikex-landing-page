@@ -3,6 +3,7 @@ import { getLangFromUrl, useTranslations, localizedPath, switchLangPath } from '
 import { languages, type Lang } from '../i18n/ui';
 import { FORUM_BASE } from '../config';
 import AppStoreBadge from './AppStoreBadge.astro';
+import GooglePlayBadge from './GooglePlayBadge.astro';
 
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
@@ -23,7 +24,10 @@ const localeEntries = (Object.keys(languages) as Lang[]).map((code) => ({
         <img src="/brand/logo-lockup.svg" alt="DirtBikeX" class="site-brand__lockup" />
       </a>
       <p class="site-footer__tag">{t('footer.tagline')}</p>
-      <div style="margin-top: 20px;"><AppStoreBadge /></div>
+      <div style="margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
+        <AppStoreBadge />
+        <GooglePlayBadge />
+      </div>
     </div>
 
     <nav class="site-footer__nav">

@@ -6,6 +6,7 @@
   "nav.faq": "常见问题",
   "nav.community": "社区",
   "nav.founders": "创始团队",
+  "nav.sponsors": "赞助商",
   "nav.getApp": "下载应用",
   "nav.toggleTheme": "切换主题",
 
@@ -63,6 +64,8 @@
 
   "cta.appStore.line1": "在",
   "cta.appStore.line2": "App Store 下载",
+  "cta.googlePlay.line1": "即将登陆",
+  "cta.googlePlay.line2": "Google Play",
 
   "founders.title": "创始团队",
   "founders.intro": "打造 DirtBikeX 的团队。",
@@ -73,6 +76,14 @@
   "founders.rebecca.name": "Rebecca",
   "founders.rebecca.role": "首席 UX/UI 设计师",
   "founders.rebecca.bio": "个人简介即将上线。",
+  "founders.tba.name": "虚位以待",
+  "founders.tba.role": "创始成员",
+  "sponsorship.eyebrow": "赞助计划",
+  "sponsorship.title": "让你的品牌驰骋林道",
+  "sponsorship.body": "我们正在为想触达全球越野摩托车社区的品牌与个人打造全新赞助计划,敬请期待。",
+  "sponsorship.coming": "即将上线",
+  "sponsorship.cta.contact": "联系我们",
+  "sponsorship.cta.wall": "查看当前赞助商",
 
   "contact.title": "联系我们",
   "contact.subtitle": "社区相关问题在论坛上回应最快。其他事项,欢迎通过邮件联系。",

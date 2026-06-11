@@ -1,5 +1,6 @@
 ---
 import AppStoreBadge from './AppStoreBadge.astro';
+import GooglePlayBadge from './GooglePlayBadge.astro';
 import Icon from './Icon.astro';
 import { getLangFromUrl, useTranslations } from '../i18n/utils';
 import { appLocales } from '../i18n/ui';
@@ -45,6 +46,7 @@ const chips =
 
     <div class="hero__cta">
       <AppStoreBadge size="lg" />
+      <GooglePlayBadge size="lg" />
       <a href="#features" class="btn btn--secondary btn--lg">
         {t('hero.cta.secondary')}
         <Icon name="arrow-right" size={16} />
