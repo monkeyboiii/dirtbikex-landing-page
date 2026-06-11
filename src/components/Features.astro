@@ -4,19 +4,12 @@ import { getLangFromUrl, useTranslations } from '../i18n/utils';
 
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
-const isZh = lang === 'zh';
 
-const chipRows = isZh
-  ? [
-      ['#车辆', '#骑行技巧', '#路线'],
-      ['#装备', '#维护', '#赛事'],
-      ['#改装', '#安全', '+ 4 更多'],
-    ]
-  : [
-      ['#bikes', '#riding', '#trails'],
-      ['#gear', '#maintenance', '#racing'],
-      ['#builds', '#safety', '+ 4 more'],
-    ];
+const chipRows = [
+  ['features.chip.bikes', 'features.chip.riding', 'features.chip.trails'],
+  ['features.chip.gear', 'features.chip.maintenance', 'features.chip.racing'],
+  ['features.chip.builds', 'features.chip.safety', 'features.chip.more'],
+] as const;
 const chipAccents = [
   [null, 'brand', null],
   [null, null, 'dark'],
@@ -29,7 +22,7 @@ const cards = [
     title: t('features.f1.title'),
     body: t('features.f1.body'),
     meta: t('features.f1.meta'),
-    mediaLabel: isZh ? '12 个板块' : '12 boards',
+    mediaLabel: t('features.f1.mediaLabel'),
     media: 'chips',
   },
   {
@@ -37,7 +30,7 @@ const cards = [
     title: t('features.f2.title'),
     body: t('features.f2.body'),
     meta: t('features.f2.meta'),
-    mediaLabel: 'iOS',
+    mediaLabel: t('features.f2.mediaLabel'),
     media: 'phone',
   },
   {
@@ -45,7 +38,7 @@ const cards = [
     title: t('features.f3.title'),
     body: t('features.f3.body'),
     meta: t('features.f3.meta'),
-    mediaLabel: isZh ? '图 · 视频 · 路线' : 'Photo · video · route',
+    mediaLabel: t('features.f3.mediaLabel'),
     media: 'stack',
   },
   {
@@ -53,16 +46,33 @@ const cards = [
     title: t('features.f4.title'),
     body: t('features.f4.body'),
     meta: t('features.f4.meta'),
-    mediaLabel: isZh ? '社区' : 'Community',
+    mediaLabel: t('features.f4.mediaLabel'),
     media: 'avatars',
   },
 ];
 
-const stackTags = isZh
-  ? { gpx: '路线', photo: '图片', video: '视频 0:42' }
-  : { gpx: 'GPX', photo: 'Photo', video: 'Video 0:42' };
+const stackTags = {
+  route: t('features.f3.stack.route'),
+  photo: t('features.f3.stack.photo'),
+  video: t('features.f3.stack.video'),
+};
 
-const avLabel = isZh ? '5 位车手在线' : '5 riders online';
+// Real rider photos, each with a one-word interest tag. The "You" slot
+// (center, highlighted) uses the founder's own photo.
+const riders = [
+  { img: '/community/rider-trails.jpg', tag: t('features.f4.tag.trails'), cls: 'a1' },
+  { img: '/community/rider-shop.jpg', tag: t('features.f4.tag.builds'), cls: 'a2' },
+  { img: '/community/rider-you.jpg', tag: t('features.f4.you'), cls: 'a3' },
+  { img: '/community/rider-racer.jpg', tag: t('features.f4.tag.racing'), cls: 'a4' },
+  { img: '/community/rider-new.jpg', tag: t('features.f4.tag.newRider'), cls: 'a5' },
+];
+
+// Concrete feed-post thumbnails for the "share rides" stack.
+const stackImg = {
+  route: '/community/post-route.jpg',
+  photo: '/community/post-photo.jpg',
+  video: '/community/post-video.jpg',
+};
 ---
 
 <section class="section" id="features">
@@ -83,8 +93,8 @@ const avLabel = isZh ? '5 位车手在线' : '5 riders online';
             {c.media === 'chips' && (
               <div class="media-chips">
                 {chipRows.flatMap((row, ri) =>
-                  row.map((txt, ci) => (
-                    <span class={`media-chip${chipAccents[ri][ci] ? ' ' + chipAccents[ri][ci] : ''}`}>{txt}</span>
+                  row.map((key, ci) => (
+                    <span class={`media-chip${chipAccents[ri][ci] ? ' ' + chipAccents[ri][ci] : ''}`}>{t(key)}</span>
                   ))
                 )}
               </div>
@@ -123,12 +133,15 @@ const avLabel = isZh ? '5 位车手在线' : '5 riders online';
             {c.media === 'stack' && (
               <div class="media-stack">
                 <div class="media-thumb media-thumb__1">
-                  <span class="media-thumb__tag">{stackTags.gpx}</span>
+                  <img src={stackImg.route} alt="" loading="lazy" decoding="async" />
+                  <span class="media-thumb__tag">{stackTags.route}</span>
                 </div>
                 <div class="media-thumb media-thumb__2">
+                  <img src={stackImg.photo} alt="" loading="lazy" decoding="async" />
                   <span class="media-thumb__tag">{stackTags.photo}</span>
                 </div>
                 <div class="media-thumb media-thumb__3">
+                  <img src={stackImg.video} alt="" loading="lazy" decoding="async" />
                   <div class="media-thumb__play"><Icon name="play" size={12} /></div>
                   <span class="media-thumb__tag">{stackTags.video}</span>
                 </div>
@@ -137,12 +150,12 @@ const avLabel = isZh ? '5 位车手在线' : '5 riders online';
 
             {c.media === 'avatars' && (
               <div class="media-avatars">
-                <div class="media-av a1">CY</div>
-                <div class="media-av a2">MA</div>
-                <div class="media-av a3">{isZh ? '你' : 'You'}</div>
-                <div class="media-av a4">JK</div>
-                <div class="media-av a5">+12</div>
-                <div class="media-av__label">{avLabel}</div>
+                {riders.map((r) => (
+                  <div class={`media-rider ${r.cls}`}>
+                    <div class="media-av"><img src={r.img} alt="" loading="lazy" decoding="async" /></div>
+                    {r.tag && <span class="media-rider__tag">{r.tag}</span>}
+                  </div>
+                ))}
               </div>
             )}
           </div>

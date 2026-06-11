@@ -30,17 +30,28 @@ const localeEntries = (Object.keys(languages) as Lang[]).map((code) => ({
       </div>
     </div>
 
-    <nav class="site-footer__nav">
-      <a href={FORUM_BASE} target="_blank" rel="noopener">{t('footer.forum')}</a>
-      <a href={localizedPath(lang, '/contact')}>{t('footer.contact')}</a>
-      <a href={localizedPath(lang, '/founders')}>{t('footer.founders')}</a>
-      <a href={localizedPath(lang, '/privacy')}>{t('footer.legal.privacy')}</a>
-      <a href={localizedPath(lang, '/terms')}>{t('footer.legal.terms')}</a>
-      <a href={localizedPath(lang, '/community-guidelines')}>{t('footer.legal.community')}</a>
-      <a href={localizedPath(lang, '/cookies')}>{t('footer.legal.cookies')}</a>
-      <a href={localizedPath(lang, '/dmca')}>{t('footer.legal.dmca')}</a>
-      <a href={localizedPath(lang, '/safety')}>{t('footer.legal.safety')}</a>
-      <a href={localizedPath(lang, '/sponsor-terms')}>{t('footer.legal.sponsors')}</a>
+    <nav class="site-footer__groups" aria-label="Footer">
+      <div class="site-footer__group">
+        <h3 class="site-footer__group-title">{t('footer.group.community')}</h3>
+        <a href={FORUM_BASE} target="_blank" rel="noopener">{t('footer.forum')}</a>
+        <a href={localizedPath(lang, '/founders')}>{t('footer.founders')}</a>
+        <a href={localizedPath(lang, '/sponsors')}>{t('footer.sponsors')}</a>
+        <a href={localizedPath(lang, '/sponsorship')}>{t('footer.sponsorship')}</a>
+      </div>
+      <div class="site-footer__group">
+        <h3 class="site-footer__group-title">{t('footer.group.support')}</h3>
+        <a href={localizedPath(lang, '/contact')}>{t('footer.contact')}</a>
+        <a href={localizedPath(lang, '/safety')}>{t('footer.legal.safety')}</a>
+        <a href={localizedPath(lang, '/community-guidelines')}>{t('footer.legal.community')}</a>
+      </div>
+      <div class="site-footer__group">
+        <h3 class="site-footer__group-title">{t('footer.group.legal')}</h3>
+        <a href={localizedPath(lang, '/privacy')}>{t('footer.legal.privacy')}</a>
+        <a href={localizedPath(lang, '/terms')}>{t('footer.legal.terms')}</a>
+        <a href={localizedPath(lang, '/cookies')}>{t('footer.legal.cookies')}</a>
+        <a href={localizedPath(lang, '/dmca')}>{t('footer.legal.dmca')}</a>
+        <a href={localizedPath(lang, '/sponsor-terms')}>{t('footer.legal.sponsors')}</a>
+      </div>
     </nav>
   </div>
   <div class="container-narrow">

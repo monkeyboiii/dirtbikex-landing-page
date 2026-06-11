@@ -85,6 +85,7 @@ pnx wrangler tail --env preview      # preview
 
 ## Notes
 
+- **Launch placeholders (App Store id, social URLs/handles, sponsorship copy) are tracked in [docs/WIRING_TODO.md](docs/WIRING_TODO.md).**
 - **No external runtime assets — keep it that way.** No Google Fonts, no Google Analytics, no third-party CDNs (jsdelivr / unpkg / cdnjs / cloudfront). System-font stack only. Adding any of these silently breaks mainland-China users.
 - **`*.workers.dev` is unreliable from mainland China.** Production must run behind a custom domain; `www.dirtbikechina.com` may want a non-Cloudflare CDN (Aliyun) in front of it.
 - **`worker/` cannot import from `src/`.** The Worker is bundled separately by Wrangler/esbuild. Sentinels duplicated across both (e.g. `APP_STORE_URL` in [worker/index.ts](worker/index.ts) and [src/config.ts](src/config.ts)) must be updated in both places.
