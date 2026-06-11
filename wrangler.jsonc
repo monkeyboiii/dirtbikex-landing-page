@@ -48,7 +48,7 @@
     // Without this binding the SMS gateway fails closed (503); finalize/claim
     // warn-and-allow. Run `wrangler kv namespace create RATELIMIT_KV` once
     // if it doesn't exist, then paste the returned id here.
-    { "binding": "RATELIMIT_KV", "id": "REPLACE_WITH_PROD_KV_NAMESPACE_ID" }
+    // { "binding": "RATELIMIT_KV", "id": "REPLACE_WITH_PROD_KV_NAMESPACE_ID" }
   ],
   "env": {
     "preview": {

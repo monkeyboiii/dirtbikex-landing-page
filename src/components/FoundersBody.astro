@@ -9,7 +9,14 @@ type Founder = {
   roleKey: string;
   photo?: { src: string; altKey: string };
   initials?: string;
+  socials?: SocialLink[];
   tba?: boolean;
+};
+
+type SocialLink = {
+  platform: 'x' | 'instagram';
+  labelKey: string;
+  url: string;
 };
 
 // Lead founder — rendered on a dedicated full-width row.
@@ -18,6 +25,11 @@ const lead = {
   roleKey: 'founders.calvin.role',
   bioKey: 'founders.calvin.bio',
   photo: { src: '/founders/calvin.png', altKey: 'founders.calvin.photo_alt' },
+  // Founder social URLs live here. Replace '#' with real public profile URLs.
+  socials: [
+    { platform: 'x', labelKey: 'contact.social.x', url: '#' },
+    { platform: 'instagram', labelKey: 'contact.social.instagram', url: '#' },
+  ],
 };
 
 // Photo-first team row. TBA slots render a placeholder portrait until a
@@ -27,15 +39,18 @@ const team: Founder[] = [
     nameKey: 'founders.rebecca.name',
     roleKey: 'founders.rebecca.role',
     initials: 'R',
+    socials: [
+      { platform: 'x', labelKey: 'contact.social.x', url: '#' },
+      { platform: 'instagram', labelKey: 'contact.social.instagram', url: '#' },
+    ],
   },
-  { nameKey: 'founders.tba.name', roleKey: 'founders.tba.role', tba: true },
-  { nameKey: 'founders.tba.name', roleKey: 'founders.tba.role', tba: true },
+  {
+    nameKey: 'founders.cici.name',
+    roleKey: 'founders.cici.role',
+    initials: 'C',
+  },
+  { nameKey: 'founders.secret.name', roleKey: 'founders.secret.role', tba: true },
 ];
-
-const socials = [
-  { key: 'contact.social.x', url: '#' },
-  { key: 'contact.social.instagram', url: '#' },
-] as const;
 ---
 
 <section class="container-narrow py-20">
@@ -64,17 +79,26 @@ const socials = [
       <p class="t-body-lg mt-5" style="color: var(--fg-secondary);">
         {t(lead.bioKey)}
       </p>
-      <ul class="mt-6 flex gap-2 list-none p-0">
-        {socials.map(({ key, url }) => (
+      <ul class="founder-socials mt-6">
+        {lead.socials.map((social) => (
           <li>
             <a
-              href={url}
-              target="_blank"
-              rel="noopener"
-              class="inline-flex items-center px-3 py-1.5 rounded-full t-mono-sm"
-              style="background: var(--bg-sunken); border: 1px solid var(--border); color: var(--fg-secondary);"
+              href={social.url}
+              target={social.url.startsWith('http') ? '_blank' : undefined}
+              rel={social.url.startsWith('http') ? 'noopener' : undefined}
+              class="founder-social"
+              aria-label={t(social.labelKey)}
+              title={t(social.labelKey)}
             >
-              {t(key)}
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                {social.platform === 'x'
+                  ? <path d="M14.1 10.2 22.2 1h-1.9l-7 7.9L7.7 1H1.2l8.5 12.1L1.2 23h1.9l7.5-8.6 6 8.6h6.4l-8.9-12.8Zm-2.7 3.1-.9-1.2L3.7 2.5h3.1l5.5 7.8.9 1.2 7.1 10h-3.1l-5.8-8.2Z" fill="currentColor" stroke="none" />
+                  : <>
+                      <rect x="3" y="3" width="18" height="18" rx="5" />
+                      <circle cx="12" cy="12" r="4" />
+                      <circle cx="17.2" cy="6.8" r="1.2" />
+                    </>}
+              </svg>
             </a>
           </li>
         ))}
@@ -100,6 +124,32 @@ const socials = [
           <p class="t-mono-sm mt-1 uppercase founder-role" style="color: var(--fg-secondary);">
             {t(f.roleKey)}
           </p>
+          {f.socials && (
+            <ul class="founder-socials founder-socials--card">
+              {f.socials.map((social) => (
+                <li>
+                  <a
+                    href={social.url}
+                    target={social.url.startsWith('http') ? '_blank' : undefined}
+                    rel={social.url.startsWith('http') ? 'noopener' : undefined}
+                    class="founder-social"
+                    aria-label={t(social.labelKey)}
+                    title={t(social.labelKey)}
+                  >
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      {social.platform === 'x'
+                        ? <path d="M14.1 10.2 22.2 1h-1.9l-7 7.9L7.7 1H1.2l8.5 12.1L1.2 23h1.9l7.5-8.6 6 8.6h6.4l-8.9-12.8Zm-2.7 3.1-.9-1.2L3.7 2.5h3.1l5.5 7.8.9 1.2 7.1 10h-3.1l-5.8-8.2Z" fill="currentColor" stroke="none" />
+                        : <>
+                            <rect x="3" y="3" width="18" height="18" rx="5" />
+                            <circle cx="12" cy="12" r="4" />
+                            <circle cx="17.2" cy="6.8" r="1.2" />
+                          </>}
+                    </svg>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </li>
     ))}
@@ -108,6 +158,44 @@ const socials = [
 
 <style>
   .founder-role { letter-spacing: 0.08em; }
+
+  .founder-socials {
+    display: flex;
+    gap: 8px;
+    list-style: none;
+    padding: 0;
+  }
+  .founder-socials--card { margin-top: var(--space-4); }
+  .founder-social {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-sunken);
+    border: 1px solid var(--border);
+    color: var(--fg-secondary);
+    transition: background-color var(--dur-fast) var(--ease-out),
+                border-color var(--dur-fast) var(--ease-out),
+                color var(--dur-fast) var(--ease-out),
+                transform var(--dur-fast) var(--ease-out);
+  }
+  .founder-social:hover {
+    background: var(--brand);
+    border-color: var(--brand);
+    color: #fff;
+    transform: translateY(-1px);
+  }
+  .founder-social svg {
+    width: 17px;
+    height: 17px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
 
   .founder-lead {
     display: grid;
