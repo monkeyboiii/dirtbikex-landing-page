@@ -59,7 +59,7 @@ const localeEntries = (Object.keys(languages) as Lang[]).map((code) => ({
       <span class="site-footer__locales-label">{t('footer.localesLabel')}</span>
       <span class="site-footer__locales-list">
         {localeEntries.map((e) => (
-          <a href={e.href} hreflang={e.code} class={e.active ? 'active' : ''}>{e.native}</a>
+          <a href={e.href} hreflang={e.code} class={e.active ? 'active' : ''} data-lang-link>{e.native}</a>
         ))}
       </span>
     </div>

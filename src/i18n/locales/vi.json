@@ -4,6 +4,7 @@
 
   "nav.community": "Cộng đồng",
   "nav.founders": "Đồng sáng lập",
+  "nav.sponsorship": "Tài trợ",
   "nav.getApp": "Tải app",
   "nav.toggleTheme": "Đổi giao diện",
 
@@ -82,8 +83,24 @@
 
   "cta.appStore.line1": "Tải về từ",
   "cta.appStore.line2": "App Store",
+  "cta.googlePlay.line1": "Sắp ra mắt trên",
+  "cta.googlePlay.line2": "Google Play",
+  "sponsorship.eyebrow": "Chương trình tài trợ",
+  "sponsorship.title": "Đưa thương hiệu của bạn lên cung đường",
+  "sponsorship.body": "Chúng tôi đang xây dựng một chương trình tài trợ ưu tiên biker, dành cho các thương hiệu và cá nhân muốn tiếp cận cộng đồng dirt bike toàn cầu. Chi tiết sắp ra mắt.",
+  "sponsorship.coming": "Sắp ra mắt",
+  "sponsorship.cta.contact": "Liên hệ",
+  "sponsorship.cta.wall": "Xem nhà tài trợ hiện tại",
 
   "founders.title": "Đồng sáng lập",
+  "founders.intro": "Đội ngũ xây dựng DirtBikeX.",
+  "founders.calvin.role": "Nhà sáng lập, CEO & CTO",
+  "founders.calvin.bio": "Ngày cầm lái, đêm gõ phím — dựng nên DirtBikeX từ yên xe và bàn phím.",
+  "founders.calvin.photo_alt": "Zenkai Rubio, nhà sáng lập DirtBikeX",
+  "founders.rebecca.role": "Trưởng nhóm Thiết kế UX/UI",
+  "founders.cici.role": "CPO",
+  "founders.secret.name": "Nhân vật bí ẩn",
+  "founders.secret.role": "Sắp hé lộ",
 
   "contact.title": "Liên hệ",
   "contact.subtitle": "Diễn đàn là nơi nhanh nhất cho các câu hỏi về cộng đồng. Mọi việc khác, email là tốt nhất.",
@@ -129,6 +146,11 @@
   "footer.legal.sponsors": "Điều khoản tài trợ",
   "footer.forum": "Diễn đàn web",
   "footer.founders": "Đồng sáng lập",
+  "footer.sponsors": "Nhà tài trợ",
+  "footer.sponsorship": "Chương trình tài trợ",
+  "footer.group.community": "CỘNG ĐỒNG",
+  "footer.group.support": "HỖ TRỢ",
+  "footer.group.legal": "PHÁP LÝ",
   "footer.copyright": "© {year} DirtBikeX. Bảo lưu mọi quyền.",
 
   "legal.lastUpdated": "Cập nhật lần cuối",

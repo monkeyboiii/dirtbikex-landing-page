@@ -4,6 +4,7 @@
 
   "nav.community": "Yhteisö",
   "nav.founders": "Perustajat",
+  "nav.sponsorship": "Sponsorointi",
   "nav.getApp": "Hanki sovellus",
   "nav.toggleTheme": "Vaihda teema",
 
@@ -82,8 +83,24 @@
 
   "cta.appStore.line1": "Lataa",
   "cta.appStore.line2": "App Storesta",
+  "cta.googlePlay.line1": "Tulossa pian",
+  "cta.googlePlay.line2": "Google Play",
+  "sponsorship.eyebrow": "Sponsorointiohjelma",
+  "sponsorship.title": "Tuo brändisi trailille",
+  "sponsorship.body": "Rakennamme ajajalähtöistä sponsorointiohjelmaa brändeille ja yksityishenkilöille, jotka haluavat tavoittaa globaalin dirtbike-yhteisön. Lisätietoja tulossa pian.",
+  "sponsorship.coming": "Tulossa pian",
+  "sponsorship.cta.contact": "Ota yhteyttä",
+  "sponsorship.cta.wall": "Katso nykyiset sponsorit",
 
   "founders.title": "Perustajat",
+  "founders.intro": "DirtBikeX:ää rakentava tiimi.",
+  "founders.calvin.role": "Perustaja, CEO & CTO",
+  "founders.calvin.bio": "Päivisin kuskina, öisin koodarina — rakennan DirtBikeX:ää satulasta ja näppäimistöltä käsin.",
+  "founders.calvin.photo_alt": "Zenkai Rubio, DirtBikeX:n perustaja",
+  "founders.rebecca.role": "Johtava UX/UI-suunnittelija",
+  "founders.cici.role": "CPO",
+  "founders.secret.name": "Salaperäinen henkilö",
+  "founders.secret.role": "Paljastetaan myöhemmin",
 
   "contact.title": "Ota yhteyttä",
   "contact.subtitle": "Foorumi on nopein paikka yhteisökysymyksille. Kaikkeen muuhun sähköposti toimii parhaiten.",
@@ -129,6 +146,11 @@
   "footer.legal.sponsors": "Sponsoriehdot",
   "footer.forum": "Verkkofoorumi",
   "footer.founders": "Perustajat",
+  "footer.sponsors": "Sponsorit",
+  "footer.sponsorship": "Sponsorointiohjelma",
+  "footer.group.community": "Yhteisö",
+  "footer.group.support": "Tuki",
+  "footer.group.legal": "Lakiasiat",
   "footer.copyright": "© {year} DirtBikeX. Kaikki oikeudet pidätetään.",
 
   "legal.lastUpdated": "Viimeksi päivitetty",

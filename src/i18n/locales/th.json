@@ -4,6 +4,7 @@
 
   "nav.community": "คอมมูนิตี้",
   "nav.founders": "ผู้ก่อตั้ง",
+  "nav.sponsorship": "สปอนเซอร์",
   "nav.getApp": "ดาวน์โหลดแอป",
   "nav.toggleTheme": "สลับธีม",
 
@@ -82,8 +83,24 @@
 
   "cta.appStore.line1": "ดาวน์โหลดจาก",
   "cta.appStore.line2": "App Store",
+  "cta.googlePlay.line1": "เร็วๆ นี้บน",
+  "cta.googlePlay.line2": "Google Play",
+  "sponsorship.eyebrow": "โปรแกรมสปอนเซอร์",
+  "sponsorship.title": "พาแบรนด์ของคุณลุยทุกเส้นทาง",
+  "sponsorship.body": "เรากำลังสร้างโปรแกรมสปอนเซอร์ที่ยึดนักขี่เป็นหัวใจ สำหรับแบรนด์และบุคคลที่อยากเข้าถึงคอมมูนิตี้ดีร์ทไบค์ทั่วโลก รายละเอียดเร็วๆ นี้",
+  "sponsorship.coming": "เร็วๆ นี้",
+  "sponsorship.cta.contact": "ติดต่อเรา",
+  "sponsorship.cta.wall": "ดูสปอนเซอร์ปัจจุบัน",
 
   "founders.title": "ผู้ก่อตั้ง",
+  "founders.intro": "ทีมที่กำลังสร้าง DirtBikeX",
+  "founders.calvin.role": "ผู้ก่อตั้ง CEO และ CTO",
+  "founders.calvin.bio": "กลางวันลุยสนาม กลางคืนลุยโค้ด — ปั้น DirtBikeX ขึ้นมาจากอานรถและแป้นคีย์บอร์ด",
+  "founders.calvin.photo_alt": "Zenkai Rubio ผู้ก่อตั้ง DirtBikeX",
+  "founders.rebecca.role": "หัวหน้าทีมออกแบบ UX/UI",
+  "founders.cici.role": "CPO",
+  "founders.secret.name": "บุคคลปริศนา",
+  "founders.secret.role": "รอเปิดเผย",
 
   "contact.title": "ติดต่อเรา",
   "contact.subtitle": "ฟอรัมคือที่ที่เร็วที่สุดสำหรับคำถามเกี่ยวกับคอมมูนิตี้ เรื่องอื่นๆ อีเมลใช้ได้ดีที่สุด",
@@ -129,6 +146,11 @@
   "footer.legal.sponsors": "ข้อกำหนดสปอนเซอร์",
   "footer.forum": "เว็บฟอรัม",
   "footer.founders": "ผู้ก่อตั้ง",
+  "footer.sponsors": "สปอนเซอร์",
+  "footer.sponsorship": "โปรแกรมสปอนเซอร์",
+  "footer.group.community": "คอมมูนิตี้",
+  "footer.group.support": "สนับสนุน",
+  "footer.group.legal": "กฎหมาย",
   "footer.copyright": "© {year} DirtBikeX. สงวนลิขสิทธิ์",
 
   "legal.lastUpdated": "อัปเดตล่าสุด",

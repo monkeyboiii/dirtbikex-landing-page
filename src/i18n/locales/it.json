@@ -4,6 +4,7 @@
 
   "nav.community": "Community",
   "nav.founders": "Fondatori",
+  "nav.sponsorship": "Sponsorizzazioni",
   "nav.getApp": "Scarica l'app",
   "nav.toggleTheme": "Cambia tema",
 
@@ -82,8 +83,24 @@
 
   "cta.appStore.line1": "Scarica su",
   "cta.appStore.line2": "App Store",
+  "cta.googlePlay.line1": "Presto disponibile su",
+  "cta.googlePlay.line2": "Google Play",
+  "sponsorship.eyebrow": "Programma di sponsorizzazione",
+  "sponsorship.title": "Porta il tuo brand in sella",
+  "sponsorship.body": "Stiamo costruendo un programma di sponsorizzazione pensato prima di tutto per i rider, per i brand e le persone che vogliono raggiungere la community globale del dirt bike. Dettagli in arrivo.",
+  "sponsorship.coming": "In arrivo",
+  "sponsorship.cta.contact": "Contattaci",
+  "sponsorship.cta.wall": "Vedi gli sponsor attuali",
 
   "founders.title": "Fondatori",
+  "founders.intro": "Il team che dà vita a DirtBikeX.",
+  "founders.calvin.role": "Fondatore, CEO & CTO",
+  "founders.calvin.bio": "Di giorno in sella, di notte sul codice — DirtBikeX nasce così, tra manubrio e tastiera.",
+  "founders.calvin.photo_alt": "Zenkai Rubio, fondatore di DirtBikeX",
+  "founders.rebecca.role": "Lead Designer UX/UI",
+  "founders.cici.role": "CPO",
+  "founders.secret.name": "Persona misteriosa",
+  "founders.secret.role": "Da svelare",
 
   "contact.title": "Mettiti in contatto",
   "contact.subtitle": "Il forum è il posto più veloce per le domande della community. Per tutto il resto, l'email è la soluzione migliore.",
@@ -129,6 +146,11 @@
   "footer.legal.sponsors": "Termini sponsor",
   "footer.forum": "Forum web",
   "footer.founders": "Fondatori",
+  "footer.sponsors": "Sponsor",
+  "footer.sponsorship": "Programma di sponsorizzazione",
+  "footer.group.community": "COMMUNITY",
+  "footer.group.support": "ASSISTENZA",
+  "footer.group.legal": "LEGALE",
   "footer.copyright": "© {year} DirtBikeX. Tutti i diritti riservati.",
 
   "legal.lastUpdated": "Ultimo aggiornamento",

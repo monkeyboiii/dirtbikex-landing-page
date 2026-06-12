@@ -43,6 +43,7 @@ const currentEntry = entries.find((e) => e.active) ?? entries[0];
           hreflang={e.code}
           class={`langswitch-dd__item${e.active ? ' active' : ''}`}
           data-locale={e.code}
+          data-lang-link
         >
           <span class="langswitch-dd__item-native">{e.native}</span>
           <span class="langswitch-dd__item-code">{e.code}</span>

@@ -4,6 +4,7 @@
 
   "nav.community": "Fællesskab",
   "nav.founders": "Stiftere",
+  "nav.sponsorship": "Sponsorat",
   "nav.getApp": "Hent appen",
   "nav.toggleTheme": "Skift tema",
 
@@ -82,8 +83,24 @@
 
   "cta.appStore.line1": "Hent i",
   "cta.appStore.line2": "App Store",
+  "cta.googlePlay.line1": "Kommer snart i",
+  "cta.googlePlay.line2": "Google Play",
+  "sponsorship.eyebrow": "Sponsoratprogram",
+  "sponsorship.title": "Få dit brand på banen",
+  "sponsorship.body": "Vi bygger et kørercentreret sponsoratprogram for brands og privatpersoner, der vil nå det globale dirtbike-fællesskab. Detaljer kommer snart.",
+  "sponsorship.coming": "Kommer snart",
+  "sponsorship.cta.contact": "Kom i kontakt",
+  "sponsorship.cta.wall": "Se nuværende sponsorer",
 
   "founders.title": "Stiftere",
+  "founders.intro": "Holdet bag DirtBikeX.",
+  "founders.calvin.role": "Grundlægger, CEO & CTO",
+  "founders.calvin.bio": "Rytter om dagen, koder om natten — DirtBikeX bygges fra sadlen og tastaturet.",
+  "founders.calvin.photo_alt": "Zenkai Rubio, grundlægger af DirtBikeX",
+  "founders.rebecca.role": "Lead UX/UI-designer",
+  "founders.cici.role": "CPO",
+  "founders.secret.name": "Hemmelig person",
+  "founders.secret.role": "Endnu ikke afsløret",
 
   "contact.title": "Kom i kontakt",
   "contact.subtitle": "Forummet er det hurtigste sted til fællesskabs-spørgsmål. Til alt andet virker e-mail bedst.",
@@ -129,6 +146,11 @@
   "footer.legal.sponsors": "Sponsorvilkår",
   "footer.forum": "Webforum",
   "footer.founders": "Stiftere",
+  "footer.sponsors": "Sponsorer",
+  "footer.sponsorship": "Sponsoratprogram",
+  "footer.group.community": "FÆLLESSKAB",
+  "footer.group.support": "SUPPORT",
+  "footer.group.legal": "JURIDISK",
   "footer.copyright": "© {year} DirtBikeX. Alle rettigheder forbeholdes.",
 
   "legal.lastUpdated": "Senest opdateret",

@@ -133,6 +133,93 @@ const hreflangs = localeCodes.map((code) => ({
         } catch (e) {}
       })();
     </script>
+    <script is:inline>
+      // Preserve scroll position across a language switch (header picker or
+      // footer locale row). A switch is a full navigation to a different-
+      // locale URL, which would otherwise reset scroll to the top.
+      //
+      // Absolute scrollY doesn't transfer well (translated text changes
+      // section heights), so on click we record the on-screen section nearest
+      // the top of the viewport plus its offset, and on the next page re-pin
+      // that same element to the same offset — re-applying through a short
+      // settling window so async featured-thread images don't drift it. Falls
+      // back to absolute scrollY when no anchor element is available. Read
+      // only on DOMContentLoaded/load so it survives the auto-redirect above.
+      (function () {
+        var KEY = 'dbx-lang-scroll';
+        var REF = 96; // reference line just below the sticky header
+        function setY(y) {
+          var el = document.documentElement;
+          var prev = el.style.scrollBehavior;
+          el.style.scrollBehavior = 'auto'; // bypass CSS smooth-scroll
+          window.scrollTo(0, Math.max(0, y));
+          el.style.scrollBehavior = prev;
+        }
+        function read() {
+          try {
+            var d = JSON.parse(sessionStorage.getItem(KEY));
+            if (!d || (Date.now() - d.t) > 10000) return null;
+            return d;
+          } catch (e) { return null; }
+        }
+        function clear() { try { sessionStorage.removeItem(KEY); } catch (e) {} }
+        function apply(d) {
+          if (d.sel) {
+            var el = document.querySelector(d.sel);
+            if (el) { setY(window.scrollY + (el.getBoundingClientRect().top - d.off)); return; }
+          }
+          if (typeof d.y === 'number') setY(d.y);
+        }
+
+        var data = null;
+        document.addEventListener('DOMContentLoaded', function () {
+          data = read();
+          if (data) apply(data);
+        });
+        window.addEventListener('load', function () {
+          if (!data) data = read();
+          if (!data) return;
+          var stop = false;
+          ['wheel', 'touchstart', 'keydown', 'pointerdown'].forEach(function (ev) {
+            window.addEventListener(ev, function () { stop = true; }, { once: true, passive: true });
+          });
+          // Re-pin every frame until the document height stays stable for a
+          // beat (async featured-thread images load well after `load` and grow
+          // the page above the anchor). Cap the window; bail on user input.
+          var cap = Date.now() + 6000, lastH = -1, lastChange = Date.now();
+          (function loop() {
+            var h = document.documentElement.scrollHeight;
+            if (h !== lastH) { lastH = h; lastChange = Date.now(); }
+            apply(data);
+            var settled = (Date.now() - lastChange) > 500;
+            if (!stop && !settled && Date.now() < cap) requestAnimationFrame(loop);
+            else clear();
+          })();
+        });
+        document.addEventListener('click', function (e) {
+          var a = e.target && e.target.closest ? e.target.closest('[data-lang-link]') : null;
+          if (!a) return;
+          var payload = { y: window.scrollY, t: Date.now() };
+          // anchor to the visible in-flow [id] element nearest the reference
+          // line. Scope to <main> so sticky header/footer ids (which never
+          // move with scroll) can't win and make the restore a no-op.
+          var els = document.querySelectorAll('main [id]'), best = null, bestDist = Infinity;
+          for (var i = 0; i < els.length; i++) {
+            var el = els[i];
+            if (!el.id || el.offsetParent === null) continue;
+            var r = el.getBoundingClientRect();
+            if (r.height <= 0) continue;
+            var dist = Math.abs(r.top - REF);
+            if (dist < bestDist) { bestDist = dist; best = el; }
+          }
+          if (best) {
+            try { payload.sel = '#' + (window.CSS && CSS.escape ? CSS.escape(best.id) : best.id); } catch (e3) {}
+            payload.off = best.getBoundingClientRect().top;
+          }
+          try { sessionStorage.setItem(KEY, JSON.stringify(payload)); } catch (e2) {}
+        }, true);
+      })();
+    </script>
   </head>
   <body class="min-h-screen flex flex-col">
     <Header />

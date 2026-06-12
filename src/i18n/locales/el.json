@@ -4,6 +4,7 @@
 
   "nav.community": "Κοινότητα",
   "nav.founders": "Ιδρυτές",
+  "nav.sponsorship": "Χορηγίες",
   "nav.getApp": "Κατέβασε την εφαρμογή",
   "nav.toggleTheme": "Εναλλαγή θέματος",
 
@@ -82,8 +83,24 @@
 
   "cta.appStore.line1": "Λήψη από το",
   "cta.appStore.line2": "App Store",
+  "cta.googlePlay.line1": "Σύντομα στο",
+  "cta.googlePlay.line2": "Google Play",
+  "sponsorship.eyebrow": "Πρόγραμμα χορηγιών",
+  "sponsorship.title": "Βάλε τη μάρκα σου στο μονοπάτι",
+  "sponsorship.body": "Χτίζουμε ένα πρόγραμμα χορηγιών που βάζει τους riders πρώτα, για εταιρείες και ανθρώπους που θέλουν να προσεγγίσουν την παγκόσμια κοινότητα των dirt bike. Λεπτομέρειες σύντομα.",
+  "sponsorship.coming": "Έρχεται σύντομα",
+  "sponsorship.cta.contact": "Επικοινώνησε μαζί μας",
+  "sponsorship.cta.wall": "Δες τους χορηγούς μας",
 
   "founders.title": "Ιδρυτές",
+  "founders.intro": "Η ομάδα που χτίζει το DirtBikeX.",
+  "founders.calvin.role": "Ιδρυτής, CEO & CTO",
+  "founders.calvin.bio": "Αναβάτης τη μέρα, προγραμματιστής τη νύχτα — χτίζω το DirtBikeX από τη σέλα και το πληκτρολόγιο.",
+  "founders.calvin.photo_alt": "Zenkai Rubio, ιδρυτής του DirtBikeX",
+  "founders.rebecca.role": "Επικεφαλής Σχεδιάστρια UX/UI",
+  "founders.cici.role": "CPO",
+  "founders.secret.name": "Μυστηριώδες πρόσωπο",
+  "founders.secret.role": "Έρχεται σύντομα",
 
   "contact.title": "Επικοινωνία",
   "contact.subtitle": "Το φόρουμ είναι το πιο γρήγορο μέρος για ερωτήσεις της κοινότητας. Για όλα τα άλλα, το e-mail λειτουργεί καλύτερα.",
@@ -129,6 +146,11 @@
   "footer.legal.sponsors": "Όροι χορηγιών",
   "footer.forum": "Web φόρουμ",
   "footer.founders": "Ιδρυτές",
+  "footer.sponsors": "Χορηγοί",
+  "footer.sponsorship": "Πρόγραμμα χορηγιών",
+  "footer.group.community": "ΚΟΙΝΟΤΗΤΑ",
+  "footer.group.support": "ΥΠΟΣΤΗΡΙΞΗ",
+  "footer.group.legal": "ΝΟΜΙΚΑ",
   "footer.copyright": "© {year} DirtBikeX. Με την επιφύλαξη παντός δικαιώματος.",
 
   "legal.lastUpdated": "Τελευταία ενημέρωση",

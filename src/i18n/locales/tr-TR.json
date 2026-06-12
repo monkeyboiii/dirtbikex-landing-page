@@ -4,6 +4,7 @@
 
   "nav.community": "Topluluk",
   "nav.founders": "Kurucular",
+  "nav.sponsorship": "Sponsorluk",
   "nav.getApp": "Uygulamayı indir",
   "nav.toggleTheme": "Temayı değiştir",
 
@@ -82,8 +83,24 @@
 
   "cta.appStore.line1": "İndir:",
   "cta.appStore.line2": "App Store",
+  "cta.googlePlay.line1": "Yakında",
+  "cta.googlePlay.line2": "Google Play",
+  "sponsorship.eyebrow": "Sponsorluk programı",
+  "sponsorship.title": "Markanı parkura taşı",
+  "sponsorship.body": "Dünya çapındaki dirt bike topluluğuna ulaşmak isteyen markalar ve bireyler için sürücü odaklı bir sponsorluk programı hazırlıyoruz. Detaylar yakında.",
+  "sponsorship.coming": "Yakında",
+  "sponsorship.cta.contact": "Bize ulaş",
+  "sponsorship.cta.wall": "Mevcut sponsorları gör",
 
   "founders.title": "Kurucular",
+  "founders.intro": "DirtBikeX'i geliştiren ekip.",
+  "founders.calvin.role": "Kurucu, CEO ve CTO",
+  "founders.calvin.bio": "Gündüz pilot, gece kodcu — DirtBikeX'i hem selenin hem klavyenin başından kuruyor.",
+  "founders.calvin.photo_alt": "DirtBikeX'in kurucusu Zenkai Rubio",
+  "founders.rebecca.role": "Baş UX/UI Tasarımcısı",
+  "founders.cici.role": "CPO",
+  "founders.secret.name": "Gizemli kişi",
+  "founders.secret.role": "Yakında açıklanacak",
 
   "contact.title": "İletişime geç",
   "contact.subtitle": "Topluluk soruları için en hızlı yer forum. Diğer her şey için e-posta en iyisi.",
@@ -129,6 +146,11 @@
   "footer.legal.sponsors": "Sponsorluk şartları",
   "footer.forum": "Web forumu",
   "footer.founders": "Kurucular",
+  "footer.sponsors": "Sponsorlar",
+  "footer.sponsorship": "Sponsorluk programı",
+  "footer.group.community": "TOPLULUK",
+  "footer.group.support": "DESTEK",
+  "footer.group.legal": "HUKUK",
   "footer.copyright": "© {year} DirtBikeX. Tüm hakları saklıdır.",
 
   "legal.lastUpdated": "Son güncelleme",

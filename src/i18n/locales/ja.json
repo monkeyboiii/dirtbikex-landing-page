@@ -4,7 +4,10 @@
 
   "nav.community": "コミュニティ",
   "nav.founders": "創設メンバー",
+  "nav.sponsorship": "スポンサーシップ",
   "founders.calvin.name": "ゼンカイ・ルビオ",
+  "founders.rebecca.name": "レベッカ",
+  "founders.cici.name": "シシ",
   "nav.getApp": "アプリを入手",
   "nav.toggleTheme": "テーマを切り替え",
 
@@ -83,8 +86,24 @@
 
   "cta.appStore.line1": "ダウンロード",
   "cta.appStore.line2": "App Store",
+  "cta.googlePlay.line1": "まもなく登場",
+  "cta.googlePlay.line2": "Google Play",
+  "sponsorship.eyebrow": "スポンサーシッププログラム",
+  "sponsorship.title": "ブランドを、トレイルへ。",
+  "sponsorship.body": "世界中のダートバイクコミュニティに届けたいブランドや個人のために、ライダーファーストのスポンサーシッププログラムを準備中。詳細は近日公開。",
+  "sponsorship.coming": "近日公開",
+  "sponsorship.cta.contact": "お問い合わせ",
+  "sponsorship.cta.wall": "スポンサー一覧を見る",
 
   "founders.title": "創設メンバー",
+  "founders.intro": "DirtBikeX をつくるチーム。",
+  "founders.calvin.role": "創設者・CEO 兼 CTO",
+  "founders.calvin.bio": "昼はライダー、夜はコーダー——サドルとキーボードから DirtBikeX を駆る。",
+  "founders.calvin.photo_alt": "DirtBikeX 創設者 ゼンカイ・ルビオ",
+  "founders.rebecca.role": "UX/UI デザインリード",
+  "founders.cici.role": "CPO",
+  "founders.secret.name": "謎の人物",
+  "founders.secret.role": "近日公開",
 
   "contact.title": "お問い合わせ",
   "contact.subtitle": "コミュニティに関する質問は、フォーラムが最速です。それ以外はメールでどうぞ。",
@@ -130,6 +149,11 @@
   "footer.legal.sponsors": "スポンサー規約",
   "footer.forum": "ウェブフォーラム",
   "footer.founders": "創設メンバー",
+  "footer.sponsors": "スポンサー",
+  "footer.sponsorship": "スポンサーシッププログラム",
+  "footer.group.community": "コミュニティ",
+  "footer.group.support": "サポート",
+  "footer.group.legal": "法務",
   "footer.copyright": "© {year} DirtBikeX. All rights reserved.",
 
   "legal.lastUpdated": "最終更新",

@@ -4,6 +4,7 @@
 
   "nav.community": "커뮤니티",
   "nav.founders": "창립자",
+  "nav.sponsorship": "스폰서십",
   "nav.getApp": "앱 다운로드",
   "nav.toggleTheme": "테마 전환",
 
@@ -82,8 +83,24 @@
 
   "cta.appStore.line1": "다운로드",
   "cta.appStore.line2": "App Store",
+  "cta.googlePlay.line1": "곧 출시 예정",
+  "cta.googlePlay.line2": "Google Play",
+  "sponsorship.eyebrow": "스폰서십 프로그램",
+  "sponsorship.title": "트레일 위에 당신의 브랜드를 새기세요",
+  "sponsorship.body": "글로벌 더트바이크 커뮤니티에 다가가고 싶은 브랜드와 개인을 위한 라이더 우선 스폰서십 프로그램을 준비하고 있습니다. 자세한 내용은 곧 공개됩니다.",
+  "sponsorship.coming": "곧 공개",
+  "sponsorship.cta.contact": "문의하기",
+  "sponsorship.cta.wall": "현재 스폰서 보기",
 
   "founders.title": "창립자",
+  "founders.intro": "DirtBikeX를 만드는 팀입니다.",
+  "founders.calvin.role": "창립자, CEO 겸 CTO",
+  "founders.calvin.bio": "낮엔 라이더, 밤엔 코더 — 안장 위에서, 키보드 앞에서 DirtBikeX를 만들어갑니다.",
+  "founders.calvin.photo_alt": "DirtBikeX 창립자 Zenkai Rubio",
+  "founders.rebecca.role": "리드 UX/UI 디자이너",
+  "founders.cici.role": "CPO",
+  "founders.secret.name": "미스터리 팀원",
+  "founders.secret.role": "곧 공개",
 
   "contact.title": "문의하기",
   "contact.subtitle": "커뮤니티 관련 질문은 포럼이 가장 빠릅니다. 그 외의 일은 이메일이 가장 좋습니다.",
@@ -129,6 +146,11 @@
   "footer.legal.sponsors": "스폰서 약관",
   "footer.forum": "웹 포럼",
   "footer.founders": "창립자",
+  "footer.sponsors": "스폰서",
+  "footer.sponsorship": "스폰서십 프로그램",
+  "footer.group.community": "커뮤니티",
+  "footer.group.support": "지원",
+  "footer.group.legal": "법률",
   "footer.copyright": "© {year} DirtBikeX. All rights reserved.",
 
   "legal.lastUpdated": "최근 업데이트",

@@ -4,6 +4,7 @@
 
   "nav.community": "المجتمع",
   "nav.founders": "المؤسّسون",
+  "nav.sponsorship": "الرعاية",
   "nav.getApp": "احصل على التطبيق",
   "nav.toggleTheme": "تبديل السمة",
 
@@ -82,8 +83,24 @@
 
   "cta.appStore.line1": "حمّل من",
   "cta.appStore.line2": "App Store",
+  "cta.googlePlay.line1": "قريباً على",
+  "cta.googlePlay.line2": "Google Play",
+  "sponsorship.eyebrow": "برنامج الرعاية",
+  "sponsorship.title": "اجعل علامتك التجارية تتصدّر المسار",
+  "sponsorship.body": "نحن نبني برنامج رعاية يضع الراكبين في المقام الأول، للعلامات التجارية والأفراد الراغبين في الوصول إلى مجتمع الدراجات الترابيّة العالمي. التفاصيل قريباً.",
+  "sponsorship.coming": "قريباً",
+  "sponsorship.cta.contact": "تواصل معنا",
+  "sponsorship.cta.wall": "شاهد الرعاة الحاليين",
 
   "founders.title": "المؤسّسون",
+  "founders.intro": "الفريق الذي يبني DirtBikeX.",
+  "founders.calvin.role": "المؤسّس والرئيس التنفيذي ومدير التكنولوجيا (CEO و CTO)",
+  "founders.calvin.bio": "راكبٌ في النهار، مبرمجٌ في الليل — أبني DirtBikeX من فوق السّرج ومن خلف لوحة المفاتيح.",
+  "founders.calvin.photo_alt": "Zenkai Rubio، مؤسّس DirtBikeX",
+  "founders.rebecca.role": "مديرة تصميم UX/UI",
+  "founders.cici.role": "مديرة المنتج (CPO)",
+  "founders.secret.name": "شخصٌ غامض",
+  "founders.secret.role": "لم يُكشف بعد",
 
   "contact.title": "تواصل معنا",
   "contact.subtitle": "المنتدى هو أسرع مكان لأسئلة المجتمع. لكلّ ما عدا ذلك، البريد الإلكتروني هو الأفضل.",
@@ -129,6 +146,11 @@
   "footer.legal.sponsors": "شروط الرعاية",
   "footer.forum": "منتدى الويب",
   "footer.founders": "المؤسّسون",
+  "footer.sponsors": "الرعاة",
+  "footer.sponsorship": "برنامج الرعاية",
+  "footer.group.community": "المجتمع",
+  "footer.group.support": "الدعم",
+  "footer.group.legal": "قانوني",
   "footer.copyright": "© {year} DirtBikeX. جميع الحقوق محفوظة.",
 
   "legal.lastUpdated": "آخر تحديث",

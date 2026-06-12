@@ -4,6 +4,7 @@
 
   "nav.community": "Komunitas",
   "nav.founders": "Pendiri",
+  "nav.sponsorship": "Program sponsor",
   "nav.getApp": "Unduh aplikasi",
   "nav.toggleTheme": "Ganti tema",
 
@@ -82,8 +83,24 @@
 
   "cta.appStore.line1": "Unduh di",
   "cta.appStore.line2": "App Store",
+  "cta.googlePlay.line1": "Segera hadir di",
+  "cta.googlePlay.line2": "Google Play",
+  "sponsorship.eyebrow": "Program sponsor",
+  "sponsorship.title": "Bawa brand-mu ke trail",
+  "sponsorship.body": "Kami membangun program sponsor yang rider-first untuk brand dan individu yang ingin menjangkau komunitas dirt bike global. Detail selengkapnya segera hadir.",
+  "sponsorship.coming": "Segera hadir",
+  "sponsorship.cta.contact": "Hubungi kami",
+  "sponsorship.cta.wall": "Lihat sponsor saat ini",
 
   "founders.title": "Pendiri",
+  "founders.intro": "Tim di balik pembuatan DirtBikeX.",
+  "founders.calvin.role": "Pendiri, CEO & CTO",
+  "founders.calvin.bio": "Siang ngegas, malam ngoding — membangun DirtBikeX dari atas sadel dan papan ketik.",
+  "founders.calvin.photo_alt": "Zenkai Rubio, pendiri DirtBikeX",
+  "founders.rebecca.role": "Lead Desainer UX/UI",
+  "founders.cici.role": "CPO",
+  "founders.secret.name": "Sosok Misterius",
+  "founders.secret.role": "Belum Terungkap",
 
   "contact.title": "Hubungi kami",
   "contact.subtitle": "Forum adalah tempat tercepat untuk pertanyaan komunitas. Untuk yang lain, email paling pas.",
@@ -129,6 +146,11 @@
   "footer.legal.sponsors": "Ketentuan sponsor",
   "footer.forum": "Forum web",
   "footer.founders": "Pendiri",
+  "footer.sponsors": "Sponsor",
+  "footer.sponsorship": "Program sponsor",
+  "footer.group.community": "Komunitas",
+  "footer.group.support": "Dukungan",
+  "footer.group.legal": "Hukum",
   "footer.copyright": "© {year} DirtBikeX. Hak cipta dilindungi.",
 
   "legal.lastUpdated": "Terakhir diperbarui",

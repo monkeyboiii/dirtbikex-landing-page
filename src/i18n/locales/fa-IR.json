@@ -4,6 +4,7 @@
 
   "nav.community": "جامعه",
   "nav.founders": "بنیان‌گذاران",
+  "nav.sponsorship": "حمایت مالی",
   "nav.getApp": "دریافت اپ",
   "nav.toggleTheme": "تغییر تم",
 
@@ -82,8 +83,24 @@
 
   "cta.appStore.line1": "دانلود از",
   "cta.appStore.line2": "App Store",
+  "cta.googlePlay.line1": "به‌زودی در",
+  "cta.googlePlay.line2": "Google Play",
+  "sponsorship.eyebrow": "برنامهٔ حمایت مالی",
+  "sponsorship.title": "برندت را روی مسیر بنشان",
+  "sponsorship.body": "ما در حال ساخت یک برنامهٔ حمایت مالیِ موتورسوارمحور برای برندها و افرادی هستیم که می‌خواهند به جامعهٔ جهانی موتورهای ترائیل دست پیدا کنند. جزئیات به‌زودی.",
+  "sponsorship.coming": "به‌زودی",
+  "sponsorship.cta.contact": "تماس بگیر",
+  "sponsorship.cta.wall": "حامیان فعلی را ببین",
 
   "founders.title": "بنیان‌گذاران",
+  "founders.intro": "تیمی که DirtBikeX را می‌سازد.",
+  "founders.calvin.role": "بنیان‌گذار، مدیرعامل و مدیر فنی",
+  "founders.calvin.bio": "روزها سوار بر زین، شب‌ها پشت کیبورد — DirtBikeX را از روی زین و صفحه‌کلید می‌سازم.",
+  "founders.calvin.photo_alt": "Zenkai Rubio، بنیان‌گذار DirtBikeX",
+  "founders.rebecca.role": "طراح ارشد UX/UI",
+  "founders.cici.role": "مدیر ارشد محصول",
+  "founders.secret.name": "فرد مرموز",
+  "founders.secret.role": "هنوز فاش نشده",
 
   "contact.title": "تماس با ما",
   "contact.subtitle": "فروم سریع‌ترین جا برای سؤال‌های جامعه است. برای بقیه چیزها، ایمیل بهترین گزینه است.",
@@ -129,6 +146,11 @@
   "footer.legal.sponsors": "شرایط اسپانسری",
   "footer.forum": "فروم وب",
   "footer.founders": "بنیان‌گذاران",
+  "footer.sponsors": "حامیان",
+  "footer.sponsorship": "برنامهٔ حمایت مالی",
+  "footer.group.community": "جامعه",
+  "footer.group.support": "پشتیبانی",
+  "footer.group.legal": "حقوقی",
   "footer.copyright": "© {year} DirtBikeX. تمامی حقوق محفوظ است.",
 
   "legal.lastUpdated": "آخرین به‌روزرسانی",
