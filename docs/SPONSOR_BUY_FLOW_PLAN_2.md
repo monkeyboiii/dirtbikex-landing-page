@@ -1,6 +1,6 @@
 # Sponsor Buy Flow — Landing Page Architecture (IAP-first)
 
-**Status:** Active. **Canonical for the web-side surface** (2026-05-26 onward) — when this doc and the backend [`SPONSORSHIP.md`](../../dirtbikex-sponsors/docs/SPONSORSHIP.md) disagree on a web-side detail, this doc wins. Supersedes the original web-first buy flow (retired 2026-05-25).
+**Status:** V1 keeps only the public `/sponsors` gallery. The `/sponsors/finalize` (desktop upload) and `/s/g/<token>` (grant claim) escape-hatch routes are **parked for V2** — the worker mounts were removed (buyer image upload + admin grants are parked backend-side; see [`SPONSORSHIP.md`](../../dirtbikex-sponsors/docs/SPONSORSHIP.md) § Parked for V2). The sections below describe those parked surfaces; the gallery is the only live web surface. **Canonical for the web-side surface** — when this doc and the backend doc disagree on a web-side detail, this doc wins.
 **Backend doc:** [`dirtbikex-sponsors/docs/SPONSORSHIP.md`](../../dirtbikex-sponsors/docs/SPONSORSHIP.md) — data model, IAP/pricing, API contract, admin/moderation. iOS surface: [`iOS/docs/SPONSOR_MODULE.md`](../../../../iOS/docs/SPONSOR_MODULE.md).
 **Backend repo:** [`infra/submodules/dirtbikex-sponsors/`](../../dirtbikex-sponsors/) — Hono + TypeScript service implementing the API endpoints referenced here.
 **Owners:** Calvin (product + iOS + web).
