@@ -1,4 +1,4 @@
-import type { InviteRow, Lang, ShareLandingProps } from './types';
+import type { InviteRow, Lang, ShareLandingProps, UserRow } from './types';
 
 /**
  * Render a share-link landing page response. Inline styles; no Astro layout
@@ -241,12 +241,20 @@ ${ogImage ? `<meta property="og:image" content="${esc(ogImage)}">
 
   const body = props.invite
     ? heroCardBody(props.invite, props, locale)
-    : errorBody(props);
+    : props.user
+      ? userCardBody(props.user, props, locale)
+      : errorBody(props);
 
   const ogTitle = props.invite
     ? buildHeadline(props.invite, locale)
-    : (props.title ?? 'DirtBikeX');
-  const ogDescription = props.invite?.description ?? props.subtitle ?? null;
+    : props.user
+      ? userHeadline(props.user)
+      : (props.title ?? 'DirtBikeX');
+  const ogDescription = props.invite?.description
+    ?? props.user?.bio_excerpt
+    ?? (props.user ? `View ${props.user.name?.trim() || props.user.username}'s profile on DirtBikeX` : null)
+    ?? props.subtitle
+    ?? null;
 
   return `<!DOCTYPE html>
 <html lang="${locale}" dir="${isRTL(locale) ? 'rtl' : 'ltr'}">
@@ -260,12 +268,16 @@ function isRTL(locale: Lang): boolean {
   return locale === 'ar' || locale === 'fa-IR';
 }
 
+/** DirtBikeX X mark, pinned top-right of every card for brand consistency. */
+const CARD_LOGO = `<img class="card-logo" src="/brand/logo-mark.svg" alt="DirtBikeX">`;
+
 function errorBody(props: ShareLandingProps): string {
   const { title, subtitle, primaryCTA } = props;
   // No inviter on error states — the avatar slot carries the app logo instead.
   // No "open in the app" path here: there's no valid invite key to funnel.
   return `
 <main class="card">
+  ${CARD_LOGO}
   <div class="avatar"><img src="/icon-512.png" alt="DirtBikeX"></div>
   <h1 class="headline">${esc(title ?? 'DirtBikeX')}</h1>
   ${subtitle ? `<p class="subtitle">${esc(subtitle)}</p>` : ''}
@@ -317,6 +329,7 @@ function heroCardBody(invite: InviteRow, props: ShareLandingProps, locale: Lang)
 
   return `
 <main class="card">
+  ${CARD_LOGO}
   ${avatarHTML}
   ${titlePillHTML ? `<div class="inviter">${titlePillHTML}</div>` : ''}
   <h1 class="headline">${esc(headline)}</h1>
@@ -330,6 +343,300 @@ function heroCardBody(invite: InviteRow, props: ShareLandingProps, locale: Lang)
 }
 
 /* ============================================================
+   Profile card (`/s/u/<username>`)
+   ============================================================ */
+
+type DurationUnit = 'year' | 'month' | 'week' | 'day';
+
+interface UserCopy {
+  followers: (n: number) => string;
+  following: (n: number) => string;
+  /** "Cheers" is a brand/gamification term — kept verbatim, matching the iOS app. */
+  cheers: (n: number) => string;
+  /** Wraps the platform-localized short duration, e.g. "10mo on DirtBikeX". */
+  tenureChip: (short: string) => string;
+  privateProfile: string;
+}
+
+// All 21 supported locales. `getUserCopy()` falls back to `en` for any gap.
+const USER_COPY: Partial<Record<Lang, UserCopy>> = {
+  en: {
+    followers: (n) => `${n} ${n === 1 ? 'Follower' : 'Followers'}`,
+    following: (n) => `${n} Following`,
+    cheers: (n) => `${n} Cheers`,
+    tenureChip: (s) => `${s} on DirtBikeX`,
+    privateProfile: 'This profile is private',
+  },
+  'zh-CN': {
+    followers: (n) => `${n} 粉丝`,
+    following: (n) => `${n} 关注`,
+    cheers: (n) => `${n} Cheers`,
+    tenureChip: (s) => `已加入 ${s}`,
+    privateProfile: '该主页已设为私密',
+  },
+  'zh-TW': {
+    followers: (n) => `${n} 粉絲`,
+    following: (n) => `${n} 追蹤中`,
+    cheers: (n) => `${n} Cheers`,
+    tenureChip: (s) => `已加入 ${s}`,
+    privateProfile: '此主頁已設為私密',
+  },
+  ja: {
+    followers: (n) => `${n} フォロワー`,
+    following: (n) => `${n} フォロー中`,
+    cheers: (n) => `${n} Cheers`,
+    tenureChip: (s) => `DirtBikeX歴 ${s}`,
+    privateProfile: 'このプロフィールは非公開です',
+  },
+  ko: {
+    followers: (n) => `${n} 팔로워`,
+    following: (n) => `${n} 팔로잉`,
+    cheers: (n) => `${n} Cheers`,
+    tenureChip: (s) => `가입 ${s}`,
+    privateProfile: '비공개 프로필입니다',
+  },
+  de: {
+    followers: (n) => `${n} Follower`,
+    following: (n) => `${n} Folgt`,
+    cheers: (n) => `${n} Cheers`,
+    tenureChip: (s) => `${s} bei DirtBikeX`,
+    privateProfile: 'Dieses Profil ist privat',
+  },
+  it: {
+    followers: (n) => `${n} Follower`,
+    following: (n) => `${n} Seguiti`,
+    cheers: (n) => `${n} Cheers`,
+    tenureChip: (s) => `${s} su DirtBikeX`,
+    privateProfile: 'Questo profilo è privato',
+  },
+  fr: {
+    followers: (n) => `${n} Abonnés`,
+    following: (n) => `${n} Abonnements`,
+    cheers: (n) => `${n} Cheers`,
+    tenureChip: (s) => `${s} sur DirtBikeX`,
+    privateProfile: 'Ce profil est privé',
+  },
+  es: {
+    followers: (n) => `${n} Seguidores`,
+    following: (n) => `${n} Siguiendo`,
+    cheers: (n) => `${n} Cheers`,
+    tenureChip: (s) => `${s} en DirtBikeX`,
+    privateProfile: 'Este perfil es privado',
+  },
+  ar: {
+    followers: (n) => `${n} متابع`,
+    following: (n) => `${n} يتابع`,
+    cheers: (n) => `${n} Cheers`,
+    tenureChip: (s) => `${s} في DirtBikeX`,
+    privateProfile: 'هذا الملف الشخصي خاص',
+  },
+  da: {
+    followers: (n) => `${n} Følgere`,
+    following: (n) => `${n} Følger`,
+    cheers: (n) => `${n} Cheers`,
+    tenureChip: (s) => `${s} på DirtBikeX`,
+    privateProfile: 'Denne profil er privat',
+  },
+  el: {
+    followers: (n) => `${n} Ακόλουθοι`,
+    following: (n) => `${n} Ακολουθεί`,
+    cheers: (n) => `${n} Cheers`,
+    tenureChip: (s) => `${s} στο DirtBikeX`,
+    privateProfile: 'Αυτό το προφίλ είναι ιδιωτικό',
+  },
+  'fa-IR': {
+    followers: (n) => `${n} دنبال‌کننده`,
+    following: (n) => `${n} دنبال‌شده`,
+    cheers: (n) => `${n} Cheers`,
+    tenureChip: (s) => `${s} در DirtBikeX`,
+    privateProfile: 'این نمایه خصوصی است',
+  },
+  fi: {
+    followers: (n) => `${n} seuraajaa`,
+    following: (n) => `${n} seurattua`,
+    cheers: (n) => `${n} Cheers`,
+    tenureChip: (s) => `${s} DirtBikeXissä`,
+    privateProfile: 'Tämä profiili on yksityinen',
+  },
+  id: {
+    followers: (n) => `${n} Pengikut`,
+    following: (n) => `${n} Mengikuti`,
+    cheers: (n) => `${n} Cheers`,
+    tenureChip: (s) => `${s} di DirtBikeX`,
+    privateProfile: 'Profil ini bersifat pribadi',
+  },
+  nl: {
+    followers: (n) => `${n} Volgers`,
+    following: (n) => `${n} Volgend`,
+    cheers: (n) => `${n} Cheers`,
+    tenureChip: (s) => `${s} op DirtBikeX`,
+    privateProfile: 'Dit profiel is privé',
+  },
+  pt: {
+    followers: (n) => `${n} Seguidores`,
+    following: (n) => `${n} Seguindo`,
+    cheers: (n) => `${n} Cheers`,
+    tenureChip: (s) => `${s} no DirtBikeX`,
+    privateProfile: 'Este perfil é privado',
+  },
+  'tr-TR': {
+    followers: (n) => `${n} Takipçi`,
+    following: (n) => `${n} Takip`,
+    cheers: (n) => `${n} Cheers`,
+    tenureChip: (s) => `DirtBikeX'te ${s}`,
+    privateProfile: 'Bu profil gizli',
+  },
+  th: {
+    followers: (n) => `${n} ผู้ติดตาม`,
+    following: (n) => `${n} กำลังติดตาม`,
+    cheers: (n) => `${n} Cheers`,
+    tenureChip: (s) => `${s} บน DirtBikeX`,
+    privateProfile: 'โปรไฟล์นี้เป็นแบบส่วนตัว',
+  },
+  vi: {
+    followers: (n) => `${n} Người theo dõi`,
+    following: (n) => `${n} Đang theo dõi`,
+    cheers: (n) => `${n} Cheers`,
+    tenureChip: (s) => `${s} trên DirtBikeX`,
+    privateProfile: 'Hồ sơ này ở chế độ riêng tư',
+  },
+  sv: {
+    followers: (n) => `${n} Följare`,
+    following: (n) => `${n} Följer`,
+    cheers: (n) => `${n} Cheers`,
+    tenureChip: (s) => `${s} på DirtBikeX`,
+    privateProfile: 'Den här profilen är privat',
+  },
+};
+
+function getUserCopy(locale: Lang): UserCopy {
+  return USER_COPY[locale] ?? USER_COPY.en!;
+}
+
+/** `<name> (@username)` — `og:title` and screen-reader headline. */
+function userHeadline(user: UserRow): string {
+  const displayName = user.name?.trim() || user.username;
+  return displayName === user.username ? `@${user.username}` : `${displayName} (@${user.username})`;
+}
+
+/** Wrap the leading numeric token in `<b>` (e.g. "2 Followers" → "<b>2</b> Followers"). */
+function boldLead(s: string): string {
+  const i = s.indexOf(' ');
+  if (i < 0) return esc(s);
+  return `<b>${esc(s.slice(0, i))}</b> ${esc(s.slice(i + 1))}`;
+}
+
+function userCardBody(user: UserRow, props: ShareLandingProps, locale: Lang): string {
+  const { primaryCTA, appCTA, forumBase } = props;
+  const copy = getUserCopy(locale);
+  const displayName = user.name?.trim() || user.username;
+  // Single identity line: the name, or @handle when no name is set.
+  const nameLine = user.name?.trim() ? esc(displayName) : `@${esc(user.username)}`;
+
+  const avatarHTML = renderAvatar(forumBase, user.avatar_template, displayName, user.username, 288, 'avatar-profile');
+
+  // No "return-tap" helper on profile cards — there's nothing to "finish joining".
+  const ctas = `
+  <a class="cta" href="${esc(primaryCTA.url)}">${esc(primaryCTA.label)}</a>
+  ${appCTA ? `<a class="cta cta-secondary" href="${esc(appCTA.url)}">${esc(appCTA.label)}</a>` : ''}`;
+
+  if (user.hidden) {
+    return `
+<main class="card profile-card">
+  ${CARD_LOGO}
+  ${avatarHTML}
+  <h1 class="headline">${nameLine}</h1>
+  <p class="subtitle">${esc(copy.privateProfile)}</p>
+  ${ctas}
+</main>`;
+  }
+
+  // Staff shield + status emoji sit inline with the name. The status text is
+  // hidden — it surfaces as a hover tooltip on the emoji (title attribute).
+  const shieldHTML = user.admin
+    ? shieldSVG('shield-admin')
+    : user.moderator
+      ? shieldSVG('shield-mod')
+      : '';
+  const statusInlineHTML = user.status
+    ? `<img class="status-emoji status-inline" src="/emojis/${esc(user.status.emoji)}.png" title="${esc(user.status.description)}" alt="${esc(user.status.description)}" onerror="this.remove()">`
+    : '';
+  const nameRowHTML = `<div class="name-row"><h1 class="headline">${nameLine}</h1>${shieldHTML}${statusInlineHTML}</div>`;
+
+  const roleHTML = user.title?.trim()
+    ? `<p class="role">${esc(user.title.trim())}</p>`
+    : '';
+
+  const bioHTML = user.bio_excerpt?.trim()
+    ? `<p class="bio">${esc(user.bio_excerpt.trim())}</p>`
+    : '';
+
+  const metaItems: string[] = [];
+  if (user.location) metaItems.push(`<span class="meta-item">📍 ${esc(user.location)}</span>`);
+  if (user.website) {
+    const label = user.website_name?.trim() || user.website;
+    metaItems.push(`<a class="meta-item" href="${esc(user.website)}" rel="nofollow noopener" target="_blank">🌐 ${esc(label)}</a>`);
+  }
+  const tenure = user.created_at ? formatDurationSince(user.created_at, locale) : null;
+  if (tenure) metaItems.push(`<span class="meta-item meta-tenure">🏁 ${esc(copy.tenureChip(tenure))}</span>`);
+  const metaHTML = metaItems.length > 0 ? `<div class="meta">${metaItems.join('')}</div>` : '';
+
+  const stats: string[] = [];
+  if (user.total_followers != null) stats.push(`<span>${boldLead(copy.followers(user.total_followers))}</span>`);
+  if (user.total_following != null) stats.push(`<span>${boldLead(copy.following(user.total_following))}</span>`);
+  if (user.gamification_score != null) stats.push(`<span>${boldLead(copy.cheers(user.gamification_score))}</span>`);
+  const statsHTML = stats.length > 0
+    ? `<div class="stats">${stats.join('<span class="dot">·</span>')}</div>`
+    : '';
+
+  return `
+<main class="card profile-card">
+  ${CARD_LOGO}
+  ${avatarHTML}
+  ${nameRowHTML}
+  ${roleHTML}
+  ${bioHTML}
+  ${metaHTML}
+  ${statsHTML}
+  ${ctas}
+</main>`;
+}
+
+/** Inline FontAwesome shield-halved; color comes from the CSS class (currentColor). */
+function shieldSVG(className: string): string {
+  return `<svg class="shield ${className}" viewBox="0 0 512 512" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M256 0c4.6 0 9.2 1 13.4 2.9L457.7 82.8c22 9.3 38.4 31 38.3 57.2c-.5 99.2-41.3 280.7-213.6 363.2c-16.7 8-36.1 8-52.8 0C57.3 420.7 16.5 239.2 16 140c-.1-26.2 16.3-47.9 38.3-57.2L242.7 2.9C246.8 1 251.4 0 256 0zm0 66.8l0 378V66.8L432 141.4c-.9 88.7-38 236.6-176 303.4V66.8z"/></svg>`;
+}
+
+/**
+ * Platform-localized compact membership length (largest unit) from an ISO
+ * creation timestamp — e.g. "10mo" (en), "10个月" (zh), "10 Mon." (de). Uses
+ * `Intl.NumberFormat` narrow units so all 21 locales render correctly without
+ * a hand-translated abbreviation table.
+ */
+function formatDurationSince(iso: string, locale: Lang): string | null {
+  const target = Date.parse(iso);
+  if (Number.isNaN(target)) return null;
+  const diffMs = Date.now() - target;
+  if (diffMs <= 0) return null;
+
+  const days = Math.floor(diffMs / 86400000);
+  const years = Math.floor(days / 365);
+  const months = Math.floor(days / 30);
+  const weeks = Math.floor(days / 7);
+  const [n, unit]: [number, DurationUnit] =
+    years >= 1 ? [years, 'year']
+    : months >= 1 ? [months, 'month']
+    : weeks >= 1 ? [weeks, 'week']
+    : [Math.max(days, 1), 'day'];
+
+  try {
+    return new Intl.NumberFormat(locale, { style: 'unit', unit, unitDisplay: 'narrow' }).format(n);
+  } catch {
+    return `${n} ${unit}${n === 1 ? '' : 's'}`;
+  }
+}
+
+/* ============================================================
    Headline + helpers
    ============================================================ */
 
@@ -340,7 +647,7 @@ function heroCardBody(invite: InviteRow, props: ShareLandingProps, locale: Lang)
  * pre-rendered size and matches the in-page hero card.
  */
 function buildOgImage(props: ShareLandingProps): string | null {
-  const template = props.invite?.invited_by.avatar_template;
+  const template = props.invite?.invited_by.avatar_template ?? props.user?.avatar_template ?? null;
   if (!template) return null;
   return `${props.forumBase}${template.replace('{size}', '288')}`;
 }
@@ -398,16 +705,19 @@ function renderAvatar(
   avatarTemplate: string | null,
   displayName: string,
   username: string,
+  size = 144,
+  extraClass = '',
 ): string {
   // SVG letter avatar is always present underneath; the <img> overlays it.
   // If the img 404s, `this.remove()` strips it and reveals the SVG below.
   // Avoids JS-in-HTML-in-JS double escaping.
+  const cls = extraClass ? `avatar ${extraClass}` : 'avatar';
   const initial = firstGrapheme(displayName || username);
   const svg = letterAvatarSVG(initial);
-  if (!avatarTemplate) return `<div class="avatar">${svg}</div>`;
-  const path = avatarTemplate.replace('{size}', '144');
+  if (!avatarTemplate) return `<div class="${cls}">${svg}</div>`;
+  const path = avatarTemplate.replace('{size}', String(size));
   const src = esc(`${forumBase}${path}`);
-  return `<div class="avatar">${svg}<img src="${src}" alt="${esc(displayName)}" onerror="this.remove()"></div>`;
+  return `<div class="${cls}">${svg}<img src="${src}" alt="${esc(displayName)}" onerror="this.remove()"></div>`;
 }
 
 function letterAvatarSVG(letter: string): string {
@@ -489,6 +799,7 @@ body {
   width: 100%;
   box-shadow: 0 20px 60px -20px rgba(243,118,11,0.25), 0 4px 12px rgba(0,0,0,0.08);
   text-align: center;
+  position: relative;
 }
 .avatar {
   width: 88px;
@@ -583,6 +894,69 @@ body {
   line-height: 1.4;
 }
 
+/* Profile card (/s/u/<username>) — left-aligned, founder-inspired */
+.profile-card { text-align: left; position: relative; }
+.profile-card .cta { text-align: center; }
+.card-logo { position: absolute; top: 1.1rem; right: 1.1rem; width: 34px; height: auto; opacity: 0.95; }
+.profile-card .avatar.avatar-profile { width: 104px; height: 104px; margin: 0 0 1rem; }
+.profile-card .headline { margin: 0; font-size: 1.6rem; }
+.profile-card .subtitle { text-align: start; margin-top: 0.5rem; }
+.role {
+  margin: 0.4rem 0 0;
+  color: var(--dirt-600);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.name-row { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
+.name-row .headline { margin: 0; }
+.shield { flex: none; }
+.shield-admin { color: #f5b400; }
+.shield-mod { color: var(--clay-500); }
+.status-emoji { width: 18px; height: 18px; flex: none; }
+.status-inline { width: 22px; height: 22px; cursor: default; }
+.bio {
+  margin: 0.75rem 0 0;
+  color: var(--clay-700);
+  line-height: 1.5;
+  font-size: 0.9375rem;
+}
+.meta {
+  margin: 0.875rem 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  max-width: 100%;
+  padding: 0.25rem 0.625rem;
+  background: var(--clay-100);
+  color: var(--clay-700);
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+a.meta-item:hover, a.meta-item:active { background: var(--clay-200); }
+.stats {
+  margin: 1rem 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--clay-600);
+  font-size: 0.9375rem;
+}
+.stats b { color: #1a1a1a; font-weight: 700; }
+.stats .dot { color: var(--clay-500); }
+
 @media (prefers-color-scheme: dark) {
   body {
     background: linear-gradient(135deg, var(--clay-950) 0%, var(--clay-900) 50%, var(--clay-800) 100%);
@@ -600,5 +974,12 @@ body {
   .message { color: var(--clay-100); }
   .badge { background: var(--clay-800); color: var(--clay-100); }
   .return-tap { color: var(--clay-200); }
+  .role { color: var(--dirt-200); }
+  .bio { color: var(--clay-100); }
+  .shield-mod { color: var(--clay-200); }
+  .meta-item { background: var(--clay-800); color: var(--clay-100); }
+  a.meta-item:hover, a.meta-item:active { background: var(--clay-700); }
+  .stats { color: var(--clay-200); }
+  .stats b { color: var(--clay-50); }
 }
 `;

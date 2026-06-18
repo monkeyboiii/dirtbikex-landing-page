@@ -71,22 +71,57 @@ export type Lang =
 
 /** Props handed to the shared share-landing renderer. */
 export interface ShareLandingProps {
-  /** Discriminator. Currently only `'i'` (invite); future kinds add raw values per ShareKind. */
-  kind: 'i';
+  /** Discriminator per ShareKind raw value: `'i'` invite, `'u'` profile. */
+  kind: 'i' | 'u';
   locale: Lang;
   primaryCTA: { label: string; url: string };
   /** Optional secondary CTA — the "open in the app" deep link. Set only for a
-   *  mobile valid-invite card; funnels the invite into the app via `dirtbikex://`. */
+   *  mobile valid card; funnels into the app via `dirtbikex://`. */
   appCTA?: { label: string; url: string };
   /** Shown only beneath `appCTA` (the install→return helper). */
   returnTapCopy: string;
   /** Forum origin (e.g. `https://forum.dirtbikex.com`) — needed to resolve `avatar_template`. */
   forumBase: string;
-  /** Error-state copy. Mutually exclusive with `invite`. */
+  /** Error-state copy. Mutually exclusive with `invite`/`user`. */
   title?: string;
   subtitle?: string;
-  /** Valid-state payload — drives the hero card. Mutually exclusive with `title`/`subtitle`. */
+  /** Valid invite payload — drives the invite hero card. Mutually exclusive with `title`/`subtitle`/`user`. */
   invite?: InviteRow;
+  /** Valid profile payload — drives the profile card. Mutually exclusive with `title`/`subtitle`/`invite`. */
+  user?: UserRow;
+}
+
+/**
+ * Recipient-facing public-profile payload for `/s/u/<username>`. Sourced from
+ * the public `GET /u/<username>.json` endpoint (no API key). `email` is never
+ * part of that public shape — do not add it.
+ *
+ * `hidden` collapses Discourse's `profile_hidden:true` minimal response into the
+ * same shape: when true, the stat/bio fields are null and the renderer shows a
+ * "private profile" card.
+ */
+export interface UserRow {
+  username: string;
+  name: string | null;
+  title: string | null;
+  admin: boolean;
+  moderator: boolean;
+  /** Discourse-format template with `{size}` placeholder. */
+  avatar_template: string | null;
+  bio_excerpt: string | null;
+  total_followers: number | null;
+  total_following: number | null;
+  gamification_score: number | null;
+  primary_group_name: string | null;
+  /** Account creation timestamp (ISO) — rendered as "joined N ago". */
+  created_at: string | null;
+  /** Pre-computed short location (`state ?? country ?? address`). */
+  location: string | null;
+  website: string | null;
+  website_name: string | null;
+  /** Status emoji is a Discourse shortcode → `/emojis/<emoji>.png` (bundled). */
+  status: { emoji: string; description: string } | null;
+  hidden: boolean;
 }
 
 /**

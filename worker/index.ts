@@ -1,4 +1,5 @@
 import { lookupInvite, type LookupResult } from './_lib/inviteLookup';
+import { lookupUser, type UserLookupResult } from './_lib/userLookup';
 import { renderShareLanding } from './_lib/render';
 import { fetchForumMetrics } from './_lib/forumMetrics';
 import { fetchForumFeatured } from './_lib/forumFeatured';
@@ -278,6 +279,35 @@ function getCopy(locale: Lang): Copy {
   return COPY[locale] ?? COPY.en!;
 }
 
+/** Profile not-found copy (`/s/u/<username>`). Falls back to `en`. */
+const USER_NOT_FOUND: Partial<Record<Lang, { title: string; subtitle: string }>> = {
+  en: { title: 'Rider not found', subtitle: 'This profile may have moved — but you can still join DirtBikeX.' },
+  'zh-CN': { title: '未找到该用户', subtitle: '该主页可能已变更——但你仍然可以加入 DirtBikeX。' },
+  'zh-TW': { title: '找不到該用戶', subtitle: '此主頁可能已變更——但你仍然可以加入 DirtBikeX。' },
+  ja: { title: 'ライダーが見つかりません', subtitle: 'このプロフィールは移動した可能性があります。それでも DirtBikeX に参加できます。' },
+  ko: { title: '라이더를 찾을 수 없습니다', subtitle: '이 프로필은 이동했을 수 있어요. 그래도 DirtBikeX에 참여할 수 있습니다.' },
+  de: { title: 'Fahrer nicht gefunden', subtitle: 'Dieses Profil wurde vielleicht verschoben – aber du kannst DirtBikeX trotzdem beitreten.' },
+  it: { title: 'Rider non trovato', subtitle: 'Questo profilo potrebbe essere stato spostato, ma puoi comunque unirti a DirtBikeX.' },
+  fr: { title: 'Pilote introuvable', subtitle: 'Ce profil a peut-être été déplacé, mais vous pouvez quand même rejoindre DirtBikeX.' },
+  es: { title: 'Piloto no encontrado', subtitle: 'Es posible que este perfil se haya movido, pero aún puedes unirte a DirtBikeX.' },
+  ar: { title: 'لم يتم العثور على الدراج', subtitle: 'ربما تم نقل هذا الملف الشخصي — لكن لا يزال بإمكانك الانضمام إلى DirtBikeX.' },
+  da: { title: 'Rytter ikke fundet', subtitle: 'Denne profil er måske flyttet – men du kan stadig være med i DirtBikeX.' },
+  el: { title: 'Ο αναβάτης δεν βρέθηκε', subtitle: 'Αυτό το προφίλ μπορεί να έχει μετακινηθεί — αλλά μπορείς ακόμα να μπεις στο DirtBikeX.' },
+  'fa-IR': { title: 'موتورسوار پیدا نشد', subtitle: 'ممکن است این نمایه منتقل شده باشد — اما همچنان می‌توانید به DirtBikeX بپیوندید.' },
+  fi: { title: 'Kuljettajaa ei löytynyt', subtitle: 'Tämä profiili on ehkä siirretty – mutta voit silti liittyä DirtBikeX-yhteisöön.' },
+  id: { title: 'Rider tidak ditemukan', subtitle: 'Profil ini mungkin telah dipindahkan — tetapi kamu tetap bisa bergabung dengan DirtBikeX.' },
+  nl: { title: 'Rijder niet gevonden', subtitle: 'Dit profiel is mogelijk verplaatst — maar je kunt nog steeds lid worden van DirtBikeX.' },
+  pt: { title: 'Piloto não encontrado', subtitle: 'Este perfil pode ter sido movido — mas você ainda pode entrar no DirtBikeX.' },
+  'tr-TR': { title: 'Sürücü bulunamadı', subtitle: 'Bu profil taşınmış olabilir — ama yine de DirtBikeX\'e katılabilirsin.' },
+  th: { title: 'ไม่พบนักขี่', subtitle: 'โปรไฟล์นี้อาจถูกย้าย — แต่คุณยังเข้าร่วม DirtBikeX ได้' },
+  vi: { title: 'Không tìm thấy tay đua', subtitle: 'Hồ sơ này có thể đã được chuyển — nhưng bạn vẫn có thể tham gia DirtBikeX.' },
+  sv: { title: 'Föraren hittades inte', subtitle: 'Den här profilen kan ha flyttats – men du kan fortfarande gå med i DirtBikeX.' },
+};
+
+function getUserNotFound(locale: Lang): { title: string; subtitle: string } {
+  return USER_NOT_FOUND[locale] ?? USER_NOT_FOUND.en!;
+}
+
 const LOCALES: readonly Lang[] = [
   'en', 'zh-CN', 'zh-TW', 'ja', 'ko', 'de', 'it', 'fr', 'es', 'ar',
   'da', 'el', 'fa-IR', 'fi', 'id', 'nl', 'pt', 'tr-TR', 'th', 'vi', 'sv',
@@ -404,6 +434,71 @@ async function handleInvite(request: Request, env: Env, key: string): Promise<Re
   return renderShareLanding(props, request.url, cacheControl ? { cacheControl } : {});
 }
 
+function buildUserProps(
+  result: UserLookupResult,
+  copy: Copy,
+  locale: Lang,
+  forumBase: string,
+  desktop: boolean,
+  username: string,
+): { props: ShareLandingProps; cacheControl?: string } {
+  const base: Pick<ShareLandingProps, 'kind' | 'locale' | 'primaryCTA' | 'returnTapCopy' | 'forumBase'> = {
+    kind: 'u',
+    locale,
+    primaryCTA: { label: copy.ctaLabel, url: APP_STORE_URL },
+    returnTapCopy: copy.returnTap,
+    forumBase,
+  };
+
+  // Desktop has no app: point both the valid and error CTA at the forum profile page.
+  const forumProfileCTA = { label: copy.webCtaLabel, url: forumBase ? `${forumBase}/u/${username}` : APP_STORE_URL };
+
+  switch (result.status) {
+    case 'valid': {
+      if (desktop) {
+        return { props: { ...base, primaryCTA: forumProfileCTA, user: result.user } };
+      }
+      // Mobile: App Store primary + an "open in the app" deep link that funnels
+      // users who already have the app straight to the in-app profile.
+      const appCTA = { label: copy.openInAppLabel, url: `dirtbikex://s/u/${username}` };
+      return { props: { ...base, appCTA, user: result.user } };
+    }
+    case 'not_found': {
+      const nf = getUserNotFound(locale);
+      return {
+        props: {
+          ...base,
+          primaryCTA: desktop && forumBase ? forumProfileCTA : base.primaryCTA,
+          title: nf.title,
+          subtitle: nf.subtitle,
+        },
+        cacheControl: 'no-cache',
+      };
+    }
+    case 'unreachable':
+      return {
+        props: {
+          ...base,
+          primaryCTA: desktop && forumBase ? forumProfileCTA : base.primaryCTA,
+          title: copy.fallbackTitle,
+        },
+        cacheControl: 'no-cache',
+      };
+  }
+}
+
+async function handleUser(request: Request, env: Env, username: string): Promise<Response> {
+  const url = new URL(request.url);
+  const locale = pickLocale(url, request.headers.get('accept-language'));
+  const copy = getCopy(locale);
+  const forumBase = env.FORUM_BASE ?? '';
+
+  const result = await lookupUser(env, username);
+  const desktop = isDesktopUA(request.headers.get('user-agent'));
+  const { props, cacheControl } = buildUserProps(result, copy, locale, forumBase, desktop, username);
+  return renderShareLanding(props, request.url, cacheControl ? { cacheControl } : {});
+}
+
 const FORUM_API_CACHE_CONTROL = 'public, max-age=3600, s-maxage=86400';
 
 async function handleForumMetrics(env: Env): Promise<Response> {
@@ -438,6 +533,10 @@ export default {
     const m = url.pathname.match(/^\/s\/i\/([^/]+)\/?$/);
     if (m && request.method === 'GET') {
       return handleInvite(request, env, m[1]);
+    }
+    const su = url.pathname.match(/^\/s\/u\/([^/]+)\/?$/);
+    if (su && request.method === 'GET') {
+      return handleUser(request, env, decodeURIComponent(su[1]));
     }
     if (request.method === 'GET') {
       if (url.pathname === '/api/forum/metrics.json') return handleForumMetrics(env);
