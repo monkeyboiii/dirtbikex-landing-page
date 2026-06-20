@@ -1,4 +1,4 @@
-import type { InviteRow, Lang, ShareLandingProps, UserRow } from './types';
+import type { EventRow, InviteRow, Lang, ShareLandingProps, UserRow } from './types';
 
 /**
  * Render a share-link landing page response. Inline styles; no Astro layout
@@ -243,16 +243,22 @@ ${ogImage ? `<meta property="og:image" content="${esc(ogImage)}">
     ? heroCardBody(props.invite, props, locale)
     : props.user
       ? userCardBody(props.user, props, locale)
-      : errorBody(props);
+      : props.event
+        ? eventCardBody(props.event, props, locale)
+        : errorBody(props);
 
   const ogTitle = props.invite
     ? buildHeadline(props.invite, locale)
     : props.user
       ? userHeadline(props.user)
-      : (props.title ?? 'DirtBikeX');
+      : props.event
+        ? props.event.name
+        : (props.title ?? 'DirtBikeX');
   const ogDescription = props.invite?.description
     ?? props.user?.bio_excerpt
     ?? (props.user ? `View ${props.user.name?.trim() || props.user.username}'s profile on DirtBikeX` : null)
+    ?? props.event?.description
+    ?? (props.event ? eventOgDescription(props.event, locale) : null)
     ?? props.subtitle
     ?? null;
 
@@ -602,6 +608,143 @@ function userCardBody(user: UserRow, props: ShareLandingProps, locale: Lang): st
 </main>`;
 }
 
+/**
+ * Hero-on-top event card (web parity with the iOS QR card): full-width hero image
+ * with status badge + wordmark, then title / organizer / date·location chips /
+ * description / attendance / tags / CTAs. Grows vertically.
+ */
+function eventCardBody(event: EventRow, props: ShareLandingProps, locale: Lang): string {
+  const { primaryCTA, appCTA, forumBase } = props;
+  const orgName = event.organizer.name?.trim() || event.organizer.username;
+
+  const heroClass = event.image_url ? 'event-hero' : 'event-hero event-hero-empty';
+  // On image 404, drop the <img> and reveal the gradient/glyph placeholder.
+  const heroImg = event.image_url
+    ? `<img src="${esc(event.image_url)}" alt="${esc(event.name)}" onerror="this.parentElement.classList.add('event-hero-empty');this.remove()">`
+    : '';
+
+  const organizerHTML = orgName
+    ? `<div class="event-organizer">${renderAvatar(forumBase, event.organizer.avatar_template, orgName, event.organizer.username, 48, 'event-organizer-avatar')}<span>${esc(orgName)}</span></div>`
+    : '';
+
+  const metaItems: string[] = [];
+  const when = formatEventWhen(event, locale);
+  if (when) metaItems.push(`<span class="meta-item">📅 ${esc(when)}</span>`);
+  if (event.location?.trim()) metaItems.push(`<span class="meta-item">📍 ${esc(event.location.trim())}</span>`);
+  const metaHTML = metaItems.length > 0 ? `<div class="meta">${metaItems.join('')}</div>` : '';
+
+  const bioHTML = event.description?.trim() ? `<p class="bio">${esc(event.description.trim())}</p>` : '';
+
+  const inviteesHTML = renderEventInvitees(event, forumBase);
+
+  const tagsHTML = event.tags.length > 0
+    ? `<div class="event-tags">${event.tags.slice(0, 3).map((t) => `<span class="event-tag">#${esc(t)}</span>`).join('')}</div>`
+    : '';
+
+  const ctas = `
+  <a class="cta" href="${esc(primaryCTA.url)}">${esc(primaryCTA.label)}</a>
+  ${appCTA ? `<a class="cta cta-secondary" href="${esc(appCTA.url)}">${esc(appCTA.label)}</a>` : ''}`;
+
+  return `
+<main class="card event-card">
+  <div class="${heroClass}">
+    ${heroImg}
+    <div class="event-hero-scrim"></div>
+    ${eventStatusBadge(event)}
+  </div>
+  <div class="event-body">
+    <div class="event-title-row">
+      <h1 class="headline">${esc(event.name)}</h1>
+      ${CARD_LOGO}
+    </div>
+    ${organizerHTML}
+    ${metaHTML}
+    ${bioHTML}
+    ${inviteesHTML}
+    ${tagsHTML}
+    ${ctas}
+  </div>
+</main>`;
+}
+
+/**
+ * Invitee row — sample avatars, each with an RSVP-status badge on the
+ * bottom-trailing edge, then a `+N` overflow for the rest invited. Mirrors the
+ * iOS card's invitee row.
+ */
+function renderEventInvitees(event: EventRow, forumBase: string): string {
+  if (event.invitees.length === 0) return '';
+  const badge = (status: string | null): string => {
+    const map: Record<string, { cls: string; glyph: string }> = {
+      going: { cls: 'going', glyph: '✓' },
+      interested: { cls: 'interested', glyph: '★' },
+      not_going: { cls: 'notgoing', glyph: '✕' },
+    };
+    const b = status ? map[status] : undefined;
+    return b ? `<span class="event-invitee-badge event-invitee-badge-${b.cls}">${b.glyph}</span>` : '';
+  };
+  const avatars = event.invitees
+    .map((inv) => {
+      const initial = esc(firstGrapheme(inv.name || '?'));
+      const svg = letterAvatarSVG(initial);
+      const img = inv.avatar_template
+        ? `<img src="${esc(`${forumBase}${inv.avatar_template.replace('{size}', '48')}`)}" alt="${esc(inv.name ?? '')}" onerror="this.remove()">`
+        : '';
+      return `<span class="event-invitee">${svg}${img}${badge(inv.status)}</span>`;
+    })
+    .join('');
+  const overflow = Math.max(0, (event.stats?.invited ?? 0) - event.invitees.length);
+  const overflowHTML = overflow > 0 ? `<span class="event-overflow">+${overflow}</span>` : '';
+  return `<div class="event-invitees">${avatars}${overflowHTML}</div>`;
+}
+
+/** Lifecycle badge — mirrors iOS `EventStatusBadge` (English labels, like iOS). */
+function eventStatusBadge(event: EventRow): string {
+  const [kind, label] = event.is_ongoing
+    ? ['live', 'LIVE']
+    : event.is_expired
+      ? ['ended', 'ENDED']
+      : event.is_closed
+        ? ['closed', 'CLOSED']
+        : ['upcoming', 'UPCOMING'];
+  return `<span class="event-badge event-badge-${kind}">${label}</span>`;
+}
+
+/**
+ * Localized "when" in the event's own timezone: a single date (all-day), a
+ * `start → end` range across days, else `date · start–end` for a timed event.
+ */
+function formatEventWhen(event: EventRow, locale: Lang): string | null {
+  const startMs = Date.parse(event.starts_at);
+  if (Number.isNaN(startMs)) return null;
+  const tz = event.timezone || undefined;
+  try {
+    const dfmt = new Intl.DateTimeFormat(locale, { year: 'numeric', month: 'short', day: 'numeric', ...(tz ? { timeZone: tz } : {}) });
+    let endMs = event.ends_at ? Date.parse(event.ends_at) : NaN;
+    // All-day end is an exclusive next-midnight — step back so one day isn't a span.
+    if (!Number.isNaN(endMs) && event.all_day) endMs -= 1000;
+
+    const start = new Date(startMs);
+    const datePart = dfmt.format(start);
+    if (!Number.isNaN(endMs)) {
+      const end = new Date(endMs);
+      if (dfmt.format(end) !== datePart) return `${datePart} → ${dfmt.format(end)}`;
+    }
+    if (event.all_day) return datePart;
+    const tfmt = new Intl.DateTimeFormat(locale, { hour: '2-digit', minute: '2-digit', ...(tz ? { timeZone: tz } : {}) });
+    if (!Number.isNaN(endMs)) return `${datePart} · ${tfmt.format(start)}–${tfmt.format(new Date(endMs))}`;
+    return `${datePart} · ${tfmt.format(start)}`;
+  } catch {
+    return event.starts_at.slice(0, 10) || null;
+  }
+}
+
+/** OG description fallback when an event has no description: when · location. */
+function eventOgDescription(event: EventRow, locale: Lang): string | null {
+  const parts = [formatEventWhen(event, locale), event.location?.trim() || null].filter(Boolean);
+  return parts.length > 0 ? parts.join(' · ') : null;
+}
+
 /** Inline FontAwesome shield-halved; color comes from the CSS class (currentColor). */
 function shieldSVG(className: string): string {
   return `<svg class="shield ${className}" viewBox="0 0 512 512" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M256 0c4.6 0 9.2 1 13.4 2.9L457.7 82.8c22 9.3 38.4 31 38.3 57.2c-.5 99.2-41.3 280.7-213.6 363.2c-16.7 8-36.1 8-52.8 0C57.3 420.7 16.5 239.2 16 140c-.1-26.2 16.3-47.9 38.3-57.2L242.7 2.9C246.8 1 251.4 0 256 0zm0 66.8l0 378V66.8L432 141.4c-.9 88.7-38 236.6-176 303.4V66.8z"/></svg>`;
@@ -647,7 +790,13 @@ function formatDurationSince(iso: string, locale: Lang): string | null {
  * pre-rendered size and matches the in-page hero card.
  */
 function buildOgImage(props: ShareLandingProps): string | null {
-  const template = props.invite?.invited_by.avatar_template ?? props.user?.avatar_template ?? null;
+  // Event hero is an absolute CDN URL — use it directly (not forumBase-prefixed).
+  if (props.event?.image_url) return props.event.image_url;
+  const template =
+    props.invite?.invited_by.avatar_template ??
+    props.user?.avatar_template ??
+    props.event?.organizer.avatar_template ??
+    null;
   if (!template) return null;
   return `${props.forumBase}${template.replace('{size}', '288')}`;
 }
@@ -956,6 +1105,36 @@ a.meta-item:hover, a.meta-item:active { background: var(--clay-200); }
 }
 .stats b { color: #1a1a1a; font-weight: 700; }
 .stats .dot { color: var(--clay-500); }
+
+/* Event card (/s/e/<id>) — hero image on top, structured body */
+.event-card { text-align: left; padding: 0; overflow: hidden; }
+.event-hero { position: relative; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; background: linear-gradient(135deg, var(--dirt-400), var(--clay-700)); }
+.event-hero > img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.event-hero-empty::after { content: '📅'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 3rem; opacity: 0.9; }
+.event-hero-scrim { position: absolute; inset: 0 0 50% 0; background: linear-gradient(to bottom, rgba(0,0,0,0.55), transparent); pointer-events: none; }
+.event-badge { position: absolute; top: 0.85rem; left: 0.85rem; padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.04em; color: #fff; white-space: nowrap; }
+.event-badge-upcoming { background: rgba(10,122,255,0.92); }
+.event-badge-live { background: rgba(52,199,89,0.92); }
+.event-badge-ended { background: rgba(120,120,128,0.92); }
+.event-badge-closed { background: rgba(255,59,48,0.92); }
+.event-card .card-logo { position: static; top: auto; right: auto; width: auto; height: 26px; margin-top: 0.15rem; flex: none; opacity: 1; }
+.event-body { padding: 1.25rem 1.5rem 1.5rem; }
+.event-title-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.6rem; }
+.event-title-row .headline { margin: 0; font-size: 1.5rem; }
+.event-card .cta { text-align: center; }
+.event-organizer { margin: 0.5rem 0 0; display: flex; align-items: center; gap: 0.5rem; color: var(--clay-600); font-size: 0.9rem; }
+.event-organizer-avatar { width: 24px; height: 24px; margin: 0; flex: none; }
+.event-invitees { margin: 0.875rem 0 0; display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.event-invitee { position: relative; width: 34px; height: 34px; flex: none; }
+.event-invitee > svg, .event-invitee > img { position: absolute; inset: 0; width: 34px; height: 34px; border-radius: 50%; object-fit: cover; }
+.event-invitee > img { z-index: 1; }
+.event-invitee-badge { position: absolute; right: -3px; bottom: -3px; z-index: 2; width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; line-height: 1; color: #fff; box-shadow: 0 0 0 2px #ffffff; }
+.event-invitee-badge-going { background: #34c759; }
+.event-invitee-badge-interested { background: #f5b400; }
+.event-invitee-badge-notgoing { background: #ff3b30; }
+.event-overflow { color: var(--clay-600); font-size: 0.85rem; font-weight: 600; }
+.event-tags { margin: 0.75rem 0 0; display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.event-tag { padding: 0.15rem 0.5rem; background: var(--clay-100); color: var(--clay-600); border-radius: 6px; font-size: 0.75rem; }
 
 @media (prefers-color-scheme: dark) {
   body {

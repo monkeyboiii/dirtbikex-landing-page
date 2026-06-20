@@ -1,5 +1,6 @@
 import { lookupInvite, type LookupResult } from './_lib/inviteLookup';
 import { lookupUser, type UserLookupResult } from './_lib/userLookup';
+import { lookupEvent, type EventLookupResult } from './_lib/eventLookup';
 import { renderShareLanding } from './_lib/render';
 import { fetchForumMetrics } from './_lib/forumMetrics';
 import { fetchForumFeatured } from './_lib/forumFeatured';
@@ -308,6 +309,35 @@ function getUserNotFound(locale: Lang): { title: string; subtitle: string } {
   return USER_NOT_FOUND[locale] ?? USER_NOT_FOUND.en!;
 }
 
+/** Event not-found copy (`/s/e/<id>`). Falls back to `en`. */
+const EVENT_NOT_FOUND: Partial<Record<Lang, { title: string; subtitle: string }>> = {
+  en: { title: 'Event not found', subtitle: 'This event may have ended or moved — but you can still join DirtBikeX.' },
+  'zh-CN': { title: '未找到该活动', subtitle: '该活动可能已结束或变更——但你仍然可以加入 DirtBikeX。' },
+  'zh-TW': { title: '找不到該活動', subtitle: '此活動可能已結束或變更——但你仍然可以加入 DirtBikeX。' },
+  ja: { title: 'イベントが見つかりません', subtitle: 'このイベントは終了または移動した可能性があります。それでも DirtBikeX に参加できます。' },
+  ko: { title: '이벤트를 찾을 수 없습니다', subtitle: '이 이벤트는 종료되었거나 이동했을 수 있어요. 그래도 DirtBikeX에 참여할 수 있습니다.' },
+  de: { title: 'Veranstaltung nicht gefunden', subtitle: 'Diese Veranstaltung wurde vielleicht beendet oder verschoben – aber du kannst DirtBikeX trotzdem beitreten.' },
+  it: { title: 'Evento non trovato', subtitle: 'Questo evento potrebbe essere terminato o spostato, ma puoi comunque unirti a DirtBikeX.' },
+  fr: { title: 'Événement introuvable', subtitle: 'Cet événement est peut-être terminé ou a été déplacé, mais vous pouvez quand même rejoindre DirtBikeX.' },
+  es: { title: 'Evento no encontrado', subtitle: 'Es posible que este evento haya terminado o se haya movido, pero aún puedes unirte a DirtBikeX.' },
+  ar: { title: 'لم يتم العثور على الفعالية', subtitle: 'ربما انتهت هذه الفعالية أو تم نقلها — لكن لا يزال بإمكانك الانضمام إلى DirtBikeX.' },
+  da: { title: 'Begivenhed ikke fundet', subtitle: 'Denne begivenhed er måske afsluttet eller flyttet – men du kan stadig være med i DirtBikeX.' },
+  el: { title: 'Η εκδήλωση δεν βρέθηκε', subtitle: 'Αυτή η εκδήλωση μπορεί να έχει λήξει ή να έχει μετακινηθεί — αλλά μπορείς ακόμα να μπεις στο DirtBikeX.' },
+  'fa-IR': { title: 'رویداد پیدا نشد', subtitle: 'ممکن است این رویداد به پایان رسیده یا منتقل شده باشد — اما همچنان می‌توانید به DirtBikeX بپیوندید.' },
+  fi: { title: 'Tapahtumaa ei löytynyt', subtitle: 'Tämä tapahtuma on ehkä päättynyt tai siirretty – mutta voit silti liittyä DirtBikeX-yhteisöön.' },
+  id: { title: 'Acara tidak ditemukan', subtitle: 'Acara ini mungkin telah berakhir atau dipindahkan — tetapi kamu tetap bisa bergabung dengan DirtBikeX.' },
+  nl: { title: 'Evenement niet gevonden', subtitle: 'Dit evenement is mogelijk afgelopen of verplaatst — maar je kunt nog steeds lid worden van DirtBikeX.' },
+  pt: { title: 'Evento não encontrado', subtitle: 'Este evento pode ter terminado ou sido movido — mas você ainda pode entrar no DirtBikeX.' },
+  th: { title: 'ไม่พบกิจกรรม', subtitle: 'กิจกรรมนี้อาจสิ้นสุดหรือถูกย้าย — แต่คุณยังเข้าร่วม DirtBikeX ได้' },
+  'tr-TR': { title: 'Etkinlik bulunamadı', subtitle: 'Bu etkinlik sona ermiş veya taşınmış olabilir — ama yine de DirtBikeX\'e katılabilirsin.' },
+  vi: { title: 'Không tìm thấy sự kiện', subtitle: 'Sự kiện này có thể đã kết thúc hoặc được chuyển — nhưng bạn vẫn có thể tham gia DirtBikeX.' },
+  sv: { title: 'Evenemanget hittades inte', subtitle: 'Det här evenemanget kan ha avslutats eller flyttats – men du kan fortfarande gå med i DirtBikeX.' },
+};
+
+function getEventNotFound(locale: Lang): { title: string; subtitle: string } {
+  return EVENT_NOT_FOUND[locale] ?? EVENT_NOT_FOUND.en!;
+}
+
 const LOCALES: readonly Lang[] = [
   'en', 'zh-CN', 'zh-TW', 'ja', 'ko', 'de', 'it', 'fr', 'es', 'ar',
   'da', 'el', 'fa-IR', 'fi', 'id', 'nl', 'pt', 'tr-TR', 'th', 'vi', 'sv',
@@ -499,6 +529,65 @@ async function handleUser(request: Request, env: Env, username: string): Promise
   return renderShareLanding(props, request.url, cacheControl ? { cacheControl } : {});
 }
 
+function buildEventProps(
+  result: EventLookupResult,
+  copy: Copy,
+  locale: Lang,
+  forumBase: string,
+  desktop: boolean,
+  eventId: string,
+): { props: ShareLandingProps; cacheControl?: string } {
+  const base: Pick<ShareLandingProps, 'kind' | 'locale' | 'primaryCTA' | 'returnTapCopy' | 'forumBase'> = {
+    kind: 'e',
+    locale,
+    primaryCTA: { label: copy.ctaLabel, url: APP_STORE_URL },
+    returnTapCopy: copy.returnTap,
+    forumBase,
+  };
+
+  // Desktop has no app: keep the "Open in browser" label (like profile's
+  // forumProfileCTA) and point at the event's forum topic post — or the forum
+  // home when the post URL is absent. Only a missing forumBase falls back to the
+  // app-install CTA.
+  const forumEventCTA = (postUrl: string | null) =>
+    forumBase
+      ? { label: copy.webCtaLabel, url: postUrl ? `${forumBase}${postUrl}` : forumBase }
+      : base.primaryCTA;
+
+  switch (result.status) {
+    case 'valid': {
+      if (desktop) {
+        return { props: { ...base, primaryCTA: forumEventCTA(result.event.post_url), event: result.event } };
+      }
+      // Mobile: App Store primary + an "open in the app" deep link that funnels
+      // users who already have the app straight to the in-app event.
+      const appCTA = { label: copy.openInAppLabel, url: `dirtbikex://s/e/${eventId}` };
+      return { props: { ...base, appCTA, event: result.event } };
+    }
+    case 'not_found': {
+      const nf = getEventNotFound(locale);
+      return {
+        props: { ...base, title: nf.title, subtitle: nf.subtitle },
+        cacheControl: 'no-cache',
+      };
+    }
+    case 'unreachable':
+      return { props: { ...base, title: copy.fallbackTitle }, cacheControl: 'no-cache' };
+  }
+}
+
+async function handleEvent(request: Request, env: Env, eventId: string): Promise<Response> {
+  const url = new URL(request.url);
+  const locale = pickLocale(url, request.headers.get('accept-language'));
+  const copy = getCopy(locale);
+  const forumBase = env.FORUM_BASE ?? '';
+
+  const result = await lookupEvent(env, eventId);
+  const desktop = isDesktopUA(request.headers.get('user-agent'));
+  const { props, cacheControl } = buildEventProps(result, copy, locale, forumBase, desktop, eventId);
+  return renderShareLanding(props, request.url, cacheControl ? { cacheControl } : {});
+}
+
 const FORUM_API_CACHE_CONTROL = 'public, max-age=3600, s-maxage=86400';
 
 async function handleForumMetrics(env: Env): Promise<Response> {
@@ -537,6 +626,10 @@ export default {
     const su = url.pathname.match(/^\/s\/u\/([^/]+)\/?$/);
     if (su && request.method === 'GET') {
       return handleUser(request, env, decodeURIComponent(su[1]));
+    }
+    const se = url.pathname.match(/^\/s\/e\/([^/]+)\/?$/);
+    if (se && request.method === 'GET') {
+      return handleEvent(request, env, decodeURIComponent(se[1]));
     }
     if (request.method === 'GET') {
       if (url.pathname === '/api/forum/metrics.json') return handleForumMetrics(env);

@@ -71,8 +71,8 @@ export type Lang =
 
 /** Props handed to the shared share-landing renderer. */
 export interface ShareLandingProps {
-  /** Discriminator per ShareKind raw value: `'i'` invite, `'u'` profile. */
-  kind: 'i' | 'u';
+  /** Discriminator per ShareKind raw value: `'i'` invite, `'u'` profile, `'e'` event. */
+  kind: 'i' | 'u' | 'e';
   locale: Lang;
   primaryCTA: { label: string; url: string };
   /** Optional secondary CTA — the "open in the app" deep link. Set only for a
@@ -89,6 +89,46 @@ export interface ShareLandingProps {
   invite?: InviteRow;
   /** Valid profile payload — drives the profile card. Mutually exclusive with `title`/`subtitle`/`invite`. */
   user?: UserRow;
+  /** Valid event payload — drives the event card. Mutually exclusive with the others. */
+  event?: EventRow;
+}
+
+/**
+ * Recipient-facing event payload for `/s/e/<id>`. Identity-rendered (like
+ * profile): the card shows the event, it doesn't create a relationship. Sourced
+ * from the admin-keyed `discourse-post-event` endpoint (event id == post id).
+ */
+export interface EventRow {
+  id: number;
+  name: string;
+  /** ISO8601, in `timezone`. Date-only when `all_day`. */
+  starts_at: string;
+  ends_at: string | null;
+  all_day: boolean;
+  /** IANA identifier, e.g. `Asia/Shanghai`. */
+  timezone: string | null;
+  location: string | null;
+  description: string | null;
+  organizer: {
+    username: string;
+    name: string | null;
+    /** Discourse-format template with `{size}` placeholder. */
+    avatar_template: string | null;
+  };
+  /** Discourse topic post path (e.g. `/t/slug/16/1`) for the desktop "view on forum" CTA. */
+  post_url: string | null;
+  /** Attendance — `going` / `interested` drive the card's count line. */
+  stats: { going: number; interested: number; invited: number } | null;
+  /** Topic tags (names, e.g. `honda`) — rendered as `#honda` pills. */
+  tags: string[];
+  /** Sample invitees (avatar + RSVP status) for the card's invitee row. */
+  invitees: { avatar_template: string | null; name: string | null; status: string | null }[];
+  /** Lifecycle flags (mirror iOS `statusKind`) → the status badge. */
+  is_ongoing: boolean;
+  is_expired: boolean;
+  is_closed: boolean;
+  /** Event hero image — absolute CDN URL (from `image_upload.url`), or null. */
+  image_url: string | null;
 }
 
 /**
