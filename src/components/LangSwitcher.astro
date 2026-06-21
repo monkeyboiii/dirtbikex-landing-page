@@ -56,7 +56,7 @@ const currentEntry = entries.find((e) => e.active) ?? entries[0];
 <script is:inline>
   (function () {
     // On worker-rendered share pages (/s/<kind>/<token>) the build-time
-    // hrefs bake the prerender placeholder (e.g. /s/g/__token__/) into
+    // hrefs bake the prerender placeholder (e.g. /s/<kind>/__token__/) into
     // each locale link, which then 404s. Worse, those /<locale>/s/...
     // URLs sit outside the AASA `/s/*` deep-link contract. Rewrite at
     // runtime: keep location.pathname intact and put the target locale

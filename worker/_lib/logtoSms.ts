@@ -79,8 +79,7 @@ export async function handleLogtoSms(request: Request, env: PagesEnv): Promise<R
   const provider = PROVIDER_FOR[phone.country];
 
   if (!env.RATELIMIT_KV) {
-    // No KV bound — fail closed for SMS (different from finalize/claim, which
-    // warn-and-allow). Auth flows must not silently bypass abuse caps.
+    // No KV bound — fail closed for SMS. Auth flows must not silently bypass abuse caps.
     console.error('logtoSms:no_ratelimit_kv');
     return json(503, { error: 'service_misconfigured' });
   }
