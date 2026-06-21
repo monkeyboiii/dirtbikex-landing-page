@@ -11,7 +11,7 @@ Tick items off as they land. (Identified in the 2026-06 UI/UX audit round.)
 - [ ] **Founder social profile URLs** — `url: '#'` in
   [src/components/FoundersBody.astro](../src/components/FoundersBody.astro)
   (Calvin + Rebecca, X/Instagram). Replace `'#'` with real profile URLs —
-  `https` URLs automatically get `target="_blank"`.
+  any `http(s)` URL automatically gets `target="_blank"`.
 - [ ] **Contact page social handles** — all four networks currently say
   `@dirtbikex` in [src/components/ContactBody.astro](../src/components/ContactBody.astro).
   Confirm or replace the per-network handles (rows are deliberately non-links
@@ -24,4 +24,4 @@ Tick items off as they land. (Identified in the 2026-06 UI/UX audit round.)
   ([src/pages/sponsors.astro](../src/pages/sponsors.astro) and
   `src/pages/[lang]/sponsors.astro`) still uses raw Tailwind utilities instead
   of the design-token system, and all copy is hardcoded EN on every locale
-  route. It is one click from the header nav via /sponsorship.
+  route. It is two clicks from the header nav (nav → `/sponsorship` → `/sponsors`).

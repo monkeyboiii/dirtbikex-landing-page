@@ -1,8 +1,8 @@
 # SMS Gateway (`/api/logto/sms`)
 
-Cloudflare Worker endpoint that backs Logto's HTTP SMS connector. Routes by country (CN → Aliyun, US → AWS SNS), enforces a five-bucket quota stack in KV, returns the HTTP status codes Logto expects. Lives **inside the landing-page Worker** at `www.dirtbikex.com` (prod) / `www.dirtbikechina.com` (preview) — not a separate worker.
+Cloudflare Worker endpoint that backs Logto's HTTP SMS connector. Routes by country (CN → Aliyun, US → AWS SNS), enforces a seven-bucket quota stack in KV, returns the HTTP status codes Logto expects. Lives **inside the landing-page Worker** at `www.dirtbikex.com` (prod) / `www.dirtbikechina.com` (preview) — not a separate worker.
 
-Engineer orientation: read this before touching `submodules/dirtbikex-landing-page/worker/_lib/logtoSms.ts` or its callees.
+Engineer orientation: read this before touching `worker/_lib/logtoSms.ts` or its callees.
 
 ---
 
@@ -12,8 +12,9 @@ Code (worker side) is complete; secrets + DNS + Logto admin + Brevo steps below 
 
 - [x] Worker handler, phone normalization, quota stack, Aliyun + AWS providers, dispatch in `index.ts`.
 - [x] `wrangler.jsonc` declares `RATELIMIT_KV` binding + non-secret vars.
-- [ ] **`pnpm install`** to pull `aws4fetch@^1.0.20` (added to `package.json`).
-- [ ] Replace `REPLACE_WITH_{PROD,PREVIEW}_KV_NAMESPACE_ID` in `wrangler.jsonc` with the real namespace IDs (`wrangler kv namespace list`).
+- [x] `aws4fetch@^1.0.20` in `package.json` — run `pnpm install` if not yet done.
+- [x] Preview `RATELIMIT_KV` namespace id set in `wrangler.jsonc`.
+- [ ] Uncomment + fill the prod `RATELIMIT_KV` id in `wrangler.jsonc` (run `wrangler kv namespace list` to get it).
 - [ ] Set the 5 secrets per env (see [Secrets](#secrets)).
 - [ ] Provision Aliyun sign-name + template; fill the two `ALIYUN_SMS_*` vars.
 - [ ] Configure Logto HTTP SMS connector (see [Logto](#logto-admin-config)).
@@ -25,7 +26,7 @@ Code (worker side) is complete; secrets + DNS + Logto admin + Brevo steps below 
 ## Architecture decisions worth knowing
 
 1. **Colocated with the marketing worker, not a dedicated `hooks.*` worker.** Reuses the existing deploy pipeline, custom domains, and `RATELIMIT_KV`. Trade-off: SMS shares uptime with the marketing site — acceptable for the current scale.
-2. **KV sliding-window quota, not Durable Objects.** Five buckets (phone-min, phone-day, ip-10m, ip-day, country-day, provider-day, global-day) each one `rateLimitConsume()` call from [`worker/_lib/rateLimit.ts`](../submodules/dirtbikex-landing-page/worker/_lib/rateLimit.ts). Daily buckets are keyed by UTC `YYYYMMDD` so all colos roll over together. KV cross-colo lag can leak ~1–2 sends past a cap; provider-side cost caps are the real backstop.
+2. **KV sliding-window quota, not Durable Objects.** Seven buckets (phone-min, ip-10m, phone-day, ip-day, country-day, provider-day, global-day) each one `rateLimitConsume()` call from [`worker/_lib/rateLimit.ts`](../worker/_lib/rateLimit.ts). Daily buckets are keyed by UTC `YYYYMMDD` so all colos roll over together. KV cross-colo lag can leak ~1–2 sends past a cap; provider-side cost caps are the real backstop.
 3. **Phone-only users get a synthetic `<msisdn>@phone.dirtbikex.com` email** so Discourse's `users.email NOT NULL` constraint is satisfied. The subdomain has an RFC 7505 null MX (`MX 0 .`); Brevo additionally suppresses the domain so non-deliverability never inflates the sender's bounce rate. Discourse email features for these users (welcome, digests, notifications) silently no-op — see [Concerns](#concerns).
 4. **Handcrafted E.164 parsing for CN/US only.** `libphonenumber-js/min` is ~50 KB and overkill for two countries with crisp formats. Adding a country is documented below and stays under ~10 lines.
 5. **Fail-closed when `RATELIMIT_KV` is unbound.** Unlike the finalize/claim routes (warn-and-allow), the SMS handler returns 503 — auth flows must not silently bypass abuse caps.
@@ -35,7 +36,7 @@ Code (worker side) is complete; secrets + DNS + Logto admin + Brevo steps below 
 
 ## File map (impl reference)
 
-All paths under [`submodules/dirtbikex-landing-page/`](../submodules/dirtbikex-landing-page/).
+All paths relative to the submodule root (`submodules/dirtbikex-landing-page/`).
 
 | File | Role |
 | --- | --- |
@@ -59,7 +60,20 @@ Content-Type: application/json
 {"to": "+8613800138000", "payload": {"code": "123456", "type": "SignIn"}}
 ```
 
-Response is JSON. Status codes: `200` accepted, `400` invalid JSON / payload / phone, `401` bad token, `403` country not in `LOGTO_SMS_ALLOWED_COUNTRIES`, `429` quota (`scope` field names which bucket), `502` provider error, `503` `RATELIMIT_KV` not bound. Any non-2xx makes Logto fail the OTP.
+Response is always JSON. Key status codes and bodies:
+
+| Status | Body example | Meaning |
+| --- | --- | --- |
+| `200` | `{"ok":true}` | Accepted by provider. |
+| `400` | `{"error":"invalid_phone"}` | Phone not a valid CN/US number. |
+| `400` | `{"error":"bad_payload","reason":"missing to/payload.code"}` | Missing fields. |
+| `401` | `{"error":"unauthorized"}` | Bad or missing Bearer token. |
+| `403` | `{"error":"country_blocked","country":"GB"}` | Country not in `LOGTO_SMS_ALLOWED_COUNTRIES`. |
+| `429` | `{"error":"rate_limited","scope":"phone_minute"}` | Quota hit; `scope` names which bucket. |
+| `502` | `{"error":"provider_failed","provider":"aliyun","code":"..."}` | Provider rejected the send. |
+| `503` | `{"error":"service_misconfigured"}` | `RATELIMIT_KV` not bound. |
+
+Any non-2xx makes Logto fail the OTP.
 
 ---
 
@@ -88,7 +102,7 @@ wrangler kv namespace create RATELIMIT_KV               # prints prod id
 wrangler kv namespace create RATELIMIT_KV --env preview # prints preview id
 ```
 
-Paste both IDs into `wrangler.jsonc` (`REPLACE_WITH_*` placeholders).
+Paste the prod id into the commented-out `kv_namespaces` block in the top-level `wrangler.jsonc`. (Preview id is already set.)
 
 ### Aliyun
 
@@ -156,13 +170,13 @@ curl -sS -X POST https://www.dirtbikechina.com/api/logto/sms \
 curl -i -X POST https://www.dirtbikechina.com/api/logto/sms \
   -H "Content-Type: application/json" -d '{"to":"+8613800138000","payload":{"code":"1"}}'
 
-# 3. Country block — expect 403 with {"country":"..."} (assuming UK not allowed).
+# 3. Invalid phone (UK not normalizable as CN/US) — expect 400 {"error":"invalid_phone"}.
 curl -i -X POST https://www.dirtbikechina.com/api/logto/sms \
   -H "Authorization: Bearer $LOGTO_SMS_TOKEN" -H "Content-Type: application/json" \
   -d '{"to":"+447911123456","payload":{"code":"1"}}'
 
-# 4. Rate limit — repeat the happy path 6× in a row, the 6th returns 429
-#    with {"scope":"phone_day"}.
+# 4. Rate limit — send a 2nd request to the same number within 60s.
+#    Expect 429 {"error":"rate_limited","scope":"phone_minute"}.
 ```
 
 Then drive the full Logto flow from a test client: confirm the OTP lands, succeeds, and a Discourse user is created with `email = '<msisdn>@phone.dirtbikex.com'`. Verify Brevo dashboard shows zero bounces from that domain (suppressed, not bounced).
