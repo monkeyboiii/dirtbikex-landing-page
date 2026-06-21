@@ -160,5 +160,28 @@
 
   "notfound.title": "Página não encontrada",
   "notfound.body": "A página que você procura não existe ou foi movida.",
-  "notfound.cta": "Voltar ao início"
+  "notfound.cta": "Voltar ao início",
+
+  "join.meta.title": "Entre na lista DirtBikeX — vantagens e novidades",
+  "join.meta.description": "O DirtBikeX já está na App Store. Entre na lista para vantagens early-supporter, prévias de novos recursos e novidades ride-day. Dupla confirmação, cancele quando quiser.",
+  "join.eyebrow": "App iOS · Disponível na App Store",
+  "join.title.line1": "Sempre",
+  "join.title.line2": "um passo à frente.",
+  "join.subtitle": "O DirtBikeX já está disponível. Entre na lista para vantagens early-supporter, prévias de novos recursos e, de vez em quando, novidades ride-day — sem ruído, só o que importa.",
+  "join.email.placeholder": "you@example.com",
+  "join.email.aria": "Endereço de e-mail",
+  "join.cta": "Entrar na lista",
+  "join.finePrint": "Já é grátis — baixar, ler, postar. A lista é só vantagens e novidades ocasionais.",
+  "join.consent": "Ao entrar, você concorda em receber novidades de vantagens e produto do DirtBikeX. Cancele quando quiser.",
+  "join.sent.title": "Confira seu e-mail",
+  "join.sent.body": "Acabamos de enviar um link de confirmação. Toque nele para garantir suas vantagens — confira o spam se não chegar em um minuto.",
+  "join.confirmed.title": "Você está dentro.",
+  "join.confirmed.body": "Confirmado — vantagens early-supporter e novidades ocasionais estão a caminho. Enquanto isso, o app já está na App Store.",
+  "join.expired.title": "Link expirado",
+  "join.expired.body": "Este link de confirmação não é mais válido. Digite seu e-mail novamente para receber um novo.",
+  "join.expired.cta": "Voltar ao cadastro",
+  "join.unsubscribed.title": "Inscrição cancelada",
+  "join.unsubscribed.body": "Você não receberá mais e-mails da lista DirtBikeX. Mudou de ideia? Você pode se inscrever de novo quando quiser.",
+  "join.error": "Algo deu errado — tente novamente.",
+  "join.invalidEmail": "Digite um endereço de e-mail válido."
 }

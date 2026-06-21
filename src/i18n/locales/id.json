@@ -160,5 +160,28 @@
 
   "notfound.title": "Halaman tidak ditemukan",
   "notfound.body": "Halaman yang Anda cari tidak ada atau telah dipindahkan.",
-  "notfound.cta": "Kembali ke beranda"
+  "notfound.cta": "Kembali ke beranda",
+
+  "join.meta.title": "Gabung DirtBikeX — manfaat & kabar produk",
+  "join.meta.description": "DirtBikeX sudah tayang di App Store. Gabung daftar untuk manfaat early-supporter, intip awal fitur baru, dan kabar ride-day. Double opt-in, berhenti berlangganan kapan saja.",
+  "join.eyebrow": "Aplikasi iOS · Tayang di App Store",
+  "join.title.line1": "Selalu",
+  "join.title.line2": "selangkah di depan.",
+  "join.subtitle": "DirtBikeX sudah tayang. Gabung daftar untuk manfaat early-supporter, intip awal fitur baru, dan sesekali kabar ride-day — tanpa bising, hanya yang penting.",
+  "join.email.placeholder": "you@example.com",
+  "join.email.aria": "Alamat email",
+  "join.cta": "Gabung daftar",
+  "join.finePrint": "Sudah gratis — untuk diunduh, dibaca, diposting. Daftar ini hanya untuk manfaat dan kabar sesekali.",
+  "join.consent": "Dengan bergabung, kamu setuju menerima kabar manfaat & produk dari DirtBikeX. Berhenti berlangganan kapan saja.",
+  "join.sent.title": "Cek kotak masukmu",
+  "join.sent.body": "Kami baru saja mengirim tautan konfirmasi. Ketuk untuk mengunci manfaatmu — cek spam jika belum ada dalam semenit.",
+  "join.confirmed.title": "Kamu sudah gabung.",
+  "join.confirmed.body": "Terkonfirmasi — manfaat early-supporter dan kabar sesekali sedang menuju ke kamu. Sementara itu, aplikasinya sudah ada di App Store.",
+  "join.expired.title": "Tautan kedaluwarsa",
+  "join.expired.body": "Tautan konfirmasi ini sudah tidak berlaku. Masukkan emailmu lagi untuk mendapatkan yang baru.",
+  "join.expired.cta": "Kembali ke pendaftaran",
+  "join.unsubscribed.title": "Kamu berhenti berlangganan",
+  "join.unsubscribed.body": "Kamu tidak akan menerima email dari daftar DirtBikeX lagi. Berubah pikiran? Kamu bisa mendaftar lagi kapan saja.",
+  "join.error": "Terjadi kesalahan — silakan coba lagi.",
+  "join.invalidEmail": "Masukkan alamat email yang valid."
 }

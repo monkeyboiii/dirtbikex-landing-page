@@ -160,5 +160,28 @@
 
   "notfound.title": "Pagina niet gevonden",
   "notfound.body": "De pagina die u zoekt bestaat niet of is verplaatst.",
-  "notfound.cta": "Terug naar home"
+  "notfound.cta": "Terug naar home",
+
+  "join.meta.title": "Sluit je aan bij DirtBikeX — voordelen & nieuws",
+  "join.meta.description": "DirtBikeX staat live in de App Store. Schrijf je in voor early-supporter-voordelen, previews van nieuwe functies en ride-day-updates. Dubbele opt-in, altijd uitschrijfbaar.",
+  "join.eyebrow": "iOS-app · Live in de App Store",
+  "join.title.line1": "Altijd",
+  "join.title.line2": "een stap voor.",
+  "join.subtitle": "DirtBikeX staat live. Schrijf je in voor early-supporter-voordelen, previews van nieuwe functies en af en toe een ride-day-update — geen ruis, alleen het goede.",
+  "join.email.placeholder": "you@example.com",
+  "join.email.aria": "E-mailadres",
+  "join.cta": "Inschrijven",
+  "join.finePrint": "Al gratis — downloaden, lezen, posten. De lijst is alleen voor voordelen en af en toe nieuws.",
+  "join.consent": "Door je in te schrijven ga je akkoord met voordeel- en productupdates van DirtBikeX. Altijd uitschrijfbaar.",
+  "join.sent.title": "Check je inbox",
+  "join.sent.body": "We hebben net een bevestigingslink gestuurd. Tik erop om je voordelen vast te zetten — check je spam als hij er binnen een minuut niet is.",
+  "join.confirmed.title": "Je doet mee.",
+  "join.confirmed.body": "Bevestigd — early-supporter-voordelen en af en toe nieuws zijn onderweg. De app staat trouwens al in de App Store.",
+  "join.expired.title": "Link verlopen",
+  "join.expired.body": "Deze bevestigingslink is niet meer geldig. Vul je e-mail opnieuw in voor een nieuwe.",
+  "join.expired.cta": "Terug naar aanmelden",
+  "join.unsubscribed.title": "Je bent uitgeschreven",
+  "join.unsubscribed.body": "Je ontvangt geen e-mails meer van de DirtBikeX-lijst. Toch van gedachten veranderd? Je kunt je altijd opnieuw inschrijven.",
+  "join.error": "Er ging iets mis — probeer het opnieuw.",
+  "join.invalidEmail": "Voer een geldig e-mailadres in."
 }

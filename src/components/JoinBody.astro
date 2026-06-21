@@ -1,0 +1,133 @@
+---
+import { getLangFromUrl, useTranslations, localizedPath } from '../i18n/utils';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const joinPath = localizedPath(lang, '/join');
+---
+
+<section class="hero">
+  <div class="hero__topo"></div>
+  <div class="hero__grain"></div>
+
+  <div class="container-narrow hero__inner">
+    <div class="hero__eyebrow">{t('join.eyebrow')}</div>
+    <h1 class="hero__title">
+      {t('join.title.line1')}<br /><span class="accent">{t('join.title.line2')}</span>
+    </h1>
+    <p class="hero__sub">{t('join.subtitle')}</p>
+
+    <div
+      class="join"
+      data-join
+      data-locale={lang}
+      data-msg-error={t('join.error')}
+      data-msg-invalid={t('join.invalidEmail')}
+    >
+      <!-- Default: the sign-up form. -->
+      <div data-join-state="form">
+        <form class="join__form" id="join-form" novalidate>
+          <input
+            class="join__input"
+            type="email"
+            name="email"
+            required
+            autocomplete="email"
+            placeholder={t('join.email.placeholder')}
+            aria-label={t('join.email.aria')}
+          />
+          <button class="btn btn--primary btn--lg" type="submit">{t('join.cta')}</button>
+        </form>
+        <p class="join__error" data-join-error hidden></p>
+        <p class="join__fine">{t('join.finePrint')}</p>
+        <p class="join__consent">{t('join.consent')}</p>
+      </div>
+
+      <!-- States revealed by the script (after submit, or via ?state=). -->
+      <div class="join__msg" data-join-state="sent" hidden>
+        <h2 class="join__msg-title">{t('join.sent.title')}</h2>
+        <p class="join__msg-body">{t('join.sent.body')}</p>
+      </div>
+      <div class="join__msg" data-join-state="confirmed" hidden>
+        <h2 class="join__msg-title">{t('join.confirmed.title')}</h2>
+        <p class="join__msg-body">{t('join.confirmed.body')}</p>
+      </div>
+      <div class="join__msg" data-join-state="unsubscribed" hidden>
+        <h2 class="join__msg-title">{t('join.unsubscribed.title')}</h2>
+        <p class="join__msg-body">{t('join.unsubscribed.body')}</p>
+      </div>
+      <div class="join__msg" data-join-state="expired" hidden>
+        <h2 class="join__msg-title">{t('join.expired.title')}</h2>
+        <p class="join__msg-body">{t('join.expired.body')}</p>
+        <p><a class="btn btn--secondary btn--lg" href={joinPath}>{t('join.expired.cta')}</a></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .join { margin: var(--space-8) auto 0; max-width: 560px; }
+  .join__form { display: flex; gap: var(--space-3); flex-wrap: wrap; justify-content: center; }
+  .join__input {
+    flex: 1 1 260px;
+    min-width: 0;
+    padding: 11px 16px;
+    font: var(--text-body);
+    color: var(--fg);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-md);
+  }
+  .join__input::placeholder { color: var(--fg-tertiary); }
+  .join__input:focus { outline: none; border-color: var(--brand); }
+  .join__form .btn--primary { flex: 0 0 auto; }
+  .join__error { margin: var(--space-3) 0 0; font-size: 14px; color: var(--brand-press); }
+  .join__fine { margin: var(--space-5) auto 0; font: var(--text-mono-sm); color: var(--fg-tertiary); }
+  .join__consent { margin: var(--space-2) auto 0; font-size: 12px; color: var(--fg-tertiary); max-width: 48ch; }
+  .join__msg-title { font: var(--text-h2); color: var(--fg); margin: 0 0 var(--space-3); }
+  .join__msg-body { font: var(--text-body-lg); color: var(--fg-secondary); margin: 0 auto var(--space-5); max-width: 52ch; }
+</style>
+
+<script is:inline>
+  (function () {
+    var root = document.querySelector('[data-join]');
+    if (!root) return;
+    var states = {};
+    root.querySelectorAll('[data-join-state]').forEach(function (el) {
+      states[el.getAttribute('data-join-state')] = el;
+    });
+    function show(name) {
+      for (var k in states) states[k].hidden = k !== name;
+    }
+    var st = new URLSearchParams(location.search).get('state');
+    show(st && states[st] ? st : 'form');
+
+    var form = document.getElementById('join-form');
+    if (!form) return;
+    var errEl = root.querySelector('[data-join-error]');
+    var btn = form.querySelector('button');
+    var locale = root.getAttribute('data-locale') || 'en';
+    var msgError = root.getAttribute('data-msg-error') || 'Something went wrong.';
+    var msgInvalid = root.getAttribute('data-msg-invalid') || 'Please enter a valid email.';
+    function fail(msg) { if (errEl) { errEl.textContent = msg; errEl.hidden = false; } }
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (errEl) errEl.hidden = true;
+      var email = (form.email.value || '').trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { fail(msgInvalid); return; }
+      if (btn) btn.disabled = true;
+      fetch('/api/join', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email, locale: locale }),
+      })
+        .then(function (r) {
+          if (r.ok) { show('sent'); return; }
+          if (btn) btn.disabled = false;
+          fail(r.status === 400 ? msgInvalid : msgError);
+        })
+        .catch(function () { if (btn) btn.disabled = false; fail(msgError); });
+    });
+  })();
+</script>

@@ -6,6 +6,7 @@ import { fetchForumMetrics } from './_lib/forumMetrics';
 import { fetchForumFeatured } from './_lib/forumFeatured';
 import { fetchSponsors, fetchLeaderboard } from './_lib/sponsorProxy';
 import { handleLogtoSms } from './_lib/logtoSms';
+import { handleJoinSubmit, handleJoinConfirm, handleUnsubscribe } from './_lib/join';
 import type { Lang, PagesEnv, ShareLandingProps } from './_lib/types';
 
 interface Env extends PagesEnv {
@@ -639,6 +640,17 @@ export default {
     // /api/logto/sms — Logto HTTP SMS connector. See docs/sms-gateway.md.
     if (url.pathname === '/api/logto/sms' && request.method === 'POST') {
       return handleLogtoSms(request, env);
+    }
+
+    // /join double-opt-in waitlist. See worker/_lib/join.ts.
+    if (url.pathname === '/api/join' && request.method === 'POST') {
+      return handleJoinSubmit(request, env);
+    }
+    if (url.pathname === '/join/confirm' && request.method === 'GET') {
+      return handleJoinConfirm(request, env);
+    }
+    if (url.pathname === '/api/unsubscribe' && (request.method === 'GET' || request.method === 'POST')) {
+      return handleUnsubscribe(request, env);
     }
 
     return env.ASSETS.fetch(request);

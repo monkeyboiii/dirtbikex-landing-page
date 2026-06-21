@@ -160,5 +160,28 @@
 
   "notfound.title": "Sivua ei löytynyt",
   "notfound.body": "Etsimääsi sivua ei ole olemassa tai se on siirretty.",
-  "notfound.cta": "Takaisin etusivulle"
+  "notfound.cta": "Takaisin etusivulle",
+
+  "join.meta.title": "Liity DirtBikeX-listalle — edut ja uutiset",
+  "join.meta.description": "DirtBikeX on julkaistu App Storessa. Liity listalle ja saat early-supporter-edut, ennakkokurkistukset uusiin ominaisuuksiin ja ride-day-uutiset. Tuplavarmistus, voit perua milloin tahansa.",
+  "join.eyebrow": "iOS-sovellus · Julkaistu App Storessa",
+  "join.title.line1": "Aina",
+  "join.title.line2": "askeleen edellä.",
+  "join.subtitle": "DirtBikeX on julkaistu. Liity listalle ja saat early-supporter-edut, ennakkokurkistukset uusiin ominaisuuksiin ja silloin tällöin ride-day-uutisia — ei kohinaa, vain hyvää.",
+  "join.email.placeholder": "you@example.com",
+  "join.email.aria": "Sähköpostiosoite",
+  "join.cta": "Liity listalle",
+  "join.finePrint": "Jo nyt ilmainen — lataa, lue, julkaise. Lista on vain etuja ja satunnaisia uutisia varten.",
+  "join.consent": "Liittymällä hyväksyt etu- ja tuoteuutiset DirtBikeX:ltä. Voit perua tilauksen milloin tahansa.",
+  "join.sent.title": "Tarkista sähköpostisi",
+  "join.sent.body": "Lähetimme juuri vahvistuslinkin. Napauta sitä lukitaksesi etusi — tarkista roskaposti, jos se ei tule minuutissa.",
+  "join.confirmed.title": "Olet mukana.",
+  "join.confirmed.body": "Vahvistettu — early-supporter-edut ja satunnaiset uutiset ovat tulossa. Sovellus on muuten jo App Storessa.",
+  "join.expired.title": "Linkki vanhentunut",
+  "join.expired.body": "Tämä vahvistuslinkki ei ole enää voimassa. Syötä sähköpostisi uudelleen saadaksesi uuden.",
+  "join.expired.cta": "Takaisin liittymiseen",
+  "join.unsubscribed.title": "Tilaus peruttu",
+  "join.unsubscribed.body": "Et saa enää sähköposteja DirtBikeX-listalta. Muutitko mielesi? Voit liittyä uudelleen milloin tahansa.",
+  "join.error": "Jokin meni pieleen — yritä uudelleen.",
+  "join.invalidEmail": "Anna kelvollinen sähköpostiosoite."
 }

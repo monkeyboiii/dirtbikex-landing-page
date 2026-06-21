@@ -160,5 +160,28 @@
 
   "notfound.title": "Página no encontrada",
   "notfound.body": "La página que buscas no existe o se ha movido.",
-  "notfound.cta": "Volver al inicio"
+  "notfound.cta": "Volver al inicio",
+
+  "join.meta.title": "Únete a DirtBikeX — ventajas y novedades",
+  "join.meta.description": "DirtBikeX ya está en la App Store. Únete a la lista para ventajas early-supporter, adelantos de nuevas funciones y novedades ride-day. Doble opt-in, cancela cuando quieras.",
+  "join.eyebrow": "App de iOS · Disponible en la App Store",
+  "join.title.line1": "Siempre",
+  "join.title.line2": "un paso por delante.",
+  "join.subtitle": "DirtBikeX ya está disponible. Únete a la lista para ventajas early-supporter, adelantos de nuevas funciones y alguna novedad ride-day — sin ruido, solo lo bueno.",
+  "join.email.placeholder": "you@example.com",
+  "join.email.aria": "Dirección de correo electrónico",
+  "join.cta": "Unirme a la lista",
+  "join.finePrint": "Ya es gratis — descargar, leer, publicar. La lista es solo ventajas y alguna novedad.",
+  "join.consent": "Al unirte aceptas recibir novedades de ventajas y producto de DirtBikeX. Cancela cuando quieras.",
+  "join.sent.title": "Revisa tu correo",
+  "join.sent.body": "Te acabamos de enviar un enlace de confirmación. Tócalo para asegurar tus ventajas — revisa el spam si no llega en un minuto.",
+  "join.confirmed.title": "Ya estás dentro.",
+  "join.confirmed.body": "Confirmado — las ventajas early-supporter y alguna novedad van en camino. Mientras tanto, la app ya está en la App Store.",
+  "join.expired.title": "Enlace caducado",
+  "join.expired.body": "Este enlace de confirmación ya no es válido. Introduce tu correo de nuevo para obtener uno nuevo.",
+  "join.expired.cta": "Volver al registro",
+  "join.unsubscribed.title": "Te has dado de baja",
+  "join.unsubscribed.body": "No recibirás más correos de la lista de DirtBikeX. ¿Cambiaste de idea? Puedes volver a registrarte cuando quieras.",
+  "join.error": "Algo salió mal — inténtalo de nuevo.",
+  "join.invalidEmail": "Introduce una dirección de correo electrónico válida."
 }

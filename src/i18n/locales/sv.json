@@ -162,5 +162,28 @@
 
   "notfound.title": "Sidan hittades inte",
   "notfound.body": "Sidan du letar efter finns inte eller har flyttats.",
-  "notfound.cta": "Tillbaka till startsidan"
+  "notfound.cta": "Tillbaka till startsidan",
+
+  "join.meta.title": "Gå med i DirtBikeX — förmåner & nyheter",
+  "join.meta.description": "DirtBikeX finns i App Store. Gå med på listan för early-supporter-förmåner, första titten på nya funktioner och ride-day-nyheter. Dubbel opt-in, avsluta när du vill.",
+  "join.eyebrow": "iOS-app · Finns i App Store",
+  "join.title.line1": "Alltid",
+  "join.title.line2": "steget före.",
+  "join.subtitle": "DirtBikeX finns ute. Gå med på listan för early-supporter-förmåner, första titten på nya funktioner och då och då en ride-day-nyhet — inget brus, bara det bra.",
+  "join.email.placeholder": "you@example.com",
+  "join.email.aria": "E-postadress",
+  "join.cta": "Gå med",
+  "join.finePrint": "Redan gratis — att ladda ner, läsa, posta. Listan är bara förmåner och nyheter då och då.",
+  "join.consent": "Genom att gå med godkänner du att få förmåns- och produktnyheter från DirtBikeX. Avsluta när du vill.",
+  "join.sent.title": "Kolla din inkorg",
+  "join.sent.body": "Vi skickade precis en bekräftelselänk. Tryck på den för att säkra dina förmåner — kolla skräpposten om den inte är där inom en minut.",
+  "join.confirmed.title": "Du är med.",
+  "join.confirmed.body": "Bekräftat — early-supporter-förmåner och nyheter då och då är på väg. Appen finns förresten redan i App Store.",
+  "join.expired.title": "Länken har gått ut",
+  "join.expired.body": "Den här bekräftelselänken är inte längre giltig. Ange din e-post igen för att få en ny.",
+  "join.expired.cta": "Tillbaka till anmälan",
+  "join.unsubscribed.title": "Du är avregistrerad",
+  "join.unsubscribed.body": "Du får inte längre e-post från DirtBikeX-listan. Ångrat dig? Du kan gå med igen när du vill.",
+  "join.error": "Något gick fel — försök igen.",
+  "join.invalidEmail": "Ange en giltig e-postadress."
 }

@@ -163,5 +163,28 @@
 
   "notfound.title": "Page not found",
   "notfound.body": "The page you’re looking for doesn’t exist or has moved.",
-  "notfound.cta": "Back to home"
+  "notfound.cta": "Back to home",
+
+  "join.meta.title": "Join DirtBikeX — perks & product drops",
+  "join.meta.description": "DirtBikeX is live on the App Store. Join the list for early-supporter perks, first looks at new features, and ride-day drops. Double opt-in, unsubscribe anytime.",
+  "join.eyebrow": "iOS app · Live on the App Store",
+  "join.title.line1": "Get the",
+  "join.title.line2": "inside line.",
+  "join.subtitle": "DirtBikeX is live. Join the list for early-supporter perks, first looks at new features, and the occasional ride-day drop — no noise, just the good stuff.",
+  "join.email.placeholder": "you@example.com",
+  "join.email.aria": "Email address",
+  "join.cta": "Join the list",
+  "join.finePrint": "Already free — to download, to read, to post. The list is just perks and the occasional drop.",
+  "join.consent": "By joining you agree to receive perk & product updates from DirtBikeX. Unsubscribe anytime.",
+  "join.sent.title": "Check your inbox",
+  "join.sent.body": "We just sent a confirmation link. Tap it to lock in your perks — check spam if it’s not there in a minute.",
+  "join.confirmed.title": "You’re in.",
+  "join.confirmed.body": "Confirmed — early-supporter perks and the occasional drop are headed your way. Meanwhile, the app’s live on the App Store.",
+  "join.expired.title": "Link expired",
+  "join.expired.body": "That confirmation link is no longer valid. Enter your email again to get a fresh one.",
+  "join.expired.cta": "Back to sign-up",
+  "join.unsubscribed.title": "You’re unsubscribed",
+  "join.unsubscribed.body": "You won’t receive emails from the DirtBikeX list. Changed your mind? You can sign up again anytime.",
+  "join.error": "Something went wrong — please try again.",
+  "join.invalidEmail": "Please enter a valid email address."
 }

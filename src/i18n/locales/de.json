@@ -160,5 +160,28 @@
 
   "notfound.title": "Seite nicht gefunden",
   "notfound.body": "Die gesuchte Seite existiert nicht oder wurde verschoben.",
-  "notfound.cta": "Zurück zur Startseite"
+  "notfound.cta": "Zurück zur Startseite",
+
+  "join.meta.title": "DirtBikeX beitreten — Vorteile & Produkt-News",
+  "join.meta.description": "DirtBikeX ist im App Store live. Trag dich ein für Early-Supporter-Vorteile, erste Blicke auf neue Features und Ride-Day-Updates. Double-Opt-in, jederzeit abbestellbar.",
+  "join.eyebrow": "iOS-App · Live im App Store",
+  "join.title.line1": "Immer",
+  "join.title.line2": "einen Schritt voraus.",
+  "join.subtitle": "DirtBikeX ist live. Trag dich ein für Early-Supporter-Vorteile, erste Blicke auf neue Features und gelegentliche Ride-Day-Updates — kein Rauschen, nur das Gute.",
+  "join.email.placeholder": "you@example.com",
+  "join.email.aria": "E-Mail-Adresse",
+  "join.cta": "Eintragen",
+  "join.finePrint": "Schon kostenlos — herunterladen, lesen, posten. Die Liste gibt's nur für Vorteile und gelegentliche Updates.",
+  "join.consent": "Mit dem Eintragen stimmst du zu, Vorteils- und Produkt-Updates von DirtBikeX zu erhalten. Jederzeit abbestellbar.",
+  "join.sent.title": "Schau in dein Postfach",
+  "join.sent.body": "Wir haben dir gerade einen Bestätigungslink geschickt. Tipp drauf, um deine Vorteile zu sichern — schau in den Spam, falls er nicht in einer Minute da ist.",
+  "join.confirmed.title": "Du bist dabei.",
+  "join.confirmed.body": "Bestätigt — Early-Supporter-Vorteile und gelegentliche Updates sind unterwegs. Die App ist übrigens schon im App Store.",
+  "join.expired.title": "Link abgelaufen",
+  "join.expired.body": "Dieser Bestätigungslink ist nicht mehr gültig. Gib deine E-Mail erneut ein, um einen neuen zu erhalten.",
+  "join.expired.cta": "Zurück zur Anmeldung",
+  "join.unsubscribed.title": "Du bist abgemeldet",
+  "join.unsubscribed.body": "Du erhältst keine E-Mails mehr von der DirtBikeX-Liste. Anders überlegt? Du kannst dich jederzeit wieder anmelden.",
+  "join.error": "Etwas ist schiefgelaufen — bitte versuch es erneut.",
+  "join.invalidEmail": "Bitte gib eine gültige E-Mail-Adresse ein."
 }

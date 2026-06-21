@@ -163,5 +163,28 @@
 
   "notfound.title": "ページが見つかりません",
   "notfound.body": "お探しのページは存在しないか、移動された可能性があります。",
-  "notfound.cta": "ホームへ戻る"
+  "notfound.cta": "ホームへ戻る",
+
+  "join.meta.title": "DirtBikeX に登録 — 特典と最新情報",
+  "join.meta.description": "DirtBikeX は App Store で配信中。リストに登録して、アーリーサポーター特典、新機能の先行情報、ライドデイのお知らせを受け取ろう。ダブルオプトイン、いつでも配信停止可能。",
+  "join.eyebrow": "iOS アプリ · App Store で配信中",
+  "join.title.line1": "とっておきの",
+  "join.title.line2": "情報を、いち早く。",
+  "join.subtitle": "DirtBikeX は配信中。リストに登録して、アーリーサポーター特典、新機能の先行情報、そしてときどきのライドデイのお知らせを——ノイズなし、いいものだけ。",
+  "join.email.placeholder": "you@example.com",
+  "join.email.aria": "メールアドレス",
+  "join.cta": "リストに登録",
+  "join.finePrint": "もともと無料——ダウンロードも、閲覧も、投稿も。リストでは特典とときどきのお知らせだけをお届けします。",
+  "join.consent": "登録すると、DirtBikeX からの特典・製品情報の受信に同意したことになります。いつでも配信停止できます。",
+  "join.sent.title": "メールをご確認ください",
+  "join.sent.body": "確認リンクを送信しました。タップして特典を確定してください——1分経っても届かない場合は迷惑メールをご確認ください。",
+  "join.confirmed.title": "登録完了。",
+  "join.confirmed.body": "確認できました——アーリーサポーター特典とときどきのお知らせをお届けします。アプリは App Store で配信中です。",
+  "join.expired.title": "リンクの有効期限が切れています",
+  "join.expired.body": "この確認リンクは無効になりました。もう一度メールアドレスを入力して新しいリンクを取得してください。",
+  "join.expired.cta": "登録に戻る",
+  "join.unsubscribed.title": "配信を停止しました",
+  "join.unsubscribed.body": "DirtBikeX リストからのメールは届かなくなります。気が変わったら、いつでも再登録できます。",
+  "join.error": "問題が発生しました——もう一度お試しください。",
+  "join.invalidEmail": "有効なメールアドレスを入力してください。"
 }

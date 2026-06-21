@@ -160,5 +160,28 @@
 
   "notfound.title": "Không tìm thấy trang",
   "notfound.body": "Trang bạn đang tìm không tồn tại hoặc đã được di chuyển.",
-  "notfound.cta": "Quay về trang chủ"
+  "notfound.cta": "Quay về trang chủ",
+
+  "join.meta.title": "Tham gia DirtBikeX — ưu đãi & tin sản phẩm",
+  "join.meta.description": "DirtBikeX đã có trên App Store. Tham gia danh sách để nhận ưu đãi cho người ủng hộ sớm, xem trước tính năng mới và tin ride-day. Xác nhận hai bước, hủy bất cứ lúc nào.",
+  "join.eyebrow": "Ứng dụng iOS · Đã có trên App Store",
+  "join.title.line1": "Luôn",
+  "join.title.line2": "đi trước một bước.",
+  "join.subtitle": "DirtBikeX đã ra mắt. Tham gia danh sách để nhận ưu đãi cho người ủng hộ sớm, xem trước tính năng mới và thỉnh thoảng là tin ride-day — không ồn ào, chỉ điều hay.",
+  "join.email.placeholder": "you@example.com",
+  "join.email.aria": "Địa chỉ email",
+  "join.cta": "Tham gia danh sách",
+  "join.finePrint": "Vốn đã miễn phí — tải, đọc, đăng. Danh sách chỉ gồm ưu đãi và tin tức thỉnh thoảng.",
+  "join.consent": "Khi tham gia, bạn đồng ý nhận tin ưu đãi & sản phẩm từ DirtBikeX. Hủy bất cứ lúc nào.",
+  "join.sent.title": "Kiểm tra hộp thư của bạn",
+  "join.sent.body": "Chúng tôi vừa gửi một liên kết xác nhận. Nhấn vào đó để giữ ưu đãi của bạn — kiểm tra thư rác nếu sau một phút vẫn chưa thấy.",
+  "join.confirmed.title": "Bạn đã tham gia.",
+  "join.confirmed.body": "Đã xác nhận — ưu đãi cho người ủng hộ sớm và tin tức thỉnh thoảng đang trên đường đến. Trong khi đó, ứng dụng đã có trên App Store.",
+  "join.expired.title": "Liên kết đã hết hạn",
+  "join.expired.body": "Liên kết xác nhận này không còn hiệu lực. Nhập lại email của bạn để nhận liên kết mới.",
+  "join.expired.cta": "Quay lại đăng ký",
+  "join.unsubscribed.title": "Bạn đã hủy đăng ký",
+  "join.unsubscribed.body": "Bạn sẽ không nhận email từ danh sách DirtBikeX nữa. Đổi ý? Bạn có thể đăng ký lại bất cứ lúc nào.",
+  "join.error": "Đã xảy ra lỗi — vui lòng thử lại.",
+  "join.invalidEmail": "Vui lòng nhập địa chỉ email hợp lệ."
 }

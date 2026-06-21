@@ -160,5 +160,28 @@
 
   "notfound.title": "Pagina non trovata",
   "notfound.body": "La pagina che cerchi non esiste o è stata spostata.",
-  "notfound.cta": "Torna alla home"
+  "notfound.cta": "Torna alla home",
+
+  "join.meta.title": "Iscriviti a DirtBikeX — vantaggi e novità",
+  "join.meta.description": "DirtBikeX è disponibile sull'App Store. Iscriviti alla lista per vantaggi early-supporter, anteprime sulle nuove funzioni e aggiornamenti ride-day. Double opt-in, disiscrizione in qualsiasi momento.",
+  "join.eyebrow": "App iOS · Disponibile sull'App Store",
+  "join.title.line1": "Sempre",
+  "join.title.line2": "un passo avanti.",
+  "join.subtitle": "DirtBikeX è disponibile. Iscriviti alla lista per vantaggi early-supporter, anteprime sulle nuove funzioni e qualche aggiornamento ride-day — niente rumore, solo cose buone.",
+  "join.email.placeholder": "you@example.com",
+  "join.email.aria": "Indirizzo email",
+  "join.cta": "Iscriviti",
+  "join.finePrint": "Già gratis — da scaricare, leggere, pubblicare. La lista è solo vantaggi e qualche aggiornamento.",
+  "join.consent": "Iscrivendoti accetti di ricevere aggiornamenti su vantaggi e prodotti da DirtBikeX. Disiscrizione in qualsiasi momento.",
+  "join.sent.title": "Controlla la posta",
+  "join.sent.body": "Ti abbiamo appena inviato un link di conferma. Toccalo per assicurarti i vantaggi — controlla lo spam se non arriva entro un minuto.",
+  "join.confirmed.title": "Ci sei.",
+  "join.confirmed.body": "Confermato — vantaggi early-supporter e qualche aggiornamento sono in arrivo. Intanto, l'app è già sull'App Store.",
+  "join.expired.title": "Link scaduto",
+  "join.expired.body": "Questo link di conferma non è più valido. Inserisci di nuovo la tua email per riceverne uno nuovo.",
+  "join.expired.cta": "Torna all'iscrizione",
+  "join.unsubscribed.title": "Disiscrizione effettuata",
+  "join.unsubscribed.body": "Non riceverai più email dalla lista DirtBikeX. Cambiato idea? Puoi iscriverti di nuovo quando vuoi.",
+  "join.error": "Qualcosa è andato storto — riprova.",
+  "join.invalidEmail": "Inserisci un indirizzo email valido."
 }

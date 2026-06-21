@@ -160,5 +160,28 @@
 
   "notfound.title": "Page introuvable",
   "notfound.body": "La page que vous recherchez n’existe pas ou a été déplacée.",
-  "notfound.cta": "Retour à l’accueil"
+  "notfound.cta": "Retour à l’accueil",
+
+  "join.meta.title": "Rejoindre DirtBikeX — avantages & nouveautés",
+  "join.meta.description": "DirtBikeX est disponible sur l'App Store. Inscrivez-vous pour des avantages early-supporter, des aperçus des nouvelles fonctionnalités et des infos ride-day. Double opt-in, désinscription à tout moment.",
+  "join.eyebrow": "App iOS · Disponible sur l'App Store",
+  "join.title.line1": "Toujours",
+  "join.title.line2": "une longueur d'avance.",
+  "join.subtitle": "DirtBikeX est disponible. Inscrivez-vous pour des avantages early-supporter, des aperçus des nouveautés et quelques infos ride-day — pas de bruit, que du bon.",
+  "join.email.placeholder": "you@example.com",
+  "join.email.aria": "Adresse e-mail",
+  "join.cta": "S'inscrire",
+  "join.finePrint": "Déjà gratuit — à télécharger, à lire, à publier. La liste, c'est juste des avantages et quelques infos.",
+  "join.consent": "En vous inscrivant, vous acceptez de recevoir des infos avantages et produit de DirtBikeX. Désinscription à tout moment.",
+  "join.sent.title": "Vérifiez votre boîte mail",
+  "join.sent.body": "Nous venons de vous envoyer un lien de confirmation. Touchez-le pour valider vos avantages — vérifiez les spams s'il n'arrive pas dans la minute.",
+  "join.confirmed.title": "C'est validé.",
+  "join.confirmed.body": "Confirmé — les avantages early-supporter et quelques infos arrivent. En attendant, l'app est déjà sur l'App Store.",
+  "join.expired.title": "Lien expiré",
+  "join.expired.body": "Ce lien de confirmation n'est plus valide. Saisissez à nouveau votre e-mail pour en recevoir un nouveau.",
+  "join.expired.cta": "Retour à l'inscription",
+  "join.unsubscribed.title": "Vous êtes désinscrit",
+  "join.unsubscribed.body": "Vous ne recevrez plus d'e-mails de la liste DirtBikeX. Changé d'avis ? Vous pouvez vous réinscrire à tout moment.",
+  "join.error": "Une erreur s'est produite — veuillez réessayer.",
+  "join.invalidEmail": "Veuillez saisir une adresse e-mail valide."
 }

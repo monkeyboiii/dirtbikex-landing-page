@@ -163,5 +163,28 @@
 
   "notfound.title": "页面未找到",
   "notfound.body": "您访问的页面不存在或已被移动。",
-  "notfound.cta": "返回首页"
+  "notfound.cta": "返回首页",
+
+  "join.meta.title": "加入 DirtBikeX —— 福利与产品更新",
+  "join.meta.description": "DirtBikeX 已在 App Store 上线。加入名单，获取早期支持者福利、新功能抢先看以及骑行日福利。双重确认订阅，可随时退订。",
+  "join.eyebrow": "iOS 应用 · 已上线 App Store",
+  "join.title.line1": "抢先掌握",
+  "join.title.line2": "第一手消息",
+  "join.subtitle": "DirtBikeX 已上线。加入名单，获取早期支持者福利、新功能抢先看，以及偶尔的骑行日福利——没有噪音，只有干货。",
+  "join.email.placeholder": "you@example.com",
+  "join.email.aria": "电子邮箱地址",
+  "join.cta": "加入名单",
+  "join.finePrint": "本就免费——下载、阅读、发帖都免费。名单只发福利和偶尔的更新。",
+  "join.consent": "加入即表示你同意接收来自 DirtBikeX 的福利与产品更新。可随时退订。",
+  "join.sent.title": "请查收邮箱",
+  "join.sent.body": "我们刚刚发送了一封确认邮件。点击其中的链接即可锁定你的福利——如果一分钟内没收到，请查看垃圾邮件。",
+  "join.confirmed.title": "你已加入。",
+  "join.confirmed.body": "已确认——早期支持者福利和不定期更新即将送达。与此同时，应用已在 App Store 上线。",
+  "join.expired.title": "链接已失效",
+  "join.expired.body": "该确认链接已失效。请重新输入你的邮箱以获取新链接。",
+  "join.expired.cta": "返回注册",
+  "join.unsubscribed.title": "你已退订",
+  "join.unsubscribed.body": "你将不会再收到 DirtBikeX 名单的邮件。改主意了？你随时可以重新订阅。",
+  "join.error": "出错了——请重试。",
+  "join.invalidEmail": "请输入有效的电子邮箱地址。"
 }

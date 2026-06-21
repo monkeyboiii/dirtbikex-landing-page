@@ -160,5 +160,28 @@
 
   "notfound.title": "Siden blev ikke fundet",
   "notfound.body": "Den side, du leder efter, findes ikke eller er blevet flyttet.",
-  "notfound.cta": "Tilbage til forsiden"
+  "notfound.cta": "Tilbage til forsiden",
+
+  "join.meta.title": "Tilmeld dig DirtBikeX — fordele og nyheder",
+  "join.meta.description": "DirtBikeX er live i App Store. Tilmeld dig listen for early-supporter-fordele, første kig på nye funktioner og ride-day-nyt. Dobbelt opt-in, afmeld når som helst.",
+  "join.eyebrow": "iOS-app · Live i App Store",
+  "join.title.line1": "Altid",
+  "join.title.line2": "et skridt foran.",
+  "join.subtitle": "DirtBikeX er live. Tilmeld dig listen for early-supporter-fordele, første kig på nye funktioner og lidt ride-day-nyt — ingen støj, kun det gode.",
+  "join.email.placeholder": "you@example.com",
+  "join.email.aria": "E-mailadresse",
+  "join.cta": "Tilmeld",
+  "join.finePrint": "Allerede gratis — at downloade, læse, poste. Listen er kun fordele og lidt nyt.",
+  "join.consent": "Ved at tilmelde dig accepterer du at modtage fordels- og produktnyt fra DirtBikeX. Afmeld når som helst.",
+  "join.sent.title": "Tjek din indbakke",
+  "join.sent.body": "Vi har lige sendt et bekræftelseslink. Tryk på det for at sikre dine fordele — tjek spam, hvis det ikke er der inden for et minut.",
+  "join.confirmed.title": "Du er med.",
+  "join.confirmed.body": "Bekræftet — early-supporter-fordele og lidt nyt er på vej. Appen er i øvrigt allerede i App Store.",
+  "join.expired.title": "Linket er udløbet",
+  "join.expired.body": "Dette bekræftelseslink er ikke længere gyldigt. Indtast din e-mail igen for at få et nyt.",
+  "join.expired.cta": "Tilbage til tilmelding",
+  "join.unsubscribed.title": "Du er afmeldt",
+  "join.unsubscribed.body": "Du modtager ikke længere e-mails fra DirtBikeX-listen. Fortrudt? Du kan tilmelde dig igen når som helst.",
+  "join.error": "Noget gik galt — prøv igen.",
+  "join.invalidEmail": "Indtast en gyldig e-mailadresse."
 }

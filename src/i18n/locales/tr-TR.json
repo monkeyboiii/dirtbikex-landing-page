@@ -160,5 +160,28 @@
 
   "notfound.title": "Sayfa bulunamadı",
   "notfound.body": "Aradığınız sayfa mevcut değil veya taşınmış.",
-  "notfound.cta": "Ana sayfaya dön"
+  "notfound.cta": "Ana sayfaya dön",
+
+  "join.meta.title": "DirtBikeX'e katıl — ayrıcalıklar ve haberler",
+  "join.meta.description": "DirtBikeX App Store'da yayında. Listeye katıl; erken destekçi ayrıcalıkları, yeni özelliklere ilk bakış ve ride-day haberleri al. Çift onay, dilediğin zaman abonelikten çık.",
+  "join.eyebrow": "iOS uygulaması · App Store'da yayında",
+  "join.title.line1": "Her zaman",
+  "join.title.line2": "bir adım önde.",
+  "join.subtitle": "DirtBikeX yayında. Listeye katıl; erken destekçi ayrıcalıkları, yeni özelliklere ilk bakış ve ara sıra ride-day haberleri al — gürültü yok, sadece iyi şeyler.",
+  "join.email.placeholder": "you@example.com",
+  "join.email.aria": "E-posta adresi",
+  "join.cta": "Listeye katıl",
+  "join.finePrint": "Zaten ücretsiz — indir, oku, paylaş. Liste yalnızca ayrıcalıklar ve ara sıra haberler için.",
+  "join.consent": "Katılarak DirtBikeX'ten ayrıcalık ve ürün haberleri almayı kabul edersin. Dilediğin zaman çıkabilirsin.",
+  "join.sent.title": "Gelen kutunu kontrol et",
+  "join.sent.body": "Az önce bir onay bağlantısı gönderdik. Ayrıcalıklarını güvenceye almak için dokun — bir dakikada gelmezse spam'i kontrol et.",
+  "join.confirmed.title": "Aramızdasın.",
+  "join.confirmed.body": "Onaylandı — erken destekçi ayrıcalıkları ve ara sıra haberler yolda. Bu arada uygulama App Store'da yayında.",
+  "join.expired.title": "Bağlantının süresi doldu",
+  "join.expired.body": "Bu onay bağlantısı artık geçerli değil. Yenisini almak için e-postanı tekrar gir.",
+  "join.expired.cta": "Kayda geri dön",
+  "join.unsubscribed.title": "Abonelikten çıktın",
+  "join.unsubscribed.body": "Artık DirtBikeX listesinden e-posta almayacaksın. Fikrini mi değiştirdin? Dilediğin zaman yeniden kaydolabilirsin.",
+  "join.error": "Bir şeyler ters gitti — lütfen tekrar dene.",
+  "join.invalidEmail": "Lütfen geçerli bir e-posta adresi gir."
 }

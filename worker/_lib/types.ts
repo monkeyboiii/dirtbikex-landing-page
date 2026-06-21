@@ -27,6 +27,20 @@ export interface PagesEnv {
   /** KV binding for /api/logto/sms rate-limiting. Created via `wrangler kv namespace create` per env. */
   RATELIMIT_KV?: KVNamespace;
 
+  // --- /join double-opt-in waitlist (worker/_lib/join.ts). ---
+  /** D1 database holding the `subscribers` table. `wrangler d1 create dbx-subscribers`. */
+  SUBSCRIBERS_DB?: D1Database;
+  /** Resend API key for the confirmation email. Secret — `wrangler secret put RESEND_API_KEY`. */
+  RESEND_API_KEY?: string;
+  /** From address on the sending domain, e.g. `DirtBikeX <team@joindirtbikex.com>`. */
+  JOIN_FROM_EMAIL?: string;
+  /** Reply-To shown to recipients — a monitored inbox, e.g. `support@dirtbikex.com`. */
+  JOIN_REPLY_TO?: string;
+  /** Physical postal address printed in the email footer (CAN-SPAM). */
+  JOIN_ORG_ADDRESS?: string;
+  /** Public marketing origin for absolute confirm/unsubscribe links, e.g. `https://www.dirtbikex.com`. */
+  MARKETING_BASE?: string;
+
   // --- /api/logto/sms — Logto HTTP SMS connector gateway. See docs/sms-gateway.md.
   /** Shared bearer that Logto sends in `Authorization: Bearer …`. Secret. */
   LOGTO_SMS_TOKEN?: string;
@@ -53,6 +67,16 @@ export interface PagesEnv {
 export interface KVNamespace {
   get(key: string): Promise<string | null>;
   put(key: string, value: string, options?: { expirationTtl?: number }): Promise<void>;
+}
+
+/** Minimal D1 shape — prepare/bind + first/run is all the join flow needs. */
+export interface D1Database {
+  prepare(query: string): D1PreparedStatement;
+}
+export interface D1PreparedStatement {
+  bind(...values: unknown[]): D1PreparedStatement;
+  first<T = Record<string, unknown>>(): Promise<T | null>;
+  run(): Promise<{ success: boolean }>;
 }
 
 /**

@@ -27,28 +27,52 @@
     // The worker owns these dynamic routes; running it first stops the static-asset
     // / 404-page layer from preempting (and edge-caching) them. Other paths still
     // serve static assets directly.
-    "run_worker_first": ["/s/*", "/api/proxy/*", "/api/forum/*", "/api/logto/*"]
+    "run_worker_first": [
+      "/s/*",
+      "/api/proxy/*",
+      "/api/forum/*",
+      "/api/logto/*",
+      "/api/join",
+      "/api/unsubscribe",
+      "/join/confirm"
+    ]
   },
   "vars": {
-    // Production defaults. Override per-env below.
     "FORUM_BASE": "https://forum.dirtbikex.com",
-    // TODO: set to the production Data Explorer query ID.
-    "FORUM_INVITE_QUERY_ID": "",
+    "FORUM_INVITE_QUERY_ID": "1",
     "FORUM_API_USERNAME": "system",
     "SPONSOR_API_BASE": "https://api.dirtbikex.com",
-    // SMS gateway (non-secret). Secrets via `wrangler secret put`.
     "LOGTO_SMS_ALLOWED_COUNTRIES": "CN,US",
     "ALIYUN_REGION": "cn-hangzhou",
     "ALIYUN_SMS_SIGN_NAME": "",
     "ALIYUN_SMS_TEMPLATE_CODE": "",
-    "AWS_SNS_REGION": "us-east-1"
+    "AWS_SNS_REGION": "us-east-1",
+    // /join waitlist (worker/_lib/join.ts). RESEND_API_KEY is a SECRET — set via
+    // `wrangler secret put RESEND_API_KEY`. The sending domain (joindirtbikex.com)
+    // must be verified in Resend (SPF/DKIM/DMARC).
+    "JOIN_FROM_EMAIL": "DirtBikeX <team@joindirtbikex.com>",
+    "JOIN_REPLY_TO": "support@dirtbikex.com",
+    "JOIN_ORG_ADDRESS": "DirtBikeX LLC, 30 N Gould St Ste N, Sheridan, WY 82801, USA",
+    "MARKETING_BASE": "https://www.dirtbikex.com"
   },
+  "d1_databases": [
+    // `wrangler d1 create dbx-subscribers`, then paste the returned database_id.
+    // Schema: `wrangler d1 execute dbx-subscribers --remote --file ./migrations/0001_subscribers.sql`
+    {
+      "binding": "SUBSCRIBERS_DB",
+      "database_name": "dbx-subscribers",
+      "database_id": "32fe8ba2-6433-4b8e-be2e-af4647271e88"
+    }
+  ],
   "kv_namespaces": [
     // Replace `id` with the prod namespace from `wrangler kv namespace list`.
     // Without this binding the SMS gateway fails closed (503); finalize/claim
     // warn-and-allow. Run `wrangler kv namespace create RATELIMIT_KV` once
     // if it doesn't exist, then paste the returned id here.
-    // { "binding": "RATELIMIT_KV", "id": "REPLACE_WITH_PROD_KV_NAMESPACE_ID" }
+    {
+      "binding": "RATELIMIT_KV",
+      "id": "5a60263c332945d5ad8dcf21a433d029"
+    }
   ],
   "env": {
     "preview": {
@@ -63,16 +87,38 @@
         "ALIYUN_REGION": "cn-hangzhou",
         "ALIYUN_SMS_SIGN_NAME": "",
         "ALIYUN_SMS_TEMPLATE_CODE": "",
-        "AWS_SNS_REGION": "us-east-1"
+        "AWS_SNS_REGION": "us-east-1",
+        "JOIN_FROM_EMAIL": "DirtBikeX <team@joindirtbikex.com>",
+        "JOIN_REPLY_TO": "support@dirtbikex.com",
+        "JOIN_ORG_ADDRESS": "DirtBikeX LLC, 30 N Gould St Ste N, Sheridan, WY 82801, USA",
+        "MARKETING_BASE": "https://www.dirtbikechina.com"
       },
       "assets": {
         "directory": "./dist",
         "binding": "ASSETS",
         "not_found_handling": "404-page",
-        "run_worker_first": ["/s/*", "/api/proxy/*", "/api/forum/*", "/api/logto/*"]
+        "run_worker_first": [
+          "/s/*",
+          "/api/proxy/*",
+          "/api/forum/*",
+          "/api/logto/*",
+          "/api/join",
+          "/api/unsubscribe",
+          "/join/confirm"
+        ]
       },
       "kv_namespaces": [
-        { "binding": "RATELIMIT_KV", "id": "eb95a24345d548efb72feb21244df875" }
+        {
+          "binding": "RATELIMIT_KV",
+          "id": "eb95a24345d548efb72feb21244df875"
+        }
+      ],
+      "d1_databases": [
+        {
+          "binding": "SUBSCRIBERS_DB",
+          "database_name": "dbx-subscribers",
+          "database_id": "32fe8ba2-6433-4b8e-be2e-af4647271e88"
+        }
       ]
     }
   }

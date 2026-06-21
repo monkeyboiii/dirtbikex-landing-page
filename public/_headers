@@ -57,5 +57,11 @@
 /s/*
   Cache-Control: no-store
 
+# Worker-handled double-opt-in routes (token-bearing) — never edge-cache.
+/join/confirm
+  Cache-Control: no-store
+/api/unsubscribe
+  Cache-Control: no-store
+
 /*
   Cache-Control: public, max-age=300, s-maxage=86400
