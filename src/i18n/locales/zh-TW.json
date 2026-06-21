@@ -163,30 +163,5 @@
 
   "notfound.title": "找不到頁面",
   "notfound.body": "您要找的頁面不存在或已被移動。",
-  "notfound.cta": "返回首頁",
-
-  "claim.title": "認領您的贊助位",
-  "claim.loading": "載入中…",
-  "claim.notFound": "此認領連結不存在、已被使用或已被撤銷。",
-  "claim.expired": "此認領連結已過期。",
-  "claim.rateLimited": "嘗試次數過多，請稍後再試。",
-  "claim.slotDetails": "位置詳情：",
-  "claim.username.label": "論壇使用者名稱",
-  "claim.username.placeholder": "請輸入您的論壇使用者名稱",
-  "claim.username.hint": "我們會將該位置連結到此論壇帳號。",
-  "claim.email.label": "聯絡電子郵件",
-  "claim.nudge": "此授權保留給了另一個電子郵件。仍要繼續嗎？",
-  "claim.nudge.confirm": "是的，我已了解",
-  "claim.submit": "認領我的贊助位",
-  "claim.uploadNote": "認領後如需上傳自訂主圖，請開啟 DirtBikeX iOS 應用程式，進入「我的」→「我的贊助」。不支援退款或取消。",
-  "claim.done.title": "您的贊助位已上線。",
-  "claim.done.body": "如需上傳自訂主圖，請開啟 DirtBikeX iOS 應用程式，進入「我的」→「我的贊助」。",
-  "claim.expires": "有效期至 {date}",
-  "claim.submitting": "提交中…",
-  "claim.tooManyHour": "嘗試次數過多，請一小時後再試。",
-  "claim.userNotFound": "找不到論壇使用者名稱「{name}」。",
-  "claim.genericError": "錯誤：{error}",
-  "claim.confirmResubmit": "請確認並重新提交。",
-  "claim.networkError": "網路錯誤：{error}",
-  "claim.slotSummary": "{section} 位置 {slotOrder} — {month}"
+  "notfound.cta": "返回首頁"
 }

@@ -160,30 +160,5 @@
 
   "notfound.title": "페이지를 찾을 수 없습니다",
   "notfound.body": "찾으시는 페이지가 존재하지 않거나 이동되었습니다.",
-  "notfound.cta": "홈으로 돌아가기",
-
-  "claim.title": "스폰서 슬롯 받기",
-  "claim.loading": "불러오는 중…",
-  "claim.notFound": "이 받기 링크는 존재하지 않거나 이미 사용되었거나 취소되었습니다.",
-  "claim.expired": "이 받기 링크는 만료되었습니다.",
-  "claim.rateLimited": "시도 횟수가 너무 많습니다. 잠시 후 다시 시도해 주세요.",
-  "claim.slotDetails": "슬롯 세부 정보:",
-  "claim.username.label": "포럼 사용자 이름",
-  "claim.username.placeholder": "포럼 사용자 이름을 입력하세요",
-  "claim.username.hint": "이 슬롯을 해당 포럼 프로필에 연결합니다.",
-  "claim.email.label": "연락 이메일",
-  "claim.nudge": "이 권한은 다른 이메일로 예약되었습니다. 그래도 계속할까요?",
-  "claim.nudge.confirm": "네, 이해했습니다",
-  "claim.submit": "내 스폰서 슬롯 받기",
-  "claim.uploadNote": "받은 후 맞춤 대표 이미지를 업로드하려면 DirtBikeX iOS 앱을 열고 프로필 → 내 스폰서십으로 이동하세요. 환불이나 취소는 불가합니다.",
-  "claim.done.title": "스폰서 슬롯이 게시되었습니다.",
-  "claim.done.body": "맞춤 대표 이미지를 업로드하려면 DirtBikeX iOS 앱을 열고 프로필 → 내 스폰서십으로 이동하세요.",
-  "claim.expires": "만료일 {date}",
-  "claim.submitting": "제출 중…",
-  "claim.tooManyHour": "시도 횟수가 너무 많습니다. 한 시간 후에 다시 시도해 주세요.",
-  "claim.userNotFound": "포럼 사용자 이름 \"{name}\"을(를) 찾을 수 없습니다.",
-  "claim.genericError": "오류: {error}",
-  "claim.confirmResubmit": "확인 후 다시 제출하세요.",
-  "claim.networkError": "네트워크 오류: {error}",
-  "claim.slotSummary": "{section} 슬롯 {slotOrder} — {month}"
+  "notfound.cta": "홈으로 돌아가기"
 }

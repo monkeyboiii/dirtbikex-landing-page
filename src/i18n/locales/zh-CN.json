@@ -163,30 +163,5 @@
 
   "notfound.title": "页面未找到",
   "notfound.body": "您访问的页面不存在或已被移动。",
-  "notfound.cta": "返回首页",
-
-  "claim.title": "认领您的赞助位",
-  "claim.loading": "加载中…",
-  "claim.notFound": "此认领链接不存在、已被使用或已被撤销。",
-  "claim.expired": "此认领链接已过期。",
-  "claim.rateLimited": "尝试次数过多，请稍后再试。",
-  "claim.slotDetails": "位置详情：",
-  "claim.username.label": "论坛用户名",
-  "claim.username.placeholder": "请输入您的论坛用户名",
-  "claim.username.hint": "我们会将该位置关联到此论坛账号。",
-  "claim.email.label": "联系邮箱",
-  "claim.nudge": "此授权预留给了另一个邮箱。仍要继续吗？",
-  "claim.nudge.confirm": "是的，我已了解",
-  "claim.submit": "认领我的赞助位",
-  "claim.uploadNote": "认领后如需上传自定义主图，请打开 DirtBikeX iOS 应用，进入“我的”→“我的赞助”。不支持退款或取消。",
-  "claim.done.title": "您的赞助位已上线。",
-  "claim.done.body": "如需上传自定义主图，请打开 DirtBikeX iOS 应用，进入“我的”→“我的赞助”。",
-  "claim.expires": "有效期至 {date}",
-  "claim.submitting": "提交中…",
-  "claim.tooManyHour": "尝试次数过多，请一小时后再试。",
-  "claim.userNotFound": "未找到论坛用户名“{name}”。",
-  "claim.genericError": "错误：{error}",
-  "claim.confirmResubmit": "请确认并重新提交。",
-  "claim.networkError": "网络错误：{error}",
-  "claim.slotSummary": "{section} 位置 {slotOrder} — {month}"
+  "notfound.cta": "返回首页"
 }

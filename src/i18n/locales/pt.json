@@ -160,30 +160,5 @@
 
   "notfound.title": "Página não encontrada",
   "notfound.body": "A página que você procura não existe ou foi movida.",
-  "notfound.cta": "Voltar ao início",
-
-  "claim.title": "Reivindique seu espaço de patrocínio",
-  "claim.loading": "Carregando…",
-  "claim.notFound": "Este link de reivindicação não existe, já foi usado ou foi revogado.",
-  "claim.expired": "Este link de reivindicação expirou.",
-  "claim.rateLimited": "Muitas tentativas. Tente novamente em instantes.",
-  "claim.slotDetails": "Detalhes do espaço:",
-  "claim.username.label": "Nome de usuário do fórum",
-  "claim.username.placeholder": "Digite seu nome de usuário do fórum",
-  "claim.username.hint": "Vamos vincular o espaço a este perfil do fórum.",
-  "claim.email.label": "E-mail de contato",
-  "claim.nudge": "Esta concessão estava reservada para outro e-mail. Continuar mesmo assim?",
-  "claim.nudge.confirm": "Sim, eu entendo",
-  "claim.submit": "Reivindicar meu espaço de patrocínio",
-  "claim.uploadNote": "Para enviar uma imagem principal personalizada após reivindicar, abra o app iOS do DirtBikeX e vá em Perfil → Meus patrocínios. Sem reembolsos ou cancelamentos.",
-  "claim.done.title": "Seu espaço de patrocínio está no ar.",
-  "claim.done.body": "Para enviar uma imagem principal personalizada, abra o app iOS do DirtBikeX e vá em Perfil → Meus patrocínios.",
-  "claim.expires": "Expira em {date}",
-  "claim.submitting": "Enviando…",
-  "claim.tooManyHour": "Muitas tentativas. Aguarde uma hora.",
-  "claim.userNotFound": "Nome de usuário do fórum \"{name}\" não encontrado.",
-  "claim.genericError": "Erro: {error}",
-  "claim.confirmResubmit": "Confirme e envie novamente.",
-  "claim.networkError": "Erro de rede: {error}",
-  "claim.slotSummary": "{section} espaço {slotOrder} — {month}"
+  "notfound.cta": "Voltar ao início"
 }

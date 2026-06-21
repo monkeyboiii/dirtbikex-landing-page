@@ -160,30 +160,5 @@
 
   "notfound.title": "Pagina non trovata",
   "notfound.body": "La pagina che cerchi non esiste o è stata spostata.",
-  "notfound.cta": "Torna alla home",
-
-  "claim.title": "Richiedi il tuo slot sponsor",
-  "claim.loading": "Caricamento…",
-  "claim.notFound": "Questo link di richiesta non esiste, è già stato usato o è stato revocato.",
-  "claim.expired": "Questo link di richiesta è scaduto.",
-  "claim.rateLimited": "Troppi tentativi. Riprova tra poco.",
-  "claim.slotDetails": "Dettagli dello slot:",
-  "claim.username.label": "Nome utente del forum",
-  "claim.username.placeholder": "Inserisci il tuo nome utente del forum",
-  "claim.username.hint": "Collegheremo lo slot a questo profilo del forum.",
-  "claim.email.label": "Email di contatto",
-  "claim.nudge": "Questa concessione era riservata a un'altra email. Procedere comunque?",
-  "claim.nudge.confirm": "Sì, ho capito",
-  "claim.submit": "Richiedi il mio slot sponsor",
-  "claim.uploadNote": "Per caricare un'immagine hero personalizzata dopo la richiesta, apri l'app iOS di DirtBikeX e vai su Profilo → Le mie sponsorizzazioni. Nessun rimborso o annullamento.",
-  "claim.done.title": "Il tuo slot sponsor è attivo.",
-  "claim.done.body": "Per caricare un'immagine hero personalizzata, apri l'app iOS di DirtBikeX e vai su Profilo → Le mie sponsorizzazioni.",
-  "claim.expires": "Scade il {date}",
-  "claim.submitting": "Invio in corso…",
-  "claim.tooManyHour": "Troppi tentativi. Attendi un'ora.",
-  "claim.userNotFound": "Nome utente del forum \"{name}\" non trovato.",
-  "claim.genericError": "Errore: {error}",
-  "claim.confirmResubmit": "Conferma e invia di nuovo.",
-  "claim.networkError": "Errore di rete: {error}",
-  "claim.slotSummary": "{section} slot {slotOrder} — {month}"
+  "notfound.cta": "Torna alla home"
 }

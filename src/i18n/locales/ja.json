@@ -163,30 +163,5 @@
 
   "notfound.title": "ページが見つかりません",
   "notfound.body": "お探しのページは存在しないか、移動された可能性があります。",
-  "notfound.cta": "ホームへ戻る",
-
-  "claim.title": "スポンサー枠を受け取る",
-  "claim.loading": "読み込み中…",
-  "claim.notFound": "この受け取りリンクは存在しないか、すでに使用済み、または取り消されています。",
-  "claim.expired": "この受け取りリンクは有効期限が切れています。",
-  "claim.rateLimited": "試行回数が多すぎます。しばらくしてからもう一度お試しください。",
-  "claim.slotDetails": "枠の詳細：",
-  "claim.username.label": "フォーラムのユーザー名",
-  "claim.username.placeholder": "フォーラムのユーザー名を入力してください",
-  "claim.username.hint": "この枠をこのフォーラムのプロフィールに紐付けます。",
-  "claim.email.label": "連絡先メールアドレス",
-  "claim.nudge": "この付与は別のメールアドレス宛に予約されていました。このまま続けますか？",
-  "claim.nudge.confirm": "はい、了解しました",
-  "claim.submit": "スポンサー枠を受け取る",
-  "claim.uploadNote": "受け取り後にカスタムのヒーロー画像をアップロードするには、DirtBikeX の iOS アプリを開き、「プロフィール」→「マイスポンサー」に進んでください。返金・キャンセルはできません。",
-  "claim.done.title": "スポンサー枠が公開されました。",
-  "claim.done.body": "カスタムのヒーロー画像をアップロードするには、DirtBikeX の iOS アプリを開き、「プロフィール」→「マイスポンサー」に進んでください。",
-  "claim.expires": "有効期限：{date}",
-  "claim.submitting": "送信中…",
-  "claim.tooManyHour": "試行回数が多すぎます。1時間後にもう一度お試しください。",
-  "claim.userNotFound": "フォーラムのユーザー名「{name}」が見つかりません。",
-  "claim.genericError": "エラー：{error}",
-  "claim.confirmResubmit": "確認して再送信してください。",
-  "claim.networkError": "ネットワークエラー：{error}",
-  "claim.slotSummary": "{section} 枠 {slotOrder} — {month}"
+  "notfound.cta": "ホームへ戻る"
 }

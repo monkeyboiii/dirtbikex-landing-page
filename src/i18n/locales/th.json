@@ -160,30 +160,5 @@
 
   "notfound.title": "ไม่พบหน้าที่ต้องการ",
   "notfound.body": "ไม่พบหน้าที่คุณกำลังค้นหา หรืออาจถูกย้ายไปแล้ว",
-  "notfound.cta": "กลับสู่หน้าแรก",
-
-  "claim.title": "รับสิทธิ์ช่องผู้สนับสนุนของคุณ",
-  "claim.loading": "กำลังโหลด…",
-  "claim.notFound": "ลิงก์รับสิทธิ์นี้ไม่มีอยู่ ถูกใช้ไปแล้ว หรือถูกเพิกถอน",
-  "claim.expired": "ลิงก์รับสิทธิ์นี้หมดอายุแล้ว",
-  "claim.rateLimited": "พยายามมากเกินไป โปรดลองอีกครั้งในอีกสักครู่",
-  "claim.slotDetails": "รายละเอียดช่อง:",
-  "claim.username.label": "ชื่อผู้ใช้ฟอรัม",
-  "claim.username.placeholder": "กรอกชื่อผู้ใช้ฟอรัมของคุณ",
-  "claim.username.hint": "เราจะเชื่อมช่องนี้กับโปรไฟล์ฟอรัมนี้",
-  "claim.email.label": "อีเมลติดต่อ",
-  "claim.nudge": "การให้สิทธิ์นี้สงวนไว้สำหรับอีเมลอื่น ต้องการดำเนินการต่อหรือไม่",
-  "claim.nudge.confirm": "ใช่ ฉันเข้าใจแล้ว",
-  "claim.submit": "รับสิทธิ์ช่องผู้สนับสนุนของฉัน",
-  "claim.uploadNote": "หากต้องการอัปโหลดรูปภาพหลักที่กำหนดเองหลังจากรับสิทธิ์ ให้เปิดแอป DirtBikeX บน iOS แล้วไปที่ โปรไฟล์ → การสนับสนุนของฉัน ไม่มีการคืนเงินหรือยกเลิก",
-  "claim.done.title": "ช่องผู้สนับสนุนของคุณเปิดใช้งานแล้ว",
-  "claim.done.body": "หากต้องการอัปโหลดรูปภาพหลักที่กำหนดเอง ให้เปิดแอป DirtBikeX บน iOS แล้วไปที่ โปรไฟล์ → การสนับสนุนของฉัน",
-  "claim.expires": "หมดอายุ {date}",
-  "claim.submitting": "กำลังส่ง…",
-  "claim.tooManyHour": "พยายามมากเกินไป โปรดรอหนึ่งชั่วโมง",
-  "claim.userNotFound": "ไม่พบชื่อผู้ใช้ฟอรัม \"{name}\"",
-  "claim.genericError": "ข้อผิดพลาด: {error}",
-  "claim.confirmResubmit": "ยืนยันและส่งอีกครั้ง",
-  "claim.networkError": "ข้อผิดพลาดเครือข่าย: {error}",
-  "claim.slotSummary": "{section} ช่อง {slotOrder} — {month}"
+  "notfound.cta": "กลับสู่หน้าแรก"
 }

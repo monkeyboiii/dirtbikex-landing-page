@@ -160,30 +160,5 @@
 
   "notfound.title": "Seite nicht gefunden",
   "notfound.body": "Die gesuchte Seite existiert nicht oder wurde verschoben.",
-  "notfound.cta": "Zurück zur Startseite",
-
-  "claim.title": "Sponsoren-Platz beanspruchen",
-  "claim.loading": "Wird geladen…",
-  "claim.notFound": "Dieser Anspruchslink existiert nicht, wurde bereits verwendet oder wurde widerrufen.",
-  "claim.expired": "Dieser Anspruchslink ist abgelaufen.",
-  "claim.rateLimited": "Zu viele Versuche. Bitte versuche es später erneut.",
-  "claim.slotDetails": "Platzdetails:",
-  "claim.username.label": "Forum-Benutzername",
-  "claim.username.placeholder": "Gib deinen Forum-Benutzernamen ein",
-  "claim.username.hint": "Wir verknüpfen den Platz mit diesem Forumprofil.",
-  "claim.email.label": "Kontakt-E-Mail",
-  "claim.nudge": "Diese Zuteilung war für eine andere E-Mail-Adresse reserviert. Trotzdem fortfahren?",
-  "claim.nudge.confirm": "Ja, ich verstehe",
-  "claim.submit": "Meinen Sponsoren-Platz beanspruchen",
-  "claim.uploadNote": "Um nach dem Beanspruchen ein eigenes Hero-Bild hochzuladen, öffne die DirtBikeX iOS-App und gehe zu Profil → Meine Sponsorings. Keine Rückerstattungen oder Stornierungen.",
-  "claim.done.title": "Dein Sponsoren-Platz ist live.",
-  "claim.done.body": "Um ein eigenes Hero-Bild hochzuladen, öffne die DirtBikeX iOS-App und gehe zu Profil → Meine Sponsorings.",
-  "claim.expires": "Läuft ab am {date}",
-  "claim.submitting": "Wird gesendet…",
-  "claim.tooManyHour": "Zu viele Versuche. Bitte warte eine Stunde.",
-  "claim.userNotFound": "Forum-Benutzername „{name}“ nicht gefunden.",
-  "claim.genericError": "Fehler: {error}",
-  "claim.confirmResubmit": "Bestätigen und erneut senden.",
-  "claim.networkError": "Netzwerkfehler: {error}",
-  "claim.slotSummary": "{section} Platz {slotOrder} — {month}"
+  "notfound.cta": "Zurück zur Startseite"
 }

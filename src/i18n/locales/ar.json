@@ -160,30 +160,5 @@
 
   "notfound.title": "الصفحة غير موجودة",
   "notfound.body": "الصفحة التي تبحث عنها غير موجودة أو تم نقلها.",
-  "notfound.cta": "العودة إلى الصفحة الرئيسية",
-
-  "claim.title": "اطلب مكان الرعاية الخاص بك",
-  "claim.loading": "جارٍ التحميل…",
-  "claim.notFound": "رابط المطالبة هذا غير موجود أو تم استخدامه أو تم إلغاؤه.",
-  "claim.expired": "انتهت صلاحية رابط المطالبة هذا.",
-  "claim.rateLimited": "محاولات كثيرة جدًا. حاول مرة أخرى بعد قليل.",
-  "claim.slotDetails": "تفاصيل المكان:",
-  "claim.username.label": "اسم المستخدم في المنتدى",
-  "claim.username.placeholder": "أدخل اسم المستخدم الخاص بك في المنتدى",
-  "claim.username.hint": "سنربط المكان بملف المنتدى هذا.",
-  "claim.email.label": "البريد الإلكتروني للتواصل",
-  "claim.nudge": "كان هذا المنح محجوزًا لبريد إلكتروني آخر. هل تريد المتابعة على أي حال؟",
-  "claim.nudge.confirm": "نعم، أفهم ذلك",
-  "claim.submit": "اطلب مكان الرعاية الخاص بي",
-  "claim.uploadNote": "لرفع صورة رئيسية مخصصة بعد المطالبة، افتح تطبيق DirtBikeX على iOS وانتقل إلى الملف الشخصي ← رعاياتي. لا توجد عمليات استرداد أو إلغاء.",
-  "claim.done.title": "مكان الرعاية الخاص بك أصبح مباشرًا.",
-  "claim.done.body": "لرفع صورة رئيسية مخصصة، افتح تطبيق DirtBikeX على iOS وانتقل إلى الملف الشخصي ← رعاياتي.",
-  "claim.expires": "تنتهي الصلاحية في {date}",
-  "claim.submitting": "جارٍ الإرسال…",
-  "claim.tooManyHour": "محاولات كثيرة جدًا. انتظر ساعة.",
-  "claim.userNotFound": "لم يتم العثور على اسم المستخدم في المنتدى \"{name}\".",
-  "claim.genericError": "خطأ: {error}",
-  "claim.confirmResubmit": "أكّد وأعد الإرسال.",
-  "claim.networkError": "خطأ في الشبكة: {error}",
-  "claim.slotSummary": "{section} مكان {slotOrder} — {month}"
+  "notfound.cta": "العودة إلى الصفحة الرئيسية"
 }

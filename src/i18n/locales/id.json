@@ -160,30 +160,5 @@
 
   "notfound.title": "Halaman tidak ditemukan",
   "notfound.body": "Halaman yang Anda cari tidak ada atau telah dipindahkan.",
-  "notfound.cta": "Kembali ke beranda",
-
-  "claim.title": "Klaim slot sponsor Anda",
-  "claim.loading": "Memuat…",
-  "claim.notFound": "Tautan klaim ini tidak ada, sudah digunakan, atau telah dicabut.",
-  "claim.expired": "Tautan klaim ini telah kedaluwarsa.",
-  "claim.rateLimited": "Terlalu banyak percobaan. Coba lagi sebentar lagi.",
-  "claim.slotDetails": "Detail slot:",
-  "claim.username.label": "Nama pengguna forum",
-  "claim.username.placeholder": "Masukkan nama pengguna forum Anda",
-  "claim.username.hint": "Kami akan menautkan slot ini ke profil forum tersebut.",
-  "claim.email.label": "Email kontak",
-  "claim.nudge": "Pemberian ini dicadangkan untuk email lain. Tetap lanjutkan?",
-  "claim.nudge.confirm": "Ya, saya mengerti",
-  "claim.submit": "Klaim slot sponsor saya",
-  "claim.uploadNote": "Untuk mengunggah gambar utama khusus setelah klaim, buka aplikasi iOS DirtBikeX dan buka Profil → Sponsor Saya. Tidak ada pengembalian dana atau pembatalan.",
-  "claim.done.title": "Slot sponsor Anda sudah aktif.",
-  "claim.done.body": "Untuk mengunggah gambar utama khusus, buka aplikasi iOS DirtBikeX dan buka Profil → Sponsor Saya.",
-  "claim.expires": "Kedaluwarsa pada {date}",
-  "claim.submitting": "Mengirim…",
-  "claim.tooManyHour": "Terlalu banyak percobaan. Tunggu satu jam.",
-  "claim.userNotFound": "Nama pengguna forum \"{name}\" tidak ditemukan.",
-  "claim.genericError": "Kesalahan: {error}",
-  "claim.confirmResubmit": "Konfirmasi dan kirim ulang.",
-  "claim.networkError": "Kesalahan jaringan: {error}",
-  "claim.slotSummary": "{section} slot {slotOrder} — {month}"
+  "notfound.cta": "Kembali ke beranda"
 }

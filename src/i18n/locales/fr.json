@@ -160,30 +160,5 @@
 
   "notfound.title": "Page introuvable",
   "notfound.body": "La page que vous recherchez n’existe pas ou a été déplacée.",
-  "notfound.cta": "Retour à l’accueil",
-
-  "claim.title": "Réclamez votre emplacement sponsor",
-  "claim.loading": "Chargement…",
-  "claim.notFound": "Ce lien de réclamation n'existe pas, a déjà été utilisé ou a été révoqué.",
-  "claim.expired": "Ce lien de réclamation a expiré.",
-  "claim.rateLimited": "Trop de tentatives. Réessayez dans un instant.",
-  "claim.slotDetails": "Détails de l'emplacement :",
-  "claim.username.label": "Nom d'utilisateur du forum",
-  "claim.username.placeholder": "Saisissez votre nom d'utilisateur du forum",
-  "claim.username.hint": "Nous associerons l'emplacement à ce profil de forum.",
-  "claim.email.label": "E-mail de contact",
-  "claim.nudge": "Cette attribution était réservée à une autre adresse e-mail. Continuer quand même ?",
-  "claim.nudge.confirm": "Oui, je comprends",
-  "claim.submit": "Réclamer mon emplacement sponsor",
-  "claim.uploadNote": "Pour téléverser une image héro personnalisée après la réclamation, ouvrez l'app iOS DirtBikeX et allez dans Profil → Mes parrainages. Aucun remboursement ni annulation.",
-  "claim.done.title": "Votre emplacement sponsor est en ligne.",
-  "claim.done.body": "Pour téléverser une image héro personnalisée, ouvrez l'app iOS DirtBikeX et allez dans Profil → Mes parrainages.",
-  "claim.expires": "Expire le {date}",
-  "claim.submitting": "Envoi…",
-  "claim.tooManyHour": "Trop de tentatives. Patientez une heure.",
-  "claim.userNotFound": "Nom d'utilisateur du forum « {name} » introuvable.",
-  "claim.genericError": "Erreur : {error}",
-  "claim.confirmResubmit": "Confirmez et renvoyez.",
-  "claim.networkError": "Erreur réseau : {error}",
-  "claim.slotSummary": "{section} emplacement {slotOrder} — {month}"
+  "notfound.cta": "Retour à l’accueil"
 }

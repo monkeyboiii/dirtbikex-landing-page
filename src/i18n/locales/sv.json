@@ -162,30 +162,5 @@
 
   "notfound.title": "Sidan hittades inte",
   "notfound.body": "Sidan du letar efter finns inte eller har flyttats.",
-  "notfound.cta": "Tillbaka till startsidan",
-
-  "claim.title": "Gör anspråk på din sponsorplats",
-  "claim.loading": "Laddar…",
-  "claim.notFound": "Den här anspråkslänken finns inte, har redan använts eller har återkallats.",
-  "claim.expired": "Den här anspråkslänken har gått ut.",
-  "claim.rateLimited": "För många försök. Försök igen om en liten stund.",
-  "claim.slotDetails": "Platsdetaljer:",
-  "claim.username.label": "Forum-användarnamn",
-  "claim.username.placeholder": "Ange ditt forum-användarnamn",
-  "claim.username.hint": "Vi kopplar platsen till den här forumprofilen.",
-  "claim.email.label": "Kontakt-e-post",
-  "claim.nudge": "Den här tilldelningen var reserverad för en annan e-postadress. Vill du fortsätta ändå?",
-  "claim.nudge.confirm": "Ja, jag förstår",
-  "claim.submit": "Gör anspråk på min sponsorplats",
-  "claim.uploadNote": "För att ladda upp en anpassad hero-bild efter att du gjort anspråk, öppna DirtBikeX iOS-appen och gå till Profil → Mina sponsorskap. Inga återbetalningar eller avbokningar.",
-  "claim.done.title": "Din sponsorplats är live.",
-  "claim.done.body": "För att ladda upp en anpassad hero-bild, öppna DirtBikeX iOS-appen och gå till Profil → Mina sponsorskap.",
-  "claim.expires": "Går ut {date}",
-  "claim.submitting": "Skickar…",
-  "claim.tooManyHour": "För många försök. Vänta en timme.",
-  "claim.userNotFound": "Forum-användarnamnet \"{name}\" hittades inte.",
-  "claim.genericError": "Fel: {error}",
-  "claim.confirmResubmit": "Bekräfta och skicka igen.",
-  "claim.networkError": "Nätverksfel: {error}",
-  "claim.slotSummary": "{section} plats {slotOrder} — {month}"
+  "notfound.cta": "Tillbaka till startsidan"
 }

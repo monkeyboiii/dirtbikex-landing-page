@@ -160,30 +160,5 @@
 
   "notfound.title": "Sayfa bulunamadı",
   "notfound.body": "Aradığınız sayfa mevcut değil veya taşınmış.",
-  "notfound.cta": "Ana sayfaya dön",
-
-  "claim.title": "Sponsor yerini talep et",
-  "claim.loading": "Yükleniyor…",
-  "claim.notFound": "Bu talep bağlantısı mevcut değil, zaten kullanılmış ya da iptal edilmiş.",
-  "claim.expired": "Bu talep bağlantısının süresi dolmuş.",
-  "claim.rateLimited": "Çok fazla deneme. Birazdan tekrar deneyin.",
-  "claim.slotDetails": "Yer ayrıntıları:",
-  "claim.username.label": "Forum kullanıcı adı",
-  "claim.username.placeholder": "Forum kullanıcı adınızı girin",
-  "claim.username.hint": "Yeri bu forum profiline bağlayacağız.",
-  "claim.email.label": "İletişim e-postası",
-  "claim.nudge": "Bu tahsis başka bir e-posta için ayrılmıştı. Yine de devam edilsin mi?",
-  "claim.nudge.confirm": "Evet, anlıyorum",
-  "claim.submit": "Sponsor yerimi talep et",
-  "claim.uploadNote": "Talep ettikten sonra özel bir kapak görseli yüklemek için DirtBikeX iOS uygulamasını açın ve Profil → Sponsorluklarım bölümüne gidin. İade veya iptal yoktur.",
-  "claim.done.title": "Sponsor yeriniz yayında.",
-  "claim.done.body": "Özel bir kapak görseli yüklemek için DirtBikeX iOS uygulamasını açın ve Profil → Sponsorluklarım bölümüne gidin.",
-  "claim.expires": "Bitiş: {date}",
-  "claim.submitting": "Gönderiliyor…",
-  "claim.tooManyHour": "Çok fazla deneme. Bir saat bekleyin.",
-  "claim.userNotFound": "\"{name}\" forum kullanıcı adı bulunamadı.",
-  "claim.genericError": "Hata: {error}",
-  "claim.confirmResubmit": "Onaylayın ve yeniden gönderin.",
-  "claim.networkError": "Ağ hatası: {error}",
-  "claim.slotSummary": "{section} yer {slotOrder} — {month}"
+  "notfound.cta": "Ana sayfaya dön"
 }
