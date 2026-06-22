@@ -7,6 +7,7 @@ import { fetchForumFeatured } from './_lib/forumFeatured';
 import { fetchSponsors, fetchLeaderboard } from './_lib/sponsorProxy';
 import { handleLogtoSms } from './_lib/logtoSms';
 import { handleJoinSubmit, handleJoinConfirm, handleUnsubscribe } from './_lib/join';
+import { handleShortlinkResolve } from './_lib/shortlink';
 import type { Lang, PagesEnv, ShareLandingProps } from './_lib/types';
 
 interface Env extends PagesEnv {
@@ -635,6 +636,8 @@ export default {
       if (url.pathname === '/api/proxy/sponsors') return fetchSponsors(env);
       const lb = url.pathname.match(/^\/api\/proxy\/leaderboard\/([a-z_]+)\.json$/);
       if (lb) return fetchLeaderboard(env, lb[1]!);
+      // Douyin/Bilibili short-link resolver for the forum embed component.
+      if (url.pathname === '/api/resolve/shortlink') return handleShortlinkResolve(request, env);
     }
 
     // /api/logto/sms — Logto HTTP SMS connector. See docs/sms-gateway.md.

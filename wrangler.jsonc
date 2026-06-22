@@ -30,6 +30,7 @@
     "run_worker_first": [
       "/s/*",
       "/api/proxy/*",
+      "/api/resolve/*",
       "/api/forum/*",
       "/api/logto/*",
       "/api/join",
@@ -100,6 +101,7 @@
         "run_worker_first": [
           "/s/*",
           "/api/proxy/*",
+          "/api/resolve/*",
           "/api/forum/*",
           "/api/logto/*",
           "/api/join",
