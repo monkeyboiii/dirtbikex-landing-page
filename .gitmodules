@@ -1,0 +1,4 @@
+[submodule "vendor/discourse-asset-kit"]
+	path = vendor/discourse-asset-kit
+	url = https://github.com/monkeyboiii/DiscourseAssetKit.git
+	update = none
