@@ -186,5 +186,14 @@
   "join.unsubscribed.title": "配信を停止しました",
   "join.unsubscribed.body": "DirtBikeX リストからのメールは届かなくなります。気が変わったら、いつでも再登録できます。",
   "join.error": "問題が発生しました——もう一度お試しください。",
-  "join.invalidEmail": "有効なメールアドレスを入力してください。"
+  "join.invalidEmail": "有効なメールアドレスを入力してください。",
+
+  "join.invite.title.line1": "受け取る",
+  "join.invite.title.line2": "DirtBikeX 招待",
+  "join.invite.subtitle": "メールアドレスを入力すると、招待リンクと QR コードを受信トレイに直接お送りします。",
+  "join.invite.cta": "招待を送る",
+  "join.invite.sent.title": "メールをご確認ください",
+  "join.invite.sent.body": "招待リンクと QR コードをお送りします。メールで確認して確定してください——1分経っても届かない場合は迷惑メールをご確認ください。",
+  "join.code.invalid.title": "この招待リンクは無効です",
+  "join.code.invalid.body": "すでに使用済みか、有効期限が切れている可能性があります。新しいリンクをご依頼ください。"
 }

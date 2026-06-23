@@ -183,5 +183,14 @@
   "join.unsubscribed.title": "Abonelikten çıktın",
   "join.unsubscribed.body": "Artık DirtBikeX listesinden e-posta almayacaksın. Fikrini mi değiştirdin? Dilediğin zaman yeniden kaydolabilirsin.",
   "join.error": "Bir şeyler ters gitti — lütfen tekrar dene.",
-  "join.invalidEmail": "Lütfen geçerli bir e-posta adresi gir."
+  "join.invalidEmail": "Lütfen geçerli bir e-posta adresi gir.",
+
+  "join.invite.title.line1": "Davetini al",
+  "join.invite.title.line2": "DirtBikeX daveti",
+  "join.invite.subtitle": "E-postanı bırak — davet bağlantısı ve QR kodu doğrudan gelen kutuna gönderelim.",
+  "join.invite.cta": "Davetimi gönder",
+  "join.invite.sent.title": "Gelen kutunu kontrol et",
+  "join.invite.sent.body": "Davet bağlantın ve QR kodun yolda. Sabitlemek için e-postayı onayla — gelmezse spam'i kontrol et.",
+  "join.code.invalid.title": "Bu davet bağlantısı geçerli değil",
+  "join.code.invalid.body": "Daha önce kullanılmış veya süresi dolmuş olabilir. Yeni bir bağlantı iste."
 }

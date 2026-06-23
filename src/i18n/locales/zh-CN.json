@@ -186,5 +186,14 @@
   "join.unsubscribed.title": "你已退订",
   "join.unsubscribed.body": "你将不会再收到 DirtBikeX 名单的邮件。改主意了？你随时可以重新订阅。",
   "join.error": "出错了——请重试。",
-  "join.invalidEmail": "请输入有效的电子邮箱地址。"
+  "join.invalidEmail": "请输入有效的电子邮箱地址。",
+
+  "join.invite.title.line1": "认领你的",
+  "join.invite.title.line2": "DirtBikeX 邀请",
+  "join.invite.subtitle": "留下你的邮箱，我们会把邀请链接和二维码直接发到你的收件箱。",
+  "join.invite.cta": "发送我的邀请",
+  "join.invite.sent.title": "请查收邮箱",
+  "join.invite.sent.body": "你的邀请链接和二维码马上就到。点击邮件确认即可锁定——一分钟内没收到请查看垃圾邮件。",
+  "join.code.invalid.title": "此邀请链接无效",
+  "join.code.invalid.body": "它可能已被使用或已过期。请索取新的链接。"
 }

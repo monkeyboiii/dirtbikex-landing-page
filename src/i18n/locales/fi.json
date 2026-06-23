@@ -183,5 +183,14 @@
   "join.unsubscribed.title": "Tilaus peruttu",
   "join.unsubscribed.body": "Et saa enää sähköposteja DirtBikeX-listalta. Muutitko mielesi? Voit liittyä uudelleen milloin tahansa.",
   "join.error": "Jokin meni pieleen — yritä uudelleen.",
-  "join.invalidEmail": "Anna kelvollinen sähköpostiosoite."
+  "join.invalidEmail": "Anna kelvollinen sähköpostiosoite.",
+
+  "join.invite.title.line1": "Lunasta oma",
+  "join.invite.title.line2": "DirtBikeX-kutsusi",
+  "join.invite.subtitle": "Jätä sähköpostisi — lähetämme kutsulinkin ja QR-koodin suoraan postilaatikkoosi.",
+  "join.invite.cta": "Lähetä kutsuni",
+  "join.invite.sent.title": "Tarkista sähköpostisi",
+  "join.invite.sent.body": "Kutsulinkkisi ja QR-koodisi ovat tulossa. Vahvista sähköposti lukitaksesi ne — tarkista roskaposti, jos ne eivät tule.",
+  "join.code.invalid.title": "Tämä kutsulinkki ei kelpaa",
+  "join.code.invalid.body": "Se on ehkä jo käytetty tai vanhentunut. Pyydä uusi linkki."
 }

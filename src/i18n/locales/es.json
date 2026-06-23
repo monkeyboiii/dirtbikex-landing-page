@@ -183,5 +183,14 @@
   "join.unsubscribed.title": "Te has dado de baja",
   "join.unsubscribed.body": "No recibirás más correos de la lista de DirtBikeX. ¿Cambiaste de idea? Puedes volver a registrarte cuando quieras.",
   "join.error": "Algo salió mal — inténtalo de nuevo.",
-  "join.invalidEmail": "Introduce una dirección de correo electrónico válida."
+  "join.invalidEmail": "Introduce una dirección de correo electrónico válida.",
+
+  "join.invite.title.line1": "Reclama tu",
+  "join.invite.title.line2": "invitación a DirtBikeX",
+  "join.invite.subtitle": "Deja tu correo y te enviamos el enlace de invitación y el código QR directo a tu bandeja.",
+  "join.invite.cta": "Enviarme la invitación",
+  "join.invite.sent.title": "Revisa tu correo",
+  "join.invite.sent.body": "Tu enlace de invitación y tu código QR van en camino. Confirma el correo para asegurarlos — revisa el spam si no llegan en un minuto.",
+  "join.code.invalid.title": "Este enlace de invitación no es válido",
+  "join.code.invalid.body": "Puede que ya se haya usado o haya caducado. Pide un enlace nuevo."
 }

@@ -11,11 +11,11 @@ const joinPath = localizedPath(lang, '/join');
   <div class="hero__grain"></div>
 
   <div class="container-narrow hero__inner">
-    <div class="hero__eyebrow">{t('join.eyebrow')}</div>
+    <div class="hero__eyebrow" data-join-eyebrow>{t('join.eyebrow')}</div>
     <h1 class="hero__title">
-      {t('join.title.line1')}<br /><span class="accent">{t('join.title.line2')}</span>
+      <span data-join-title1>{t('join.title.line1')}</span><br /><span class="accent" data-join-title2>{t('join.title.line2')}</span>
     </h1>
-    <p class="hero__sub">{t('join.subtitle')}</p>
+    <p class="hero__sub" data-join-sub>{t('join.subtitle')}</p>
 
     <div
       class="join"
@@ -23,6 +23,10 @@ const joinPath = localizedPath(lang, '/join');
       data-locale={lang}
       data-msg-error={t('join.error')}
       data-msg-invalid={t('join.invalidEmail')}
+      data-invite-title1={t('join.invite.title.line1')}
+      data-invite-title2={t('join.invite.title.line2')}
+      data-invite-sub={t('join.invite.subtitle')}
+      data-invite-cta={t('join.invite.cta')}
     >
       <!-- Default: the sign-up form. -->
       <div data-join-state="form">
@@ -60,6 +64,14 @@ const joinPath = localizedPath(lang, '/join');
         <h2 class="join__msg-title">{t('join.expired.title')}</h2>
         <p class="join__msg-body">{t('join.expired.body')}</p>
         <p><a class="btn btn--secondary btn--lg" href={joinPath}>{t('join.expired.cta')}</a></p>
+      </div>
+      <div class="join__msg" data-join-state="invite-sent" hidden>
+        <h2 class="join__msg-title">{t('join.invite.sent.title')}</h2>
+        <p class="join__msg-body">{t('join.invite.sent.body')}</p>
+      </div>
+      <div class="join__msg" data-join-state="code-invalid" hidden>
+        <h2 class="join__msg-title">{t('join.code.invalid.title')}</h2>
+        <p class="join__msg-body">{t('join.code.invalid.body')}</p>
       </div>
     </div>
   </div>
@@ -99,7 +111,9 @@ const joinPath = localizedPath(lang, '/join');
     function show(name) {
       for (var k in states) states[k].hidden = k !== name;
     }
-    var st = new URLSearchParams(location.search).get('state');
+    var params = new URLSearchParams(location.search);
+    var st = params.get('state');
+    var code = params.get('c');
     show(st && states[st] ? st : 'form');
 
     var form = document.getElementById('join-form');
@@ -110,6 +124,23 @@ const joinPath = localizedPath(lang, '/join');
     var msgError = root.getAttribute('data-msg-error') || 'Something went wrong.';
     var msgInvalid = root.getAttribute('data-msg-invalid') || 'Please enter a valid email.';
     function fail(msg) { if (errEl) { errEl.textContent = msg; errEl.hidden = false; } }
+    function setText(sel, txt) { var el = document.querySelector(sel); if (el && txt != null) el.textContent = txt; }
+
+    // Special invite link (?c=). Precheck reframes the hero to the invite kind, or
+    // shows the dead-link state. Only when we're sitting on the form (no ?state=).
+    if (code && !(st && states[st])) {
+      fetch('/api/join/code?c=' + encodeURIComponent(code))
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (d) {
+          if (!d || !d.valid) { show('code-invalid'); return; }
+          setText('[data-join-eyebrow]', d.label || '');
+          setText('[data-join-title1]', root.getAttribute('data-invite-title1'));
+          setText('[data-join-title2]', root.getAttribute('data-invite-title2'));
+          setText('[data-join-sub]', root.getAttribute('data-invite-sub'));
+          if (btn) btn.textContent = root.getAttribute('data-invite-cta');
+        })
+        .catch(function () { /* leave the form as-is; submit will validate the code */ });
+    }
 
     form.addEventListener('submit', function (e) {
       e.preventDefault();
@@ -117,14 +148,17 @@ const joinPath = localizedPath(lang, '/join');
       var email = (form.email.value || '').trim();
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { fail(msgInvalid); return; }
       if (btn) btn.disabled = true;
+      var payload = { email: email, locale: locale };
+      if (code) payload.code = code;
       fetch('/api/join', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email, locale: locale }),
+        body: JSON.stringify(payload),
       })
         .then(function (r) {
-          if (r.ok) { show('sent'); return; }
+          if (r.ok) { show(code ? 'invite-sent' : 'sent'); return; }
           if (btn) btn.disabled = false;
+          if (r.status === 409) { show('code-invalid'); return; }
           fail(r.status === 400 ? msgInvalid : msgError);
         })
         .catch(function () { if (btn) btn.disabled = false; fail(msgError); });

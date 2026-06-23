@@ -40,6 +40,8 @@ export interface PagesEnv {
   JOIN_ORG_ADDRESS?: string;
   /** Public marketing origin for absolute confirm/unsubscribe links, e.g. `https://www.dirtbikex.com`. */
   MARKETING_BASE?: string;
+  /** R2 bucket holding QR images at `qr/<kind>/<locale>.png`. `wrangler r2 bucket create dbx-qr`. */
+  QR_BUCKET?: R2Bucket;
 
   // --- /api/logto/sms — Logto HTTP SMS connector gateway. See docs/sms-gateway.md.
   /** Shared bearer that Logto sends in `Authorization: Bearer …`. Secret. */
@@ -77,6 +79,14 @@ export interface D1PreparedStatement {
   bind(...values: unknown[]): D1PreparedStatement;
   first<T = Record<string, unknown>>(): Promise<T | null>;
   run(): Promise<{ success: boolean }>;
+}
+
+/** Minimal R2 shape — the invite flow only needs get(key) + read the body bytes. */
+export interface R2Bucket {
+  get(key: string): Promise<R2ObjectBody | null>;
+}
+export interface R2ObjectBody {
+  arrayBuffer(): Promise<ArrayBuffer>;
 }
 
 /**

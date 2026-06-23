@@ -183,5 +183,14 @@
   "join.unsubscribed.title": "Du er afmeldt",
   "join.unsubscribed.body": "Du modtager ikke længere e-mails fra DirtBikeX-listen. Fortrudt? Du kan tilmelde dig igen når som helst.",
   "join.error": "Noget gik galt — prøv igen.",
-  "join.invalidEmail": "Indtast en gyldig e-mailadresse."
+  "join.invalidEmail": "Indtast en gyldig e-mailadresse.",
+
+  "join.invite.title.line1": "Hent din",
+  "join.invite.title.line2": "DirtBikeX-invitation",
+  "join.invite.subtitle": "Skriv din e-mail — så sender vi invitationslink og QR-kode direkte til din indbakke.",
+  "join.invite.cta": "Send min invitation",
+  "join.invite.sent.title": "Tjek din indbakke",
+  "join.invite.sent.body": "Dit invitationslink og din QR-kode er på vej. Bekræft e-mailen for at sikre dem — tjek spam, hvis de ikke kommer.",
+  "join.code.invalid.title": "Dette invitationslink er ugyldigt",
+  "join.code.invalid.body": "Det er måske allerede brugt eller udløbet. Bed om et nyt link."
 }

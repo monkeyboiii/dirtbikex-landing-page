@@ -183,5 +183,14 @@
   "join.unsubscribed.title": "Kamu berhenti berlangganan",
   "join.unsubscribed.body": "Kamu tidak akan menerima email dari daftar DirtBikeX lagi. Berubah pikiran? Kamu bisa mendaftar lagi kapan saja.",
   "join.error": "Terjadi kesalahan — silakan coba lagi.",
-  "join.invalidEmail": "Masukkan alamat email yang valid."
+  "join.invalidEmail": "Masukkan alamat email yang valid.",
+
+  "join.invite.title.line1": "Klaim",
+  "join.invite.title.line2": "undangan DirtBikeX-mu",
+  "join.invite.subtitle": "Tinggalkan emailmu — kami kirim tautan undangan dan kode QR langsung ke kotak masukmu.",
+  "join.invite.cta": "Kirim undanganku",
+  "join.invite.sent.title": "Cek kotak masukmu",
+  "join.invite.sent.body": "Tautan undangan dan kode QR-mu sedang menuju. Konfirmasi email untuk menguncinya — cek spam jika belum ada.",
+  "join.code.invalid.title": "Tautan undangan ini tidak valid",
+  "join.code.invalid.body": "Mungkin sudah dipakai atau kedaluwarsa. Minta tautan baru."
 }

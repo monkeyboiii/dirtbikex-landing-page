@@ -6,7 +6,7 @@ import { fetchForumMetrics } from './_lib/forumMetrics';
 import { fetchForumFeatured } from './_lib/forumFeatured';
 import { fetchSponsors, fetchLeaderboard } from './_lib/sponsorProxy';
 import { handleLogtoSms } from './_lib/logtoSms';
-import { handleJoinSubmit, handleJoinConfirm, handleUnsubscribe } from './_lib/join';
+import { handleJoinSubmit, handleJoinConfirm, handleUnsubscribe, handleCodePrecheck } from './_lib/join';
 import { handleShortlinkResolve } from './_lib/shortlink';
 import type { Lang, PagesEnv, ShareLandingProps } from './_lib/types';
 
@@ -648,6 +648,9 @@ export default {
     // /join double-opt-in waitlist. See worker/_lib/join.ts.
     if (url.pathname === '/api/join' && request.method === 'POST') {
       return handleJoinSubmit(request, env);
+    }
+    if (url.pathname === '/api/join/code' && request.method === 'GET') {
+      return handleCodePrecheck(request, env);
     }
     if (url.pathname === '/join/confirm' && request.method === 'GET') {
       return handleJoinConfirm(request, env);

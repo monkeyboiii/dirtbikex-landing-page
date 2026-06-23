@@ -186,5 +186,14 @@
   "join.unsubscribed.title": "You’re unsubscribed",
   "join.unsubscribed.body": "You won’t receive emails from the DirtBikeX list. Changed your mind? You can sign up again anytime.",
   "join.error": "Something went wrong — please try again.",
-  "join.invalidEmail": "Please enter a valid email address."
+  "join.invalidEmail": "Please enter a valid email address.",
+
+  "join.invite.title.line1": "Claim your",
+  "join.invite.title.line2": "DirtBikeX invite.",
+  "join.invite.subtitle": "Drop your email and we'll send your invite link and QR code straight to your inbox.",
+  "join.invite.cta": "Send my invite",
+  "join.invite.sent.title": "Check your inbox",
+  "join.invite.sent.body": "Your invite link and QR code are on the way. Confirm the email to lock it in — check spam if it's not there in a minute.",
+  "join.code.invalid.title": "This invite link isn't valid",
+  "join.code.invalid.body": "It may have already been used or expired. Ask for a fresh link."
 }

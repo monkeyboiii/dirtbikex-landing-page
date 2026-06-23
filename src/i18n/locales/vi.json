@@ -183,5 +183,14 @@
   "join.unsubscribed.title": "Bạn đã hủy đăng ký",
   "join.unsubscribed.body": "Bạn sẽ không nhận email từ danh sách DirtBikeX nữa. Đổi ý? Bạn có thể đăng ký lại bất cứ lúc nào.",
   "join.error": "Đã xảy ra lỗi — vui lòng thử lại.",
-  "join.invalidEmail": "Vui lòng nhập địa chỉ email hợp lệ."
+  "join.invalidEmail": "Vui lòng nhập địa chỉ email hợp lệ.",
+
+  "join.invite.title.line1": "Nhận",
+  "join.invite.title.line2": "lời mời DirtBikeX của bạn",
+  "join.invite.subtitle": "Để lại email — chúng tôi gửi liên kết mời và mã QR thẳng vào hộp thư của bạn.",
+  "join.invite.cta": "Gửi lời mời cho tôi",
+  "join.invite.sent.title": "Kiểm tra hộp thư của bạn",
+  "join.invite.sent.body": "Liên kết mời và mã QR của bạn đang đến. Xác nhận email để giữ lại — kiểm tra thư rác nếu chưa thấy.",
+  "join.code.invalid.title": "Liên kết mời này không hợp lệ",
+  "join.code.invalid.body": "Có thể nó đã được dùng hoặc hết hạn. Hãy yêu cầu liên kết mới."
 }

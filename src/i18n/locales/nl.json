@@ -183,5 +183,14 @@
   "join.unsubscribed.title": "Je bent uitgeschreven",
   "join.unsubscribed.body": "Je ontvangt geen e-mails meer van de DirtBikeX-lijst. Toch van gedachten veranderd? Je kunt je altijd opnieuw inschrijven.",
   "join.error": "Er ging iets mis — probeer het opnieuw.",
-  "join.invalidEmail": "Voer een geldig e-mailadres in."
+  "join.invalidEmail": "Voer een geldig e-mailadres in.",
+
+  "join.invite.title.line1": "Claim je",
+  "join.invite.title.line2": "DirtBikeX-uitnodiging",
+  "join.invite.subtitle": "Laat je e-mail achter — we sturen je uitnodigingslink en QR-code rechtstreeks naar je inbox.",
+  "join.invite.cta": "Stuur mijn uitnodiging",
+  "join.invite.sent.title": "Check je inbox",
+  "join.invite.sent.body": "Je uitnodigingslink en QR-code zijn onderweg. Bevestig de e-mail om ze vast te zetten — check je spam als ze er niet zijn.",
+  "join.code.invalid.title": "Deze uitnodigingslink is ongeldig",
+  "join.code.invalid.body": "Hij is misschien al gebruikt of verlopen. Vraag een nieuwe link aan."
 }
