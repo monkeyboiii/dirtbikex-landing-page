@@ -63,7 +63,7 @@
 		{
 			"binding": "SUBSCRIBERS_DB",
 			"database_name": "dbx-subscribers",
-			"database_id": "32fe8ba2-6433-4b8e-be2e-af4647271e88"
+			"database_id": "f906ae03-0e7a-4c0d-b113-bb472a15f61b"
 		}
 	],
 	"r2_buckets": [
@@ -80,7 +80,7 @@
 		// if it doesn't exist, then paste the returned id here.
 		{
 			"binding": "RATELIMIT_KV",
-			"id": "eb95a24345d548efb72feb21244df875"
+			"id": "5a60263c332945d5ad8dcf21a433d029"
 		}
 	],
 	"env": {
