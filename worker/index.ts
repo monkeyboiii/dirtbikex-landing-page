@@ -21,7 +21,7 @@ interface Env extends PagesEnv {
  * from the Astro app and can't import `src/`. Replace both copies when the real
  * App Store ID lands; alternatively promote to an `APP_STORE_URL` env var.
  */
-const APP_STORE_URL = 'https://apps.apple.com/app/id0000000000';
+const APP_STORE_URL = 'https://apps.apple.com/app/id6765577701';
 
 interface Copy {
   ctaLabel: string;

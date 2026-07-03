@@ -1,6 +1,6 @@
-// App Store URL — placeholder until the real id is assigned by App Store Connect.
-// Replace the numeric id below with the real one when known.
-export const APP_STORE_URL = 'https://apps.apple.com/app/id0000000000';
+// App Store URL for the app (App Store numeric ID 6765577701). Link is dormant
+// (404 / "not available") until the app is publicly released, then lights up.
+export const APP_STORE_URL = 'https://apps.apple.com/app/id6765577701';
 
 // Forum origin, derived from the SITE_URL build var so prod and preview builds link
 // to the matching forum apex (forum.dirtbikex.com / forum.dirtbikechina.com).
