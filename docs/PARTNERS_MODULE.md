@@ -74,7 +74,9 @@ contract, not `sponsor-types.ts`.
 
 - **App‑side CTA.** The iOS Hub "Brand partnerships" entry → framing sheet →
   `openURL(.../sponsorship?utm_source=app&utm_medium=hub)` is an iOS change, not in this repo.
-  (Discussed; not built.)
+  **Built** in the iOS repo: the hub buy-stage hero tap opens `BrandPartnershipSheet`,
+  whose CTA opens this page (see that repo's `docs/SPONSOR_MODULE.md` → "Hero-tap
+  brand-partnership nudge"). Copy mirrors this page's `sponsorship.title`/`.body`.
 - **Dedicated inquiry form.** `POST /api/partner` reusing `join.ts`'s Resend + rate‑limit into a
   `partner_inquiries` D1 table + operator email — build only if `/contact` volume justifies it.
 - **More wall charts.** The roster‑occupancy bar is ported from the app's `SponsorRotationView`.
