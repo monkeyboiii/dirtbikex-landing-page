@@ -1,16 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { APP_STORE_URL, FORUM_BASE } from '../config';
-import type { SponsorSection } from '../lib/sponsor-types';
-
-// Sections rendered as strips (hero is rendered as a podium pool below).
-const STRIP_SECTIONS: SponsorSection[] = ['header', 'mid_with_text', 'bottom_icon'];
-const SECTION_TITLES: Record<SponsorSection, string> = {
-  header: 'Header',
-  hero: 'Hero',
-  mid_with_text: 'Featured',
-  bottom_icon: 'Supporters',
-};
 ---
 
 <BaseLayout title="Sponsors — DirtBikeX">
@@ -20,7 +10,7 @@ const SECTION_TITLES: Record<SponsorSection, string> = {
       The brands and individuals supporting the DirtBikeX community.
     </p>
 
-    <div id="sponsors-app" data-sections={JSON.stringify(STRIP_SECTIONS)} data-titles={JSON.stringify(SECTION_TITLES)} data-forum-base={FORUM_BASE}>
+    <div id="sponsors-app" data-forum-base={FORUM_BASE}>
       <p id="sponsors-loading" class="text-gray-500 italic">Loading sponsors…</p>
       <div id="sponsors-error" class="hidden text-amber-600 dark:text-amber-300">
         Couldn't load sponsors right now. Try again later.
@@ -43,29 +33,25 @@ const SECTION_TITLES: Record<SponsorSection, string> = {
   </section>
 
   <script>
-    // Live fetch from the Worker proxy. The Worker edge-caches 60s; we read
-    // through it on every page load.
+    // Live fetch through the Worker proxy (edge-cached 60s). Shape is sponsorhub's
+    // v5 /sponsors.json — a POSITIONLESS pool (no sections/podium). Canonical:
+    // infra/submodules/dirtbikex-sponsors/src/schemas/wire.ts (SponsorsResponse).
     type Rider = {
       username: string | null;
       label: string;
+      display_name: string | null;
       avatar_url: string | null;
       navigable: boolean;
-      brand_link_url?: string;
-    };
-    type Sponsor = {
-      id: string;
-      section: 'header' | 'hero' | 'mid_with_text' | 'bottom_icon';
-      logo_url?: string | null;
-      name?: string | null;
-      name_logo_url?: string | null;
-      photo_url?: string | null;
-      username?: string | null;
-      brand_link_url?: string | null;
+      kind: 'pass' | 'airtime';
+      slot_id: string;
     };
     type Payload = {
       version: number;
-      sponsors: Sponsor[];
-      sponsor_podium: { center: Rider; pool: Rider[] };
+      generated_at: string;
+      hero_image_url: string | null;
+      pool: Rider[];
+      sell_capacity?: number | null;
+      airtime_capacity?: number | null;
     };
 
     const root = document.getElementById('sponsors-app')!;
@@ -73,9 +59,6 @@ const SECTION_TITLES: Record<SponsorSection, string> = {
     const errorEl = document.getElementById('sponsors-error')!;
     const content = document.getElementById('sponsors-content')!;
     const empty = document.getElementById('sponsors-empty')!;
-    const stripSections = JSON.parse(root.dataset.sections!) as Sponsor['section'][];
-    const titles = JSON.parse(root.dataset.titles!) as Record<string, string>;
-
     const FORUM_BASE = root.dataset.forumBase!;
 
     function escapeHTML(s: string): string {
@@ -84,58 +67,53 @@ const SECTION_TITLES: Record<SponsorSection, string> = {
       );
     }
 
-    function avatarFor(s: Sponsor | Rider): string | null {
-      if ('photo_url' in s && s.photo_url) return s.photo_url;
-      if ('avatar_url' in s && s.avatar_url) return s.avatar_url;
-      if ('logo_url' in s && s.logo_url) return s.logo_url;
-      return null;
+    // Real, showable riders only — anonymous airtime placeholders (no name and no
+    // avatar) are skipped so the page never renders empty circles.
+    function showable(pool: Rider[]): Rider[] {
+      return pool.filter((r) => r.avatar_url || r.username);
     }
 
-    function nameFor(s: Sponsor): string {
-      return s.name || s.username || s.id;
+    function hrefFor(r: Rider): string | null {
+      return r.navigable && r.username ? `${FORUM_BASE}/u/${encodeURIComponent(r.username)}` : null;
     }
 
-    function hrefFor(s: { username?: string | null; brand_link_url?: string | null }): string | null {
-      if (s.brand_link_url) return s.brand_link_url;
-      if (s.username) return `${FORUM_BASE}/u/${encodeURIComponent(s.username)}`;
-      return null;
-    }
-
-    function renderItem(label: string, url: string | null, href: string | null): string {
-      const img = url
-        ? `<img src="${escapeHTML(url)}" alt="${escapeHTML(label)}" class="w-24 h-24 rounded-full object-cover mb-2" loading="lazy" />`
+    function riderCell(r: Rider): string {
+      const name = r.display_name || r.label || r.username || 'Sponsor';
+      const handle = r.display_name && r.label ? r.label : '';
+      const img = r.avatar_url
+        ? `<img src="${escapeHTML(r.avatar_url)}" alt="${escapeHTML(name)}" class="w-24 h-24 rounded-full object-cover mb-2" loading="lazy" />`
         : `<div class="w-24 h-24 rounded-full bg-gray-200 dark:bg-gray-700 mb-2"></div>`;
-      const inner = `${img}<span class="text-sm font-medium">${escapeHTML(label)}</span>`;
+      const inner =
+        `${img}<span class="text-sm font-medium">${escapeHTML(name)}</span>` +
+        (handle ? `<span class="text-xs text-gray-500">${escapeHTML(handle)}</span>` : '');
+      const href = hrefFor(r);
       return href
         ? `<li><a href="${escapeHTML(href)}" class="flex flex-col items-center text-center hover:opacity-80" target="_blank" rel="noopener noreferrer">${inner}</a></li>`
         : `<li class="flex flex-col items-center text-center">${inner}</li>`;
     }
 
-    function renderSection(section: Sponsor['section'], sponsors: Sponsor[]): string {
-      const items = sponsors.filter((s) => s.section === section);
-      if (items.length === 0) return '';
-      const cells = items
-        .map((s) => renderItem(nameFor(s), avatarFor(s), hrefFor(s)))
-        .join('');
-      return `
-        <div class="mb-12">
-          <h2 class="text-2xl font-semibold mb-6">${escapeHTML(titles[section])}</h2>
-          <ul class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">${cells}</ul>
-        </div>
-      `;
-    }
-
-    function renderPodium(podium: Payload['sponsor_podium']): string {
-      const riders = [podium.center, ...podium.pool];
-      const cells = riders
-        .map((r) => renderItem(r.label, r.avatar_url, hrefFor(r)))
-        .join('');
-      return `
-        <div class="mb-12">
-          <h2 class="text-2xl font-semibold mb-6">${escapeHTML(titles.hero)}</h2>
-          <ul class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">${cells}</ul>
-        </div>
-      `;
+    // Occupancy bar (used vs capacity), built via the DOM so bar width is a JS
+    // `.style` property, never an inline HTML style attribute (CSP-safe).
+    function occupancyRow(title: string, used: number, capacity: number | null | undefined): HTMLElement {
+      const wrap = document.createElement('div');
+      wrap.className = 'mb-4';
+      const cap = capacity && capacity > 0 ? capacity : null;
+      const label = document.createElement('div');
+      label.className = 'flex justify-between text-sm mb-1';
+      label.innerHTML =
+        `<span class="font-medium">${escapeHTML(title)}</span>` +
+        `<span class="text-gray-500 tabular-nums">${cap ? `${used} / ${cap}` : String(used)}</span>`;
+      wrap.appendChild(label);
+      if (cap) {
+        const track = document.createElement('div');
+        track.className = 'h-3 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden';
+        const fill = document.createElement('div');
+        fill.className = 'h-full rounded-full bg-orange-500';
+        fill.style.width = `${Math.min(100, Math.round((Math.min(used, cap) / cap) * 100))}%`;
+        track.appendChild(fill);
+        wrap.appendChild(track);
+      }
+      return wrap;
     }
 
     async function load() {
@@ -144,15 +122,30 @@ const SECTION_TITLES: Record<SponsorSection, string> = {
         if (!resp.ok) throw new Error(`status ${resp.status}`);
         const payload = (await resp.json()) as Payload;
         loading.classList.add('hidden');
-        const html = [
-          renderPodium(payload.sponsor_podium),
-          ...stripSections.map((s) => renderSection(s, payload.sponsors)),
-        ].join('');
-        if (!html.trim() && payload.sponsor_podium.pool.length === 0) {
+
+        const pool = Array.isArray(payload.pool) ? payload.pool : [];
+        const riders = showable(pool);
+        if (riders.length === 0) {
           empty.classList.remove('hidden');
           return;
         }
-        content.innerHTML = html;
+
+        // Roster of faces.
+        content.innerHTML = `<ul class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6 mb-12">${riders
+          .map(riderCell)
+          .join('')}</ul>`;
+
+        // "Spots taken" occupancy — join-while-you-can. Counts include every live
+        // slot of each kind (matching the app's Settings → Sponsors bars).
+        const passUsed = pool.filter((r) => r.kind === 'pass').length;
+        const airtimeUsed = pool.filter((r) => r.kind === 'airtime').length;
+        const occ = document.createElement('div');
+        occ.className = 'border-t pt-8';
+        occ.innerHTML = '<h2 class="text-xl font-semibold mb-4">Roster</h2>';
+        occ.appendChild(occupancyRow('Featured passes', passUsed, payload.sell_capacity));
+        occ.appendChild(occupancyRow('Airtime cards', airtimeUsed, payload.airtime_capacity));
+        content.appendChild(occ);
+
         content.classList.remove('hidden');
       } catch (err) {
         console.error('sponsors:load_failed', err);

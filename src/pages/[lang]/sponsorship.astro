@@ -1,4 +1,7 @@
 ---
+// Locale mirror of /sponsorship — brand-partnership pitch. Copy resolves via
+// t(); keys missing from a locale fall back to EN (a B2B page is EN-first by
+// design). See docs/PARTNERS_MODULE.md.
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getLangFromUrl, useTranslations, localizedPath } from '../../i18n/utils';
 import { nonEnLocales } from '../../i18n/ui';
@@ -12,21 +15,73 @@ const t = useTranslations(lang);
 ---
 
 <BaseLayout title={`${t('sponsorship.title')} — DirtBikeX`} description={t('sponsorship.body')}>
+  <!-- Hero -->
   <section class="container-narrow py-24 text-center">
     <p class="t-eyebrow">{t('sponsorship.eyebrow')}</p>
     <h1 class="t-display-3 mt-4">{t('sponsorship.title')}</h1>
     <p class="t-body-lg mt-6 mx-auto max-w-prose" style="color: var(--fg-secondary);">
       {t('sponsorship.body')}
     </p>
-    <p
-      class="inline-flex items-center gap-2 mt-8 px-4 py-2 rounded-full t-mono-sm uppercase"
-      style="background: var(--brand-soft); color: var(--brand); border: 1px solid color-mix(in oklab, var(--brand) 30%, transparent); letter-spacing: 0.1em;"
-    >
-      {t('sponsorship.coming')}
-    </p>
     <div class="mt-10 flex justify-center gap-3 flex-wrap">
       <a href={localizedPath(lang, '/contact')} class="btn btn--primary btn--lg">{t('sponsorship.cta.contact')}</a>
       <a href={localizedPath(lang, '/sponsors')} class="btn btn--secondary btn--lg">{t('sponsorship.cta.wall')}</a>
+    </div>
+  </section>
+
+  <!-- The offer -->
+  <section class="container-narrow pb-16 text-center">
+    <h2 class="text-2xl sm:text-3xl font-bold">{t('sponsorship.offer.title')}</h2>
+    <p class="t-body-lg mt-4 mx-auto max-w-prose" style="color: var(--fg-secondary);">
+      {t('sponsorship.offer.body')}
+    </p>
+  </section>
+
+  <!-- The exchange -->
+  <section class="container-narrow pb-16">
+    <div class="grid gap-6 sm:grid-cols-2">
+      <div class="rounded-2xl border border-gray-200 dark:border-gray-800 p-6">
+        <h3 class="font-semibold mb-3">{t('sponsorship.give.title')}</h3>
+        <ul class="space-y-2" style="color: var(--fg-secondary);">
+          <li>{t('sponsorship.give.1')}</li>
+          <li>{t('sponsorship.give.2')}</li>
+          <li>{t('sponsorship.give.3')}</li>
+        </ul>
+      </div>
+      <div class="rounded-2xl border p-6" style="border-color: color-mix(in oklab, var(--brand) 35%, transparent); background: var(--brand-soft);">
+        <h3 class="font-semibold mb-3" style="color: var(--brand);">{t('sponsorship.get.title')}</h3>
+        <ul class="space-y-2">
+          <li>{t('sponsorship.get.1')}</li>
+          <li>{t('sponsorship.get.2')}</li>
+          <li>{t('sponsorship.get.3')}</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section class="container-narrow pb-24">
+    <h2 class="text-2xl sm:text-3xl font-bold text-center">{t('sponsorship.how.title')}</h2>
+    <ol class="grid gap-6 sm:grid-cols-3 mt-8">
+      <li class="rounded-2xl border border-gray-200 dark:border-gray-800 p-6">
+        <p class="t-mono-sm" style="color: var(--brand);">1</p>
+        <h3 class="font-semibold mt-2">{t('sponsorship.how.1.title')}</h3>
+        <p class="mt-1 text-sm" style="color: var(--fg-secondary);">{t('sponsorship.how.1.body')}</p>
+      </li>
+      <li class="rounded-2xl border border-gray-200 dark:border-gray-800 p-6">
+        <p class="t-mono-sm" style="color: var(--brand);">2</p>
+        <h3 class="font-semibold mt-2">{t('sponsorship.how.2.title')}</h3>
+        <p class="mt-1 text-sm" style="color: var(--fg-secondary);">{t('sponsorship.how.2.body')}</p>
+      </li>
+      <li class="rounded-2xl border border-gray-200 dark:border-gray-800 p-6">
+        <p class="t-mono-sm" style="color: var(--brand);">3</p>
+        <h3 class="font-semibold mt-2">{t('sponsorship.how.3.title')}</h3>
+        <p class="mt-1 text-sm" style="color: var(--fg-secondary);">{t('sponsorship.how.3.body')}</p>
+      </li>
+    </ol>
+
+    <div class="mt-10 text-center">
+      <a href={localizedPath(lang, '/contact')} class="btn btn--primary btn--lg">{t('sponsorship.cta.contact')}</a>
+      <p class="mt-6 mx-auto max-w-prose text-sm" style="color: var(--fg-secondary);">{t('sponsorship.fit.note')}</p>
     </div>
   </section>
 </BaseLayout>
