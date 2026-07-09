@@ -28,7 +28,7 @@ GET|POST /api/unsubscribe?token  ─► D1 →'unsubscribed'  (POST = RFC 8058 o
 | Rate limit (reused) | [worker/_lib/rateLimit.ts](../worker/_lib/rateLimit.ts) | `rateLimitConsume(kv,key,limit,window)` — shared with the SMS gateway |
 | D1 schema | [0001_subscribers.sql](../migrations/0001_subscribers.sql), [0002_special_invites.sql](../migrations/0002_special_invites.sql) | `subscribers`; `invite_kinds` + `invite_codes` |
 | Blank invite cards | [templates/](../templates/) → R2 bucket `dbx-qr` (`QR_BUCKET`) | `template/<kind>/<locale>.png`, en fallback; rebuild with [scripts/make_templates.py](../scripts/make_templates.py), push with `admin.mjs upload-template` (no deploy) |
-| Admin CLI | [scripts/admin.mjs](../scripts/admin.mjs) | `mint` / `codes` / `subs` / `kinds` / `upload-template` over wrangler (reuses your login) |
+| Admin CLI | [scripts/admin.mjs](../scripts/admin.mjs) | `mint` / `codes` / `sql` / `subs` / `kinds` / `upload-template` over wrangler (reuses your login) |
 | Bindings / vars / routes | [wrangler.jsonc](../wrangler.jsonc) | `SUBSCRIBERS_DB`, `QR_BUCKET`, `run_worker_first`, `JOIN_*` + `FORUM_INVITE_*` / `FORUM_GROUP_*` vars (prod + preview) |
 | Cache headers | [public/_headers](../public/_headers) | `/join/confirm` + `/api/unsubscribe` → `no-store` |
 
@@ -215,8 +215,9 @@ pnpm build:dev  && pnx wrangler deploy --env preview
 
 # Day-to-day admin (admin.mjs reuses your wrangler login; append --env preview for preview).
 node scripts/admin.mjs subs --list                              # counts + confirmed emails
-node scripts/admin.mjs mint --kind holeshot_crew --campaign alice --count 5   # → prints /join?c= links
-node scripts/admin.mjs codes --campaign alice                   # redemption status
+node scripts/admin.mjs mint --kind holeshot_crew --campaign alice --count 5   # CREATES codes, prints /join?c= links
+node scripts/admin.mjs codes --campaign alice                   # LISTS existing codes + links + redemption status
+node scripts/admin.mjs sql "SELECT * FROM invite_codes"         # read-only D1 query (SELECT/WITH/PRAGMA/EXPLAIN)
 node scripts/admin.mjs kinds set --kind plain --url "https://www.dirtbikex.com/s/i/<key>?lang=auto"
 node scripts/admin.mjs upload-template ./templates              # <kind>/<locale>.png → R2
 ```
@@ -239,6 +240,8 @@ redemptions immediately; only worker *code* changes need a redeploy.
 - **Email never arrives** — pre-verification: Resend domain unverified → sends rejected; post: check spam, and that DKIM/DMARC pass (the strict footer + `List-Unsubscribe` help inbox placement).
 - **429 `rate_limited`** — per-email 3/day or per-IP 10/hr hit; or test from a fresh address.
 - **`?c=` link shows "isn't valid" / `409 code_invalid`** — code used, expired, or unknown. `admin.mjs codes --campaign …` shows `used_count`/`expires`. Mint a fresh one.
+- **`admin.mjs codes` prints an empty table** — no codes match that filter in that env. `codes` only *lists*; `mint` is what creates a code and prints its `/join?c=` link. Preview and prod are **separate D1 databases**, so a code minted without `--env preview` is invisible to preview. Inspect raw rows with `admin.mjs sql "SELECT * FROM invite_codes"`.
+- **`wrangler tail` shows nothing** — omit the positional worker name: `wrangler tail --env preview` resolves `dirtbikex-landing-page-preview` from config, whereas `wrangler tail dirtbikex-landing-page --env preview` tails the *prod* worker. Tail also streams only while requests arrive, and it works on the free plan — it is not gated by Workers Paid (only card compositing is).
 - **Invite email has no card attached** — no R2 object for that kind/locale and no `template/<kind>/en.png` fallback, or compositing threw. `admin.mjs upload-template …`; worker logs `join:card_compose_failed` (`sentinel_not_found` = the R2 object was not produced by `scripts/make_templates.py`; `qr_too_small` = URL too long for the tile). The link still sends, the attachment doesn't.
 - **`/api/join` → 502 `mint_failed`** — Discourse refused. `wrangler tail` shows which `mintInvite:<reason>` fired: `misconfigured` (no `FORUM_API_KEY`), `rejected` (key lacks `invites#create`, or the redeemer already has a forum account → `Invite::UserExists`), `group_not_attached` (the `FORUM_GROUP_*` id does not exist on **that** forum — Discourse returns 200 with `groups: []` rather than erroring). The code is released; the user can retry.
 - **`/api/join` → 503 on a group kind** — `FORUM_GROUP_TRACK_STEWARDS` / `FORUM_GROUP_HOLESHOT_CREW` unset for that env. Logs `join:group_unconfigured`.

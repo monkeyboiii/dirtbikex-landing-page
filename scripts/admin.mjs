@@ -4,12 +4,13 @@
 // See docs/JOIN_MODULE.md "Admin (admin.mjs)".
 //
 //   node scripts/admin.mjs mint --kind holeshot_crew --campaign alice --count 5 [--expires-days 21]
-//   node scripts/admin.mjs codes [--kind K] [--campaign C]
+//   node scripts/admin.mjs codes [--kind K] [--campaign C]   # lists codes + their /join?c= links
+//   node scripts/admin.mjs sql "SELECT * FROM invite_codes"   # read-only D1 query
 //   node scripts/admin.mjs subs [--list]
 //   node scripts/admin.mjs kinds
 //   node scripts/admin.mjs kinds set --kind plain --url "https://…/s/i/<key>?lang=auto" --label "DirtBikeX"
 //   node scripts/admin.mjs upload-template ./templates   # walks ./templates/<kind>/<locale>.png → R2
-//   (append --env preview to target the preview Worker env; the DB is shared.)
+//   (append --env preview to target the preview Worker env + its own D1 database.)
 
 import { execFileSync } from 'node:child_process';
 import crypto from 'node:crypto';
@@ -87,9 +88,29 @@ function codes() {
   if (opts.campaign) where.push(`campaign = ${sqlStr(opts.campaign)}`);
   const rows = d1(
     `SELECT code, kind, campaign, used_count || '/' || max_uses AS uses, ` +
-    `COALESCE(redeemed_email,'') AS redeemed, COALESCE(expires_at,'never') AS expires ` +
+    `COALESCE(redeemed_email,'') AS redeemed, COALESCE(redeemed_at,'') AS redeemed_at, ` +
+    `COALESCE(expires_at,'never') AS expires ` +
     `FROM invite_codes ${where.length ? 'WHERE ' + where.join(' AND ') : ''} ORDER BY created_at DESC`,
   );
+  if (!rows.length) {
+    const filter = where.length ? ` matching ${where.join(' AND ')}` : '';
+    const envArg = ENV_ARGS.length ? ` ${ENV_ARGS.join(' ')}` : '';
+    console.log(`No codes${filter}.`);
+    console.log(`Mint one:  node scripts/admin.mjs mint --kind <kind> --campaign <name>${envArg}`);
+    return;
+  }
+  const base = marketingBase();
+  console.table(rows.map((r) => ({ ...r, link: `${base}/join?c=${r.code}` })));
+}
+
+function sql() {
+  const query = positional.join(' ').trim();
+  if (!query) die('usage: sql "SELECT * FROM invite_codes"');
+  if (!/^\s*(select|with|pragma|explain)\b/i.test(query)) {
+    die('sql is read-only — start with SELECT / WITH / PRAGMA / EXPLAIN');
+  }
+  const rows = d1(query);
+  if (!rows.length) { console.log('(0 rows)'); return; }
   console.table(rows);
 }
 
@@ -135,6 +156,6 @@ function uploadTemplate() {
   console.log(`${n} template(s) uploaded to r2://${BUCKET}/template/<kind>/<locale>.png`);
 }
 
-const COMMANDS = { mint, codes, subs, kinds, 'upload-template': uploadTemplate };
+const COMMANDS = { mint, codes, sql, subs, kinds, 'upload-template': uploadTemplate };
 if (!COMMANDS[cmd]) die(`commands: ${Object.keys(COMMANDS).join(', ')} (append --env preview to target preview)`);
 COMMANDS[cmd]();
