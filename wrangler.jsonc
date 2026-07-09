@@ -7,10 +7,10 @@
 // Deploy prod:  pnpm build:prod && pnpm wrangler deploy
 // Deploy prev:  pnpm build:dev && pnpm wrangler deploy --env preview
 //
-// Runtime env vars consumed by `worker/_lib/inviteLookup.ts`:
+// Runtime env vars consumed by `worker/_lib/inviteLookup.ts` + `worker/_lib/forumInvite.ts`:
 //   - FORUM_BASE             (public) Discourse origin
 //   - FORUM_INVITE_QUERY_ID  (public) Data Explorer query ID for invite lookup
-//   - FORUM_API_USERNAME     (public) Discourse Api-Username header, defaults to "system"
+//   - FORUM_API_USERNAME     (public) Discourse Api-Username — the operator the key is bound to
 //   - FORUM_API_KEY          (SECRET) set via `wrangler secret put FORUM_API_KEY [--env preview]`
 //
 // /api/logto/sms (Logto HTTP SMS gateway) — see docs/sms-gateway.md for the
@@ -42,7 +42,12 @@
 	"vars": {
 		"FORUM_BASE": "https://forum.dirtbikex.com",
 		"FORUM_INVITE_QUERY_ID": "1",
-		"FORUM_API_USERNAME": "system",
+		// Invite lookup + minting share one granular key bound to this operator.
+		// FORUM_API_KEY is a SECRET — `wrangler secret put FORUM_API_KEY`. Group ids are
+		// per-forum: the same number means a different group on the preview forum.
+		"FORUM_API_USERNAME": "rubio",
+		"FORUM_GROUP_TRACK_STEWARDS": "41",
+		"FORUM_GROUP_HOLESHOT_CREW": "40",
 		"SPONSOR_API_BASE": "https://api.dirtbikex.com",
 		"LOGTO_SMS_ALLOWED_COUNTRIES": "CN,US",
 		"ALIYUN_REGION": "cn-hangzhou",
@@ -67,7 +72,7 @@
 		}
 	],
 	"r2_buckets": [
-		// `wrangler r2 bucket create dbx-qr` — QR images at qr/<kind>/<locale>.png.
+		// `wrangler r2 bucket create dbx-qr` — blank invite cards at template/<kind>/<locale>.png.
 		{
 			"binding": "QR_BUCKET",
 			"bucket_name": "dbx-qr"
@@ -89,7 +94,9 @@
 			"vars": {
 				"FORUM_BASE": "https://forum.dirtbikechina.com",
 				"FORUM_INVITE_QUERY_ID": "2",
-				"FORUM_API_USERNAME": "system",
+				"FORUM_API_USERNAME": "calvin",
+				"FORUM_GROUP_TRACK_STEWARDS": "43",
+				"FORUM_GROUP_HOLESHOT_CREW": "41",
 				"SPONSOR_API_BASE": "https://api.dirtbikechina.com",
 				"LOGTO_SMS_ALLOWED_COUNTRIES": "CN,US",
 				"LOGTO_SMS_GLOBAL_DAILY_CAP": "20",

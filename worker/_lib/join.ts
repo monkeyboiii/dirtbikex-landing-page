@@ -10,13 +10,21 @@
 //
 // Special influencer invites layer on top (migrations/0002_special_invites.sql):
 //   POST /api/join with { code }  → claim a single-use invite_code (race-safe via
-//     UPDATE…RETURNING), then send the invite email: per-kind QR (R2) + invite link
-//     + confirm CTA. A confirmed subscriber still gets the QR; never downgraded.
+//     UPDATE…RETURNING), mint the Discourse invite, then send the invite email:
+//     composited invite card + invite link + confirm CTA. A confirmed subscriber
+//     still gets the card; never downgraded.
 //   GET  /api/join/code?c=<code>  → precheck (valid/kind/label) for the page.
 // See docs/JOIN_MODULE.md "Special invites".
 
 import type { PagesEnv } from './types';
+import { mintInvite } from './forumInvite';
+import { composeCard } from './qrCard';
 import { rateLimitConsume } from './rateLimit';
+
+const GROUP_VAR: Record<string, 'FORUM_GROUP_TRACK_STEWARDS' | 'FORUM_GROUP_HOLESHOT_CREW' | undefined> = {
+  track_stewards: 'FORUM_GROUP_TRACK_STEWARDS',
+  holeshot_crew: 'FORUM_GROUP_HOLESHOT_CREW',
+};
 
 const LOCALES = [
   'en', 'zh-CN', 'zh-TW', 'ja', 'ko', 'de', 'it', 'fr', 'es', 'ar',
@@ -83,7 +91,7 @@ export async function handleJoinSubmit(request: Request, env: PagesEnv): Promise
   }
 
   // Special influencer invite: a ?c=<code> redemption takes a different path
-  // (claim the code, send QR + invite link). A confirmed subscriber still gets it.
+  // (claim the code, send card + invite link). A confirmed subscriber still gets it.
   if (code) return redeemInvite(env, email, locale, code);
 
   const existing = await env.SUBSCRIBERS_DB
@@ -205,8 +213,26 @@ async function redeemInvite(env: PagesEnv, email: string, locale: string, code: 
   }
 
   const cfg = await getKindConfig(env, kind);
-  const qr = await fetchQrBase64(env, kind, locale);
-  if (!(await sendInviteEmail(env, email, token, kind, cfg, qr))) {
+  const groupVar = GROUP_VAR[kind];
+  let inviteUrl = cfg.inviteUrl;
+  if (groupVar) {
+    const groupId = env[groupVar];
+    if (!groupId) {
+      await releaseCode(env, code);
+      console.error('join:group_unconfigured', { kind, var: groupVar });
+      return json(503, { error: 'service_misconfigured' });
+    }
+    const minted = await mintInvite(env, email, groupId, cfg.label, code);
+    if (!minted.ok) {
+      await releaseCode(env, code);
+      console.error('join:mint_failed', { kind, reason: minted.reason });
+      return json(502, { error: 'mint_failed' });
+    }
+    inviteUrl = `${(env.MARKETING_BASE ?? '').replace(/\/$/, '')}/s/i/${minted.inviteKey}?lang=auto`;
+  }
+
+  const card = await fetchCardBase64(env, kind, locale, inviteUrl);
+  if (!(await sendInviteEmail(env, email, token, kind, { label: cfg.label, inviteUrl }, card))) {
     await releaseCode(env, code);
     console.error('join:invite_send_failed', { kind });
     return json(502, { error: 'send_failed' });
@@ -229,21 +255,28 @@ async function releaseCode(env: PagesEnv, code: string): Promise<void> {
     .run();
 }
 
-/** Locale-matched QR from R2, falling back to en. Null if neither is present. */
-async function fetchQrBase64(env: PagesEnv, kind: string, locale: string): Promise<string | null> {
-  if (!env.QR_BUCKET) return null;
+/** Locale-matched blank card from R2 with `url` composited in, falling back to en. */
+async function fetchCardBase64(
+  env: PagesEnv, kind: string, locale: string, url: string,
+): Promise<string | null> {
+  if (!env.QR_BUCKET || !url) return null;
   const keys = locale && locale !== 'en'
-    ? [`qr/${kind}/${locale}.png`, `qr/${kind}/en.png`]
-    : [`qr/${kind}/en.png`];
+    ? [`template/${kind}/${locale}.png`, `template/${kind}/en.png`]
+    : [`template/${kind}/en.png`];
   for (const key of keys) {
     const obj = await env.QR_BUCKET.get(key);
-    if (obj) return arrayBufferToBase64(await obj.arrayBuffer());
+    if (!obj) continue;
+    try {
+      return bytesToBase64(composeCard(await obj.arrayBuffer(), url));
+    } catch (err) {
+      console.error('join:card_compose_failed', { key, err: String(err) });
+      return null;
+    }
   }
   return null;
 }
 
-function arrayBufferToBase64(buf: ArrayBuffer): string {
-  const bytes = new Uint8Array(buf);
+function bytesToBase64(bytes: Uint8Array): string {
   let binary = '';
   for (let i = 0; i < bytes.length; i += 0x8000) {
     binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
@@ -253,7 +286,7 @@ function arrayBufferToBase64(buf: ArrayBuffer): string {
 
 async function sendInviteEmail(
   env: PagesEnv, email: string, token: string, kind: string,
-  cfg: { label: string; inviteUrl: string }, qrBase64: string | null,
+  cfg: { label: string; inviteUrl: string }, cardBase64: string | null,
 ): Promise<boolean> {
   const apiKey = env.RESEND_API_KEY;
   const from = env.JOIN_FROM_EMAIL;
@@ -273,11 +306,11 @@ async function sendInviteEmail(
     ? `<p style="margin:24px 0;"><a href="${cfg.inviteUrl}" style="background:#ed6b00;color:#fff;text-decoration:none;padding:12px 22px;border-radius:8px;font-weight:600;display:inline-block;">Open your invite</a></p>
 <p style="font-size:13px;color:#666;">Or paste this link:<br><a href="${cfg.inviteUrl}">${escapeHtml(cfg.inviteUrl)}</a></p>`
     : '';
-  const qrLine = qrBase64 ? '<p>Your personal QR code is attached — scan it to join.</p>' : '';
+  const cardLine = cardBase64 ? '<p>Your personal invite card is attached — scan the QR to join.</p>' : '';
 
   const html = `<!DOCTYPE html><html><body style="font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.55;color:#222;margin:0;padding:24px;">
 <p>Here's your <strong>${label}</strong> invite to <strong>DirtBikeX</strong> — the dirt-bike community app, live on the App Store.</p>
-${qrLine}
+${cardLine}
 ${inviteBtn}
 <p style="font-size:13px;color:#666;">Want early-supporter perks and new-feature first looks too? <a href="${confirmUrl}">Confirm your email</a>.</p>
 <hr style="border:none;border-top:1px solid #ddd;margin:24px 0;">
@@ -285,7 +318,7 @@ ${inviteBtn}
 </body></html>`;
 
   const text = `Here's your ${cfg.label} invite to DirtBikeX — the dirt-bike community app, live on the App Store.
-${cfg.inviteUrl ? `\nOpen your invite: ${cfg.inviteUrl}\n` : ''}${qrBase64 ? 'Your personal QR code is attached — scan it to join.\n' : ''}
+${cfg.inviteUrl ? `\nOpen your invite: ${cfg.inviteUrl}\n` : ''}${cardBase64 ? 'Your personal invite card is attached — scan the QR to join.\n' : ''}
 Want perks and first looks too? Confirm your email: ${confirmUrl}
 
 —
@@ -305,7 +338,7 @@ Unsubscribe: ${unsubUrl}`;
         html,
         text,
         ...(replyTo ? { reply_to: replyTo } : {}),
-        ...(qrBase64 ? { attachments: [{ filename: `dirtbikex-${kind}.png`, content: qrBase64 }] } : {}),
+        ...(cardBase64 ? { attachments: [{ filename: `dirtbikex-${kind}.png`, content: cardBase64 }] } : {}),
         headers: {
           'List-Unsubscribe': listUnsub,
           'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',

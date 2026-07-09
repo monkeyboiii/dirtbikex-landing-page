@@ -8,7 +8,7 @@
 //   node scripts/admin.mjs subs [--list]
 //   node scripts/admin.mjs kinds
 //   node scripts/admin.mjs kinds set --kind plain --url "https://…/s/i/<key>?lang=auto" --label "DirtBikeX"
-//   node scripts/admin.mjs upload-qr ./qr          # walks ./qr/<kind>/<locale>.png → R2
+//   node scripts/admin.mjs upload-template ./templates   # walks ./templates/<kind>/<locale>.png → R2
 //   (append --env preview to target the preview Worker env; the DB is shared.)
 
 import { execFileSync } from 'node:child_process';
@@ -115,9 +115,9 @@ function kinds() {
   console.table(d1('SELECT kind, label, invite_url, updated_at FROM invite_kinds ORDER BY kind'));
 }
 
-function uploadQr() {
+function uploadTemplate() {
   const dir = positional[0];
-  if (!dir || !fs.existsSync(dir)) die('usage: upload-qr <dir>  (expects <dir>/<kind>/<locale>.png)');
+  if (!dir || !fs.existsSync(dir)) die('usage: upload-template <dir>  (expects <dir>/<kind>/<locale>.png)');
   let n = 0;
   for (const kind of KINDS) {
     const kdir = path.join(dir, kind);
@@ -125,16 +125,16 @@ function uploadQr() {
     for (const file of fs.readdirSync(kdir)) {
       if (!file.endsWith('.png')) continue;
       const local = path.join(kdir, file);
-      const key = `qr/${kind}/${file}`;
+      const key = `template/${kind}/${file}`;
       execFileSync('npx', ['-y', 'wrangler@4', 'r2', 'object', 'put', `${BUCKET}/${key}`, '--file', local, '--remote'],
         { cwd: ROOT, stdio: 'inherit' });
       console.log(`  ↑ ${key}`);
       n++;
     }
   }
-  console.log(`${n} QR file(s) uploaded to r2://${BUCKET}/qr/<kind>/<locale>.png`);
+  console.log(`${n} template(s) uploaded to r2://${BUCKET}/template/<kind>/<locale>.png`);
 }
 
-const COMMANDS = { mint, codes, subs, kinds, 'upload-qr': uploadQr };
+const COMMANDS = { mint, codes, subs, kinds, 'upload-template': uploadTemplate };
 if (!COMMANDS[cmd]) die(`commands: ${Object.keys(COMMANDS).join(', ')} (append --env preview to target preview)`);
 COMMANDS[cmd]();

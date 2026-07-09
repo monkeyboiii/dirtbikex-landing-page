@@ -18,10 +18,14 @@ export interface PagesEnv {
   FORUM_BASE?: string;
   /** Numeric ID of the Discourse Data Explorer query that returns the invite shape below. */
   FORUM_INVITE_QUERY_ID?: string;
-  /** Discourse `Api-Username` header. Defaults to `system`. */
+  /** Discourse `Api-Username` — the operator the key is bound to, e.g. `rubio` (prod) / `calvin` (preview). */
   FORUM_API_USERNAME?: string;
-  /** Discourse `Api-Key` header. Secret — wired via the Pages dashboard, not in wrangler.jsonc. */
+  /** Discourse `Api-Key`, granular: `invites#create` + `data_explorer:run_queries`. Secret. */
   FORUM_API_KEY?: string;
+  /** Discourse group id for `track_stewards` invites — `41` (prod) / `43` (preview). */
+  FORUM_GROUP_TRACK_STEWARDS?: string;
+  /** Discourse group id for `holeshot_crew` invites — `40` (prod) / `41` (preview). */
+  FORUM_GROUP_HOLESHOT_CREW?: string;
   /** sponsorhub edge — e.g. `https://api.dirtbikechina.com` (dev) / `https://api.dirtbikex.com` (prod). */
   SPONSOR_API_BASE?: string;
   /** KV binding for /api/logto/sms rate-limiting. Created via `wrangler kv namespace create` per env. */
@@ -40,7 +44,7 @@ export interface PagesEnv {
   JOIN_ORG_ADDRESS?: string;
   /** Public marketing origin for absolute confirm/unsubscribe links, e.g. `https://www.dirtbikex.com`. */
   MARKETING_BASE?: string;
-  /** R2 bucket holding QR images at `qr/<kind>/<locale>.png`. `wrangler r2 bucket create dbx-qr`. */
+  /** R2 bucket holding blank invite cards at `template/<kind>/<locale>.png`. `wrangler r2 bucket create dbx-qr`. */
   QR_BUCKET?: R2Bucket;
 
   // --- /api/logto/sms — Logto HTTP SMS connector gateway. See docs/sms-gateway.md.
