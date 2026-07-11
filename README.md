@@ -17,7 +17,7 @@ FORUM_API_USERNAME=system
 FORUM_API_KEY=<discourse-api-key>
 ```
 
-`FORUM_API_KEY` is a secret — never commit it. The other three are mirrored from [wrangler.jsonc](wrangler.jsonc) for parity with deployed environments. For the full env surface (sponsor CF Access tokens, Logto SMS creds, `RATELIMIT_KV`) see [wrangler.jsonc](wrangler.jsonc) and [docs/sms-gateway.md](docs/sms-gateway.md).
+`FORUM_API_KEY` is a secret — never commit it. The other three are mirrored from [wrangler.jsonc](wrangler.jsonc) for parity with deployed environments. For the full env surface (Logto SMS creds, `RATELIMIT_KV`, `SPONSOR_API_BASE`) see [wrangler.jsonc](wrangler.jsonc) and [docs/sms-gateway.md](docs/sms-gateway.md).
 
 ---
 
@@ -76,8 +76,8 @@ pnpm wrangler tail --env preview      # preview
 
 | Path | Role |
 | --- | --- |
-| [worker/index.ts](worker/index.ts) | Worker entrypoint: routes `/s/i/:key`, `/s/u/:id`, `/api/forum/*`, `/api/proxy/*`, `/admin/uploads/*`, `/sponsors/finalize/*`, `/s/g/*`, `/api/logto/sms`; everything else falls through to `ASSETS`. |
-| [worker/_lib/](worker/_lib/) | Discourse lookup, share-landing renderer, SMS gateway, finalize/claim, admin proxy, types (pure code, no Astro imports). |
+| [worker/index.ts](worker/index.ts) | Worker entrypoint: routes `/s/i/:key`, `/s/u/:id`, `/s/e/:id`, `/api/forum/*`, `/api/proxy/sponsors`, `/api/proxy/leaderboard/*`, `/api/resolve/shortlink`, `/api/logto/sms`, `/api/join*`, `/join/confirm`, `/api/unsubscribe`; everything else falls through to `ASSETS`. |
+| [worker/_lib/](worker/_lib/) | Discourse lookup, share-landing renderer, SMS gateway, sponsor/leaderboard edge proxy, join waitlist + QR card compositing, shortlink resolver, types (pure code, no Astro imports). |
 | [src/pages/](src/pages/) | Astro routes: `/` (en default, no prefix) and `src/pages/[lang]/` for all 20 non-EN locales; legal MDX pages; sponsors/sponsorship/founders/contact/admin. |
 | [src/i18n/ui.ts](src/i18n/ui.ts) | Locale registry (`languages` map, `appLocales`); per-locale JSON in `src/i18n/locales/`. |
 | [src/components/](src/components/) | UI components (14 files: Header, Hero, Features, FAQ, Footer, LangSwitcher, SponsorsWall, etc.). |

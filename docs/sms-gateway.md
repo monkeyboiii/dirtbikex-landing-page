@@ -8,6 +8,8 @@ Engineer orientation: read this before touching `worker/_lib/logtoSms.ts` or its
 
 ## Status
 
+> **NOT IN USE (as of 2026-07-11).** The gateway has never been wired into the live Logto tenant and has had **no end-to-end test** (no real OTP has been sent through it). Treat everything below as built-but-unverified until the operator checklist completes and an E2E send is confirmed per country.
+
 Code (worker side) is complete; secrets + DNS + Logto admin + Brevo steps below are operator tasks.
 
 - [x] Worker handler, phone normalization, quota stack, Aliyun + AWS providers, dispatch in `index.ts`.
@@ -29,7 +31,7 @@ Code (worker side) is complete; secrets + DNS + Logto admin + Brevo steps below 
 2. **KV sliding-window quota, not Durable Objects.** Seven buckets (phone-min, ip-10m, phone-day, ip-day, country-day, provider-day, global-day) each one `rateLimitConsume()` call from [`worker/_lib/rateLimit.ts`](../worker/_lib/rateLimit.ts). Daily buckets are keyed by UTC `YYYYMMDD` so all colos roll over together. KV cross-colo lag can leak ~1–2 sends past a cap; provider-side cost caps are the real backstop.
 3. **Phone-only users get a synthetic `<msisdn>@phone.dirtbikex.com` email** so Discourse's `users.email NOT NULL` constraint is satisfied. The subdomain has an RFC 7505 null MX (`MX 0 .`); Brevo additionally suppresses the domain so non-deliverability never inflates the sender's bounce rate. Discourse email features for these users (welcome, digests, notifications) silently no-op — see [Concerns](#concerns).
 4. **Handcrafted E.164 parsing for CN/US only.** `libphonenumber-js/min` is ~50 KB and overkill for two countries with crisp formats. Adding a country is documented below and stays under ~10 lines.
-5. **Fail-closed when `RATELIMIT_KV` is unbound.** Unlike the finalize/claim routes (warn-and-allow), the SMS handler returns 503 — auth flows must not silently bypass abuse caps.
+5. **Fail-closed when `RATELIMIT_KV` is unbound.** The SMS handler returns 503 — auth flows must not silently bypass abuse caps. (The old finalize/claim routes this was once contrasted against were removed with sponsorhub's web-claim flow.)
 6. **Aliyun signature v1 (HMAC-SHA1), not v3.** v3's canonical-headers step adds nothing for one hand-built request; v1 is ~40 lines of Web-Crypto.
 
 ---
@@ -44,7 +46,7 @@ All paths relative to the submodule root (`submodules/dirtbikex-landing-page/`).
 | `worker/_lib/logtoSms.ts` | Auth (bearer, constant-time), payload parse, route to provider, return 200/400/401/403/429/502/503. |
 | `worker/_lib/phone.ts` | `normalizePhone(raw) → {e164, country}`; `parseAllowedCountries(csv)`. Edit here to add countries. |
 | `worker/_lib/smsQuota.ts` | `SMS_QUOTAS` table, `PROVIDER_FOR` country→provider map, `checkSmsQuota()` runs all buckets in order. |
-| `worker/_lib/rateLimit.ts` | Pre-existing sliding-window KV helper (shared with finalize/claim). |
+| `worker/_lib/rateLimit.ts` | Sliding-window KV rate-limit helper (used by the SMS gateway and join flow; the finalize/claim routes that originally shared it are gone). |
 | `worker/_lib/providers/aliyun.ts` | `SendSms` over RPC v1 signature; reads `ALIYUN_*` env. |
 | `worker/_lib/providers/aws.ts` | SNS `Publish` via `aws4fetch` SigV4; reads `AWS_*` env. Transactional SMSType. |
 | `worker/_lib/types.ts` | `PagesEnv` declares every binding/secret consumed. |
