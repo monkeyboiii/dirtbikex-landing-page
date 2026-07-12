@@ -4,6 +4,7 @@
 // See docs/JOIN_MODULE.md "Admin (admin.mjs)".
 //
 //   node scripts/admin.mjs mint --kind holeshot_crew --campaign alice --count 5 [--expires-days 21]
+//                          [--track "Glen Helen" --region US --channel instagram]  # links the code in the contacts CRM
 //   node scripts/admin.mjs codes [--kind K] [--campaign C]   # lists codes + their /join?c= links
 //   node scripts/admin.mjs sql "SELECT * FROM invite_codes"   # read-only D1 query
 //   node scripts/admin.mjs subs [--list]
@@ -70,12 +71,19 @@ function mint() {
   const days = opts['expires-days'] === undefined ? 21 : parseInt(opts['expires-days'], 10);
   const expires = Number.isFinite(days) && days > 0 ? `datetime('now', '+${days} days')` : 'NULL';
 
+  for (const k of ['track', 'region', 'channel']) {
+    if (opts[k] === true) die(`--${k} needs a value`);
+  }
+  const track = opts.track ? sqlStr(opts.track) : 'NULL';
+  const region = opts.region ? sqlStr(String(opts.region).toUpperCase()) : 'NULL';
+  const channel = opts.channel ? sqlStr(opts.channel) : 'NULL';
+
   const codes = Array.from({ length: count }, () =>
     Array.from(crypto.randomBytes(10), (b) => CODE_ALPHABET[b % 32]).join(''));
   const values = codes
-    .map((c) => `(${sqlStr(c)}, ${sqlStr(kind)}, ${campaign ? sqlStr(campaign) : 'NULL'}, ${expires})`)
+    .map((c) => `(${sqlStr(c)}, ${sqlStr(kind)}, ${campaign ? sqlStr(campaign) : 'NULL'}, ${expires}, ${track}, ${region}, ${channel})`)
     .join(', ');
-  d1(`INSERT INTO invite_codes (code, kind, campaign, expires_at) VALUES ${values}`);
+  d1(`INSERT INTO invite_codes (code, kind, campaign, expires_at, track_name, track_region, channel) VALUES ${values}`);
 
   const base = marketingBase();
   console.log(`Minted ${count} ${kind} code(s)${campaign ? ` for "${campaign}"` : ''}${days > 0 ? `, expiring in ${days} days` : ''}:\n`);
