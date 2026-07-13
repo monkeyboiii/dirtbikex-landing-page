@@ -17,7 +17,7 @@
     "@astrojs/sitemap": "^3.7.2",
     "@astrojs/tailwind": "^6.0.2",
     "@tailwindcss/typography": "^0.5.16",
-    "astro": "^6.1.9",
+    "astro": "^6.4.8",
     "aws4fetch": "^1.0.20",
     "fast-png": "^8.0.0",
     "qrcode-generator": "^2.0.4",
