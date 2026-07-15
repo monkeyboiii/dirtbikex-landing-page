@@ -46,6 +46,8 @@ export interface PagesEnv {
   MARKETING_BASE?: string;
   /** R2 bucket holding blank invite cards at `template/<kind>/<locale>.png`. `wrangler r2 bucket create dbx-qr`. */
   QR_BUCKET?: R2Bucket;
+  /** Shared bearer for POST /api/outreach/test (the CRM's pre-invite test send). Secret. */
+  OUTREACH_SECRET?: string;
 
   // --- /api/logto/sms — Logto HTTP SMS connector gateway. See docs/sms-gateway.md.
   /** Shared bearer that Logto sends in `Authorization: Bearer …`. Secret. */

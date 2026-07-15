@@ -6,6 +6,7 @@ import { fetchForumMetrics } from './_lib/forumMetrics';
 import { fetchForumFeatured } from './_lib/forumFeatured';
 import { fetchSponsors, fetchLeaderboard } from './_lib/sponsorProxy';
 import { handleLogtoSms } from './_lib/logtoSms';
+import { handleOutreachTest } from './_lib/outreach';
 import { handleJoinSubmit, handleJoinConfirm, handleUnsubscribe, handleCodePrecheck } from './_lib/join';
 import { handleShortlinkResolve } from './_lib/shortlink';
 import type { Lang, PagesEnv, ShareLandingProps } from './_lib/types';
@@ -643,6 +644,11 @@ export default {
     // /api/logto/sms — Logto HTTP SMS connector. See docs/sms-gateway.md.
     if (url.pathname === '/api/logto/sms' && request.method === 'POST') {
       return handleLogtoSms(request, env);
+    }
+
+    // /api/outreach/test — bearer-authed single pre-invite test send. See worker/_lib/outreach.ts.
+    if (url.pathname === '/api/outreach/test' && request.method === 'POST') {
+      return handleOutreachTest(request, env);
     }
 
     // /join double-opt-in waitlist. See worker/_lib/join.ts.
