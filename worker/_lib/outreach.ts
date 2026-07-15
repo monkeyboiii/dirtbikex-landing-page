@@ -500,3 +500,75 @@ export async function handleDrip(request: Request, env: PagesEnv): Promise<Respo
   const result = await runDrip(env, { dry });
   return json({ ok: true, dry, ...result });
 }
+
+// ---- Resend bounce/complaint webhook -> suppressions --------------------------
+
+function timingSafeEqualStr(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
+// Verify a Resend/Svix webhook: signature = base64(HMAC-SHA256(secretBytes, `${id}.${ts}.${body}`)),
+// matched against any `v1,<sig>` entry in the svix-signature header. secret is `whsec_<base64>`.
+async function verifySvix(secret: string, id: string, timestamp: string, body: string, sigHeader: string): Promise<boolean> {
+  try {
+    const raw = secret.startsWith('whsec_') ? secret.slice(6) : secret;
+    const keyBytes = Uint8Array.from(atob(raw), (c) => c.charCodeAt(0));
+    const key = await crypto.subtle.importKey('raw', keyBytes, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+    const mac = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(`${id}.${timestamp}.${body}`));
+    const expected = btoa(String.fromCharCode(...new Uint8Array(mac)));
+    for (const part of sigHeader.split(' ')) {
+      const sig = part.split(',')[1];
+      if (sig && timingSafeEqualStr(sig, expected)) return true;
+    }
+  } catch (err) {
+    console.error('outreach:webhook_verify_threw', { err: String(err) });
+  }
+  return false;
+}
+
+// POST /api/outreach/webhook — Resend bounce/complaint events. Signature-verified (public,
+// mutating). Hard bounces + complaints suppress the address in D1 and cancel any still-pending
+// row; other events are acked and ignored. See docs/OUTREACH_MODULE.md §"Batch outreach".
+export async function handleWebhook(request: Request, env: PagesEnv): Promise<Response> {
+  const secret = env.RESEND_WEBHOOK_SECRET;
+  if (!secret) return json({ error: 'webhook not configured' }, 503);
+  const id = request.headers.get('svix-id') ?? '';
+  const timestamp = request.headers.get('svix-timestamp') ?? '';
+  const sigHeader = request.headers.get('svix-signature') ?? '';
+  const body = await request.text();
+  if (!id || !timestamp || !sigHeader) return json({ error: 'missing signature headers' }, 400);
+  const tsNum = parseInt(timestamp, 10);
+  if (!tsNum || Math.abs(Date.now() / 1000 - tsNum) > 300) return json({ error: 'stale timestamp' }, 400);  // replay guard
+  if (!(await verifySvix(secret, id, timestamp, body, sigHeader))) return json({ error: 'bad signature' }, 401);
+
+  let evt: { type?: string; data?: { to?: string[] | string; email?: string; bounce?: { type?: string } } };
+  try { evt = JSON.parse(body); } catch { return json({ error: 'invalid json' }, 400); }
+  const type = evt.type ?? '';
+  const isComplaint = type === 'email.complained';
+  const bounceType = String(evt.data?.bounce?.type ?? '').toLowerCase();
+  // Suppress on complaints and on HARD bounces only — a soft/transient bounce is retryable.
+  const isHardBounce = type === 'email.bounced' && !bounceType.includes('transient') && !bounceType.includes('soft');
+  if (!isComplaint && !isHardBounce) return json({ ok: true, ignored: type || 'unknown' });
+
+  if (!env.SUBSCRIBERS_DB) return json({ ok: true, note: 'no db bound' });
+  const to = evt.data?.to;
+  const recips = Array.isArray(to) ? to : to ? [to] : evt.data?.email ? [evt.data.email] : [];
+  const reason = isComplaint ? 'complaint' : 'bounce';
+  let n = 0;
+  for (const r of recips) {
+    const email = normalizeEmail(String(r));
+    if (!email) continue;
+    await env.SUBSCRIBERS_DB.prepare(
+      "INSERT INTO suppressions (email,reason,source) VALUES (?, ?, 'resend_webhook') ON CONFLICT(email) DO NOTHING"
+    ).bind(email, reason).run();
+    // cancel any still-pending send to a now-dead address (send 'sent' rows stay as history).
+    await env.SUBSCRIBERS_DB.prepare(
+      "UPDATE outreach SET status='suppressed' WHERE email=? AND status IN ('queued','claimed')"
+    ).bind(email).run();
+    n++;
+  }
+  return json({ ok: true, type, reason, suppressed: n });
+}

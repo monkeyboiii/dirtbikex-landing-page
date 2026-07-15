@@ -6,7 +6,7 @@ import { fetchForumMetrics } from './_lib/forumMetrics';
 import { fetchForumFeatured } from './_lib/forumFeatured';
 import { fetchSponsors, fetchLeaderboard } from './_lib/sponsorProxy';
 import { handleLogtoSms } from './_lib/logtoSms';
-import { handleOutreachTest, handleBatch, handlePreview, handleStatus, handleUnsub, handleDrip, runDrip } from './_lib/outreach';
+import { handleOutreachTest, handleBatch, handlePreview, handleStatus, handleUnsub, handleDrip, handleWebhook, runDrip } from './_lib/outreach';
 import { handleJoinSubmit, handleJoinConfirm, handleUnsubscribe, handleCodePrecheck } from './_lib/join';
 import { handleShortlinkResolve } from './_lib/shortlink';
 import type { Lang, PagesEnv, ShareLandingProps } from './_lib/types';
@@ -665,6 +665,9 @@ export default {
     }
     if (url.pathname === '/api/outreach/u' && (request.method === 'GET' || request.method === 'POST')) {
       return handleUnsub(request, env);
+    }
+    if (url.pathname === '/api/outreach/webhook' && request.method === 'POST') {
+      return handleWebhook(request, env);
     }
 
     // /join double-opt-in waitlist. See worker/_lib/join.ts.

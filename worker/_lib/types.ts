@@ -54,6 +54,9 @@ export interface PagesEnv {
   OUTREACH_ALLOW_REAL?: string;
   /** Per-UTC-day cap on `real` sends (warm-up). Optional; defaults to 200. */
   OUTREACH_DAILY_CAP?: string;
+  /** Resend webhook signing secret (`whsec_…`) for POST /api/outreach/webhook. Secret.
+   *  Set on the env that actually sends real mail (prod). Absent = webhook returns 503. */
+  RESEND_WEBHOOK_SECRET?: string;
 
   // --- /api/logto/sms — Logto HTTP SMS connector gateway. See docs/sms-gateway.md.
   /** Shared bearer that Logto sends in `Authorization: Bearer …`. Secret. */
