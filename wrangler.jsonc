@@ -41,7 +41,7 @@
 		]
 	},
 	"triggers": {
-		"crons": ["*/10 * * * *"]
+		"crons": ["* * * * *"]
 	},
 	"vars": {
 		"FORUM_BASE": "https://forum.dirtbikex.com",
@@ -132,7 +132,7 @@
 				]
 			},
 			"triggers": {
-				"crons": ["*/10 * * * *"]
+				"crons": ["* * * * *"]
 			},
 			"kv_namespaces": [
 				{

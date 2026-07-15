@@ -215,7 +215,7 @@ interface OutreachRow {
 export async function handleBatch(request: Request, env: PagesEnv): Promise<Response> {
   if (!checkAuth(request, env)) return json({ error: 'unauthorized' }, 401);
   if (!env.SUBSCRIBERS_DB) return json({ error: 'outreach db not bound' }, 503);
-  let body: { mode?: string; override_to?: string; recipients?: unknown };
+  let body: { mode?: string; override_to?: string; recipients?: unknown; start_delay_min?: unknown; interval_min?: unknown };
   try {
     body = (await request.json()) as typeof body;
   } catch {
@@ -224,6 +224,13 @@ export async function handleBatch(request: Request, env: PagesEnv): Promise<Resp
   const mode: Mode = body.mode === 'override' ? 'override' : body.mode === 'dry_run' ? 'dry_run' : 'real';
   const overrideTo = normalizeEmail(body.override_to ?? '');
   const recipients = Array.isArray(body.recipients) ? (body.recipients as Array<Record<string, unknown>>) : [];
+  // Per-batch pacing: first send after `start_delay_min`, then one every `interval_min`.
+  // Stamped into each row's send_after; the drip only claims rows whose send_after has passed.
+  const startDelayMin = Math.max(0, Math.min(1440, Number(body.start_delay_min) || 0));  // cap 24h
+  const intervalMin = Math.max(0, Math.min(240, Number(body.interval_min) || 0));         // cap 4h/step
+  const scheduled = startDelayMin > 0 || intervalMin > 0;
+  const sendAfterAt = (slot: number): string | null =>
+    scheduled ? new Date(Date.now() + (startDelayMin + slot * intervalMin) * 60000).toISOString().replace('T', ' ').slice(0, 19) : null;
 
   // Structural env gate: real → prod only; test modes → staging only.
   if (mode === 'real' && !allowReal(env)) return json({ error: 'real sends are prod-only on this worker' }, 403);
@@ -261,30 +268,32 @@ export async function handleBatch(request: Request, env: PagesEnv): Promise<Resp
     for (const s of rows) suppressedSet.add(s.email);
   }
 
+  let slot = 0;
   for (const rec of byEmail.values()) {
     if (suppressedSet.has(rec.email)) { dispositions[rec.email] = 'suppressed'; suppressed++; continue; }
     const unsub = crypto.randomUUID();
+    const sendAfter = sendAfterAt(slot); slot++;
     if (mode === 'real') {
       // send-once: a conflict means the address was already ledgered (never re-mail).
       const row = await env.SUBSCRIBERS_DB.prepare(
-        `INSERT INTO outreach (email,status,mode,track_name,track_region,locale,job_id,override_to,unsub_token)
-         VALUES (?, 'queued', 'real', ?, ?, ?, ?, NULL, ?)
+        `INSERT INTO outreach (email,status,mode,track_name,track_region,locale,job_id,override_to,unsub_token,send_after)
+         VALUES (?, 'queued', 'real', ?, ?, ?, ?, NULL, ?, ?)
          ON CONFLICT(email) DO NOTHING RETURNING email`
-      ).bind(rec.email, rec.trackName, rec.region, rec.locale, jobId, unsub).first();
+      ).bind(rec.email, rec.trackName, rec.region, rec.locale, jobId, unsub, sendAfter).first();
       if (row) { dispositions[rec.email] = 'enqueued'; enqueued++; }
       else { dispositions[rec.email] = 'already'; already++; }
     } else {
       // test mode: upsert re-queue so you can re-run the same batch freely. On staging the
       // ledger holds only test rows, so this never clobbers a real send-once record.
       await env.SUBSCRIBERS_DB.prepare(
-        `INSERT INTO outreach (email,status,mode,track_name,track_region,locale,job_id,override_to,unsub_token)
-         VALUES (?, 'queued', ?, ?, ?, ?, ?, ?, ?)
+        `INSERT INTO outreach (email,status,mode,track_name,track_region,locale,job_id,override_to,unsub_token,send_after)
+         VALUES (?, 'queued', ?, ?, ?, ?, ?, ?, ?, ?)
          ON CONFLICT(email) DO UPDATE SET
            status='queued', mode=excluded.mode, track_name=excluded.track_name,
            track_region=excluded.track_region, locale=excluded.locale, job_id=excluded.job_id,
-           override_to=excluded.override_to, unsub_token=excluded.unsub_token,
+           override_to=excluded.override_to, unsub_token=excluded.unsub_token, send_after=excluded.send_after,
            claimed_at=NULL, sent_at=NULL, attempts=0, last_error=NULL`
-      ).bind(rec.email, mode, rec.trackName, rec.region, rec.locale, jobId, mode === 'override' ? overrideTo : null, unsub).run();
+      ).bind(rec.email, mode, rec.trackName, rec.region, rec.locale, jobId, mode === 'override' ? overrideTo : null, unsub, sendAfter).run();
       dispositions[rec.email] = 'enqueued'; enqueued++;
     }
   }
@@ -330,7 +339,16 @@ export async function handleStatus(request: Request, env: PagesEnv): Promise<Res
   ).all<{ job_id: string; status: string; n: number }>()).results;
   const byJob: Record<string, Record<string, number>> = {};
   for (const p of prog) { (byJob[p.job_id] ??= {})[p.status] = p.n; }
-  for (const j of jobs) { j.progress = byJob[String(j.id)] ?? {}; }
+  // per-job ETA: how many are still pending + the last scheduled send_after (for a countdown).
+  const etaRows = (await env.SUBSCRIBERS_DB.prepare(
+    "SELECT job_id, count(*) AS pending, max(send_after) AS eta FROM outreach WHERE status IN ('queued','claimed') GROUP BY job_id"
+  ).all<{ job_id: string; pending: number; eta: string | null }>()).results;
+  const etaByJob: Record<string, { pending: number; eta: string | null }> = {};
+  for (const e of etaRows) etaByJob[e.job_id] = { pending: e.pending, eta: e.eta };
+  for (const j of jobs) {
+    j.progress = byJob[String(j.id)] ?? {};
+    j.eta = etaByJob[String(j.id)] ?? { pending: 0, eta: null };
+  }
   // `?since=` returns real sends after that timestamp — the CRM polls this to reconcile `contacted`.
   const since = url.searchParams.get('since');
   const sent = since
@@ -407,7 +425,9 @@ export async function runDrip(env: PagesEnv, opts: { dry?: boolean } = {}): Prom
   // cap-deferral or reaper re-queue must not consume the retry budget.
   const claimed = (await db.prepare(
     `UPDATE outreach SET status='claimed', claimed_at=datetime('now')
-     WHERE rowid IN (SELECT rowid FROM outreach WHERE status='queued' ORDER BY created_at LIMIT ?)
+     WHERE rowid IN (SELECT rowid FROM outreach WHERE status='queued'
+                     AND (send_after IS NULL OR send_after <= datetime('now'))
+                     ORDER BY send_after, created_at LIMIT ?)
      RETURNING email, mode, track_name, track_region, locale, job_id, override_to, unsub_token, attempts`
   ).bind(CLAIM_LIMIT).all<OutreachRow>()).results;
   out.claimed = claimed.length;
