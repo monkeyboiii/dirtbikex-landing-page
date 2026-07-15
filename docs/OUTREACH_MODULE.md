@@ -112,14 +112,16 @@ record** and `tracks.contacted` is its re-derivable projection — no fragile ge
 per-column merge. *(An earlier draft recommended sending from **staging** to sidestep this;
 the operator chose prod + merge-promotion.)*
 
-**Send-once ledger (D1 `outreach`).** `email` PK · `status` (`queued`→`claimed`→`sent` /
-`failed_transient` / `failed_permanent` / `suppressed`) · `claimed_at` · `sent_at` ·
-`attempts` · `unsub_token` (random, unique) · `track_name`/`track_region`
-(**informational** — never key on the staging `trackId`; correlate CRM↔ledger by email and
-re-resolve a track by `(lower(name),region)`, exactly as the invite cache does). Enqueue is
-`INSERT … ON CONFLICT(email) DO NOTHING`, but that must not mask a retryable
-`failed_transient` (a Resend 5xx/429 stays re-claimable; only `sent`/`suppressed`/
-`failed_permanent` are terminal).
+**Send-once ledger (D1 `outreach`).** Synthetic `id` PK (0007) · `email` (lowercased
+operator) · `status` (`queued`→`claimed`→`sent` / `sent_dryrun` / `failed_permanent` /
+`suppressed`) · `mode` · `claimed_at` · `sent_at` · `attempts` · `send_after` · `unsub_token`
+(random, unique) · `track_name`/`track_region` (**informational** — never key on the staging
+`trackId`; correlate CRM↔ledger by email + `(lower(name),region)`). **Send-once is a PARTIAL
+UNIQUE INDEX** `(email) WHERE mode='real'` — so a `real` enqueue is `INSERT … ON CONFLICT(email)
+WHERE mode='real' DO NOTHING` (conflict ⇒ already ledgered), while **test rows (override/
+dry_run) are plain inserts** and may repeat: two concurrent override jobs to the same tracks
+get independent rows (the old `email` PK made the 2nd job upsert-overwrite the 1st, orphaning
+it). The drip keys every per-row mark on `id`, not `email`.
 
 **Race-safe drip (Cron).** Claim K with `UPDATE … WHERE rowid IN (SELECT rowid FROM
 outreach WHERE status='queued' … LIMIT K) RETURNING …` — the **subquery** form, verified
