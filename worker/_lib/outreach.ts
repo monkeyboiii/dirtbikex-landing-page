@@ -356,7 +356,12 @@ export async function handleStatus(request: Request, env: PagesEnv): Promise<Res
         "SELECT email, sent_at FROM outreach WHERE mode='real' AND status='sent' AND sent_at > ? ORDER BY sent_at"
       ).bind(since).all<{ email: string; sent_at: string }>()).results
     : [];
-  return json({ ok: true, jobs, sent });
+  // Recent suppressions (bounces / complaints / unsubs) — the CRM surfaces these so a bounce
+  // is visible, not just silently written to D1.
+  const suppressions = (await env.SUBSCRIBERS_DB.prepare(
+    'SELECT email, reason, source, created_at FROM suppressions ORDER BY created_at DESC LIMIT 50'
+  ).all()).results;
+  return json({ ok: true, jobs, sent, suppressions });
 }
 
 // GET|POST /api/outreach/u?token= — tokened unsubscribe. GET must NOT mutate: corporate
