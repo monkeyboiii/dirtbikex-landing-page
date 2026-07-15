@@ -12,17 +12,18 @@ BUILT — single test send (both envs):
   CRM Templates tab ─► POST /api/outreach/test {to,trackName,locale}   (bearer: OUTREACH_SECRET)
                           └─ renderPreInvite() ─► Resend ─► one email   (preview deliverability + copy)
 
-PLANNED — batch drip (PROD only; design in §"Batch outreach"):
-  CRM batch UI (filter country/reachable − suppressed − contacted)
-     ─► POST /api/outreach/batch ─► D1 outreach queue (email PK = send-once)
-  Cron (every N min) ─► claim K unsent (race-safe) ─► Resend ─► mark sent ─► CRM stamps `contacted`
-  GET/POST /outreach/u?token ─► D1 suppressions (one-click unsubscribe)
+PLANNED — batch drip (ONE canonical-curation env, gated in code; design in §"Batch outreach"):
+  CRM Outreach tab (filter country/reachable − suppressed − contacted)
+     ─► POST /api/outreach/batch ─► D1 outreach ledger (email PK = send-once) ─► per-email disposition
+  Cron ─► claim K (subquery, race-safe) ─► Resend (Idempotency-Key) ─► mark terminal ─► reaper re-queues stale
+  GET|POST /api/outreach/u?token ─► D1 suppressions (one-click unsub) · POST /api/outreach/webhook ─► bounces
 ```
 
 Two facts to keep straight: the **single test send is available in every env** (it is
 just `handleOutreachTest`, env-agnostic — set the secret wherever the CRM runs and it
-works). Only the **batch drip** is prod-only, because prod's D1 is the single
-send-once ledger and we never want one operator cold-mailed twice from two envs.
+works). The **batch drip** runs from exactly **one** env — the canonical-curation env
+(staging today), **gated in code** — because its D1 is the single send-once ledger and
+the same operator must never be cold-mailed twice from two envs (see §"Batch outreach").
 
 ## Module layout
 
@@ -73,50 +74,105 @@ the first `/api/outreach/test` deploy: handler present, route absent from the al
 `handleOutreachTest` gates on `OUTREACH_SECRET` (shared with the CRM) via the same
 constant-time compare as the SMS gateway's `checkAuth`: reject on length mismatch,
 else XOR-accumulate. The secret is **per-env** — the staging CRM
-(`www.dirtbikechina.com`) calls the **preview** worker, prod calls the top-level
-worker, and each worker's `wrangler secret put OUTREACH_SECRET --env <…>` must match
-that env's CRM `.env`. **NOT done:** no per-caller keys, no rate limit on the test
+(`crm.dirtbikechina.com`) calls the **preview** worker (`www.dirtbikechina.com`), prod
+calls the top-level worker, and each worker's `wrangler secret put OUTREACH_SECRET
+--env <…>` must match that env's CRM `.env`. **NOT done:** no per-caller keys, no rate limit on the test
 route (it is Access-gated at the CRM and single-send). **Invalidates if:** the route
 is ever exposed beyond the CRM (then add `rateLimitConsume`).
 
-### Cold-outreach unsubscribe is mailto today (D1 one-click is the batch follow-up)
+### Cold-outreach unsubscribe is mailto today (tokened HTTPS one-click is the batch follow-up)
 A cold recipient has no subscriber row, so the test send's `List-Unsubscribe` is a
 `mailto:<JOIN_REPLY_TO>?subject=unsubscribe` plus a footer "reply to unsubscribe" — a
-valid CAN-SPAM/RFC-8058 channel that needs no token. The **automated** HTTPS
-one-click unsubscribe → D1 `suppressions` arrives with the batch pipeline (below),
-because only then are we sending at a volume where manual mailto handling stops
-scaling. **NOT done:** no suppression enforcement on the test route (you type the
-address; it is your own inbox).
+valid **RFC 2369** mailto + CAN-SPAM opt-out that needs no token. It is **not** RFC-8058
+one-click (that requires an HTTPS URI). The code also emits `List-Unsubscribe-Post:
+List-Unsubscribe=One-Click` alongside the mailto, which no client honors over a mailto —
+harmless but non-conformant; it becomes real when the tokened HTTPS endpoint ships (drop
+or condition that header then). The **automated** HTTPS one-click → D1 `suppressions`
+arrives with the batch pipeline (below, `/api/outreach/u?token`), where volume makes
+manual mailto handling stop scaling. **NOT done:** no suppression check on the test route
+— you type the address (must be your own inbox); the batch path checks suppressions.
 
-### Batch outreach (PLANNED — prod only; not built)
-The design the test send is a stepping-stone toward. **None of this is implemented**
-— it is the agreed shape so the built pieces don't foreclose it:
-- **Send-once ledger in D1.** An `outreach` table keyed on `email` (PK) is the single
-  record that an address was cold-mailed. Enqueue is idempotent (`INSERT … ON
-  CONFLICT(email) DO NOTHING`), so re-submitting an overlapping batch never
-  double-queues. Prod's D1 is the *only* ledger — that is why real sends are prod-only.
-- **Race-safe drip via Cron.** A Workers Cron trigger fires every N minutes, claims K
-  unsent rows with an `UPDATE … WHERE status='queued' … RETURNING` (the same
-  claim-before-send pattern as `redeemInvite`), sends each via `sendPreInvite`, and
-  marks `sent`/`failed` — so a crashed invocation never re-sends a claimed row, and a
-  **warm-up ramp** (small K, growing daily) protects the young sending domain.
-- **Suppressions gate.** A D1 `suppressions` table (unsub + hard bounces) is checked
-  as the queue is loaded; a suppressed address is never claimed. The CRM keeps its own
-  `suppressions` (SQLite, rides the snapshot for the curation view); the worker's D1
-  suppression is authoritative for *sending*. They reconcile on promotion.
-- **CRM drives the batch + owns `contacted`.** The CRM batch UI filters contacts by
-  country + reachability (has email, not suppressed, not already `contacted`) and
-  POSTs `{email,trackName,locale,trackId}[]` to `/api/outreach/batch`. The CRM stamps
-  those tracks `disposition='contacted'` — a **stored column that travels with the
-  snapshot** (NOT D1-derived), so "we reached out" survives staging→prod promotion.
-- **Preview endpoint.** A read-only `GET /api/outreach/preview?trackName&locale` that
-  returns `renderPreInvite(...)` so the CRM Template tab can show the *actual* email
-  (today the tab previews only the file-based `templates/`).
+### Batch outreach (PLANNED — runs from ONE canonical env; not built)
+The design the test send is a stepping-stone toward. **Nothing here is implemented** —
+this is the *corrected* shape (an adversarial design review caught the hazards below, so
+the built pieces don't foreclose them). Everything is a proposal until the build round.
 
-**Open decisions (confirm before building):** drip interval + warm-up curve; whether
-the batch endpoint enqueues-and-returns (CRM stamps `contacted` optimistically) or
-acks per-send; country source (`tracks.region` vs a dedicated column); and whether the
-CRM `suppressions` push up to D1 or D1 is seeded once from the snapshot.
+**Where it runs — the pivotal decision.** Real batch sends run from a **single designated
+env**, and it must be the one where the **canonical curation lives**, so that `contacted`
+(which gates future sends) is written on the DB that *promotes*. Today that is **staging**
+(curation is on dbc; prod mirrors it via a **wholesale** snapshot restore). Running the
+batch on *prod* instead would auto-write `contacted` on prod **after** the snapshot was
+taken, and the next wholesale promotion silently clobbers it → already-mailed operators
+reappear as un-contacted and get re-enqueued (the send-once ledger masks the actual
+re-send, so the funnel is quietly wrong with no operator signal). So: **send from the
+canonical-curation env and gate `/api/outreach/batch` + the Cron to that one env in code**
+(reject on the other) — not by operator discipline, because `/api/outreach/*` is reachable
+on *both* workers and prod/preview bind **different** D1s, so a procedural rule would let
+the same operator be enqueued twice from two envs. *(If prod must send: switch promotion to
+a merge-import that preserves prod `contacted`, or derive "contacted" from the ledger —
+both heavier. Canonical-env send is cleanest.)*
+
+**Send-once ledger (D1 `outreach`).** `email` PK · `status` (`queued`→`claimed`→`sent` /
+`failed_transient` / `failed_permanent` / `suppressed`) · `claimed_at` · `sent_at` ·
+`attempts` · `unsub_token` (random, unique) · `track_name`/`track_region`
+(**informational** — never key on the staging `trackId`; correlate CRM↔ledger by email and
+re-resolve a track by `(lower(name),region)`, exactly as the invite cache does). Enqueue is
+`INSERT … ON CONFLICT(email) DO NOTHING`, but that must not mask a retryable
+`failed_transient` (a Resend 5xx/429 stays re-claimable; only `sent`/`suppressed`/
+`failed_permanent` are terminal).
+
+**Race-safe drip (Cron).** Claim K with `UPDATE … WHERE rowid IN (SELECT rowid FROM
+outreach WHERE status='queued' … LIMIT K) RETURNING …` — the **subquery** form, verified
+against a live D1 (bare `UPDATE … LIMIT` is not guaranteed in D1's SQLite build). Per row:
+suppression re-check → `sendPreInvite` with a **Resend `Idempotency-Key` = row id** (so a
+replay after a lost `sent` ack dedupes at Resend) → mark terminal. A **reaper** re-queues
+rows stuck in `claimed` past a TTL — a crashed mid-batch invocation would otherwise strand
+them forever. (This is the release/retry safety `redeemInvite`'s single-PK claim gives for
+free but a K-of-N queue claim does **not** — the earlier "same pattern as redeemInvite"
+framing was wrong.)
+
+**Warm-up = a daily budget, not a per-fire count.** Today's budget = `cap(day) −
+count(status='sent' AND sent_at ≥ start-of-UTC-day)`, derived from the ledger — idempotent
+under overlapping/retried Cron fires, surviving deploys (a worker has no scheduler memory).
+Keying the ramp to elapsed *calendar days* is wrong: a pause would "warm up" on paper while
+sending nothing, then resume at a high cap and torch reputation. The cap bounds
+total-sent-today, independent of the Cron interval.
+
+**Suppressions are one authoritative set.** A cold recipient opts out two ways: the tokened
+HTTPS one-click (`GET|POST /api/outreach/u?token` → D1 `suppressions`) and the mailto/reply
+the operator records via `unsubscribe.py`. The CRM opt-out **must push to D1 synchronously**
+(not "seed D1 once from the snapshot"); enqueue is gated against the unified set and a
+still-`queued` row for a newly-suppressed address is cancelled. **Reverse sync:** prod-side
+D1 unsubs + hard bounces must flow back into the canonical curation DB, or the sending env
+goes blind to real opt-outs. Hard bounces/complaints enter D1 via a **Resend webhook**
+(`POST /api/outreach/webhook`, verify Resend's signing secret) that suppresses the address
+and flips its ledger row terminal — without it the drip keeps hitting dead addresses and
+wrecks the young domain's reputation (the exact failure warm-up exists to prevent).
+
+**CRM drives it; `contacted` is stamped truthfully.** The **Outreach** tab (renamed from
+Templates — *preview · test-send · send-jobs*) filters contacts by country + reachability
+(has email, not suppressed, not already `contacted`) and POSTs `{email,trackName,locale}[]`
+to `/api/outreach/batch`, which returns a **per-email disposition**
+(`enqueued`/`already-ledgered`/`suppressed`/`rejected`). The CRM stamps
+`disposition='contacted'` **only** for `enqueued` addresses — stamping optimistically would
+mark deduped/suppressed/failed tracks "reached" and drop real prospects from every future
+batch. Because the CRM sits behind Access (no ingress — the worker cannot call back),
+send-completion is reconciled by the CRM **polling** a bearer-authed `GET
+/api/outreach/status?since=…`, not by a per-send ack.
+
+**Preview endpoint.** `GET /api/outreach/preview?trackName&locale` returns
+`renderPreInvite(...)`, so the Outreach tab previews the *actual* email for any locale — the
+worker is the single source of the pre-invite copy (localized blocks live in the worker
+`LOCALES` map, edited-then-redeployed; the CRM never re-authors copy).
+
+**Dry-run (rehearse safely).** A job-level `dry_run` flag (staging defaults it **on**) makes
+the drip do everything except the Resend call: it logs `outreach:drip_dryrun {to,subject}`
+and marks the row `sent_dryrun`. Plus an on-demand `POST /api/outreach/drip?dry=1` (bearer)
+runs one tick immediately, so you can rehearse "select 50 → send" end-to-end with zero real
+email (also `wrangler dev --test-scheduled` → hit `/__scheduled`).
+
+**Still open (your call):** the sending-env decision above; the drip interval + warm-up
+curve numbers; and the country source (`tracks.region` vs a dedicated locality column).
 
 ## Routes, schema, config
 
@@ -125,9 +181,12 @@ CRM `suppressions` push up to D1 or D1 is seeded once from the snapshot.
 | Method · path | Does | Returns |
 |---|---|---|
 | `POST /api/outreach/test` | bearer-check · validate recipient · `renderPreInvite` · Resend one email | `200 {ok,sent_to}` · `401 unauthorized` · `400 invalid recipient email`/`invalid json` · `502` (Resend/env) |
-| `POST /api/outreach/batch` | **PLANNED** — enqueue a filtered batch into the D1 send-once ledger | — |
-| `GET /api/outreach/preview` | **PLANNED** — render the pre-invite for the CRM Template tab | — |
-| `GET\|POST /outreach/u?token` | **PLANNED** — one-click unsubscribe → D1 `suppressions` | — |
+| `POST /api/outreach/batch` | **PLANNED** — enqueue a filtered batch (send-once); gated to the canonical env | per-email disposition |
+| `GET /api/outreach/status?since=` | **PLANNED** — CRM polls this to reconcile `contacted` (no worker→CRM callback) | ledger deltas |
+| `GET /api/outreach/preview` | **PLANNED** — render the pre-invite for the CRM Outreach tab | subject/html/text |
+| `GET\|POST /api/outreach/u?token` | **PLANNED** — tokened one-click unsubscribe → D1 `suppressions` | — |
+| `POST /api/outreach/webhook` | **PLANNED** — Resend bounce/complaint (signature-verified) → D1 `suppressions` | — |
+| `POST /api/outreach/drip?dry=` | **PLANNED** — run one drip tick on demand (`dry=1` logs, no send) | processed batch |
 
 **Env** (shared with [JOIN_MODULE](JOIN_MODULE.md), + one new secret):
 
