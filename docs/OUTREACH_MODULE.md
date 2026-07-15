@@ -202,7 +202,7 @@ curve numbers; and the country source (`tracks.region` vs a dedicated locality c
 | `GET /api/outreach/status?since=` | **PLANNED** — CRM polls this to reconcile `contacted` (no worker→CRM callback) | ledger deltas |
 | `GET /api/outreach/preview` | **PLANNED** — render the pre-invite for the CRM Outreach tab | subject/html/text |
 | `GET\|POST /api/outreach/u?token` | **PLANNED** — tokened one-click unsubscribe → D1 `suppressions` | — |
-| `POST /api/outreach/webhook` | **PLANNED** — Resend bounce/complaint (signature-verified) → D1 `suppressions` | — |
+| `POST /api/outreach/webhook` | Resend bounce/complaint, **Svix-verified** (`RESEND_WEBHOOK_SECRET`, +5min replay guard) → hard bounce + complaint suppress in D1 + cancel pending; other events acked | `200 {ok}` · `401` bad sig · `503` unconfigured |
 | `POST /api/outreach/drip?dry=` | **PLANNED** — run one drip tick on demand (`dry=1` logs, no send) | processed batch |
 
 **Env** (shared with [JOIN_MODULE](JOIN_MODULE.md), + one new secret):
@@ -211,6 +211,7 @@ curve numbers; and the country source (`tracks.region` vs a dedicated locality c
 |---|---|
 | `OUTREACH_SECRET` | *(secret)* `wrangler secret put OUTREACH_SECRET --env <preview\|"">` — **per-env**, must equal that env's CRM `.env` `OUTREACH_SECRET` |
 | `RESEND_API_KEY` | *(secret)* reused — the pre-invite sends over the same Resend account |
+| `RESEND_WEBHOOK_SECRET` | *(secret)* `whsec_…` for `/api/outreach/webhook`. Set on the sending env (prod). Create the webhook in the Resend dashboard → `https://www.dirtbikex.com/api/outreach/webhook`, subscribe to `email.bounced` + `email.complained`, copy the signing secret → `wrangler secret put RESEND_WEBHOOK_SECRET`. Absent → webhook 503s. |
 | `JOIN_FROM_EMAIL` / `JOIN_REPLY_TO` / `JOIN_ORG_ADDRESS` | reused — sender identity, mailto-unsubscribe target, CAN-SPAM footer |
 
 ## Operator setup
