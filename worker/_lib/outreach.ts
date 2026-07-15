@@ -199,6 +199,7 @@ export async function handleOutreachTest(request: Request, env: PagesEnv): Promi
 
 type Mode = 'real' | 'dry_run' | 'override';
 interface OutreachRow {
+  id: number;
   email: string;
   mode: Mode;
   track_name: string;
@@ -274,25 +275,22 @@ export async function handleBatch(request: Request, env: PagesEnv): Promise<Resp
     const unsub = crypto.randomUUID();
     const sendAfter = sendAfterAt(slot); slot++;
     if (mode === 'real') {
-      // send-once: a conflict means the address was already ledgered (never re-mail).
+      // send-once (real): the partial unique index (email WHERE mode='real') makes a conflict
+      // mean this operator is already ledgered — never re-mail.
       const row = await env.SUBSCRIBERS_DB.prepare(
         `INSERT INTO outreach (email,status,mode,track_name,track_region,locale,job_id,override_to,unsub_token,send_after)
          VALUES (?, 'queued', 'real', ?, ?, ?, ?, NULL, ?, ?)
-         ON CONFLICT(email) DO NOTHING RETURNING email`
+         ON CONFLICT(email) WHERE mode='real' DO NOTHING RETURNING id`
       ).bind(rec.email, rec.trackName, rec.region, rec.locale, jobId, unsub, sendAfter).first();
       if (row) { dispositions[rec.email] = 'enqueued'; enqueued++; }
       else { dispositions[rec.email] = 'already'; already++; }
     } else {
-      // test mode: upsert re-queue so you can re-run the same batch freely. On staging the
-      // ledger holds only test rows, so this never clobbers a real send-once record.
+      // test mode (override/dry_run): a PLAIN insert — each job gets its OWN rows, so two
+      // concurrent override jobs to the same tracks no longer collide (the old email-upsert
+      // reassigned the first job's rows to the second, orphaning the first).
       await env.SUBSCRIBERS_DB.prepare(
         `INSERT INTO outreach (email,status,mode,track_name,track_region,locale,job_id,override_to,unsub_token,send_after)
-         VALUES (?, 'queued', ?, ?, ?, ?, ?, ?, ?, ?)
-         ON CONFLICT(email) DO UPDATE SET
-           status='queued', mode=excluded.mode, track_name=excluded.track_name,
-           track_region=excluded.track_region, locale=excluded.locale, job_id=excluded.job_id,
-           override_to=excluded.override_to, unsub_token=excluded.unsub_token, send_after=excluded.send_after,
-           claimed_at=NULL, sent_at=NULL, attempts=0, last_error=NULL`
+         VALUES (?, 'queued', ?, ?, ?, ?, ?, ?, ?, ?)`
       ).bind(rec.email, mode, rec.trackName, rec.region, rec.locale, jobId, mode === 'override' ? overrideTo : null, unsub, sendAfter).run();
       dispositions[rec.email] = 'enqueued'; enqueued++;
     }
@@ -433,20 +431,20 @@ export async function runDrip(env: PagesEnv, opts: { dry?: boolean } = {}): Prom
      WHERE rowid IN (SELECT rowid FROM outreach WHERE status='queued'
                      AND (send_after IS NULL OR send_after <= datetime('now'))
                      ORDER BY send_after, created_at LIMIT ?)
-     RETURNING email, mode, track_name, track_region, locale, job_id, override_to, unsub_token, attempts`
+     RETURNING id, email, mode, track_name, track_region, locale, job_id, override_to, unsub_token, attempts`
   ).bind(CLAIM_LIMIT).all<OutreachRow>()).results;
   out.claimed = claimed.length;
 
   for (const row of claimed) {
     if (await isSuppressed(env, row.email)) {
-      await db.prepare("UPDATE outreach SET status='suppressed' WHERE email=?").bind(row.email).run();
+      await db.prepare("UPDATE outreach SET status='suppressed' WHERE id=?").bind(row.id).run();
       out.suppressed++;
       continue;
     }
     // Defense-in-depth: a real row must never send from a non-prod worker (belt to the
     // enqueue gate + the separate prod/preview D1s). Requeue without sending.
     if (row.mode === 'real' && !allowReal(env)) {
-      await db.prepare("UPDATE outreach SET status='queued', claimed_at=NULL WHERE email=?").bind(row.email).run();
+      await db.prepare("UPDATE outreach SET status='queued', claimed_at=NULL WHERE id=?").bind(row.id).run();
       out.requeued++;
       continue;
     }
@@ -455,13 +453,13 @@ export async function runDrip(env: PagesEnv, opts: { dry?: boolean } = {}): Prom
     const isDry = row.mode === 'dry_run' || (opts.dry && row.mode !== 'real');
     if (isDry) {
       console.log('outreach:drip_dryrun', { to: row.email, mode: row.mode, locale: row.locale });
-      await db.prepare("UPDATE outreach SET status='sent_dryrun', sent_at=datetime('now'), last_error=NULL WHERE email=?").bind(row.email).run();
+      await db.prepare("UPDATE outreach SET status='sent_dryrun', sent_at=datetime('now'), last_error=NULL WHERE id=?").bind(row.id).run();
       out.dryrun++;
       continue;
     }
     if (row.mode === 'real' && realBudget <= 0) {
       // daily cap exhausted: requeue WITHOUT consuming an attempt.
-      await db.prepare("UPDATE outreach SET status='queued', claimed_at=NULL WHERE email=?").bind(row.email).run();
+      await db.prepare("UPDATE outreach SET status='queued', claimed_at=NULL WHERE id=?").bind(row.id).run();
       out.requeued++;
       continue;
     }
@@ -480,15 +478,15 @@ export async function runDrip(env: PagesEnv, opts: { dry?: boolean } = {}): Prom
       deliverTo, subjectPrefix, unsubUrl, idempotencyKey: `${row.job_id ?? 'nojob'}:${row.email}`,
     });
     if (res.ok) {
-      await db.prepare("UPDATE outreach SET status='sent', sent_at=datetime('now'), last_error=NULL WHERE email=?").bind(row.email).run();
+      await db.prepare("UPDATE outreach SET status='sent', sent_at=datetime('now'), last_error=NULL WHERE id=?").bind(row.id).run();
       if (row.mode === 'real') realBudget--;
       out.sent++;
     } else if (res.transient && row.attempts < MAX_ATTEMPTS) {
       // consume ONE retry attempt here (the only place attempts rises).
-      await db.prepare("UPDATE outreach SET status='queued', claimed_at=NULL, attempts=attempts+1, last_error=? WHERE email=?").bind(res.error ?? 'transient', row.email).run();
+      await db.prepare("UPDATE outreach SET status='queued', claimed_at=NULL, attempts=attempts+1, last_error=? WHERE id=?").bind(res.error ?? 'transient', row.id).run();
       out.requeued++;
     } else {
-      await db.prepare("UPDATE outreach SET status='failed_permanent', last_error=? WHERE email=?").bind(res.error ?? 'failed', row.email).run();
+      await db.prepare("UPDATE outreach SET status='failed_permanent', last_error=? WHERE id=?").bind(res.error ?? 'failed', row.id).run();
       out.failed++;
     }
   }
