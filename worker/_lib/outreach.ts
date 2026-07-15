@@ -234,26 +234,45 @@ export async function handleBatch(request: Request, env: PagesEnv): Promise<Resp
 
   const jobId = crypto.randomUUID();
   const dispositions: Record<string, string> = {};
-  let enqueued = 0, already = 0, suppressed = 0, rejected = 0;
+  let enqueued = 0, already = 0, suppressed = 0, rejected = 0, duplicate = 0;
 
+  // Normalize + dedup by email up front — bounds the DB work and stops duplicate
+  // office-emails from double-counting the job.
+  const byEmail = new Map<string, { email: string; trackName: string; region: string | null; locale: string }>();
   for (const r of recipients) {
     const email = normalizeEmail(String(r?.email ?? ''));
     if (!email) { if (r?.email) dispositions[String(r.email)] = 'rejected'; rejected++; continue; }
-    if (await isSuppressed(env, email)) { dispositions[email] = 'suppressed'; suppressed++; continue; }
-    const trackName = (String(r?.trackName ?? '').trim()) || 'your track';
-    const region = r?.trackRegion ? String(r.trackRegion) : null;
-    const locale = (String(r?.locale ?? 'en').trim()) || 'en';
-    const unsub = crypto.randomUUID();
+    if (byEmail.has(email)) { duplicate++; continue; }
+    byEmail.set(email, {
+      email,
+      trackName: (String(r?.trackName ?? '').trim()) || 'your track',
+      region: r?.trackRegion ? String(r.trackRegion) : null,
+      locale: (String(r?.locale ?? 'en').trim()) || 'en',
+    });
+  }
 
+  // ONE bulk suppression check instead of a query per recipient (subrequest budget).
+  const emails = [...byEmail.keys()];
+  const suppressedSet = new Set<string>();
+  if (emails.length) {
+    const rows = (await env.SUBSCRIBERS_DB.prepare(
+      `SELECT email FROM suppressions WHERE email IN (${emails.map(() => '?').join(',')})`
+    ).bind(...emails).all<{ email: string }>()).results;
+    for (const s of rows) suppressedSet.add(s.email);
+  }
+
+  for (const rec of byEmail.values()) {
+    if (suppressedSet.has(rec.email)) { dispositions[rec.email] = 'suppressed'; suppressed++; continue; }
+    const unsub = crypto.randomUUID();
     if (mode === 'real') {
       // send-once: a conflict means the address was already ledgered (never re-mail).
       const row = await env.SUBSCRIBERS_DB.prepare(
         `INSERT INTO outreach (email,status,mode,track_name,track_region,locale,job_id,override_to,unsub_token)
          VALUES (?, 'queued', 'real', ?, ?, ?, ?, NULL, ?)
          ON CONFLICT(email) DO NOTHING RETURNING email`
-      ).bind(email, trackName, region, locale, jobId, unsub).first();
-      if (row) { dispositions[email] = 'enqueued'; enqueued++; }
-      else { dispositions[email] = 'already'; already++; }
+      ).bind(rec.email, rec.trackName, rec.region, rec.locale, jobId, unsub).first();
+      if (row) { dispositions[rec.email] = 'enqueued'; enqueued++; }
+      else { dispositions[rec.email] = 'already'; already++; }
     } else {
       // test mode: upsert re-queue so you can re-run the same batch freely. On staging the
       // ledger holds only test rows, so this never clobbers a real send-once record.
@@ -265,8 +284,8 @@ export async function handleBatch(request: Request, env: PagesEnv): Promise<Resp
            track_region=excluded.track_region, locale=excluded.locale, job_id=excluded.job_id,
            override_to=excluded.override_to, unsub_token=excluded.unsub_token,
            claimed_at=NULL, sent_at=NULL, attempts=0, last_error=NULL`
-      ).bind(email, mode, trackName, region, locale, jobId, mode === 'override' ? overrideTo : null, unsub).run();
-      dispositions[email] = 'enqueued'; enqueued++;
+      ).bind(rec.email, mode, rec.trackName, rec.region, rec.locale, jobId, mode === 'override' ? overrideTo : null, unsub).run();
+      dispositions[rec.email] = 'enqueued'; enqueued++;
     }
   }
 
@@ -275,7 +294,7 @@ export async function handleBatch(request: Request, env: PagesEnv): Promise<Resp
      VALUES (?,?,?,?,?,?,?,?)`
   ).bind(jobId, mode, mode === 'override' ? overrideTo : null, recipients.length, enqueued, already, suppressed, rejected).run();
 
-  return json({ ok: true, job_id: jobId, mode, counts: { requested: recipients.length, enqueued, already, suppressed, rejected }, dispositions });
+  return json({ ok: true, job_id: jobId, mode, counts: { requested: recipients.length, enqueued, already, suppressed, rejected, duplicate }, dispositions });
 }
 
 // GET /api/outreach/preview?trackName=&locale= — the Outreach tab's live preview.
@@ -314,23 +333,35 @@ export async function handleStatus(request: Request, env: PagesEnv): Promise<Res
   return json({ ok: true, jobs, sent });
 }
 
-// GET|POST /api/outreach/u?token= — public tokened one-click unsubscribe → D1 suppressions.
+// GET|POST /api/outreach/u?token= — tokened unsubscribe. GET must NOT mutate: corporate
+// link scanners / prefetchers (SafeLinks, Proofpoint, Gmail proxy) fire an unsolicited GET
+// on every email link at delivery, which would silently suppress real operators. So GET
+// renders a confirm form that POSTs; only POST (incl. RFC-8058 one-click) writes.
 export async function handleUnsub(request: Request, env: PagesEnv): Promise<Response> {
-  const plain = (body: string, status: number) =>
-    new Response(body, { status, headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' } });
-  if (!env.SUBSCRIBERS_DB) return plain('Unavailable.', 503);
+  const html = (body: string, status: number) =>
+    new Response(`<!DOCTYPE html><html><body style="font-family:Arial,sans-serif;max-width:32rem;margin:3rem auto;padding:0 1rem;color:#222;">${body}</body></html>`,
+      { status, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' } });
+  if (!env.SUBSCRIBERS_DB) return html('<p>Unavailable.</p>', 503);
   const url = new URL(request.url);
-  const token = url.searchParams.get('token') ?? '';
-  if (!token) return plain('Missing token.', 400);
+  const token = (url.searchParams.get('token') ?? '').trim();
+  if (!token) return html('<p>Missing token.</p>', 400);
   const row = await env.SUBSCRIBERS_DB.prepare('SELECT email FROM outreach WHERE unsub_token=?').bind(token).first<{ email: string }>();
-  if (!row) return plain('This unsubscribe link is not valid.', 404);
+  if (!row) return html('<p>This unsubscribe link is not valid.</p>', 404);
+
+  if (request.method !== 'POST') {
+    // Non-mutating: a human sees a button to confirm; a scanner's GET does nothing.
+    const t = escapeHtml(token);
+    return html(
+      `<h2>Unsubscribe from DirtBikeX</h2><p>Click below to stop receiving emails at <strong>${escapeHtml(row.email)}</strong>.</p>`
+      + `<form method="post" action="/api/outreach/u?token=${encodeURIComponent(t)}"><button type="submit" style="padding:.6rem 1.2rem;font-size:1rem;">Unsubscribe</button></form>`, 200);
+  }
   await env.SUBSCRIBERS_DB.prepare(
     "INSERT INTO suppressions (email,reason,source) VALUES (?, 'unsub', 'one_click') ON CONFLICT(email) DO NOTHING"
   ).bind(row.email).run();
   await env.SUBSCRIBERS_DB.prepare(
     "UPDATE outreach SET status='suppressed' WHERE email=? AND status IN ('queued','claimed')"
   ).bind(row.email).run();
-  return plain("You've been unsubscribed and won't receive further emails from DirtBikeX. Sorry for the interruption.", 200);
+  return html("<h2>Unsubscribed</h2><p>You won't receive further emails from DirtBikeX. Sorry for the interruption.</p>", 200);
 }
 
 // ---- drip ------------------------------------------------------------------
@@ -349,8 +380,11 @@ export async function runDrip(env: PagesEnv, opts: { dry?: boolean } = {}): Prom
   const out: DripResult = { claimed: 0, sent: 0, dryrun: 0, suppressed: 0, failed: 0, requeued: 0 };
   const db = env.SUBSCRIBERS_DB;
   if (!db) return out;
+  // Pre-flight: never CLAIM rows we can't send. A missing key would otherwise drop each
+  // claimed real row to failed_permanent, and send-once blocks re-enqueue → permanent loss.
+  if (!env.RESEND_API_KEY || !env.JOIN_FROM_EMAIL) { console.error('outreach:drip_misconfigured'); return out; }
 
-  // reaper: rows stuck in 'claimed' past the TTL get re-queued.
+  // reaper: rows stuck in 'claimed' past the TTL get re-queued (does NOT consume an attempt).
   await db.prepare("UPDATE outreach SET status='queued', claimed_at=NULL WHERE status='claimed' AND claimed_at < datetime('now', ?)")
     .bind(`-${CLAIM_TTL_MIN} minutes`).run();
 
@@ -361,8 +395,10 @@ export async function runDrip(env: PagesEnv, opts: { dry?: boolean } = {}): Prom
   let realBudget = Math.max(0, dailyCap - sentToday);
 
   // claim via the subquery form (bare UPDATE…LIMIT isn't guaranteed in D1's SQLite build).
+  // NB: attempts is NOT incremented here — only on a real transient failure (below). A
+  // cap-deferral or reaper re-queue must not consume the retry budget.
   const claimed = (await db.prepare(
-    `UPDATE outreach SET status='claimed', claimed_at=datetime('now'), attempts=attempts+1
+    `UPDATE outreach SET status='claimed', claimed_at=datetime('now')
      WHERE rowid IN (SELECT rowid FROM outreach WHERE status='queued' ORDER BY created_at LIMIT ?)
      RETURNING email, mode, track_name, track_region, locale, job_id, override_to, unsub_token, attempts`
   ).bind(CLAIM_LIMIT).all<OutreachRow>()).results;
@@ -374,7 +410,16 @@ export async function runDrip(env: PagesEnv, opts: { dry?: boolean } = {}): Prom
       out.suppressed++;
       continue;
     }
-    const isDry = opts.dry || row.mode === 'dry_run';
+    // Defense-in-depth: a real row must never send from a non-prod worker (belt to the
+    // enqueue gate + the separate prod/preview D1s). Requeue without sending.
+    if (row.mode === 'real' && !allowReal(env)) {
+      await db.prepare("UPDATE outreach SET status='queued', claimed_at=NULL WHERE email=?").bind(row.email).run();
+      out.requeued++;
+      continue;
+    }
+    // dry_run rows always log; opts.dry additionally logs test (override) rows. A real row
+    // is NEVER treated as dry (that would mark it terminal without sending → permanent loss).
+    const isDry = row.mode === 'dry_run' || (opts.dry && row.mode !== 'real');
     if (isDry) {
       console.log('outreach:drip_dryrun', { to: row.email, mode: row.mode, locale: row.locale });
       await db.prepare("UPDATE outreach SET status='sent_dryrun', sent_at=datetime('now'), last_error=NULL WHERE email=?").bind(row.email).run();
@@ -382,6 +427,7 @@ export async function runDrip(env: PagesEnv, opts: { dry?: boolean } = {}): Prom
       continue;
     }
     if (row.mode === 'real' && realBudget <= 0) {
+      // daily cap exhausted: requeue WITHOUT consuming an attempt.
       await db.prepare("UPDATE outreach SET status='queued', claimed_at=NULL WHERE email=?").bind(row.email).run();
       out.requeued++;
       continue;
@@ -405,7 +451,8 @@ export async function runDrip(env: PagesEnv, opts: { dry?: boolean } = {}): Prom
       if (row.mode === 'real') realBudget--;
       out.sent++;
     } else if (res.transient && row.attempts < MAX_ATTEMPTS) {
-      await db.prepare("UPDATE outreach SET status='queued', claimed_at=NULL, last_error=? WHERE email=?").bind(res.error ?? 'transient', row.email).run();
+      // consume ONE retry attempt here (the only place attempts rises).
+      await db.prepare("UPDATE outreach SET status='queued', claimed_at=NULL, attempts=attempts+1, last_error=? WHERE email=?").bind(res.error ?? 'transient', row.email).run();
       out.requeued++;
     } else {
       await db.prepare("UPDATE outreach SET status='failed_permanent', last_error=? WHERE email=?").bind(res.error ?? 'failed', row.email).run();
@@ -419,6 +466,9 @@ export async function runDrip(env: PagesEnv, opts: { dry?: boolean } = {}): Prom
 export async function handleDrip(request: Request, env: PagesEnv): Promise<Response> {
   if (!checkAuth(request, env)) return json({ error: 'unauthorized' }, 401);
   const dry = new URL(request.url).searchParams.get('dry') === '1';
+  // Refuse forced-dry on the prod worker: it holds only real rows, and marking them
+  // sent_dryrun would consume them terminally (send-once → never sent).
+  if (dry && allowReal(env)) return json({ error: 'dry-run drip is staging-only' }, 403);
   const result = await runDrip(env, { dry });
   return json({ ok: true, dry, ...result });
 }
