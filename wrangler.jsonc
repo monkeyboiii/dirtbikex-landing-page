@@ -40,6 +40,9 @@
 			"/api/outreach/*"
 		]
 	},
+	"triggers": {
+		"crons": ["*/10 * * * *"]
+	},
 	"vars": {
 		"FORUM_BASE": "https://forum.dirtbikex.com",
 		"FORUM_INVITE_QUERY_ID": "1",
@@ -61,7 +64,8 @@
 		"JOIN_FROM_EMAIL": "DirtBikeX <team@joindirtbikex.com>",
 		"JOIN_REPLY_TO": "support@dirtbikex.com",
 		"JOIN_ORG_ADDRESS": "DirtBikeX LLC, 30 N Gould St Ste N, Sheridan, WY 82801, USA",
-		"MARKETING_BASE": "https://www.dirtbikex.com"
+		"MARKETING_BASE": "https://www.dirtbikex.com",
+		"OUTREACH_ALLOW_REAL": "1"
 	},
 	"d1_databases": [
 		// `wrangler d1 create dbx-subscribers`, then paste the returned database_id.
@@ -126,6 +130,9 @@
 					"/join/confirm",
 					"/api/outreach/*"
 				]
+			},
+			"triggers": {
+				"crons": ["*/10 * * * *"]
 			},
 			"kv_namespaces": [
 				{

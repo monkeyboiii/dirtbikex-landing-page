@@ -12,7 +12,7 @@ BUILT — single test send (both envs):
   CRM Templates tab ─► POST /api/outreach/test {to,trackName,locale}   (bearer: OUTREACH_SECRET)
                           └─ renderPreInvite() ─► Resend ─► one email   (preview deliverability + copy)
 
-PLANNED — batch drip (ONE canonical-curation env, gated in code; design in §"Batch outreach"):
+PLANNED — batch drip (PROD real; staging = test only; gated in code; design in §"Batch outreach"):
   CRM Outreach tab (filter country/reachable − suppressed − contacted)
      ─► POST /api/outreach/batch ─► D1 outreach ledger (email PK = send-once) ─► per-email disposition
   Cron ─► claim K (subquery, race-safe) ─► Resend (Idempotency-Key) ─► mark terminal ─► reaper re-queues stale
@@ -21,9 +21,10 @@ PLANNED — batch drip (ONE canonical-curation env, gated in code; design in §"
 
 Two facts to keep straight: the **single test send is available in every env** (it is
 just `handleOutreachTest`, env-agnostic — set the secret wherever the CRM runs and it
-works). The **batch drip** runs from exactly **one** env — the canonical-curation env
-(staging today), **gated in code** — because its D1 is the single send-once ledger and
-the same operator must never be cold-mailed twice from two envs (see §"Batch outreach").
+works). The **real batch drip runs from prod**, **gated in code**; **staging can only run
+it in a test mode** — dry-run (log) or override-to-your-own-inbox — so real cold mail
+never originates off prod and the same operator is never contacted twice (see §"Batch
+outreach").
 
 ## Module layout
 
@@ -97,20 +98,19 @@ The design the test send is a stepping-stone toward. **Nothing here is implement
 this is the *corrected* shape (an adversarial design review caught the hazards below, so
 the built pieces don't foreclose them). Everything is a proposal until the build round.
 
-**Where it runs — the pivotal decision.** Real batch sends run from a **single designated
-env**, and it must be the one where the **canonical curation lives**, so that `contacted`
-(which gates future sends) is written on the DB that *promotes*. Today that is **staging**
-(curation is on dbc; prod mirrors it via a **wholesale** snapshot restore). Running the
-batch on *prod* instead would auto-write `contacted` on prod **after** the snapshot was
-taken, and the next wholesale promotion silently clobbers it → already-mailed operators
-reappear as un-contacted and get re-enqueued (the send-once ledger masks the actual
-re-send, so the funnel is quietly wrong with no operator signal). So: **send from the
-canonical-curation env and gate `/api/outreach/batch` + the Cron to that one env in code**
-(reject on the other) — not by operator discipline, because `/api/outreach/*` is reachable
-on *both* workers and prod/preview bind **different** D1s, so a procedural rule would let
-the same operator be enqueued twice from two envs. *(If prod must send: switch promotion to
-a merge-import that preserves prod `contacted`, or derive "contacted" from the ledger —
-both heavier. Canonical-env send is cleanest.)*
+**Where it runs — DECIDED: prod, with a merge-promotion.** Real batch sends run from
+**prod**, **gated in code** — `/api/outreach/batch` *and* the Cron reject on the preview
+env (they are reachable on *both* workers, which bind **different** D1s, so a procedural
+"prod-only" rule would let one operator be enqueued twice from two envs). The batch writes
+`contacted` on prod; since promotion is otherwise a **wholesale** snapshot restore that
+would clobber those prod-written stamps, **staging→prod promotion becomes a merge that
+preserves `contacted`** — implemented as the wholesale restore **followed by a reconcile
+step**: re-stamp `contacted` on every prod track whose email is in prod's D1 send-once
+ledger (`status='sent'`) and whose *incoming* staging disposition is not a newer human call
+(`skip`/`rejected`/`broken`, which win). So the **D1 ledger is the durable "we mailed them"
+record** and `tracks.contacted` is its re-derivable projection — no fragile general
+per-column merge. *(An earlier draft recommended sending from **staging** to sidestep this;
+the operator chose prod + merge-promotion.)*
 
 **Send-once ledger (D1 `outreach`).** `email` PK · `status` (`queued`→`claimed`→`sent` /
 `failed_transient` / `failed_permanent` / `suppressed`) · `claimed_at` · `sent_at` ·
@@ -165,11 +165,28 @@ send-completion is reconciled by the CRM **polling** a bearer-authed `GET
 worker is the single source of the pre-invite copy (localized blocks live in the worker
 `LOCALES` map, edited-then-redeployed; the CRM never re-authors copy).
 
-**Dry-run (rehearse safely).** A job-level `dry_run` flag (staging defaults it **on**) makes
-the drip do everything except the Resend call: it logs `outreach:drip_dryrun {to,subject}`
-and marks the row `sent_dryrun`. Plus an on-demand `POST /api/outreach/drip?dry=1` (bearer)
-runs one tick immediately, so you can rehearse "select 50 → send" end-to-end with zero real
-email (also `wrangler dev --test-scheduled` → hit `/__scheduled`).
+**Test modes (staging never sends for real).** Each job carries a `mode`:
+- `real` — deliver to the actual operator, write the ledger, stamp `contacted`. **Prod only**
+  (rejected on the preview worker).
+- `dry_run` — everything except the Resend call; logs `outreach:drip_dryrun {to,subject}`.
+  Pure rehearsal of claim/throttle/suppression.
+- `override` — a staging **override-to** email: render each message with the *real* track's
+  name/locale (subject prefixed `[TEST→<real recipient>]`) but **deliver every one to your
+  own inbox**. A real Resend send, so it exercises deliverability + the actual drip cadence
+  with zero mail to real operators. Send-once dedup is **off** in this mode (re-run freely).
+
+An on-demand `POST /api/outreach/drip?dry=1` runs one tick immediately (also `wrangler dev
+--test-scheduled` → `/__scheduled`), so you don't wait for the Cron.
+
+**Why staging tests can't pollute prod (the D1 question).** Two structural reasons, so
+"don't save" isn't required: (1) the staging worker binds a **different D1** than prod — the
+real send-once ledger is a database prod alone reads; (2) staging→prod **promotion carries
+the SQLite snapshot, not D1**, so staging outreach rows never ride to prod. The only column
+that *does* promote is `tracks.contacted` — hence the hard rule: **test modes never write
+`contacted`**. Given that, staging *may* save its override/dry-run rows to its own D1 (tagged
+`mode`) — worth it, because the **Outreach tab's Send-jobs panel then shows a real test job**
+and you exercise the true claim/drip/reaper/status path. Zero-footprint variant: `dry_run`
+pure-logs (no D1 write); `override` should save, or you aren't really testing the pipeline.
 
 **Still open (your call):** the sending-env decision above; the drip interval + warm-up
 curve numbers; and the country source (`tracks.region` vs a dedicated locality column).

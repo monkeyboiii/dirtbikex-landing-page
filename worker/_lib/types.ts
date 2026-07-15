@@ -46,8 +46,14 @@ export interface PagesEnv {
   MARKETING_BASE?: string;
   /** R2 bucket holding blank invite cards at `template/<kind>/<locale>.png`. `wrangler r2 bucket create dbx-qr`. */
   QR_BUCKET?: R2Bucket;
-  /** Shared bearer for POST /api/outreach/test (the CRM's pre-invite test send). Secret. */
+  /** Shared bearer for the /api/outreach/* endpoints (the CRM's pre-invite test + batch). Secret. */
   OUTREACH_SECRET?: string;
+  /** "1" ONLY on the prod worker — the structural gate that permits `mode='real'` batch
+   *  sends + real-recipient delivery. Absent/"0" on preview, so staging can only run
+   *  test modes (dry_run / override-to-your-inbox). See docs/OUTREACH_MODULE.md. */
+  OUTREACH_ALLOW_REAL?: string;
+  /** Per-UTC-day cap on `real` sends (warm-up). Optional; defaults to 200. */
+  OUTREACH_DAILY_CAP?: string;
 
   // --- /api/logto/sms — Logto HTTP SMS connector gateway. See docs/sms-gateway.md.
   /** Shared bearer that Logto sends in `Authorization: Bearer …`. Secret. */
@@ -77,14 +83,16 @@ export interface KVNamespace {
   put(key: string, value: string, options?: { expirationTtl?: number }): Promise<void>;
 }
 
-/** Minimal D1 shape — prepare/bind + first/run is all the join flow needs. */
+/** Minimal D1 shape — prepare/bind + first/run/all covers the join + outreach flows. */
 export interface D1Database {
   prepare(query: string): D1PreparedStatement;
 }
 export interface D1PreparedStatement {
   bind(...values: unknown[]): D1PreparedStatement;
   first<T = Record<string, unknown>>(): Promise<T | null>;
-  run(): Promise<{ success: boolean }>;
+  run(): Promise<{ success: boolean; meta?: { changes?: number } }>;
+  /** Rows for a SELECT or an UPDATE/INSERT … RETURNING. */
+  all<T = Record<string, unknown>>(): Promise<{ results: T[]; success: boolean }>;
 }
 
 /** Minimal R2 shape — the invite flow only needs get(key) + read the body bytes. */

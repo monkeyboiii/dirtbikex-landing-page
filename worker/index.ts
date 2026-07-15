@@ -6,7 +6,7 @@ import { fetchForumMetrics } from './_lib/forumMetrics';
 import { fetchForumFeatured } from './_lib/forumFeatured';
 import { fetchSponsors, fetchLeaderboard } from './_lib/sponsorProxy';
 import { handleLogtoSms } from './_lib/logtoSms';
-import { handleOutreachTest } from './_lib/outreach';
+import { handleOutreachTest, handleBatch, handlePreview, handleStatus, handleUnsub, handleDrip, runDrip } from './_lib/outreach';
 import { handleJoinSubmit, handleJoinConfirm, handleUnsubscribe, handleCodePrecheck } from './_lib/join';
 import { handleShortlinkResolve } from './_lib/shortlink';
 import type { Lang, PagesEnv, ShareLandingProps } from './_lib/types';
@@ -646,9 +646,25 @@ export default {
       return handleLogtoSms(request, env);
     }
 
-    // /api/outreach/test — bearer-authed single pre-invite test send. See worker/_lib/outreach.ts.
+    // /api/outreach/* — pre-invite outreach (single test send + batch pipeline).
+    // See worker/_lib/outreach.ts + docs/OUTREACH_MODULE.md.
     if (url.pathname === '/api/outreach/test' && request.method === 'POST') {
       return handleOutreachTest(request, env);
+    }
+    if (url.pathname === '/api/outreach/batch' && request.method === 'POST') {
+      return handleBatch(request, env);
+    }
+    if (url.pathname === '/api/outreach/preview' && request.method === 'GET') {
+      return handlePreview(request, env);
+    }
+    if (url.pathname === '/api/outreach/status' && request.method === 'GET') {
+      return handleStatus(request, env);
+    }
+    if (url.pathname === '/api/outreach/drip' && request.method === 'POST') {
+      return handleDrip(request, env);
+    }
+    if (url.pathname === '/api/outreach/u' && (request.method === 'GET' || request.method === 'POST')) {
+      return handleUnsub(request, env);
     }
 
     // /join double-opt-in waitlist. See worker/_lib/join.ts.
@@ -666,5 +682,12 @@ export default {
     }
 
     return env.ASSETS.fetch(request);
+  },
+
+  // Cron trigger (wrangler.jsonc `triggers.crons`) → one outreach drip tick.
+  // On prod this drains `real` sends under the warm-up budget; on preview it drains
+  // test rows (override → your inbox, dry_run → log). Real mode is gated at enqueue.
+  async scheduled(_event: unknown, env: Env, ctx: { waitUntil(p: Promise<unknown>): void }): Promise<void> {
+    ctx.waitUntil(runDrip(env, { dry: false }));
   },
 };

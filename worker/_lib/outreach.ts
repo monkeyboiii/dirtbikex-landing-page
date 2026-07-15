@@ -1,15 +1,11 @@
-// outreach.ts — the PRE-INVITE cold-outreach email: the thin first touch to a
-// track operator ("we built DirtBikeX, interested?"), with NO code / invite link /
-// QR. It's the top of the funnel; only if they reply do we mint an invite (the
-// existing /api/join Deliver flow). Sender is Resend, From joindirtbikex.com — the
-// reputation-isolated identity, same as the join confirmation email.
-//
-// REAL batch outreach runs only from PROD (its D1 is the single send-once ledger).
-// This module currently exposes only the TEST send: POST /api/outreach/test
-// (bearer-authed, called by the staging CRM) fires ONE pre-invite to an address you
-// type, so you can preview deliverability + rendering without touching real
-// operators. The batch queue + D1 send-once + Cron drip + automated suppression are
-// the production follow-up. See dirtbikex-contacts CONTACT_MODULE + JOIN_MODULE.
+// outreach.ts — the PRE-INVITE cold-outreach email: the thin first touch to a track
+// operator ("we built DirtBikeX, interested?"), NO code / invite link / QR. Two surfaces:
+//   • single TEST send  — POST /api/outreach/test (bearer), one email you type.
+//   • BATCH pipeline    — POST /api/outreach/batch enqueues into the D1 send-once ledger
+//     (`outreach`), a Cron (or POST /api/outreach/drip) drips it out, /api/outreach/status
+//     reports jobs, /api/outreach/u is the tokened one-click unsubscribe.
+// Sender is Resend, From joindirtbikex.com (the reputation-isolated identity, same as the
+// join confirmation email). See docs/OUTREACH_MODULE.md §"Batch outreach".
 import type { PagesEnv } from './types';
 
 // personalization is TRACK NAME only (no owner greeting, by design)
@@ -27,8 +23,7 @@ function escapeHtml(s: string): string {
 // One localized block per language. `en` is the base and the fallback; a non-English
 // send stacks the local block ABOVE the English one in a single email (send-once
 // forbids two emails to one address). TODO(copy): the wording is a placeholder and
-// deliberately hardcoded — finalize it and add translations here, then redeploy
-// (accepted friction; promote to a runtime store only if copy iteration bottlenecks).
+// deliberately hardcoded — finalize it and add translations here, then redeploy.
 interface Block { subject: string; lead: string; body: string; cta: string }
 
 const EN: Block = {
@@ -66,53 +61,88 @@ export function renderPreInvite(trackName: string, locale: string): { subject: s
   return { subject, html: htmlBlocks, text: textBlocks };
 }
 
-async function sendPreInvite(env: PagesEnv, p: PreInvitePayload): Promise<{ ok: boolean; error?: string }> {
+// ---- sending ---------------------------------------------------------------
+
+interface SendOpts {
+  /** Logical recipient (the real operator) — drives the mailto unsubscribe context. */
+  to: string;
+  trackName: string;
+  locale: string;
+  /** Actual delivery address; defaults to `to`. Override mode redirects to your inbox. */
+  deliverTo?: string;
+  /** Subject prefix, e.g. `[TEST→operator@track.com] `. */
+  subjectPrefix?: string;
+  /** Tokened HTTPS one-click unsubscribe URL (real batch). Omit → mailto unsubscribe. */
+  unsubUrl?: string;
+  /** Resend Idempotency-Key — stable across retries of one attempt, unique per enqueue. */
+  idempotencyKey?: string;
+}
+
+async function sendPreInvite(env: PagesEnv, o: SendOpts): Promise<{ ok: boolean; error?: string; transient?: boolean }> {
   const apiKey = env.RESEND_API_KEY;
   const from = env.JOIN_FROM_EMAIL;
   if (!apiKey || !from) return { ok: false, error: 'email misconfigured (RESEND_API_KEY / JOIN_FROM_EMAIL)' };
   const replyTo = env.JOIN_REPLY_TO ?? '';
   const address = env.JOIN_ORG_ADDRESS ?? '';
-  const { subject, html: bodyHtml, text: bodyText } = renderPreInvite(p.trackName, p.locale);
+  const deliverTo = o.deliverTo || o.to;
+  const { subject: baseSubject, html: bodyHtml, text: bodyText } = renderPreInvite(o.trackName, o.locale);
+  const subject = (o.subjectPrefix ?? '') + baseSubject;
 
-  // CAN-SPAM: honest From, physical address, and an unsubscribe. Cold outreach has
-  // no subscriber token, so unsub is mailto-based (a valid List-Unsubscribe channel);
-  // the automated D1-suppression unsub is the production batch follow-up.
+  // CAN-SPAM: honest From, physical address, an unsubscribe. Real batch carries a tokened
+  // HTTPS one-click (RFC 8058); the test/override path uses a mailto (RFC 2369) so a click
+  // in a test email can't suppress a real operator.
   const unsubMailto = replyTo ? `mailto:${replyTo}?subject=unsubscribe` : '';
+  const unsubLink = o.unsubUrl
+    ? `<a href="${escapeHtml(o.unsubUrl)}">Unsubscribe</a> and we won't contact you again.`
+    : (replyTo ? `<a href="mailto:${escapeHtml(replyTo)}?subject=unsubscribe">Unsubscribe</a> and we won't contact you again.` : '');
   const footerHtml = `<hr style="border:none;border-top:1px solid #ddd;margin:24px 0;">
-<p style="font-size:12px;color:#888;line-height:1.5;">DirtBikeX${address ? `<br>${escapeHtml(address)}` : ''}<br>You received this one-time note because your track is publicly listed. ${replyTo ? `Not interested? <a href="mailto:${escapeHtml(replyTo)}?subject=unsubscribe">Unsubscribe</a> and we won't contact you again.` : ''}</p>`;
+<p style="font-size:12px;color:#888;line-height:1.5;">DirtBikeX${address ? `<br>${escapeHtml(address)}` : ''}<br>You received this one-time note because your track is publicly listed. ${unsubLink}</p>`;
   const html = `<!DOCTYPE html><html><body style="font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.55;color:#222;margin:0;padding:24px;">
 ${bodyHtml}
 ${footerHtml}
 </body></html>`;
-  const text = `${bodyText}\n\n—\nDirtBikeX${address ? `\n${address}` : ''}\nYou received this one-time note because your track is publicly listed.${replyTo ? `\nNot interested? Reply "unsubscribe" and we won't contact you again.` : ''}`;
+  const unsubText = o.unsubUrl ? `\nUnsubscribe: ${o.unsubUrl}` : (replyTo ? `\nNot interested? Reply "unsubscribe" and we won't contact you again.` : '');
+  const text = `${bodyText}\n\n—\nDirtBikeX${address ? `\n${address}` : ''}\nYou received this one-time note because your track is publicly listed.${unsubText}`;
+
+  const httpHeaders: Record<string, string> = { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' };
+  if (o.idempotencyKey) httpHeaders['Idempotency-Key'] = o.idempotencyKey;
+
+  // Email-level List-Unsubscribe headers. One-click POST only makes sense over HTTPS.
+  const mailHeaders: Record<string, string> = {};
+  if (o.unsubUrl) {
+    mailHeaders['List-Unsubscribe'] = `<${o.unsubUrl}>`;
+    mailHeaders['List-Unsubscribe-Post'] = 'List-Unsubscribe=One-Click';
+  } else if (unsubMailto) {
+    mailHeaders['List-Unsubscribe'] = `<${unsubMailto}>`;
+  }
 
   let resp: Response;
   try {
     resp = await fetch('https://api.resend.com/emails', {
       method: 'POST',
-      headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+      headers: httpHeaders,
       body: JSON.stringify({
         from,
-        to: [p.to],
+        to: [deliverTo],
         subject,
         html,
         text,
         ...(replyTo ? { reply_to: replyTo } : {}),
-        ...(unsubMailto
-          ? { headers: { 'List-Unsubscribe': `<${unsubMailto}>`, 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' } }
-          : {}),
+        ...(Object.keys(mailHeaders).length ? { headers: mailHeaders } : {}),
       }),
     });
   } catch (err) {
     console.error('outreach:resend_threw', { err: String(err) });
-    return { ok: false, error: 'resend request failed' };
+    return { ok: false, error: 'resend request failed', transient: true };
   }
   if (!resp.ok) {
     console.error('outreach:resend_non_2xx', { status: resp.status });
-    return { ok: false, error: `resend returned ${resp.status}` };
+    return { ok: false, error: `resend returned ${resp.status}`, transient: resp.status === 429 || resp.status >= 500 };
   }
   return { ok: true };
 }
+
+// ---- auth + helpers --------------------------------------------------------
 
 function checkAuth(request: Request, env: PagesEnv): boolean {
   const expected = env.OUTREACH_SECRET;
@@ -130,7 +160,24 @@ function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
 }
 
-// POST /api/outreach/test — bearer-authed single test send (called by the staging CRM).
+const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+function normalizeEmail(raw: string): string | null {
+  const e = (raw ?? '').trim().toLowerCase();
+  return EMAIL_RE.test(e) ? e : null;
+}
+
+/** "1" on the prod worker only — the structural gate for real sends. */
+function allowReal(env: PagesEnv): boolean {
+  return env.OUTREACH_ALLOW_REAL === '1';
+}
+
+async function isSuppressed(env: PagesEnv, email: string): Promise<boolean> {
+  const row = await env.SUBSCRIBERS_DB!.prepare('SELECT 1 AS x FROM suppressions WHERE email = ?').bind(email).first();
+  return !!row;
+}
+
+// ---- POST /api/outreach/test — bearer-authed single test send --------------
+
 export async function handleOutreachTest(request: Request, env: PagesEnv): Promise<Response> {
   if (!checkAuth(request, env)) return json({ error: 'unauthorized' }, 401);
   let body: { to?: string; trackName?: string; locale?: string };
@@ -142,8 +189,236 @@ export async function handleOutreachTest(request: Request, env: PagesEnv): Promi
   const to = (body.to ?? '').trim();
   const trackName = (body.trackName ?? '').trim() || 'your track';
   const locale = (body.locale ?? 'en').trim() || 'en';
-  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(to)) return json({ error: 'invalid recipient email' }, 400);
+  if (!EMAIL_RE.test(to)) return json({ error: 'invalid recipient email' }, 400);
   const result = await sendPreInvite(env, { to, trackName, locale });
   if (!result.ok) return json({ error: result.error ?? 'send failed' }, 502);
   return json({ ok: true, sent_to: to });
+}
+
+// ---- batch pipeline --------------------------------------------------------
+
+type Mode = 'real' | 'dry_run' | 'override';
+interface OutreachRow {
+  email: string;
+  mode: Mode;
+  track_name: string;
+  track_region: string | null;
+  locale: string;
+  job_id: string | null;
+  override_to: string | null;
+  unsub_token: string;
+  attempts: number;
+}
+
+// POST /api/outreach/batch — enqueue a filtered batch (send-once) and return per-email
+// disposition. `real` is prod-only; test modes (dry_run/override) are staging-only.
+export async function handleBatch(request: Request, env: PagesEnv): Promise<Response> {
+  if (!checkAuth(request, env)) return json({ error: 'unauthorized' }, 401);
+  if (!env.SUBSCRIBERS_DB) return json({ error: 'outreach db not bound' }, 503);
+  let body: { mode?: string; override_to?: string; recipients?: unknown };
+  try {
+    body = (await request.json()) as typeof body;
+  } catch {
+    return json({ error: 'invalid json' }, 400);
+  }
+  const mode: Mode = body.mode === 'override' ? 'override' : body.mode === 'dry_run' ? 'dry_run' : 'real';
+  const overrideTo = normalizeEmail(body.override_to ?? '');
+  const recipients = Array.isArray(body.recipients) ? (body.recipients as Array<Record<string, unknown>>) : [];
+
+  // Structural env gate: real → prod only; test modes → staging only.
+  if (mode === 'real' && !allowReal(env)) return json({ error: 'real sends are prod-only on this worker' }, 403);
+  if (mode !== 'real' && allowReal(env)) return json({ error: 'test modes run on staging, not the prod worker' }, 403);
+  if (mode === 'override' && !overrideTo) return json({ error: 'override mode requires a valid override_to email' }, 400);
+  if (!recipients.length) return json({ error: 'no recipients' }, 400);
+  if (recipients.length > 1000) return json({ error: 'batch too large (max 1000 per job)' }, 400);
+
+  const jobId = crypto.randomUUID();
+  const dispositions: Record<string, string> = {};
+  let enqueued = 0, already = 0, suppressed = 0, rejected = 0;
+
+  for (const r of recipients) {
+    const email = normalizeEmail(String(r?.email ?? ''));
+    if (!email) { if (r?.email) dispositions[String(r.email)] = 'rejected'; rejected++; continue; }
+    if (await isSuppressed(env, email)) { dispositions[email] = 'suppressed'; suppressed++; continue; }
+    const trackName = (String(r?.trackName ?? '').trim()) || 'your track';
+    const region = r?.trackRegion ? String(r.trackRegion) : null;
+    const locale = (String(r?.locale ?? 'en').trim()) || 'en';
+    const unsub = crypto.randomUUID();
+
+    if (mode === 'real') {
+      // send-once: a conflict means the address was already ledgered (never re-mail).
+      const row = await env.SUBSCRIBERS_DB.prepare(
+        `INSERT INTO outreach (email,status,mode,track_name,track_region,locale,job_id,override_to,unsub_token)
+         VALUES (?, 'queued', 'real', ?, ?, ?, ?, NULL, ?)
+         ON CONFLICT(email) DO NOTHING RETURNING email`
+      ).bind(email, trackName, region, locale, jobId, unsub).first();
+      if (row) { dispositions[email] = 'enqueued'; enqueued++; }
+      else { dispositions[email] = 'already'; already++; }
+    } else {
+      // test mode: upsert re-queue so you can re-run the same batch freely. On staging the
+      // ledger holds only test rows, so this never clobbers a real send-once record.
+      await env.SUBSCRIBERS_DB.prepare(
+        `INSERT INTO outreach (email,status,mode,track_name,track_region,locale,job_id,override_to,unsub_token)
+         VALUES (?, 'queued', ?, ?, ?, ?, ?, ?, ?)
+         ON CONFLICT(email) DO UPDATE SET
+           status='queued', mode=excluded.mode, track_name=excluded.track_name,
+           track_region=excluded.track_region, locale=excluded.locale, job_id=excluded.job_id,
+           override_to=excluded.override_to, unsub_token=excluded.unsub_token,
+           claimed_at=NULL, sent_at=NULL, attempts=0, last_error=NULL`
+      ).bind(email, mode, trackName, region, locale, jobId, mode === 'override' ? overrideTo : null, unsub).run();
+      dispositions[email] = 'enqueued'; enqueued++;
+    }
+  }
+
+  await env.SUBSCRIBERS_DB.prepare(
+    `INSERT INTO outreach_jobs (id,mode,override_to,requested,enqueued,already,suppressed,rejected)
+     VALUES (?,?,?,?,?,?,?,?)`
+  ).bind(jobId, mode, mode === 'override' ? overrideTo : null, recipients.length, enqueued, already, suppressed, rejected).run();
+
+  return json({ ok: true, job_id: jobId, mode, counts: { requested: recipients.length, enqueued, already, suppressed, rejected }, dispositions });
+}
+
+// GET /api/outreach/preview?trackName=&locale= — the Outreach tab's live preview.
+export async function handlePreview(request: Request, env: PagesEnv): Promise<Response> {
+  if (!checkAuth(request, env)) return json({ error: 'unauthorized' }, 401);
+  const url = new URL(request.url);
+  const trackName = (url.searchParams.get('trackName') || 'your track').trim() || 'your track';
+  const locale = (url.searchParams.get('locale') || 'en').trim() || 'en';
+  return json({ ok: true, ...renderPreInvite(trackName, locale) });
+}
+
+// GET /api/outreach/status[?job_id=][&since=] — Send-jobs panel + `contacted` reconcile.
+export async function handleStatus(request: Request, env: PagesEnv): Promise<Response> {
+  if (!checkAuth(request, env)) return json({ error: 'unauthorized' }, 401);
+  if (!env.SUBSCRIBERS_DB) return json({ error: 'outreach db not bound' }, 503);
+  const url = new URL(request.url);
+  const jobId = url.searchParams.get('job_id');
+  if (jobId) {
+    const job = await env.SUBSCRIBERS_DB.prepare('SELECT * FROM outreach_jobs WHERE id=?').bind(jobId).first();
+    const rows = (await env.SUBSCRIBERS_DB.prepare(
+      'SELECT email,status,mode,sent_at,last_error FROM outreach WHERE job_id=? ORDER BY email'
+    ).bind(jobId).all()).results;
+    const prog = (await env.SUBSCRIBERS_DB.prepare(
+      'SELECT status, count(*) AS n FROM outreach WHERE job_id=? GROUP BY status'
+    ).bind(jobId).all<{ status: string; n: number }>()).results;
+    return json({ ok: true, job, rows, progress: Object.fromEntries(prog.map((p) => [p.status, p.n])) });
+  }
+  const jobs = (await env.SUBSCRIBERS_DB.prepare('SELECT * FROM outreach_jobs ORDER BY created_at DESC LIMIT 25').all()).results;
+  // `?since=` returns real sends after that timestamp — the CRM polls this to reconcile `contacted`.
+  const since = url.searchParams.get('since');
+  const sent = since
+    ? (await env.SUBSCRIBERS_DB.prepare(
+        "SELECT email, sent_at FROM outreach WHERE mode='real' AND status='sent' AND sent_at > ? ORDER BY sent_at"
+      ).bind(since).all<{ email: string; sent_at: string }>()).results
+    : [];
+  return json({ ok: true, jobs, sent });
+}
+
+// GET|POST /api/outreach/u?token= — public tokened one-click unsubscribe → D1 suppressions.
+export async function handleUnsub(request: Request, env: PagesEnv): Promise<Response> {
+  const plain = (body: string, status: number) =>
+    new Response(body, { status, headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' } });
+  if (!env.SUBSCRIBERS_DB) return plain('Unavailable.', 503);
+  const url = new URL(request.url);
+  const token = url.searchParams.get('token') ?? '';
+  if (!token) return plain('Missing token.', 400);
+  const row = await env.SUBSCRIBERS_DB.prepare('SELECT email FROM outreach WHERE unsub_token=?').bind(token).first<{ email: string }>();
+  if (!row) return plain('This unsubscribe link is not valid.', 404);
+  await env.SUBSCRIBERS_DB.prepare(
+    "INSERT INTO suppressions (email,reason,source) VALUES (?, 'unsub', 'one_click') ON CONFLICT(email) DO NOTHING"
+  ).bind(row.email).run();
+  await env.SUBSCRIBERS_DB.prepare(
+    "UPDATE outreach SET status='suppressed' WHERE email=? AND status IN ('queued','claimed')"
+  ).bind(row.email).run();
+  return plain("You've been unsubscribed and won't receive further emails from DirtBikeX. Sorry for the interruption.", 200);
+}
+
+// ---- drip ------------------------------------------------------------------
+
+const CLAIM_LIMIT = 20;     // rows per tick
+const CLAIM_TTL_MIN = 10;   // reaper re-queues claims older than this (a crashed mid-send)
+const MAX_ATTEMPTS = 5;
+const DEFAULT_DAILY_CAP = 200;
+
+interface DripResult { claimed: number; sent: number; dryrun: number; suppressed: number; failed: number; requeued: number; }
+
+// One drip tick: reap stale claims → claim K queued → per row: suppression re-check, then
+// send (real/override) or log (dry_run) with a Resend Idempotency-Key, mark terminal.
+// Called by the Cron (scheduled) and by POST /api/outreach/drip. `dry` forces log-only.
+export async function runDrip(env: PagesEnv, opts: { dry?: boolean } = {}): Promise<DripResult> {
+  const out: DripResult = { claimed: 0, sent: 0, dryrun: 0, suppressed: 0, failed: 0, requeued: 0 };
+  const db = env.SUBSCRIBERS_DB;
+  if (!db) return out;
+
+  // reaper: rows stuck in 'claimed' past the TTL get re-queued.
+  await db.prepare("UPDATE outreach SET status='queued', claimed_at=NULL WHERE status='claimed' AND claimed_at < datetime('now', ?)")
+    .bind(`-${CLAIM_TTL_MIN} minutes`).run();
+
+  const dailyCap = parseInt(env.OUTREACH_DAILY_CAP ?? '', 10) || DEFAULT_DAILY_CAP;
+  const sentToday = (await db.prepare(
+    "SELECT count(*) AS n FROM outreach WHERE mode='real' AND status='sent' AND sent_at >= datetime('now','start of day')"
+  ).first<{ n: number }>())?.n ?? 0;
+  let realBudget = Math.max(0, dailyCap - sentToday);
+
+  // claim via the subquery form (bare UPDATE…LIMIT isn't guaranteed in D1's SQLite build).
+  const claimed = (await db.prepare(
+    `UPDATE outreach SET status='claimed', claimed_at=datetime('now'), attempts=attempts+1
+     WHERE rowid IN (SELECT rowid FROM outreach WHERE status='queued' ORDER BY created_at LIMIT ?)
+     RETURNING email, mode, track_name, track_region, locale, job_id, override_to, unsub_token, attempts`
+  ).bind(CLAIM_LIMIT).all<OutreachRow>()).results;
+  out.claimed = claimed.length;
+
+  for (const row of claimed) {
+    if (await isSuppressed(env, row.email)) {
+      await db.prepare("UPDATE outreach SET status='suppressed' WHERE email=?").bind(row.email).run();
+      out.suppressed++;
+      continue;
+    }
+    const isDry = opts.dry || row.mode === 'dry_run';
+    if (isDry) {
+      console.log('outreach:drip_dryrun', { to: row.email, mode: row.mode, locale: row.locale });
+      await db.prepare("UPDATE outreach SET status='sent_dryrun', sent_at=datetime('now'), last_error=NULL WHERE email=?").bind(row.email).run();
+      out.dryrun++;
+      continue;
+    }
+    if (row.mode === 'real' && realBudget <= 0) {
+      await db.prepare("UPDATE outreach SET status='queued', claimed_at=NULL WHERE email=?").bind(row.email).run();
+      out.requeued++;
+      continue;
+    }
+
+    const isOverride = row.mode === 'override';
+    const deliverTo = isOverride ? (row.override_to || row.email) : row.email;
+    // real → tokened HTTPS one-click; override/dry_run → mailto (so a test click can't
+    // suppress a real operator whose token this row carries).
+    const unsubUrl = row.mode === 'real' && env.MARKETING_BASE
+      ? `${env.MARKETING_BASE}/api/outreach/u?token=${encodeURIComponent(row.unsub_token)}`
+      : undefined;
+    const subjectPrefix = isOverride ? `[TEST→${row.email}] ` : undefined;
+
+    const res = await sendPreInvite(env, {
+      to: row.email, trackName: row.track_name, locale: row.locale,
+      deliverTo, subjectPrefix, unsubUrl, idempotencyKey: `${row.job_id ?? 'nojob'}:${row.email}`,
+    });
+    if (res.ok) {
+      await db.prepare("UPDATE outreach SET status='sent', sent_at=datetime('now'), last_error=NULL WHERE email=?").bind(row.email).run();
+      if (row.mode === 'real') realBudget--;
+      out.sent++;
+    } else if (res.transient && row.attempts < MAX_ATTEMPTS) {
+      await db.prepare("UPDATE outreach SET status='queued', claimed_at=NULL, last_error=? WHERE email=?").bind(res.error ?? 'transient', row.email).run();
+      out.requeued++;
+    } else {
+      await db.prepare("UPDATE outreach SET status='failed_permanent', last_error=? WHERE email=?").bind(res.error ?? 'failed', row.email).run();
+      out.failed++;
+    }
+  }
+  return out;
+}
+
+// POST /api/outreach/drip[?dry=1] — run one drip tick on demand (bearer).
+export async function handleDrip(request: Request, env: PagesEnv): Promise<Response> {
+  if (!checkAuth(request, env)) return json({ error: 'unauthorized' }, 401);
+  const dry = new URL(request.url).searchParams.get('dry') === '1';
+  const result = await runDrip(env, { dry });
+  return json({ ok: true, dry, ...result });
 }
