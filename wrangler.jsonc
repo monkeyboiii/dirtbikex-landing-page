@@ -36,7 +36,8 @@
 			"/api/join",
 			"/api/join/code",
 			"/api/unsubscribe",
-			"/join/confirm"
+			"/join/confirm",
+			"/api/outreach/*"
 		]
 	},
 	"vars": {
@@ -122,7 +123,8 @@
 					"/api/join",
 					"/api/join/code",
 					"/api/unsubscribe",
-					"/join/confirm"
+					"/join/confirm",
+					"/api/outreach/*"
 				]
 			},
 			"kv_namespaces": [
