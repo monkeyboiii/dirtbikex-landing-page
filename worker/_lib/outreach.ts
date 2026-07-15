@@ -322,7 +322,15 @@ export async function handleStatus(request: Request, env: PagesEnv): Promise<Res
     ).bind(jobId).all<{ status: string; n: number }>()).results;
     return json({ ok: true, job, rows, progress: Object.fromEntries(prog.map((p) => [p.status, p.n])) });
   }
-  const jobs = (await env.SUBSCRIBERS_DB.prepare('SELECT * FROM outreach_jobs ORDER BY created_at DESC LIMIT 25').all()).results;
+  const jobs = (await env.SUBSCRIBERS_DB.prepare('SELECT * FROM outreach_jobs ORDER BY created_at DESC LIMIT 25').all()).results as Array<Record<string, unknown>>;
+  // Attach live per-job progress from the ledger (sent / queued / …) so the CRM can show
+  // whether a job's emails actually went out, not just that they were enqueued.
+  const prog = (await env.SUBSCRIBERS_DB.prepare(
+    'SELECT job_id, status, count(*) AS n FROM outreach GROUP BY job_id, status'
+  ).all<{ job_id: string; status: string; n: number }>()).results;
+  const byJob: Record<string, Record<string, number>> = {};
+  for (const p of prog) { (byJob[p.job_id] ??= {})[p.status] = p.n; }
+  for (const j of jobs) { j.progress = byJob[String(j.id)] ?? {}; }
   // `?since=` returns real sends after that timestamp — the CRM polls this to reconcile `contacted`.
   const since = url.searchParams.get('since');
   const sent = since
