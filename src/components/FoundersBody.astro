@@ -1,6 +1,6 @@
 ---
 import { getLangFromUrl, useTranslations } from '../i18n/utils';
-import { SOCIALS } from '../config';
+import { SOCIALS, FOUNDER_FACEBOOK } from '../config';
 import SocialIcon from './SocialIcon.astro';
 
 const lang = getLangFromUrl(Astro.url);
@@ -28,9 +28,9 @@ const lead = {
   bioKey: 'founders.calvin.bio',
   photo: { src: '/founders/calvin.png', altKey: 'founders.calvin.photo_alt' },
   socials: [
-    { platform: 'x', labelKey: 'contact.social.x', url: SOCIALS.x },
+    { platform: 'facebook', labelKey: 'contact.social.facebook', url: FOUNDER_FACEBOOK },
     { platform: 'instagram', labelKey: 'contact.social.instagram', url: SOCIALS.instagram },
-    { platform: 'facebook', labelKey: 'contact.social.facebook', url: SOCIALS.facebook },
+    { platform: 'x', labelKey: 'contact.social.x', url: SOCIALS.x },
   ],
 };
 
@@ -180,15 +180,6 @@ const team: Founder[] = [
     border-color: var(--brand);
     color: #fff;
     transform: translateY(-1px);
-  }
-  .founder-social svg {
-    width: 17px;
-    height: 17px;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.8;
-    stroke-linecap: round;
-    stroke-linejoin: round;
   }
 
   .founder-lead {

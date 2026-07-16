@@ -9,11 +9,13 @@ export const APP_STORE_URL = 'https://apps.apple.com/app/id6765577701';
 const apex = new URL(process.env.SITE_URL ?? 'https://www.dirtbikex.com').hostname.replace(/^www\./, '');
 export const FORUM_BASE = `https://forum.${apex}`;
 
-// Public social profiles + support inbox, shared by the founder page, footer, and contact page.
-// URLs derived from the @dirtbikex handle — confirm the real profile URLs before prod.
+// Public social profiles + contact channels, shared by the founder page, footer, and contact page.
 export const SOCIALS = {
-  x: 'https://x.com/dirtbikex',
-  instagram: 'https://instagram.com/dirtbikex',
-  facebook: 'https://facebook.com/dirtbikex',
+  facebook: 'https://www.facebook.com/people/Dirt-Bike-X/61592048966883/',
+  instagram: 'https://www.instagram.com/teamdirtbikex/',
+  x: 'https://x.com/teamdirtbikex',
+  whatsapp: 'https://wa.me/teamdirtbikex',
 } as const;
+// Founder (Calvin) personal Facebook — founders page only.
+export const FOUNDER_FACEBOOK = 'https://www.facebook.com/profile.php?id=61590664892188';
 export const SUPPORT_EMAIL = 'support@dirtbikex.com';

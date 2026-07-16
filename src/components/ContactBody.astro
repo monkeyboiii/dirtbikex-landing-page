@@ -7,10 +7,11 @@ const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
 
 const contactSocials = [
-  { platform: 'email' as const, url: `mailto:${SUPPORT_EMAIL}`, label: t('contact.social.email') },
-  { platform: 'x' as const, url: SOCIALS.x, label: t('contact.social.x') },
-  { platform: 'instagram' as const, url: SOCIALS.instagram, label: t('contact.social.instagram') },
   { platform: 'facebook' as const, url: SOCIALS.facebook, label: t('contact.social.facebook') },
+  { platform: 'instagram' as const, url: SOCIALS.instagram, label: t('contact.social.instagram') },
+  { platform: 'x' as const, url: SOCIALS.x, label: t('contact.social.x') },
+  { platform: 'whatsapp' as const, url: SOCIALS.whatsapp, label: t('contact.social.whatsapp') },
+  { platform: 'email' as const, url: `mailto:${SUPPORT_EMAIL}`, label: t('contact.social.email') },
 ];
 ---
 
@@ -46,21 +47,6 @@ const contactSocials = [
         <SocialLinks links={contactSocials} />
       </div>
     </div>
-  </section>
-
-  <section class="mt-16">
-    <h2 class="t-h2">{t('contact.dm.title')}</h2>
-    <ul class="mt-6 grid gap-3 sm:grid-cols-2">
-      <li
-        class="flex items-center justify-between gap-4 rounded-xl px-4 py-3"
-        style="background: var(--bg-elevated); border: 1px solid var(--border);"
-      >
-        <span class="t-body font-medium">{t('contact.dm.whatsapp')}</span>
-        <span class="t-mono-sm" style="color: var(--fg-tertiary);">
-          {t('contact.dm.placeholder')}
-        </span>
-      </li>
-    </ul>
   </section>
 
   <section class="mt-16">
