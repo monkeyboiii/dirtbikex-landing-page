@@ -362,6 +362,61 @@ export async function handleStatus(request: Request, env: PagesEnv): Promise<Res
   return json({ ok: true, jobs, sent, suppressions });
 }
 
+// GET /api/outreach/metrics — aggregate-only D1 counters for the Prometheus exporter. See DASHBOARDS_MODULE.md § DBX Outreach.
+export async function handleMetrics(request: Request, env: PagesEnv): Promise<Response> {
+  if (!checkAuth(request, env)) return json({ error: 'unauthorized' }, 401);
+  if (!env.SUBSCRIBERS_DB) return json({ error: 'outreach db not bound' }, 503);
+  const db = env.SUBSCRIBERS_DB;
+  const cap = parseInt(env.OUTREACH_DAILY_CAP ?? '', 10) || DEFAULT_DAILY_CAP;
+
+  const one = async (sql: string, ...binds: unknown[]): Promise<number> =>
+    ((await db.prepare(sql).bind(...binds).first<{ n: number }>())?.n) ?? 0;
+
+  const sendsRows = (await db.prepare('SELECT status, count(*) AS n FROM outreach GROUP BY status')
+    .all<{ status: string; n: number }>()).results;
+  const sends = Object.fromEntries(sendsRows.map((r) => [r.status, r.n]));
+
+  const real_sent_total = await one("SELECT count(*) AS n FROM outreach WHERE mode='real' AND status='sent'");
+  const real_sends_today = await one(
+    "SELECT count(*) AS n FROM outreach WHERE mode='real' AND status='sent' AND sent_at >= datetime('now','start of day')"
+  );
+  const due_backlog = await one(
+    "SELECT count(*) AS n FROM outreach WHERE status='queued' AND (send_after IS NULL OR send_after <= datetime('now'))"
+  );
+  const stuck_claimed = await one(
+    "SELECT count(*) AS n FROM outreach WHERE status='claimed' AND claimed_at < datetime('now', ?)",
+    `-${CLAIM_TTL_MIN} minutes`
+  );
+
+  const supRows = (await db.prepare('SELECT reason, count(*) AS n FROM suppressions GROUP BY reason')
+    .all<{ reason: string; n: number }>()).results;
+  const sup = Object.fromEntries(supRows.map((r) => [r.reason, r.n]));
+
+  const y = (await db.prepare(
+    'SELECT COALESCE(SUM(requested),0) AS requested, COALESCE(SUM(enqueued),0) AS enqueued, ' +
+    'COALESCE(SUM(already),0) AS already, COALESCE(SUM(suppressed),0) AS suppressed, ' +
+    'COALESCE(SUM(rejected),0) AS rejected FROM outreach_jobs'
+  ).first<Record<string, number>>()) ?? { requested: 0, enqueued: 0, already: 0, suppressed: 0, rejected: 0 };
+
+  // NULL (no real send ever) → null, so the exporter skips the series (no false stall pre-launch).
+  const age = (await db.prepare(
+    "SELECT strftime('%s','now') - strftime('%s', MAX(sent_at)) AS n FROM outreach WHERE mode='real' AND status='sent'"
+  ).first<{ n: number | null }>())?.n ?? null;
+
+  return json({
+    ok: true,
+    sends,
+    real_sent_total,
+    real_sends_today,
+    daily_cap: cap,
+    due_backlog,
+    stuck_claimed,
+    suppressions: { unsub: sup.unsub ?? 0, bounce: sup.bounce ?? 0, complaint: sup.complaint ?? 0, manual: sup.manual ?? 0 },
+    batch_yield: { requested: y.requested, enqueued: y.enqueued, already: y.already, suppressed: y.suppressed, rejected: y.rejected },
+    last_real_send_age_seconds: age,
+  });
+}
+
 // GET|POST /api/outreach/u?token= — tokened unsubscribe. GET must NOT mutate: corporate
 // link scanners / prefetchers (SafeLinks, Proofpoint, Gmail proxy) fire an unsolicited GET
 // on every email link at delivery, which would silently suppress real operators. So GET

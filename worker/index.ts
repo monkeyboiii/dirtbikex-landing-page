@@ -6,7 +6,7 @@ import { fetchForumMetrics } from './_lib/forumMetrics';
 import { fetchForumFeatured } from './_lib/forumFeatured';
 import { fetchSponsors, fetchLeaderboard } from './_lib/sponsorProxy';
 import { handleLogtoSms } from './_lib/logtoSms';
-import { handleOutreachTest, handleBatch, handlePreview, handleStatus, handleUnsub, handleDrip, handleWebhook, runDrip } from './_lib/outreach';
+import { handleOutreachTest, handleBatch, handlePreview, handleStatus, handleMetrics, handleUnsub, handleDrip, handleWebhook, runDrip } from './_lib/outreach';
 import { handleJoinSubmit, handleJoinConfirm, handleUnsubscribe, handleCodePrecheck } from './_lib/join';
 import { handleShortlinkResolve } from './_lib/shortlink';
 import type { Lang, PagesEnv, ShareLandingProps } from './_lib/types';
@@ -659,6 +659,9 @@ export default {
     }
     if (url.pathname === '/api/outreach/status' && request.method === 'GET') {
       return handleStatus(request, env);
+    }
+    if (url.pathname === '/api/outreach/metrics' && request.method === 'GET') {
+      return handleMetrics(request, env);
     }
     if (url.pathname === '/api/outreach/drip' && request.method === 'POST') {
       return handleDrip(request, env);
