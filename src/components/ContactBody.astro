@@ -1,16 +1,17 @@
 ---
 import { getLangFromUrl, useTranslations } from '../i18n/utils';
-import { FORUM_BASE } from '../config';
+import { FORUM_BASE, SOCIALS, SUPPORT_EMAIL } from '../config';
+import SocialLinks from './SocialLinks.astro';
 
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
 
-const socials = [
-  { key: 'contact.social.x', handle: '@dirtbikex', url: '#' },
-  { key: 'contact.social.instagram', handle: '@dirtbikex', url: '#' },
-  { key: 'contact.social.youtube', handle: '@dirtbikex', url: '#' },
-  { key: 'contact.social.tiktok', handle: '@dirtbikex', url: '#' },
-] as const;
+const contactSocials = [
+  { platform: 'email' as const, url: `mailto:${SUPPORT_EMAIL}`, label: t('contact.social.email') },
+  { platform: 'x' as const, url: SOCIALS.x, label: t('contact.social.x') },
+  { platform: 'instagram' as const, url: SOCIALS.instagram, label: t('contact.social.instagram') },
+  { platform: 'facebook' as const, url: SOCIALS.facebook, label: t('contact.social.facebook') },
+];
 ---
 
 <section class="container-narrow py-16">
@@ -23,41 +24,27 @@ const socials = [
 
   <section class="mt-16">
     <div
-      class="rounded-2xl p-8 sm:p-10"
+      class="contact-primary rounded-2xl p-8 sm:p-10"
       style="background: var(--bg-elevated); border: 1px solid var(--border);"
     >
-      <h2 class="t-h2">{t('contact.forum.title')}</h2>
-      <p class="t-body mt-3 max-w-prose" style="color: var(--fg-secondary);">
-        {t('contact.forum.body')}
-      </p>
-      <a
-        href={FORUM_BASE}
-        target="_blank"
-        rel="noopener"
-        class="inline-flex items-center gap-2 mt-6 px-5 py-3 rounded-full font-medium"
-        style="background: var(--brand); color: var(--brand-fg);"
-      >
-        {t('contact.forum.cta')} →
-      </a>
-    </div>
-  </section>
-
-  <section class="mt-16">
-    <div
-      class="rounded-2xl p-8 sm:p-10"
-      style="background: var(--bg-elevated); border: 1px solid var(--border);"
-    >
-      <h2 class="t-h2">{t('contact.email.title')}</h2>
-      <p class="t-body mt-3 max-w-prose" style="color: var(--fg-secondary);">
-        {t('contact.email.intro')}
-      </p>
-      <a
-        href="mailto:support@dirtbikex.com"
-        class="inline-flex items-center gap-2 mt-6 px-5 py-3 rounded-full font-medium"
-        style="background: var(--brand); color: var(--brand-fg);"
-      >
-        {t('contact.email.cta')} →
-      </a>
+      <div>
+        <h2 class="t-h2">{t('contact.forum.title')}</h2>
+        <p class="t-body mt-3 max-w-prose" style="color: var(--fg-secondary);">
+          {t('contact.forum.body')}
+        </p>
+      </div>
+      <div class="contact-primary__actions">
+        <a
+          href={FORUM_BASE}
+          target="_blank"
+          rel="noopener"
+          class="inline-flex items-center gap-2 px-5 py-3 rounded-full font-medium"
+          style="background: var(--brand); color: var(--brand-fg);"
+        >
+          {t('contact.forum.cta')} →
+        </a>
+        <SocialLinks links={contactSocials} />
+      </div>
     </div>
   </section>
 
@@ -77,24 +64,6 @@ const socials = [
   </section>
 
   <section class="mt-16">
-    <h2 class="t-h2">{t('contact.social.title')}</h2>
-    <p class="t-body mt-3" style="color: var(--fg-secondary);">
-      {t('contact.social.subtitle')}
-    </p>
-    <ul class="mt-6 grid gap-3 sm:grid-cols-2">
-      {socials.map(({ key, handle }) => (
-        <li
-          class="flex items-center justify-between gap-4 rounded-xl px-4 py-3"
-          style="background: var(--bg-elevated); border: 1px solid var(--border);"
-        >
-          <span class="t-body font-medium">{t(key)}</span>
-          <span class="t-mono-sm" style="color: var(--fg-tertiary);">{handle}</span>
-        </li>
-      ))}
-    </ul>
-  </section>
-
-  <section class="mt-16">
     <h2 class="t-h2">{t('contact.mail.title')}</h2>
     <address class="mt-4 not-italic t-body" style="color: var(--fg-secondary);">
       {t('contact.mail.line1')}<br />
@@ -106,3 +75,17 @@ const socials = [
     </p>
   </section>
 </section>
+
+<style>
+  .contact-primary {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+  }
+  .contact-primary__actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+</style>

@@ -1,0 +1,26 @@
+---
+export type SocialPlatform = 'x' | 'instagram' | 'facebook' | 'email';
+interface Props { platform: SocialPlatform }
+const { platform } = Astro.props;
+---
+<svg viewBox="0 0 24 24" aria-hidden="true">
+  {platform === 'x' && (
+    <path fill="currentColor" stroke="none" d="M14.1 10.2 22.2 1h-1.9l-7 7.9L7.7 1H1.2l8.5 12.1L1.2 23h1.9l7.5-8.6 6 8.6h6.4l-8.9-12.8Zm-2.7 3.1-.9-1.2L3.7 2.5h3.1l5.5 7.8.9 1.2 7.1 10h-3.1l-5.8-8.2Z" />
+  )}
+  {platform === 'instagram' && (
+    <>
+      <rect x="3" y="3" width="18" height="18" rx="5" />
+      <circle cx="12" cy="12" r="4" />
+      <circle cx="17.2" cy="6.8" r="1.2" />
+    </>
+  )}
+  {platform === 'facebook' && (
+    <path fill="currentColor" stroke="none" d="M15.4 8.2h1.9V5.3c-.33-.05-1.46-.15-2.77-.15-2.74 0-4.62 1.67-4.62 4.75v2.65H7.3v3.17h2.6V23h3.2v-7.63h2.62l.4-3.17h-3.02V10.2c0-.92.25-1.55 1.58-1.55Z" />
+  )}
+  {platform === 'email' && (
+    <>
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <path d="m3.6 6.8 8.4 5.7 8.4-5.7" />
+    </>
+  )}
+</svg>

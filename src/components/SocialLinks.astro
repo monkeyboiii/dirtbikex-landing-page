@@ -1,0 +1,71 @@
+---
+import SocialIcon, { type SocialPlatform } from './SocialIcon.astro';
+
+export interface SocialLink {
+  platform: SocialPlatform;
+  url: string;
+  label: string;
+}
+interface Props {
+  links: SocialLink[];
+  class?: string;
+}
+const { links, class: className = '' } = Astro.props;
+---
+<ul class:list={['social-links', className]}>
+  {links.map((l) => (
+    <li>
+      <a
+        href={l.url}
+        target={l.url.startsWith('http') ? '_blank' : undefined}
+        rel={l.url.startsWith('http') ? 'noopener' : undefined}
+        class="social-link"
+        aria-label={l.label}
+        title={l.label}
+      >
+        <SocialIcon platform={l.platform} />
+      </a>
+    </li>
+  ))}
+</ul>
+
+<style>
+  .social-links {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .social-link {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-sunken);
+    border: 1px solid var(--border);
+    color: var(--fg-secondary);
+    transition: background-color var(--dur-fast) var(--ease-out),
+                border-color var(--dur-fast) var(--ease-out),
+                color var(--dur-fast) var(--ease-out),
+                transform var(--dur-fast) var(--ease-out);
+  }
+  .social-link:hover {
+    background: var(--brand);
+    border-color: var(--brand);
+    color: #fff;
+    transform: translateY(-1px);
+  }
+  .social-link svg {
+    width: 17px;
+    height: 17px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+</style>

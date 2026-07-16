@@ -1,5 +1,7 @@
 ---
 import { getLangFromUrl, useTranslations } from '../i18n/utils';
+import { SOCIALS } from '../config';
+import SocialIcon from './SocialIcon.astro';
 
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
@@ -14,7 +16,7 @@ type Founder = {
 };
 
 type SocialLink = {
-  platform: 'x' | 'instagram';
+  platform: 'x' | 'instagram' | 'facebook';
   labelKey: string;
   url: string;
 };
@@ -25,10 +27,10 @@ const lead = {
   roleKey: 'founders.calvin.role',
   bioKey: 'founders.calvin.bio',
   photo: { src: '/founders/calvin.png', altKey: 'founders.calvin.photo_alt' },
-  // Founder social URLs live here. Replace '#' with real public profile URLs.
   socials: [
-    { platform: 'x', labelKey: 'contact.social.x', url: '#' },
-    { platform: 'instagram', labelKey: 'contact.social.instagram', url: '#' },
+    { platform: 'x', labelKey: 'contact.social.x', url: SOCIALS.x },
+    { platform: 'instagram', labelKey: 'contact.social.instagram', url: SOCIALS.instagram },
+    { platform: 'facebook', labelKey: 'contact.social.facebook', url: SOCIALS.facebook },
   ],
 };
 
@@ -90,15 +92,7 @@ const team: Founder[] = [
               aria-label={t(social.labelKey)}
               title={t(social.labelKey)}
             >
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                {social.platform === 'x'
-                  ? <path d="M14.1 10.2 22.2 1h-1.9l-7 7.9L7.7 1H1.2l8.5 12.1L1.2 23h1.9l7.5-8.6 6 8.6h6.4l-8.9-12.8Zm-2.7 3.1-.9-1.2L3.7 2.5h3.1l5.5 7.8.9 1.2 7.1 10h-3.1l-5.8-8.2Z" fill="currentColor" stroke="none" />
-                  : <>
-                      <rect x="3" y="3" width="18" height="18" rx="5" />
-                      <circle cx="12" cy="12" r="4" />
-                      <circle cx="17.2" cy="6.8" r="1.2" />
-                    </>}
-              </svg>
+              <SocialIcon platform={social.platform} />
             </a>
           </li>
         ))}
