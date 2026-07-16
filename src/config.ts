@@ -14,7 +14,6 @@ export const SOCIALS = {
   facebook: 'https://www.facebook.com/people/Dirt-Bike-X/61592048966883/',
   instagram: 'https://www.instagram.com/teamdirtbikex/',
   x: 'https://x.com/teamdirtbikex',
-  whatsapp: 'https://wa.me/teamdirtbikex',
 } as const;
 // Founder (Calvin) personal Facebook — founders page only.
 export const FOUNDER_FACEBOOK = 'https://www.facebook.com/profile.php?id=61590664892188';
