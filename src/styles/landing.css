@@ -601,26 +601,6 @@
 .faq-cta__title { font: 600 15px var(--font-sans); }
 .faq-cta__sub { font: var(--text-mono-sm); color: var(--fg-tertiary); text-transform: uppercase; letter-spacing: 0.08em; }
 
-/* ---- App store badge ---- */
-.appstore-badge { display: inline-flex; align-items: center; gap: 10px; background: var(--bone-950); color: #fff; padding: 9px 16px 9px 14px; border-radius: var(--radius-md); text-decoration: none; transition: background-color var(--dur-fast) var(--ease-out); }
-.appstore-badge:hover { background: var(--bone-800); }
-.appstore-badge.lg { padding: 11px 18px 11px 16px; }
-.appstore-badge svg { width: 22px; height: 22px; flex-shrink: 0; }
-.appstore-badge__lines { display: flex; flex-direction: column; line-height: 1.05; }
-.appstore-badge__l1 { font: 500 10px var(--font-sans); opacity: 0.85; }
-.appstore-badge__l2 { font: 700 16px/1.1 var(--font-display); letter-spacing: -0.01em; }
-
-/* Android badge — non-interactive "coming soon" twin of the App Store badge */
-.playstore-badge {
-  background: var(--bg-sunken);
-  color: var(--fg-secondary);
-  border: 1px dashed var(--border-strong);
-  cursor: default;
-}
-.playstore-badge:hover { background: var(--bg-sunken); }
-.playstore-badge svg { opacity: 0.75; }
-.playstore-badge .appstore-badge__l2 { color: var(--fg); }
-
 /* ---- Lang switcher (dropdown) — pill trigger + popover card ---- */
 .langswitch-dd {
   position: relative;

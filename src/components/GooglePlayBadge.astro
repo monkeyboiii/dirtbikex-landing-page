@@ -1,6 +1,5 @@
 ---
-// Non-interactive twin of AppStoreBadge — Android build isn't out yet,
-// so this renders as a muted "coming soon" chip, not a link.
+// Official Google Play badge — muted, non-interactive until the Android build ships.
 import { getLangFromUrl, useTranslations } from '../i18n/utils';
 
 interface Props {
@@ -9,18 +8,20 @@ interface Props {
 const { size = 'md' } = Astro.props;
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
+const h = size === 'lg' ? 48 : size === 'sm' ? 34 : 40;
+const w = Math.round(h * 3.375);
 ---
 
 <span
-  class={`appstore-badge playstore-badge${size === 'lg' ? ' lg' : ''}`}
+  class="store-badge store-badge--soon"
   role="img"
   aria-label={`${t('cta.googlePlay.line1')} ${t('cta.googlePlay.line2')}`}
 >
-  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-    <path d="M22.018 13.298l-3.919 2.218-3.515-3.493 3.543-3.521 3.891 2.202a1.49 1.49 0 0 1 0 2.594zM1.337.924a1.486 1.486 0 0 0-.112.568v21.017c0 .217.045.419.124.6l11.155-11.087L1.337.924zm12.207 10.065l3.258-3.238L3.45.195a1.466 1.466 0 0 0-.946-.179l11.04 10.973zm0 2.067l-11 10.933c.298.036.612-.016.906-.183l13.324-7.54-3.23-3.21z" />
-  </svg>
-  <span class="appstore-badge__lines">
-    <span class="appstore-badge__l1">{t('cta.googlePlay.line1')}</span>
-    <span class="appstore-badge__l2">{t('cta.googlePlay.line2')}</span>
-  </span>
+  <img src="/badges/google-play.svg" alt="" width={w} height={h} decoding="async" />
 </span>
+
+<style>
+  .store-badge { display: inline-flex; }
+  .store-badge img { display: block; }
+  .store-badge--soon { opacity: 0.5; cursor: default; }
+</style>
