@@ -86,6 +86,7 @@ These don't change the docs but need to happen for the docs to actually carry th
 6. **Sub-processor disclosure posture**: founder prefers "on request" over public list. Counsel should weigh GDPR audit risk.
 7. **Marketplace exposure**: forum may include user-to-user transactions. Section 7 of ToS disclaims this. Counsel should review whether the disclaimer is sufficient given the actual extent of marketplace-like activity.
 8. **Sponsor Terms §10 indemnity cap**: limited to 12 months of fees, with carve-outs for IP/confidentiality. Standard but worth a look.
+9. **App Review 1.2 additions (2026-07-24)**: [terms.en.mdx §5](../src/content/legal/terms.en.mdx) gained three paragraphs for the App Store rejection — a zero-tolerance statement, an unauthorized-advertising/commercial-solicitation clause (with recommendation/private-sale carve-outs), and a reporting/blocking/enforcement paragraph committing to **review of objectionable-content reports within 24 hours** with removal + suspension/termination. The 24-hour SLA is a binding operational promise Apple requires verbatim; counsel should review scope (it is limited to "reports of objectionable content", not all support mail). Blocking is described as hiding content from the blocking user's view only — matching actual app behavior (viewer-level Discourse ignore). `lastUpdated` bumped to 2026-07-24; §18's 30-day-notice clause treated as a clarification at pre-launch scale.
 
 ## 7. What's intentionally NOT included
 
