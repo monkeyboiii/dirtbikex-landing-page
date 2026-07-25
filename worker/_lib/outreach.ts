@@ -49,8 +49,151 @@ const EN: Block = {
   cta: "I'll take care of the setup for you. If you're curious, just reply.",
 };
 
-// Local-language blocks. Empty for now → English-only until translations land.
-const LOCALES: Record<string, Block> = {};
+// Local-language blocks. A non-English send stacks the local block above the English one.
+// Keys match the CRM's language codes (db.LANGUAGES). {track} is preserved; DirtBikeX /
+// Rubio / iOS stay untranslated. Native-speaker review advised before large real sends.
+const LOCALES: Record<string, Block> = {
+  zh_CN: {
+    subject: "专为像 {track} 这样的场地打造的社区",
+    lead: "{track} 团队，你们好：",
+    intro: "我是 Rubio——一名平时靠写代码谋生的车手，正在打造 DirtBikeX：一个专为越野摩托和摩托越野人群而生的社区。现已支持 iOS 和桌面端——它不是又一个需要你打理的信息流，而是一个专注、以论坛为核心、没有噪音的地方，来这里的每个人都是为了骑行。",
+    value: "我想在上面免费给 {track} 建一个主页：让车手找到你、关注你、收到你的更新。它不会取代你现有的触达方式——只是把你呈现在最在乎的人面前。",
+    cta: "设置的事我来帮你搞定。如果有兴趣，直接回复即可。",
+  },
+  ja: {
+    subject: "{track} のようなコースのためだけに作ったコミュニティ",
+    lead: "{track} チームのみなさま、",
+    intro: "はじめまして、Rubio と申します。普段はソフトウェアを書いて生計を立てているライダーで、DirtBikeX を作っています。ダートバイクとモトクロスに関わる人たちのためだけのコミュニティです。今は iOS とデスクトップで使えます。管理が増えるだけの新しいフィードではなく、ノイズのない、フォーラム中心の集中できる場所で、そこにいる誰もが走るために来ています。",
+    value: "その中で {track} の無料プロフィールをご用意したいと思っています。ライダーがあなたを見つけ、フォローし、更新を受け取れる場所です。今の連絡手段を置き換えるものではなく、いちばん関心のある人たちの前にあなたを届けるだけです。",
+    cta: "セットアップはこちらで対応します。ご興味があれば、このまま返信してください。",
+  },
+  zh_TW: {
+    subject: "專為像 {track} 這樣的場地打造的社群",
+    lead: "{track} 團隊，您好：",
+    intro: "我是 Rubio——一名平時靠寫程式維生的車手，正在打造 DirtBikeX：一個專為越野摩托與越野賽車愛好者而生的社群。現已支援 iOS 與桌面版——它不是又一個要你打理的動態牆，而是一個專注、以論壇為核心、沒有雜訊的地方，來這裡的每個人都是為了騎乘。",
+    value: "我想在上面免費為 {track} 建立一個主頁：讓車手找到你、追蹤你、收到你的最新消息。它不會取代你現有的觸及方式——只是把你呈現在最在乎的人面前。",
+    cta: "設定的部分我來幫你處理。如果有興趣，直接回覆即可。",
+  },
+  ko: {
+    subject: "{track} 같은 트랙만을 위한 커뮤니티",
+    lead: "{track} 팀 여러분, 안녕하세요.",
+    intro: "저는 Rubio입니다. 소프트웨어를 만들며 먹고사는 라이더이고, DirtBikeX를 만들고 있어요. 더트바이크와 모토크로스에 관련된 사람들만을 위한 커뮤니티입니다. 지금은 iOS와 데스크톱에서 사용할 수 있어요. 또 하나 관리해야 할 피드가 아니라, 소음 없이 포럼 중심으로 집중된 공간이고, 여기 있는 모두가 오직 라이딩을 위해 모입니다.",
+    value: "그 안에 {track}의 무료 프로필을 만들어 드리고 싶어요. 라이더들이 여러분을 찾고, 팔로우하고, 소식을 받아보는 공간입니다. 기존의 소통 방식을 대체하지 않아요. 그저 가장 관심 있는 사람들 앞에 여러분을 놓아줄 뿐입니다.",
+    cta: "설정은 제가 다 해드릴게요. 관심 있으시면 이 메일에 답장만 주세요.",
+  },
+  de: {
+    subject: "Eine Community, gemacht für Strecken wie {track}",
+    lead: "Hallo Team von {track},",
+    intro: "Ich bin Rubio – Fahrer und hauptberuflich Softwareentwickler – und ich baue DirtBikeX: eine Community speziell für Dirtbike- und Motocross-Leute. Ab sofort für iOS und Desktop verfügbar – kein weiterer Feed, den du pflegen musst, sondern ein fokussierter, forumbasierter Ort ohne Rauschen, an dem alle nur zum Fahren da sind.",
+    value: "Ich würde {track} dort gern ein kostenloses Profil einrichten: ein Ort, an dem Fahrer dich finden, dir folgen und deine Updates bekommen. Es ersetzt nicht, wie du deine Leute schon erreichst – es bringt dich einfach vor die, denen es am meisten bedeutet.",
+    cta: "Um die Einrichtung kümmere ich mich. Bei Interesse antworte einfach auf diese Mail.",
+  },
+  it: {
+    subject: "Una community fatta apposta per piste come {track}",
+    lead: "Ciao team di {track},",
+    intro: "Sono Rubio – rider e sviluppatore software di professione – e sto costruendo DirtBikeX: una community pensata solo per chi vive il mondo delle dirt bike e del motocross. Ora disponibile su iOS e desktop – non un altro feed da gestire, ma un posto concentrato, basato su forum e senza rumore, dove chi c'è è lì solo per andare in moto.",
+    value: "Mi piacerebbe creare lì un profilo gratuito per {track}: un posto dove i rider ti trovano, ti seguono e ricevono i tuoi aggiornamenti. Non sostituisce come raggiungi già la gente – ti mette solo davanti a chi tiene di più.",
+    cta: "Alla configurazione ci penso io. Se ti va, rispondi pure a questa email.",
+  },
+  fr: {
+    subject: "Une communauté faite pour des pistes comme {track}",
+    lead: "Bonjour l'équipe de {track},",
+    intro: "Je suis Rubio – pilote et développeur de logiciels au quotidien – et je construis DirtBikeX : une communauté pensée uniquement pour les passionnés de dirt bike et de motocross. Disponible dès maintenant sur iOS et ordinateur – pas un énième fil à gérer, mais un endroit ciblé, basé sur un forum et sans bruit, où tout le monde est là pour rouler.",
+    value: "J'aimerais y créer un profil gratuit pour {track} : un endroit où les pilotes te trouvent, te suivent et reçoivent tes actus. Ça ne remplace pas ta façon de toucher les gens – ça te met juste devant ceux que ça intéresse le plus.",
+    cta: "Je m'occupe de tout mettre en place. Si ça t'intéresse, réponds simplement à cet e-mail.",
+  },
+  es: {
+    subject: "Una comunidad hecha para pistas como {track}",
+    lead: "Hola equipo de {track},",
+    intro: "Soy Rubio, piloto y programador de profesión, y estoy creando DirtBikeX: una comunidad pensada solo para la gente del dirt bike y el motocross. Ya disponible en iOS y escritorio; no es otro feed más que gestionar, sino un lugar centrado, basado en foro y sin ruido, donde todos están para rodar.",
+    value: "Me gustaría crear ahí un perfil gratis para {track}: un sitio donde los pilotos te encuentren, te sigan y reciban tus novedades. No reemplaza cómo ya llegas a la gente; solo te pone frente a quienes más les importa.",
+    cta: "De la configuración me encargo yo. Si te interesa, responde a este correo.",
+  },
+  ar: {
+    subject: "مجتمع مصنوع خصيصًا لحلبات مثل {track}",
+    lead: "مرحبًا فريق {track}،",
+    intro: "أنا Rubio، سائق أعمل في تطوير البرمجيات، وأبني DirtBikeX: مجتمع مخصّص لعشّاق الدراجات الترابية والموتوكروس. متاح الآن على iOS وسطح المكتب — ليس مجرد موجز آخر عليك إدارته، بل مكان مركّز قائم على المنتدى وبلا ضجيج، كل من فيه موجود ليقود فقط.",
+    value: "أودّ أن أنشئ لـ {track} ملفًا مجانيًا هناك: مكان يجدك فيه السائقون ويتابعونك ويصلهم جديدك. لن يحلّ محلّ طريقتك الحالية في الوصول إلى الناس — إنما يضعك أمام الأكثر اهتمامًا فقط.",
+    cta: "سأتولّى الإعداد بنفسي. إن كنت مهتمًا، فقط ردّ على هذه الرسالة.",
+  },
+  da: {
+    subject: "Et fællesskab skabt til baner som {track}",
+    lead: "Hej {track}-team,",
+    intro: "Jeg er Rubio – kører og softwareudvikler til daglig – og jeg bygger DirtBikeX: et fællesskab lavet specifikt til dirtbike- og motocross-folk. Nu tilgængeligt på iOS og computer – ikke endnu et feed, du skal passe, men et fokuseret, forumbaseret sted uden støj, hvor alle er der for at køre.",
+    value: "Jeg vil gerne oprette en gratis profil til {track} derinde: et sted, hvor kørere finder dig, følger dig og får dine opdateringer. Det erstatter ikke, hvordan du allerede når folk – det stiller dig bare foran dem, der er mest interesserede.",
+    cta: "Jeg klarer opsætningen for dig. Er du nysgerrig, så svar bare på denne mail.",
+  },
+  el: {
+    subject: "Μια κοινότητα φτιαγμένη για πίστες σαν την {track}",
+    lead: "Γεια σας, ομάδα της {track},",
+    intro: "Είμαι ο Rubio — αναβάτης και επαγγελματίας προγραμματιστής — και φτιάχνω το DirtBikeX: μια κοινότητα φτιαγμένη αποκλειστικά για τους ανθρώπους του dirt bike και του motocross. Διαθέσιμο τώρα σε iOS και υπολογιστή — όχι άλλο ένα feed για να διαχειρίζεσαι, αλλά ένας εστιασμένος χώρος βασισμένος σε φόρουμ, χωρίς θόρυβο, όπου όλοι είναι εκεί μόνο για να καβαλήσουν.",
+    value: "Θα ήθελα να φτιάξω εκεί ένα δωρεάν προφίλ για την {track}: ένα μέρος όπου οι αναβάτες σε βρίσκουν, σε ακολουθούν και λαμβάνουν τα νέα σου. Δεν αντικαθιστά τον τρόπο που ήδη επικοινωνείς — απλώς σε βάζει μπροστά σε αυτούς που ενδιαφέρονται περισσότερο.",
+    cta: "Τη ρύθμιση την αναλαμβάνω εγώ. Αν σε ενδιαφέρει, απλώς απάντησε σε αυτό το email.",
+  },
+  sv: {
+    subject: "En gemenskap gjord för banor som {track}",
+    lead: "Hej {track}-teamet,",
+    intro: "Jag heter Rubio – förare och mjukvaruutvecklare till vardags – och jag bygger DirtBikeX: en gemenskap gjord specifikt för dirtbike- och motocrossfolk. Nu tillgänglig för iOS och dator – inte ännu ett flöde att sköta, utan en fokuserad, forumbaserad plats utan brus, där alla är där för att köra.",
+    value: "Jag vill gärna skapa en gratis profil för {track} där: en plats där förare hittar dig, följer dig och får dina uppdateringar. Den ersätter inte hur du redan når folk – den ställer dig bara framför dem som bryr sig mest.",
+    cta: "Jag fixar uppsättningen åt dig. Är du nyfiken, svara bara på det här mejlet.",
+  },
+  th: {
+    subject: "คอมมูนิตี้ที่สร้างมาเพื่อสนามอย่าง {track} โดยเฉพาะ",
+    lead: "สวัสดีทีมงาน {track}",
+    intro: "ผมชื่อ Rubio เป็นนักขี่ที่ทำงานเขียนซอฟต์แวร์เป็นอาชีพ และกำลังสร้าง DirtBikeX คอมมูนิตี้ที่ทำมาเพื่อคนสายเดิร์ทไบก์และโมโตครอสโดยเฉพาะ ตอนนี้ใช้ได้ทั้งบน iOS และเดสก์ท็อป ไม่ใช่ฟีดอีกอันที่คุณต้องคอยดูแล แต่เป็นพื้นที่ที่โฟกัส เน้นฟอรัม ไม่มีสิ่งรบกวน และทุกคนที่นี่มาเพื่อขี่จริง ๆ",
+    value: "ผมอยากสร้างโปรไฟล์ฟรีให้ {track} ในนั้น เป็นที่ที่นักขี่จะเจอคุณ ติดตามคุณ และรับข่าวสารจากคุณ มันไม่ได้มาแทนช่องทางที่คุณใช้อยู่ แต่ช่วยพาคุณไปอยู่ตรงหน้าคนที่สนใจมากที่สุด",
+    cta: "เรื่องตั้งค่าผมจัดการให้เอง ถ้าสนใจ ตอบกลับอีเมลนี้ได้เลย",
+  },
+  id: {
+    subject: "Komunitas yang dibuat khusus untuk trek seperti {track}",
+    lead: "Halo tim {track},",
+    intro: "Saya Rubio — seorang rider yang sehari-hari menulis perangkat lunak — dan saya membangun DirtBikeX: komunitas yang dibuat khusus untuk orang-orang dirt bike dan motocross. Sekarang tersedia di iOS dan desktop — bukan satu feed lagi yang harus kamu urus, tapi tempat yang fokus, berbasis forum, tanpa gangguan, di mana semua yang ada di sana hadir untuk riding.",
+    value: "Saya ingin membuatkan {track} profil gratis di sana: tempat para rider menemukanmu, mengikutimu, dan mendapatkan kabar terbarumu. Ini tidak menggantikan cara kamu menjangkau orang selama ini — hanya menempatkanmu di depan mereka yang paling peduli.",
+    cta: "Soal pengaturan biar saya yang urus. Kalau tertarik, cukup balas email ini.",
+  },
+  pt: {
+    subject: "Uma comunidade feita para pistas como a {track}",
+    lead: "Olá, equipe da {track},",
+    intro: "Sou o Rubio — piloto e desenvolvedor de software de profissão — e estou criando o DirtBikeX: uma comunidade feita só para a galera do dirt bike e do motocross. Já disponível para iOS e desktop — não é mais um feed para você gerenciar, mas um lugar focado, baseado em fórum e sem ruído, onde todo mundo está ali só para pilotar.",
+    value: "Eu gostaria de criar um perfil gratuito para a {track} nela: um lugar onde os pilotos te encontram, te seguem e recebem suas novidades. Não substitui como você já alcança as pessoas — só coloca você na frente de quem mais se importa.",
+    cta: "Da configuração eu cuido. Se tiver interesse, é só responder a este e-mail.",
+  },
+  fa_IR: {
+    subject: "جامعه‌ای که مخصوص پیست‌هایی مثل {track} ساخته شده",
+    lead: "سلام تیم {track}،",
+    intro: "من Rubio هستم؛ یک موتورسوار که کارش برنامه‌نویسی است و دارم DirtBikeX را می‌سازم: جامعه‌ای که مخصوص آدم‌های دنیای درت‌بایک و موتوکراس ساخته شده. حالا روی iOS و دسکتاپ در دسترس است — نه یک فید دیگر که باید مدیریتش کنی، بلکه جایی متمرکز و مبتنی بر انجمن و بدون شلوغی، که هر کسی آنجاست فقط برای رایدینگ آمده.",
+    value: "دوست دارم آنجا برای {track} یک پروفایل رایگان بسازم: جایی که موتورسوارها پیدایت می‌کنند، دنبالت می‌کنند و به‌روزرسانی‌هایت را می‌گیرند. جای روش فعلی‌ات برای رسیدن به مردم را نمی‌گیرد — فقط تو را جلوی چشم کسانی می‌گذارد که بیشتر از همه برایشان مهم است.",
+    cta: "راه‌اندازی‌اش با من. اگر علاقه‌مندی، کافی است همین ایمیل را پاسخ بدهی.",
+  },
+  fi: {
+    subject: "Yhteisö, joka on tehty {track}:n kaltaisille radoille",
+    lead: "Hei {track}-tiimi,",
+    intro: "Olen Rubio – kuljettaja ja työkseni ohjelmistokehittäjä – ja rakennan DirtBikeX:ää: yhteisöä, joka on tehty vain dirtbike- ja motocross-väelle. Nyt saatavilla iOS:lle ja tietokoneelle – ei taas yksi syöte hallittavaksi, vaan keskittynyt, foorumipohjainen paikka ilman kohinaa, jossa kaikki ovat vain ajamista varten.",
+    value: "Haluaisin tehdä {track}:lle sinne ilmaisen profiilin: paikan, josta kuljettajat löytävät sinut, seuraavat sinua ja saavat päivityksesi. Se ei korvaa tapaa, jolla jo tavoitat ihmiset – se vain tuo sinut niiden eteen, joita se eniten kiinnostaa.",
+    cta: "Hoidan käyttöönoton puolestasi. Jos kiinnostuit, vastaa vain tähän viestiin.",
+  },
+  nl: {
+    subject: "Een community gemaakt voor banen zoals {track}",
+    lead: "Hallo team van {track},",
+    intro: "Ik ben Rubio – rijder en van beroep softwareontwikkelaar – en ik bouw DirtBikeX: een community speciaal voor dirtbike- en motocrossmensen. Nu beschikbaar op iOS en desktop – niet nóg een feed om te beheren, maar een gerichte, forumgebaseerde plek zonder ruis, waar iedereen er is om te rijden.",
+    value: "Ik wil daar graag een gratis profiel voor {track} aanmaken: een plek waar rijders je vinden, je volgen en je updates krijgen. Het vervangt niet hoe je mensen nu al bereikt – het zet je alleen voor de mensen die er het meest om geven.",
+    cta: "De installatie regel ik voor je. Heb je interesse, reageer dan gewoon op deze mail.",
+  },
+  tr_TR: {
+    subject: "{track} gibi pistler için özel yapılmış bir topluluk",
+    lead: "Merhaba {track} ekibi,",
+    intro: "Ben Rubio — hem sürücü hem de mesleği yazılım geliştirmek olan biri — ve DirtBikeX'i geliştiriyorum: dirt bike ve motokros dünyasının insanları için özel olarak yapılmış bir topluluk. Artık iOS ve masaüstünde kullanılabiliyor — yönetmen gereken bir akış daha değil, odaklanmış, forum tabanlı, gürültüsüz bir yer; oradaki herkes yalnızca sürmek için orada.",
+    value: "Orada {track} için ücretsiz bir profil oluşturmak isterim: sürücülerin seni bulduğu, takip ettiği ve güncellemelerini aldığı bir yer. İnsanlara zaten ulaşma şeklinin yerini almaz — seni yalnızca en çok önemseyenlerin önüne çıkarır.",
+    cta: "Kurulumu senin için ben hallederim. İlgileniyorsan bu e-postayı yanıtlaman yeterli.",
+  },
+  vi: {
+    subject: "Một cộng đồng dành riêng cho những đường đua như {track}",
+    lead: "Chào đội ngũ {track},",
+    intro: "Tôi là Rubio — một tay đua đồng thời làm nghề viết phần mềm — và tôi đang xây dựng DirtBikeX: một cộng đồng dành riêng cho những người chơi dirt bike và motocross. Hiện đã có trên iOS và máy tính — không phải thêm một bảng tin để bạn quản lý, mà là một nơi tập trung, dựa trên diễn đàn, không nhiễu, nơi ai cũng đến chỉ để chạy xe.",
+    value: "Tôi muốn tạo cho {track} một hồ sơ miễn phí trong đó: nơi các tay đua tìm thấy bạn, theo dõi bạn và nhận tin cập nhật từ bạn. Nó không thay thế cách bạn đang tiếp cận mọi người — chỉ đưa bạn đến trước những người quan tâm nhất.",
+    cta: "Việc thiết lập cứ để tôi lo. Nếu bạn quan tâm, chỉ cần trả lời email này.",
+  },
+};
 
 function fill(s: string, track: string): string {
   return s.replace(/\{track\}/g, track);
@@ -69,10 +212,17 @@ function blockText(b: Block, track: string): string {
   return `${fill(b.lead, track)}\n\n${fill(b.intro, track)}\n\n${fill(b.value, track)}\n\n${fill(b.cta, track)}\n\n${SIGNATURE}`;
 }
 
+const RTL_LOCALES = new Set(['ar', 'fa_IR']);
+
 export function renderPreInvite(trackName: string, locale: string): { subject: string; html: string; text: string } {
   const local = locale && locale !== 'en' ? LOCALES[locale] : undefined;
   const subject = fill((local ?? EN).subject, trackName);
-  const htmlBlocks = local ? `${blockHtml(local, trackName)}\n<hr style="border:none;border-top:1px solid #eee;margin:20px 0;">\n${blockHtml(EN, trackName)}` : blockHtml(EN, trackName);
+  // RTL locales get their block wrapped in dir="rtl" so Arabic/Persian render correctly;
+  // the English block stacked below stays LTR.
+  const localHtml = local
+    ? (RTL_LOCALES.has(locale) ? `<div dir="rtl" style="text-align:right;">${blockHtml(local, trackName)}</div>` : blockHtml(local, trackName))
+    : '';
+  const htmlBlocks = local ? `${localHtml}\n<hr style="border:none;border-top:1px solid #eee;margin:20px 0;">\n${blockHtml(EN, trackName)}` : blockHtml(EN, trackName);
   const textBlocks = local ? `${blockText(local, trackName)}\n\n—\n\n${blockText(EN, trackName)}` : blockText(EN, trackName);
   return { subject, html: htmlBlocks, text: textBlocks };
 }
@@ -90,7 +240,88 @@ const EN_DM: DmBlock = {
   ],
 };
 
-const LOCALES_DM: Record<string, DmBlock> = {};
+const LOCALES_DM: Record<string, DmBlock> = {
+  zh_CN: { messages: [
+    "{track} 团队，你们好 👋 我是 Rubio，一名也写代码的车手。我正在做 DirtBikeX，一个专为越野摩托和摩托越野人群打造的社区（iOS + 桌面端）。",
+    "很想免费给 {track} 建个主页——车手能找到你、关注你的更新，零成本，我来帮你设置。来看看：{landing}",
+  ] },
+  ja: { messages: [
+    "{track} チームのみなさま 👋 Rubio です。ソフトも書くライダーで、DirtBikeX を作っています。ダートバイクとモトクロスの人たちのためのコミュニティです（iOS + デスクトップ）。",
+    "{track} の無料プロフィールをぜひ用意させてください。ライダーがあなたを見つけて更新をフォローできます。費用はかからず、設定はこちらで。ぜひご覧ください：{landing}",
+  ] },
+  zh_TW: { messages: [
+    "{track} 團隊，您好 👋 我是 Rubio，一名也寫程式的車手。我正在做 DirtBikeX，一個專為越野摩托與越野賽車愛好者打造的社群（iOS + 桌面版）。",
+    "很想免費為 {track} 建個主頁——車手能找到你、追蹤你的消息，零成本，我來幫你設定。來看看：{landing}",
+  ] },
+  ko: { messages: [
+    "{track} 팀 여러분 👋 저는 Rubio예요. 소프트웨어도 만드는 라이더입니다. 더트바이크와 모토크로스인들을 위한 커뮤니티 DirtBikeX를 만들고 있어요 (iOS + 데스크톱).",
+    "{track}에 무료 프로필을 만들어 드리고 싶어요—라이더들이 여러분을 찾고 소식을 팔로우할 수 있어요. 비용은 없고 설정은 제가 할게요. 한번 보세요: {landing}",
+  ] },
+  de: { messages: [
+    "Hallo Team von {track} 👋 Ich bin Rubio, Fahrer und Softwareentwickler. Ich baue DirtBikeX, eine Community nur für Dirtbike- und Motocross-Leute (iOS + Desktop).",
+    "Würde {track} gern ein kostenloses Profil geben – Fahrer finden dich und folgen deinen Updates, kostenlos, und ich richte alles ein. Schau mal: {landing}",
+  ] },
+  it: { messages: [
+    "Ciao team di {track} 👋 Sono Rubio, rider e anche sviluppatore. Sto creando DirtBikeX, una community solo per gente di dirt bike e motocross (iOS + desktop).",
+    "Mi piacerebbe dare a {track} un profilo gratuito – i rider ti trovano e seguono i tuoi aggiornamenti, a costo zero, e la configurazione la faccio io. Dai un'occhiata: {landing}",
+  ] },
+  fr: { messages: [
+    "Bonjour l'équipe de {track} 👋 Je suis Rubio, pilote et aussi développeur. Je crée DirtBikeX, une communauté rien que pour les gens du dirt bike et du motocross (iOS + ordinateur).",
+    "J'aimerais offrir à {track} un profil gratuit – les pilotes te trouvent et suivent tes actus, sans frais, et je m'occupe de l'installation. Jette un œil : {landing}",
+  ] },
+  es: { messages: [
+    "Hola equipo de {track} 👋 Soy Rubio, piloto y también programador. Estoy creando DirtBikeX, una comunidad solo para gente del dirt bike y el motocross (iOS + escritorio).",
+    "Me encantaría darle a {track} un perfil gratis: los pilotos te encuentran y siguen tus novedades, sin coste, y yo lo configuro. Échale un vistazo: {landing}",
+  ] },
+  ar: { messages: [
+    "مرحبًا فريق {track} 👋 أنا Rubio، سائق وأيضًا مطوّر برمجيات. أصنع DirtBikeX، مجتمعًا مخصّصًا لعشّاق الدراجات الترابية والموتوكروس (iOS + سطح المكتب).",
+    "يسعدني أن أمنح {track} ملفًا مجانيًا — يجدك السائقون ويتابعون جديدك، دون أي تكلفة، وأنا أتولّى الإعداد. ألقِ نظرة: {landing}",
+  ] },
+  da: { messages: [
+    "Hej {track}-team 👋 Jeg er Rubio, kører og også udvikler. Jeg laver DirtBikeX, et fællesskab kun for dirtbike- og motocross-folk (iOS + computer).",
+    "Vil meget gerne give {track} en gratis profil – kørere finder dig og følger dine opdateringer, gratis, og jeg sætter det op. Tag et kig: {landing}",
+  ] },
+  el: { messages: [
+    "Γεια σας, ομάδα της {track} 👋 Είμαι ο Rubio, αναβάτης και προγραμματιστής. Φτιάχνω το DirtBikeX, μια κοινότητα μόνο για ανθρώπους του dirt bike και του motocross (iOS + υπολογιστής).",
+    "Θα ήθελα πολύ να δώσω στην {track} ένα δωρεάν προφίλ — οι αναβάτες σε βρίσκουν και ακολουθούν τα νέα σου, χωρίς κόστος, και το στήνω εγώ. Ρίξε μια ματιά: {landing}",
+  ] },
+  sv: { messages: [
+    "Hej {track}-teamet 👋 Jag är Rubio, förare och även utvecklare. Jag bygger DirtBikeX, en gemenskap bara för dirtbike- och motocrossfolk (iOS + dator).",
+    "Skulle gärna ge {track} en gratis profil – förare hittar dig och följer dina uppdateringar, utan kostnad, och jag sätter upp det. Ta en titt: {landing}",
+  ] },
+  th: { messages: [
+    "สวัสดีทีมงาน {track} 👋 ผมชื่อ Rubio เป็นนักขี่ที่เขียนซอฟต์แวร์ด้วย ผมกำลังทำ DirtBikeX คอมมูนิตี้เพื่อคนสายเดิร์ทไบก์และโมโตครอสโดยเฉพาะ (iOS + เดสก์ท็อป)",
+    "อยากสร้างโปรไฟล์ฟรีให้ {track} มาก นักขี่จะเจอคุณและติดตามข่าวสารได้ ไม่มีค่าใช้จ่าย และผมตั้งค่าให้เอง ลองดูได้ที่: {landing}",
+  ] },
+  id: { messages: [
+    "Halo tim {track} 👋 Saya Rubio, rider yang juga menulis perangkat lunak. Saya sedang membuat DirtBikeX, komunitas khusus untuk orang dirt bike dan motocross (iOS + desktop).",
+    "Ingin sekali memberi {track} profil gratis — para rider menemukanmu dan mengikuti kabarmu, tanpa biaya, dan saya yang mengaturnya. Coba lihat: {landing}",
+  ] },
+  pt: { messages: [
+    "Olá, equipe da {track} 👋 Sou o Rubio, piloto e também desenvolvedor. Estou criando o DirtBikeX, uma comunidade só para a galera do dirt bike e do motocross (iOS + desktop).",
+    "Adoraria dar à {track} um perfil gratuito — os pilotos te encontram e seguem suas novidades, sem custo, e eu faço a configuração. Dá uma olhada: {landing}",
+  ] },
+  fa_IR: { messages: [
+    "سلام تیم {track} 👋 من Rubio هستم، موتورسواری که برنامه هم می‌نویسد. دارم DirtBikeX را می‌سازم، جامعه‌ای فقط برای آدم‌های درت‌بایک و موتوکراس (iOS + دسکتاپ).",
+    "خیلی دوست دارم برای {track} یک پروفایل رایگان بسازم — موتورسوارها پیدایت می‌کنند و به‌روزرسانی‌هایت را دنبال می‌کنند، بدون هزینه، و راه‌اندازی با من. یک نگاهی بینداز: {landing}",
+  ] },
+  fi: { messages: [
+    "Hei {track}-tiimi 👋 Olen Rubio, kuljettaja ja myös kehittäjä. Rakennan DirtBikeX:ää, yhteisöä vain dirtbike- ja motocross-väelle (iOS + tietokone).",
+    "Haluaisin antaa {track}:lle ilmaisen profiilin – kuljettajat löytävät sinut ja seuraavat päivityksiäsi, ilmaiseksi, ja minä hoidan käyttöönoton. Katsopa: {landing}",
+  ] },
+  nl: { messages: [
+    "Hallo team van {track} 👋 Ik ben Rubio, rijder en ook ontwikkelaar. Ik maak DirtBikeX, een community alleen voor dirtbike- en motocrossmensen (iOS + desktop).",
+    "Ik zou {track} graag een gratis profiel geven – rijders vinden je en volgen je updates, gratis, en ik zet het op. Neem een kijkje: {landing}",
+  ] },
+  tr_TR: { messages: [
+    "Merhaba {track} ekibi 👋 Ben Rubio, hem sürücü hem yazılımcıyım. DirtBikeX'i yapıyorum, yalnızca dirt bike ve motokros insanları için bir topluluk (iOS + masaüstü).",
+    "{track} için ücretsiz bir profil oluşturmayı çok isterim — sürücüler seni bulur ve güncellemelerini takip eder, ücretsiz, kurulumu da ben yaparım. Bir göz at: {landing}",
+  ] },
+  vi: { messages: [
+    "Chào đội ngũ {track} 👋 Tôi là Rubio, một tay đua kiêm lập trình viên. Tôi đang làm DirtBikeX, một cộng đồng chỉ dành cho người chơi dirt bike và motocross (iOS + máy tính).",
+    "Rất muốn tặng {track} một hồ sơ miễn phí — các tay đua tìm thấy bạn và theo dõi cập nhật của bạn, miễn phí, và tôi lo phần thiết lập. Ghé xem nhé: {landing}",
+  ] },
+};
 
 // apex of the marketing base (drop scheme + www) -> the clean link pasted into a DM.
 function marketingApex(base: string): string {
