@@ -22,17 +22,31 @@ function escapeHtml(s: string): string {
 
 // One localized block per language. `en` is the base and the fallback; a non-English
 // send stacks the local block ABOVE the English one in a single email (send-once
-// forbids two emails to one address). TODO(copy): the wording is a placeholder and
-// deliberately hardcoded — finalize it and add translations here, then redeploy.
-interface Block { subject: string; lead: string; body: string; cta: string }
+// forbids two emails to one address). The English copy is finalized; per-language
+// translations go in LOCALES below (same fields), then redeploy.
+interface Block { subject: string; lead: string; intro: string; value: string; cta: string }
+
+// Sign-off + social footer are constant across languages (a name/brand/handle isn't
+// translated). SOCIALS mirrors the site's src/config.ts (duplicated because this Pages
+// Function bundles separately from the Astro app); footer taps go straight to the handle.
+const SIGNATURE = '— Rubio, DirtBikeX';
+const SOCIALS: ReadonlyArray<readonly [string, string]> = [
+  ['Facebook', 'https://www.facebook.com/people/Dirt-Bike-X/61592048966883/'],
+  ['Instagram', 'https://www.instagram.com/teamdirtbikex/'],
+  ['X', 'https://x.com/teamdirtbikex'],
+];
 
 const EN: Block = {
-  subject: 'A community app for {track}',
+  subject: 'A community built just for tracks like {track}',
   lead: 'Hi {track} team,',
-  body:
-    "We're building DirtBikeX — a community app for dirt-bike and motocross tracks and the riders who visit them. "
-    + "We'd love to set {track} up with a free operator profile so riders can find you, follow updates, and plan ride days.",
-  cta: "If that sounds useful, just reply to this email and we'll take it from there — no cost, no commitment.",
+  intro:
+    "I'm Rubio — a rider who writes software for a living, and I'm building DirtBikeX: a community made "
+    + "specifically for dirt-bike and motocross people. It's available on iOS and desktop now — not another "
+    + "feed to manage, but a focused, forum-based place with no noise, where everyone there is there to ride.",
+  value:
+    "I'd like to give {track} a free profile in it: somewhere riders find you, follow you, and get your updates. "
+    + "It won't replace how you already reach people — it just puts you in front of the ones who care most.",
+  cta: "I'll take care of the setup for you. If you're curious, just reply.",
 };
 
 // Local-language blocks. Empty for now → English-only until translations land.
@@ -45,12 +59,14 @@ function fill(s: string, track: string): string {
 function blockHtml(b: Block, track: string): string {
   const t = escapeHtml(track);
   return `<p>${fill(escapeHtml(b.lead), t)}</p>
-<p>${fill(escapeHtml(b.body), t)}</p>
-<p>${fill(escapeHtml(b.cta), t)}</p>`;
+<p>${fill(escapeHtml(b.intro), t)}</p>
+<p>${fill(escapeHtml(b.value), t)}</p>
+<p>${fill(escapeHtml(b.cta), t)}</p>
+<p>${escapeHtml(SIGNATURE)}</p>`;
 }
 
 function blockText(b: Block, track: string): string {
-  return `${fill(b.lead, track)}\n\n${fill(b.body, track)}\n\n${fill(b.cta, track)}`;
+  return `${fill(b.lead, track)}\n\n${fill(b.intro, track)}\n\n${fill(b.value, track)}\n\n${fill(b.cta, track)}\n\n${SIGNATURE}`;
 }
 
 export function renderPreInvite(trackName: string, locale: string): { subject: string; html: string; text: string } {
@@ -59,6 +75,36 @@ export function renderPreInvite(trackName: string, locale: string): { subject: s
   const htmlBlocks = local ? `${blockHtml(local, trackName)}\n<hr style="border:none;border-top:1px solid #eee;margin:20px 0;">\n${blockHtml(EN, trackName)}` : blockHtml(EN, trackName);
   const textBlocks = local ? `${blockText(local, trackName)}\n\n—\n\n${blockText(EN, trackName)}` : blockText(EN, trackName);
   return { subject, html: htmlBlocks, text: textBlocks };
+}
+
+// ---- DM (pasted into IG/FB/X by the operator) -------------------------------
+// Short, split into separate messages, and — unlike the reply-only email — it links the
+// landing page (apex of MARKETING_BASE). English is the base + fallback until LOCALES_DM
+// fills in; the operator copies each message between the ——— dividers as its own DM.
+interface DmBlock { messages: string[] }
+
+const EN_DM: DmBlock = {
+  messages: [
+    "Hi {track} team 👋 I'm Rubio — a rider who builds software. I'm making DirtBikeX, a community just for dirt-bike & motocross people (iOS + desktop).",
+    "Would love to give {track} a free profile — riders find you, follow your updates, no cost and I set it up. Take a look: {landing}",
+  ],
+};
+
+const LOCALES_DM: Record<string, DmBlock> = {};
+
+// apex of the marketing base (drop scheme + www) -> the clean link pasted into a DM.
+function marketingApex(base: string): string {
+  const host = (base || 'https://www.dirtbikex.com').replace(/^https?:\/\//, '').split('/')[0].replace(/^www\./, '');
+  return `https://${host}`;
+}
+
+export function renderPreInviteDM(trackName: string, locale: string, marketingBase: string): { text: string } {
+  const b = (locale && locale !== 'en' ? LOCALES_DM[locale] : undefined) ?? EN_DM;
+  const landing = marketingApex(marketingBase);
+  const text = b.messages
+    .map((m) => m.replace(/\{track\}/g, trackName).replace(/\{landing\}/g, landing))
+    .join('\n\n———\n\n');
+  return { text };
 }
 
 // ---- sending ---------------------------------------------------------------
@@ -95,14 +141,16 @@ async function sendPreInvite(env: PagesEnv, o: SendOpts): Promise<{ ok: boolean;
   const unsubLink = o.unsubUrl
     ? `<a href="${escapeHtml(o.unsubUrl)}">Unsubscribe</a> and we won't contact you again.`
     : (replyTo ? `<a href="mailto:${escapeHtml(replyTo)}?subject=unsubscribe">Unsubscribe</a> and we won't contact you again.` : '');
+  const socialHtml = SOCIALS.map(([n, u]) => `<a href="${u}" style="color:#888;text-decoration:underline;">${n}</a>`).join(' &middot; ');
   const footerHtml = `<hr style="border:none;border-top:1px solid #ddd;margin:24px 0;">
-<p style="font-size:12px;color:#888;line-height:1.5;">DirtBikeX${address ? `<br>${escapeHtml(address)}` : ''}<br>You received this one-time note because your track is publicly listed. ${unsubLink}</p>`;
+<p style="font-size:12px;color:#888;line-height:1.5;">DirtBikeX<br>${socialHtml}${address ? `<br>${escapeHtml(address)}` : ''}<br>You received this one-time note because your track is publicly listed. ${unsubLink}</p>`;
   const html = `<!DOCTYPE html><html><body style="font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.55;color:#222;margin:0;padding:24px;">
 ${bodyHtml}
 ${footerHtml}
 </body></html>`;
   const unsubText = o.unsubUrl ? `\nUnsubscribe: ${o.unsubUrl}` : (replyTo ? `\nNot interested? Reply "unsubscribe" and we won't contact you again.` : '');
-  const text = `${bodyText}\n\n—\nDirtBikeX${address ? `\n${address}` : ''}\nYou received this one-time note because your track is publicly listed.${unsubText}`;
+  const socialText = SOCIALS.map(([n, u]) => `${n}: ${u}`).join('\n');
+  const text = `${bodyText}\n\n—\nDirtBikeX\n${socialText}${address ? `\n${address}` : ''}\nYou received this one-time note because your track is publicly listed.${unsubText}`;
 
   const httpHeaders: Record<string, string> = { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' };
   if (o.idempotencyKey) httpHeaders['Idempotency-Key'] = o.idempotencyKey;
@@ -304,12 +352,15 @@ export async function handleBatch(request: Request, env: PagesEnv): Promise<Resp
   return json({ ok: true, job_id: jobId, mode, counts: { requested: recipients.length, enqueued, already, suppressed, rejected, duplicate }, dispositions });
 }
 
-// GET /api/outreach/preview?trackName=&locale= — the Outreach tab's live preview.
+// GET /api/outreach/preview?trackName=&locale=&kind=email|dm — the Outreach tab's live
+// preview. `dm` returns text-only (no subject/html); it's copied into a social DM, not sent.
 export async function handlePreview(request: Request, env: PagesEnv): Promise<Response> {
   if (!checkAuth(request, env)) return json({ error: 'unauthorized' }, 401);
   const url = new URL(request.url);
   const trackName = (url.searchParams.get('trackName') || 'your track').trim() || 'your track';
   const locale = (url.searchParams.get('locale') || 'en').trim() || 'en';
+  const kind = (url.searchParams.get('kind') || 'email').trim();
+  if (kind === 'dm') return json({ ok: true, ...renderPreInviteDM(trackName, locale, env.MARKETING_BASE ?? '') });
   return json({ ok: true, ...renderPreInvite(trackName, locale) });
 }
 
