@@ -89,6 +89,9 @@ export interface KVNamespace {
 /** Minimal D1 shape — prepare/bind + first/run/all covers the join + outreach flows. */
 export interface D1Database {
   prepare(query: string): D1PreparedStatement;
+  /** Apply many statements in one round trip — the outreach drip marks a whole batch of rows
+   *  terminal at once, so an accepted send is recorded with the least possible delay. */
+  batch(statements: D1PreparedStatement[]): Promise<Array<{ success: boolean }>>;
 }
 export interface D1PreparedStatement {
   bind(...values: unknown[]): D1PreparedStatement;

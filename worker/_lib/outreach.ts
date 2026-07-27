@@ -6,7 +6,7 @@
 //     reports jobs, /api/outreach/u is the tokened one-click unsubscribe.
 // Sender is Resend, From joindirtbikex.com (the reputation-isolated identity, same as the
 // join confirmation email). See docs/OUTREACH_MODULE.md §"Batch outreach".
-import type { PagesEnv } from './types';
+import type { D1Database, PagesEnv } from './types';
 
 // personalization is TRACK NAME only (no owner greeting, by design)
 export interface PreInvitePayload {
@@ -24,7 +24,7 @@ function escapeHtml(s: string): string {
 // send stacks the local block ABOVE the English one in a single email (send-once
 // forbids two emails to one address). The English copy is finalized; per-language
 // translations go in LOCALES below (same fields), then redeploy.
-interface Block { subject: string; lead: string; intro: string; value: string; cta: string }
+interface Block { subject: string; lead: string; intro: string; value: string; cta: string; look: string }
 
 // Sign-off + social footer are constant across languages (a name/brand/handle isn't
 // translated). SOCIALS mirrors the site's src/config.ts (duplicated because this Pages
@@ -47,6 +47,7 @@ const EN: Block = {
     "I'd like to give {track} a free profile in it: somewhere riders find you, follow you, and get your updates. "
     + "It won't replace how you already reach people — it just puts you in front of the ones who care most.",
   cta: "I'll take care of the setup for you. If you're curious, just reply.",
+  look: "Here's a 30-second look:",
 };
 
 // Local-language blocks. A non-English send stacks the local block above the English one.
@@ -59,6 +60,7 @@ const LOCALES: Record<string, Block> = {
     intro: "我是 Rubio——一名平时靠写代码谋生的车手，正在打造 DirtBikeX：一个专为越野摩托和摩托越野人群而生的社区。现已支持 iOS 和桌面端——它不是又一个需要你打理的信息流，而是一个专注、以论坛为核心、没有噪音的地方，来这里的每个人都是为了骑行。",
     value: "我想在上面免费给 {track} 建一个主页：让车手找到你、关注你、收到你的更新。它不会取代你现有的触达方式——只是把你呈现在最在乎的人面前。",
     cta: "设置的事我来帮你搞定。如果有兴趣，直接回复即可。",
+    look: "花 30 秒看一下：",
   },
   ja: {
     subject: "{track} のようなコースのためだけに作ったコミュニティ",
@@ -66,6 +68,7 @@ const LOCALES: Record<string, Block> = {
     intro: "はじめまして、Rubio と申します。普段はソフトウェアを書いて生計を立てているライダーで、DirtBikeX を作っています。ダートバイクとモトクロスに関わる人たちのためだけのコミュニティです。今は iOS とデスクトップで使えます。管理が増えるだけの新しいフィードではなく、ノイズのない、フォーラム中心の集中できる場所で、そこにいる誰もが走るために来ています。",
     value: "その中で {track} の無料プロフィールをご用意したいと思っています。ライダーがあなたを見つけ、フォローし、更新を受け取れる場所です。今の連絡手段を置き換えるものではなく、いちばん関心のある人たちの前にあなたを届けるだけです。",
     cta: "セットアップはこちらで対応します。ご興味があれば、このまま返信してください。",
+    look: "30 秒の紹介はこちら：",
   },
   zh_TW: {
     subject: "專為像 {track} 這樣的場地打造的社群",
@@ -73,6 +76,7 @@ const LOCALES: Record<string, Block> = {
     intro: "我是 Rubio——一名平時靠寫程式維生的車手，正在打造 DirtBikeX：一個專為越野摩托與越野賽車愛好者而生的社群。現已支援 iOS 與桌面版——它不是又一個要你打理的動態牆，而是一個專注、以論壇為核心、沒有雜訊的地方，來這裡的每個人都是為了騎乘。",
     value: "我想在上面免費為 {track} 建立一個主頁：讓車手找到你、追蹤你、收到你的最新消息。它不會取代你現有的觸及方式——只是把你呈現在最在乎的人面前。",
     cta: "設定的部分我來幫你處理。如果有興趣，直接回覆即可。",
+    look: "花 30 秒看一下：",
   },
   ko: {
     subject: "{track} 같은 트랙만을 위한 커뮤니티",
@@ -80,6 +84,7 @@ const LOCALES: Record<string, Block> = {
     intro: "저는 Rubio입니다. 소프트웨어를 만들며 먹고사는 라이더이고, DirtBikeX를 만들고 있어요. 더트바이크와 모토크로스에 관련된 사람들만을 위한 커뮤니티입니다. 지금은 iOS와 데스크톱에서 사용할 수 있어요. 또 하나 관리해야 할 피드가 아니라, 소음 없이 포럼 중심으로 집중된 공간이고, 여기 있는 모두가 오직 라이딩을 위해 모입니다.",
     value: "그 안에 {track}의 무료 프로필을 만들어 드리고 싶어요. 라이더들이 여러분을 찾고, 팔로우하고, 소식을 받아보는 공간입니다. 기존의 소통 방식을 대체하지 않아요. 그저 가장 관심 있는 사람들 앞에 여러분을 놓아줄 뿐입니다.",
     cta: "설정은 제가 다 해드릴게요. 관심 있으시면 이 메일에 답장만 주세요.",
+    look: "30초짜리 영상으로 보기:",
   },
   de: {
     subject: "Eine Community, gemacht für Strecken wie {track}",
@@ -87,6 +92,7 @@ const LOCALES: Record<string, Block> = {
     intro: "Ich bin Rubio – Fahrer und hauptberuflich Softwareentwickler – und ich baue DirtBikeX: eine Community speziell für Dirtbike- und Motocross-Leute. Ab sofort für iOS und Desktop verfügbar – kein weiterer Feed, den du pflegen musst, sondern ein fokussierter, forumbasierter Ort ohne Rauschen, an dem alle nur zum Fahren da sind.",
     value: "Ich würde {track} dort gern ein kostenloses Profil einrichten: ein Ort, an dem Fahrer dich finden, dir folgen und deine Updates bekommen. Es ersetzt nicht, wie du deine Leute schon erreichst – es bringt dich einfach vor die, denen es am meisten bedeutet.",
     cta: "Um die Einrichtung kümmere ich mich. Bei Interesse antworte einfach auf diese Mail.",
+    look: "Hier ein 30-Sekunden-Einblick:",
   },
   it: {
     subject: "Una community fatta apposta per piste come {track}",
@@ -94,6 +100,7 @@ const LOCALES: Record<string, Block> = {
     intro: "Sono Rubio – rider e sviluppatore software di professione – e sto costruendo DirtBikeX: una community pensata solo per chi vive il mondo delle dirt bike e del motocross. Ora disponibile su iOS e desktop – non un altro feed da gestire, ma un posto concentrato, basato su forum e senza rumore, dove chi c'è è lì solo per andare in moto.",
     value: "Mi piacerebbe creare lì un profilo gratuito per {track}: un posto dove i rider ti trovano, ti seguono e ricevono i tuoi aggiornamenti. Non sostituisce come raggiungi già la gente – ti mette solo davanti a chi tiene di più.",
     cta: "Alla configurazione ci penso io. Se ti va, rispondi pure a questa email.",
+    look: "Ecco uno sguardo di 30 secondi:",
   },
   fr: {
     subject: "Une communauté faite pour des pistes comme {track}",
@@ -101,6 +108,7 @@ const LOCALES: Record<string, Block> = {
     intro: "Je suis Rubio – pilote et développeur de logiciels au quotidien – et je construis DirtBikeX : une communauté pensée uniquement pour les passionnés de dirt bike et de motocross. Disponible dès maintenant sur iOS et ordinateur – pas un énième fil à gérer, mais un endroit ciblé, basé sur un forum et sans bruit, où tout le monde est là pour rouler.",
     value: "J'aimerais y créer un profil gratuit pour {track} : un endroit où les pilotes te trouvent, te suivent et reçoivent tes actus. Ça ne remplace pas ta façon de toucher les gens – ça te met juste devant ceux que ça intéresse le plus.",
     cta: "Je m'occupe de tout mettre en place. Si ça t'intéresse, réponds simplement à cet e-mail.",
+    look: "Un aperçu en 30 secondes :",
   },
   es: {
     subject: "Una comunidad hecha para pistas como {track}",
@@ -108,6 +116,7 @@ const LOCALES: Record<string, Block> = {
     intro: "Soy Rubio, piloto y programador de profesión, y estoy creando DirtBikeX: una comunidad pensada solo para la gente del dirt bike y el motocross. Ya disponible en iOS y escritorio; no es otro feed más que gestionar, sino un lugar centrado, basado en foro y sin ruido, donde todos están para rodar.",
     value: "Me gustaría crear ahí un perfil gratis para {track}: un sitio donde los pilotos te encuentren, te sigan y reciban tus novedades. No reemplaza cómo ya llegas a la gente; solo te pone frente a quienes más les importa.",
     cta: "De la configuración me encargo yo. Si te interesa, responde a este correo.",
+    look: "Aquí tienes un vistazo de 30 segundos:",
   },
   ar: {
     subject: "مجتمع مصنوع خصيصًا لحلبات مثل {track}",
@@ -115,6 +124,7 @@ const LOCALES: Record<string, Block> = {
     intro: "أنا Rubio، سائق أعمل في تطوير البرمجيات، وأبني DirtBikeX: مجتمع مخصّص لعشّاق الدراجات الترابية والموتوكروس. متاح الآن على iOS وسطح المكتب — ليس مجرد موجز آخر عليك إدارته، بل مكان مركّز قائم على المنتدى وبلا ضجيج، كل من فيه موجود ليقود فقط.",
     value: "أودّ أن أنشئ لـ {track} ملفًا مجانيًا هناك: مكان يجدك فيه السائقون ويتابعونك ويصلهم جديدك. لن يحلّ محلّ طريقتك الحالية في الوصول إلى الناس — إنما يضعك أمام الأكثر اهتمامًا فقط.",
     cta: "سأتولّى الإعداد بنفسي. إن كنت مهتمًا، فقط ردّ على هذه الرسالة.",
+    look: "إليك لمحة في 30 ثانية:",
   },
   da: {
     subject: "Et fællesskab skabt til baner som {track}",
@@ -122,6 +132,7 @@ const LOCALES: Record<string, Block> = {
     intro: "Jeg er Rubio – kører og softwareudvikler til daglig – og jeg bygger DirtBikeX: et fællesskab lavet specifikt til dirtbike- og motocross-folk. Nu tilgængeligt på iOS og computer – ikke endnu et feed, du skal passe, men et fokuseret, forumbaseret sted uden støj, hvor alle er der for at køre.",
     value: "Jeg vil gerne oprette en gratis profil til {track} derinde: et sted, hvor kørere finder dig, følger dig og får dine opdateringer. Det erstatter ikke, hvordan du allerede når folk – det stiller dig bare foran dem, der er mest interesserede.",
     cta: "Jeg klarer opsætningen for dig. Er du nysgerrig, så svar bare på denne mail.",
+    look: "Her er et kig på 30 sekunder:",
   },
   el: {
     subject: "Μια κοινότητα φτιαγμένη για πίστες σαν την {track}",
@@ -129,6 +140,7 @@ const LOCALES: Record<string, Block> = {
     intro: "Είμαι ο Rubio — αναβάτης και επαγγελματίας προγραμματιστής — και φτιάχνω το DirtBikeX: μια κοινότητα φτιαγμένη αποκλειστικά για τους ανθρώπους του dirt bike και του motocross. Διαθέσιμο τώρα σε iOS και υπολογιστή — όχι άλλο ένα feed για να διαχειρίζεσαι, αλλά ένας εστιασμένος χώρος βασισμένος σε φόρουμ, χωρίς θόρυβο, όπου όλοι είναι εκεί μόνο για να καβαλήσουν.",
     value: "Θα ήθελα να φτιάξω εκεί ένα δωρεάν προφίλ για την {track}: ένα μέρος όπου οι αναβάτες σε βρίσκουν, σε ακολουθούν και λαμβάνουν τα νέα σου. Δεν αντικαθιστά τον τρόπο που ήδη επικοινωνείς — απλώς σε βάζει μπροστά σε αυτούς που ενδιαφέρονται περισσότερο.",
     cta: "Τη ρύθμιση την αναλαμβάνω εγώ. Αν σε ενδιαφέρει, απλώς απάντησε σε αυτό το email.",
+    look: "Δείτε το σε 30 δευτερόλεπτα:",
   },
   sv: {
     subject: "En gemenskap gjord för banor som {track}",
@@ -136,6 +148,7 @@ const LOCALES: Record<string, Block> = {
     intro: "Jag heter Rubio – förare och mjukvaruutvecklare till vardags – och jag bygger DirtBikeX: en gemenskap gjord specifikt för dirtbike- och motocrossfolk. Nu tillgänglig för iOS och dator – inte ännu ett flöde att sköta, utan en fokuserad, forumbaserad plats utan brus, där alla är där för att köra.",
     value: "Jag vill gärna skapa en gratis profil för {track} där: en plats där förare hittar dig, följer dig och får dina uppdateringar. Den ersätter inte hur du redan når folk – den ställer dig bara framför dem som bryr sig mest.",
     cta: "Jag fixar uppsättningen åt dig. Är du nyfiken, svara bara på det här mejlet.",
+    look: "Här är en titt på 30 sekunder:",
   },
   th: {
     subject: "คอมมูนิตี้ที่สร้างมาเพื่อสนามอย่าง {track} โดยเฉพาะ",
@@ -143,6 +156,7 @@ const LOCALES: Record<string, Block> = {
     intro: "ผมชื่อ Rubio เป็นนักขี่ที่ทำงานเขียนซอฟต์แวร์เป็นอาชีพ และกำลังสร้าง DirtBikeX คอมมูนิตี้ที่ทำมาเพื่อคนสายเดิร์ทไบก์และโมโตครอสโดยเฉพาะ ตอนนี้ใช้ได้ทั้งบน iOS และเดสก์ท็อป ไม่ใช่ฟีดอีกอันที่คุณต้องคอยดูแล แต่เป็นพื้นที่ที่โฟกัส เน้นฟอรัม ไม่มีสิ่งรบกวน และทุกคนที่นี่มาเพื่อขี่จริง ๆ",
     value: "ผมอยากสร้างโปรไฟล์ฟรีให้ {track} ในนั้น เป็นที่ที่นักขี่จะเจอคุณ ติดตามคุณ และรับข่าวสารจากคุณ มันไม่ได้มาแทนช่องทางที่คุณใช้อยู่ แต่ช่วยพาคุณไปอยู่ตรงหน้าคนที่สนใจมากที่สุด",
     cta: "เรื่องตั้งค่าผมจัดการให้เอง ถ้าสนใจ ตอบกลับอีเมลนี้ได้เลย",
+    look: "ดูคลิป 30 วินาทีได้ที่นี่:",
   },
   id: {
     subject: "Komunitas yang dibuat khusus untuk trek seperti {track}",
@@ -150,6 +164,7 @@ const LOCALES: Record<string, Block> = {
     intro: "Saya Rubio — seorang rider yang sehari-hari menulis perangkat lunak — dan saya membangun DirtBikeX: komunitas yang dibuat khusus untuk orang-orang dirt bike dan motocross. Sekarang tersedia di iOS dan desktop — bukan satu feed lagi yang harus kamu urus, tapi tempat yang fokus, berbasis forum, tanpa gangguan, di mana semua yang ada di sana hadir untuk riding.",
     value: "Saya ingin membuatkan {track} profil gratis di sana: tempat para rider menemukanmu, mengikutimu, dan mendapatkan kabar terbarumu. Ini tidak menggantikan cara kamu menjangkau orang selama ini — hanya menempatkanmu di depan mereka yang paling peduli.",
     cta: "Soal pengaturan biar saya yang urus. Kalau tertarik, cukup balas email ini.",
+    look: "Ini cuplikan 30 detik:",
   },
   pt: {
     subject: "Uma comunidade feita para pistas como a {track}",
@@ -157,6 +172,7 @@ const LOCALES: Record<string, Block> = {
     intro: "Sou o Rubio — piloto e desenvolvedor de software de profissão — e estou criando o DirtBikeX: uma comunidade feita só para a galera do dirt bike e do motocross. Já disponível para iOS e desktop — não é mais um feed para você gerenciar, mas um lugar focado, baseado em fórum e sem ruído, onde todo mundo está ali só para pilotar.",
     value: "Eu gostaria de criar um perfil gratuito para a {track} nela: um lugar onde os pilotos te encontram, te seguem e recebem suas novidades. Não substitui como você já alcança as pessoas — só coloca você na frente de quem mais se importa.",
     cta: "Da configuração eu cuido. Se tiver interesse, é só responder a este e-mail.",
+    look: "Aqui vai um olhar de 30 segundos:",
   },
   fa_IR: {
     subject: "جامعه‌ای که مخصوص پیست‌هایی مثل {track} ساخته شده",
@@ -164,6 +180,7 @@ const LOCALES: Record<string, Block> = {
     intro: "من Rubio هستم؛ یک موتورسوار که کارش برنامه‌نویسی است و دارم DirtBikeX را می‌سازم: جامعه‌ای که مخصوص آدم‌های دنیای درت‌بایک و موتوکراس ساخته شده. حالا روی iOS و دسکتاپ در دسترس است — نه یک فید دیگر که باید مدیریتش کنی، بلکه جایی متمرکز و مبتنی بر انجمن و بدون شلوغی، که هر کسی آنجاست فقط برای رایدینگ آمده.",
     value: "دوست دارم آنجا برای {track} یک پروفایل رایگان بسازم: جایی که موتورسوارها پیدایت می‌کنند، دنبالت می‌کنند و به‌روزرسانی‌هایت را می‌گیرند. جای روش فعلی‌ات برای رسیدن به مردم را نمی‌گیرد — فقط تو را جلوی چشم کسانی می‌گذارد که بیشتر از همه برایشان مهم است.",
     cta: "راه‌اندازی‌اش با من. اگر علاقه‌مندی، کافی است همین ایمیل را پاسخ بدهی.",
+    look: "یک نگاه ۳۰ ثانیه‌ای:",
   },
   fi: {
     subject: "Yhteisö, joka on tehty {track}:n kaltaisille radoille",
@@ -171,6 +188,7 @@ const LOCALES: Record<string, Block> = {
     intro: "Olen Rubio – kuljettaja ja työkseni ohjelmistokehittäjä – ja rakennan DirtBikeX:ää: yhteisöä, joka on tehty vain dirtbike- ja motocross-väelle. Nyt saatavilla iOS:lle ja tietokoneelle – ei taas yksi syöte hallittavaksi, vaan keskittynyt, foorumipohjainen paikka ilman kohinaa, jossa kaikki ovat vain ajamista varten.",
     value: "Haluaisin tehdä {track}:lle sinne ilmaisen profiilin: paikan, josta kuljettajat löytävät sinut, seuraavat sinua ja saavat päivityksesi. Se ei korvaa tapaa, jolla jo tavoitat ihmiset – se vain tuo sinut niiden eteen, joita se eniten kiinnostaa.",
     cta: "Hoidan käyttöönoton puolestasi. Jos kiinnostuit, vastaa vain tähän viestiin.",
+    look: "Tässä 30 sekunnin katsaus:",
   },
   nl: {
     subject: "Een community gemaakt voor banen zoals {track}",
@@ -178,6 +196,7 @@ const LOCALES: Record<string, Block> = {
     intro: "Ik ben Rubio – rijder en van beroep softwareontwikkelaar – en ik bouw DirtBikeX: een community speciaal voor dirtbike- en motocrossmensen. Nu beschikbaar op iOS en desktop – niet nóg een feed om te beheren, maar een gerichte, forumgebaseerde plek zonder ruis, waar iedereen er is om te rijden.",
     value: "Ik wil daar graag een gratis profiel voor {track} aanmaken: een plek waar rijders je vinden, je volgen en je updates krijgen. Het vervangt niet hoe je mensen nu al bereikt – het zet je alleen voor de mensen die er het meest om geven.",
     cta: "De installatie regel ik voor je. Heb je interesse, reageer dan gewoon op deze mail.",
+    look: "Hier is een blik van 30 seconden:",
   },
   tr_TR: {
     subject: "{track} gibi pistler için özel yapılmış bir topluluk",
@@ -185,6 +204,7 @@ const LOCALES: Record<string, Block> = {
     intro: "Ben Rubio — hem sürücü hem de mesleği yazılım geliştirmek olan biri — ve DirtBikeX'i geliştiriyorum: dirt bike ve motokros dünyasının insanları için özel olarak yapılmış bir topluluk. Artık iOS ve masaüstünde kullanılabiliyor — yönetmen gereken bir akış daha değil, odaklanmış, forum tabanlı, gürültüsüz bir yer; oradaki herkes yalnızca sürmek için orada.",
     value: "Orada {track} için ücretsiz bir profil oluşturmak isterim: sürücülerin seni bulduğu, takip ettiği ve güncellemelerini aldığı bir yer. İnsanlara zaten ulaşma şeklinin yerini almaz — seni yalnızca en çok önemseyenlerin önüne çıkarır.",
     cta: "Kurulumu senin için ben hallederim. İlgileniyorsan bu e-postayı yanıtlaman yeterli.",
+    look: "30 saniyelik bir bakış:",
   },
   vi: {
     subject: "Một cộng đồng dành riêng cho những đường đua như {track}",
@@ -192,6 +212,7 @@ const LOCALES: Record<string, Block> = {
     intro: "Tôi là Rubio — một tay đua đồng thời làm nghề viết phần mềm — và tôi đang xây dựng DirtBikeX: một cộng đồng dành riêng cho những người chơi dirt bike và motocross. Hiện đã có trên iOS và máy tính — không phải thêm một bảng tin để bạn quản lý, mà là một nơi tập trung, dựa trên diễn đàn, không nhiễu, nơi ai cũng đến chỉ để chạy xe.",
     value: "Tôi muốn tạo cho {track} một hồ sơ miễn phí trong đó: nơi các tay đua tìm thấy bạn, theo dõi bạn và nhận tin cập nhật từ bạn. Nó không thay thế cách bạn đang tiếp cận mọi người — chỉ đưa bạn đến trước những người quan tâm nhất.",
     cta: "Việc thiết lập cứ để tôi lo. Nếu bạn quan tâm, chỉ cần trả lời email này.",
+    look: "Xem thử trong 30 giây:",
   },
 };
 
@@ -199,17 +220,58 @@ function fill(s: string, track: string): string {
   return s.replace(/\{track\}/g, track);
 }
 
-function blockHtml(b: Block, track: string): string {
+// ---- intro links ------------------------------------------------------------
+// The intro names three things the reader can't otherwise see: the product, the iOS app, and
+// the web forum. Each becomes tappable IN PLACE — no words are added, so the paragraph keeps
+// its original length and rhythm. The CTA stays "just reply"; these are evidence, not a CTA.
+const SITE_URL = 'https://www.dirtbikex.com';
+const SITE_LABEL = 'www.dirtbikex.com';
+const BRAND = 'DirtBikeX';
+const APP_STORE_URL = 'https://apps.apple.com/app/id6765577701';  // no country path: Apple geo-routes
+const FORUM_URL = 'https://forum.dirtbikex.com';                  // guest browsing, no login wall
+const REEL_URL = 'https://www.instagram.com/reel/DbP-9nTot-v/';
+const LINK_STYLE = 'color:#0a58ca;';
+
+// "DirtBikeX" and "iOS" are Latin literals in all 21 intros, but the word for "desktop" is
+// translated (and inflected in fi/tr_TR), so it needs a per-locale map. Every entry below was
+// verified to occur EXACTLY ONCE in that locale's intro, so each replacement is unambiguous.
+const DESKTOP_WORD: Record<string, string> = {
+  en: 'desktop', zh_CN: '桌面端', ja: 'デスクトップ', zh_TW: '桌面版', ko: '데스크톱',
+  de: 'Desktop', it: 'desktop', fr: 'ordinateur', es: 'escritorio', ar: 'سطح المكتب',
+  da: 'computer', el: 'υπολογιστή', sv: 'dator', th: 'เดสก์ท็อป', id: 'desktop',
+  pt: 'desktop', fa_IR: 'دسکتاپ', fi: 'tietokoneelle', nl: 'desktop', tr_TR: 'masaüstünde',
+  vi: 'máy tính',
+};
+
+/** Anchor an already-escaped intro. dir="ltr" keeps Latin URLs from being reordered inside the
+ *  RTL (ar / fa_IR) blocks. Each literal occurs once, so `replace` with a string is exact. */
+function linkIntroHtml(escapedIntro: string, locale: string): string {
+  const a = (href: string, label: string) => `<a href="${href}" dir="ltr" style="${LINK_STYLE}">${label}</a>`;
+  let out = escapedIntro.replace(BRAND, a(SITE_URL, SITE_LABEL));
+  out = out.replace('iOS', a(APP_STORE_URL, 'iOS'));
+  const word = DESKTOP_WORD[locale];
+  if (word) out = out.replace(word, `<a href="${FORUM_URL}" style="${LINK_STYLE}">${word}</a>`);
+  return out;
+}
+
+/** Plain-text form: only the brand becomes a bare URL. iOS/desktop stay as words — a text part
+ *  stuffed with three raw URLs in one sentence is a spam pattern, and the links below cover it. */
+function linkIntroText(intro: string): string {
+  return intro.replace(BRAND, SITE_LABEL);
+}
+
+function blockHtml(b: Block, track: string, locale: string): string {
   const t = escapeHtml(track);
   return `<p>${fill(escapeHtml(b.lead), t)}</p>
-<p>${fill(escapeHtml(b.intro), t)}</p>
+<p>${fill(linkIntroHtml(escapeHtml(b.intro), locale), t)}</p>
 <p>${fill(escapeHtml(b.value), t)}</p>
+<p>${escapeHtml(b.look)} <a href="${REEL_URL}" dir="ltr" style="${LINK_STYLE}">instagram.com/reel/DbP-9nTot-v</a></p>
 <p>${fill(escapeHtml(b.cta), t)}</p>
 <p>${escapeHtml(SIGNATURE)}</p>`;
 }
 
 function blockText(b: Block, track: string): string {
-  return `${fill(b.lead, track)}\n\n${fill(b.intro, track)}\n\n${fill(b.value, track)}\n\n${fill(b.cta, track)}\n\n${SIGNATURE}`;
+  return `${fill(b.lead, track)}\n\n${fill(linkIntroText(b.intro), track)}\n\n${fill(b.value, track)}\n\n${b.look} ${REEL_URL}\n\n${fill(b.cta, track)}\n\n${SIGNATURE}`;
 }
 
 const RTL_LOCALES = new Set(['ar', 'fa_IR']);
@@ -220,9 +282,9 @@ export function renderPreInvite(trackName: string, locale: string): { subject: s
   // RTL locales get their block wrapped in dir="rtl" so Arabic/Persian render correctly;
   // the English block stacked below stays LTR.
   const localHtml = local
-    ? (RTL_LOCALES.has(locale) ? `<div dir="rtl" style="text-align:right;">${blockHtml(local, trackName)}</div>` : blockHtml(local, trackName))
+    ? (RTL_LOCALES.has(locale) ? `<div dir="rtl" style="text-align:right;">${blockHtml(local, trackName, locale)}</div>` : blockHtml(local, trackName, locale))
     : '';
-  const htmlBlocks = local ? `${localHtml}\n<hr style="border:none;border-top:1px solid #eee;margin:20px 0;">\n${blockHtml(EN, trackName)}` : blockHtml(EN, trackName);
+  const htmlBlocks = local ? `${localHtml}\n<hr style="border:none;border-top:1px solid #eee;margin:20px 0;">\n${blockHtml(EN, trackName, 'en')}` : blockHtml(EN, trackName, 'en');
   const textBlocks = local ? `${blockText(local, trackName)}\n\n—\n\n${blockText(EN, trackName)}` : blockText(EN, trackName);
   return { subject, html: htmlBlocks, text: textBlocks };
 }
@@ -355,10 +417,61 @@ interface SendOpts {
   idempotencyKey?: string;
 }
 
-async function sendPreInvite(env: PagesEnv, o: SendOpts): Promise<{ ok: boolean; error?: string; transient?: boolean }> {
-  const apiKey = env.RESEND_API_KEY;
-  const from = env.JOIN_FROM_EMAIL;
-  if (!apiKey || !from) return { ok: false, error: 'email misconfigured (RESEND_API_KEY / JOIN_FROM_EMAIL)' };
+/**
+ * How a failed send must be handled. The default is `defer`, NOT failure — because a real row
+ * that reaches `failed_permanent` is unrecoverable: the partial unique index on
+ * `outreach(email) WHERE mode='real'` (migrations/0007_outreach_pk.sql) plus handleBatch's
+ * `ON CONFLICT … DO NOTHING` means a later batch reports it `already` forever, and the CRM has
+ * already stamped the contact `contacted`. So only a fault in THIS row may be terminal.
+ *   defer     — requeue, do NOT consume an attempt (rate limit, revoked key, paused account,
+ *               unverified domain: all operator-fixable, none the row's fault)
+ *   attempt   — requeue and consume one of MAX_ATTEMPTS. Only a SINGLE-send network throw, where
+ *               the request may or may not have been delivered; bounded so it cannot spin, and
+ *               safe to retry because the per-row Idempotency-Key dedupes it provider-side.
+ *   permanent — terminal for this row only (400/422: bad address or payload)
+ */
+type FailMode = 'defer' | 'attempt' | 'permanent';
+interface SendResult { ok: boolean; error?: string; fail?: FailMode; retryAfterSec?: number }
+
+/** One Resend message payload — identical shape for the single and batch endpoints. */
+interface ResendMessage {
+  from: string;
+  to: string[];
+  subject: string;
+  html: string;
+  text: string;
+  reply_to?: string;
+  headers?: Record<string, string>;
+}
+
+/** Honour Resend's backoff hint so a 429 waits instead of hot-looping. Clamped to 15 min. */
+function retryAfterSeconds(resp: Response): number | undefined {
+  const raw = resp.headers.get('retry-after') ?? resp.headers.get('ratelimit-reset');
+  const n = raw ? parseInt(raw, 10) : NaN;
+  return Number.isFinite(n) && n > 0 ? Math.min(n, 900) : undefined;
+}
+
+/**
+ * Classify a non-2xx Resend response. Note what is NOT here: 401/403/404 fall through to
+ * `defer`. A revoked API key or a paused account previously marked every claimed row
+ * `failed_permanent` on the FIRST attempt — one account action could have silently burned the
+ * entire remaining prospect list. Those rows now wait for the operator instead.
+ */
+function classifyResend(status: number, retryAfterSec?: number): SendResult {
+  const error = `resend returned ${status}`;
+  if (status === 400 || status === 422) return { ok: false, error, fail: 'permanent' };
+  // Everything else — 429, 401/403 (revoked key, paused account), 404, 5xx — is a fault at the
+  // provider or the account, never in this row, so it must not consume the row's retry budget.
+  // Always back off: without one, a persistent 401 would re-claim and re-defer every 60s (the
+  // same silent churn loop the cap exhaustion caused), and a 5xx would do it for 100 rows.
+  return { ok: false, error, fail: 'defer', retryAfterSec: retryAfterSec ?? (status === 429 ? 60 : 300) };
+}
+
+/**
+ * Build one Resend message. Shared by the single-send and batch paths so both emit
+ * byte-identical mail — same footer, same List-Unsubscribe headers, same locale rendering.
+ */
+function buildPreInviteMessage(env: PagesEnv, from: string, o: SendOpts): ResendMessage {
   const replyTo = env.JOIN_REPLY_TO ?? '';
   const address = env.JOIN_ORG_ADDRESS ?? '';
   const deliverTo = o.deliverTo || o.to;
@@ -372,19 +485,20 @@ async function sendPreInvite(env: PagesEnv, o: SendOpts): Promise<{ ok: boolean;
   const unsubLink = o.unsubUrl
     ? `<a href="${escapeHtml(o.unsubUrl)}">Unsubscribe</a> and we won't contact you again.`
     : (replyTo ? `<a href="mailto:${escapeHtml(replyTo)}?subject=unsubscribe">Unsubscribe</a> and we won't contact you again.` : '');
-  const socialHtml = SOCIALS.map(([n, u]) => `<a href="${u}" style="color:#888;text-decoration:underline;">${n}</a>`).join(' &middot; ');
-  const footerHtml = `<hr style="border:none;border-top:1px solid #ddd;margin:24px 0;">
-<p style="font-size:12px;color:#888;line-height:1.5;">DirtBikeX<br>${socialHtml}${address ? `<br>${escapeHtml(address)}` : ''}<br>You received this one-time note because your track is publicly listed. ${unsubLink}</p>`;
+  // Socials were 12px grey inside the legal fine print — effectively invisible. They now get
+  // their own line above the rule, at body size and in link blue, with a lead-in that gives a
+  // reason to tap. Kept to text + one arrow: emoji and shout-caps in a footer read as spam.
+  const socialHtml = SOCIALS.map(([n, u]) => `<a href="${u}" style="color:#0a58ca;font-weight:600;text-decoration:none;">${n}</a>`).join(' &nbsp;&middot;&nbsp; ');
+  const footerHtml = `<p style="font-size:15px;line-height:1.5;margin:22px 0 0;">See riders and tracks already on it &rarr; ${socialHtml}</p>
+<hr style="border:none;border-top:1px solid #ddd;margin:16px 0 12px;">
+<p style="font-size:12px;color:#888;line-height:1.5;">Advertisement. Your track is publicly listed, so you got this once.${address ? `<br>DirtBikeX &middot; ${escapeHtml(address)}` : ''}<br><a href="${SITE_URL}/privacy" style="color:#888;text-decoration:underline;">Privacy</a> &middot; ${unsubLink}</p>`;
   const html = `<!DOCTYPE html><html><body style="font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.55;color:#222;margin:0;padding:24px;">
 ${bodyHtml}
 ${footerHtml}
 </body></html>`;
   const unsubText = o.unsubUrl ? `\nUnsubscribe: ${o.unsubUrl}` : (replyTo ? `\nNot interested? Reply "unsubscribe" and we won't contact you again.` : '');
   const socialText = SOCIALS.map(([n, u]) => `${n}: ${u}`).join('\n');
-  const text = `${bodyText}\n\n—\nDirtBikeX\n${socialText}${address ? `\n${address}` : ''}\nYou received this one-time note because your track is publicly listed.${unsubText}`;
-
-  const httpHeaders: Record<string, string> = { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' };
-  if (o.idempotencyKey) httpHeaders['Idempotency-Key'] = o.idempotencyKey;
+  const text = `${bodyText}\n\nSee riders and tracks already on it:\n${socialText}\n\n—\nAdvertisement. Your track is publicly listed, so you got this once.\nDirtBikeX${address ? ` · ${address}` : ''}\nPrivacy: ${SITE_URL}/privacy${unsubText}`;
 
   // Email-level List-Unsubscribe headers. One-click POST only makes sense over HTTPS.
   const mailHeaders: Record<string, string> = {};
@@ -395,30 +509,133 @@ ${footerHtml}
     mailHeaders['List-Unsubscribe'] = `<${unsubMailto}>`;
   }
 
+  return {
+    from,
+    to: [deliverTo],
+    subject,
+    html,
+    text,
+    ...(replyTo ? { reply_to: replyTo } : {}),
+    ...(Object.keys(mailHeaders).length ? { headers: mailHeaders } : {}),
+  };
+}
+
+/** Send ONE email via POST /emails. Used by /api/outreach/test and as the per-row fallback
+ *  when a batch is rejected wholesale (see sendPreInviteBatch). */
+async function sendPreInvite(env: PagesEnv, o: SendOpts): Promise<SendResult> {
+  const apiKey = env.RESEND_API_KEY;
+  const from = env.JOIN_FROM_EMAIL;
+  if (!apiKey || !from) return { ok: false, error: 'email misconfigured (RESEND_API_KEY / JOIN_FROM_EMAIL)', fail: 'defer' };
+  const msg = buildPreInviteMessage(env, from, o);
+
+  const httpHeaders: Record<string, string> = { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' };
+  if (o.idempotencyKey) httpHeaders['Idempotency-Key'] = o.idempotencyKey;
+
   let resp: Response;
   try {
     resp = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: httpHeaders,
-      body: JSON.stringify({
-        from,
-        to: [deliverTo],
-        subject,
-        html,
-        text,
-        ...(replyTo ? { reply_to: replyTo } : {}),
-        ...(Object.keys(mailHeaders).length ? { headers: mailHeaders } : {}),
-      }),
+      method: 'POST', headers: httpHeaders, body: JSON.stringify(msg),
+      // Without a timeout a hung connection holds the cron invocation open across further
+      // 60s triggers, letting ticks overlap and each re-budget from the same stale count.
+      signal: AbortSignal.timeout(20_000),
     });
   } catch (err) {
     console.error('outreach:resend_threw', { err: String(err) });
-    return { ok: false, error: 'resend request failed', transient: true };
+    return { ok: false, error: 'resend request failed', fail: 'attempt' };
   }
   if (!resp.ok) {
     console.error('outreach:resend_non_2xx', { status: resp.status });
-    return { ok: false, error: `resend returned ${resp.status}`, transient: resp.status === 429 || resp.status >= 500 };
+    return classifyResend(resp.status, retryAfterSeconds(resp));
   }
   return { ok: true };
+}
+
+/**
+ * Idempotency-Key for a batch request, derived from the sorted row ids in the chunk.
+ *
+ * SCOPE, honestly stated: this dedupes only a retry whose chunk contains the EXACT same id set.
+ * It covers the common crash case — the tick dies after Resend accepted the batch but before D1
+ * was written, and the next tick re-claims the same earliest-due rows. It does NOT cover a retry
+ * whose membership shifted (a bounce/unsub webhook suppressed one of the rows, or newly-due rows
+ * displaced some), which yields a different key and no provider-side dedupe. Chunking is over
+ * id-sorted rows precisely to make membership as reproducible as possible.
+ *
+ * The residual risk is a duplicate cold email in that narrow window. The alternative — marking
+ * rows sent BEFORE the response — would risk the strictly worse failure of never sending at all.
+ */
+async function batchIdempotencyKey(ids: number[]): Promise<string> {
+  const canon = [...ids].sort((a, b) => a - b).join(',');
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(canon));
+  const hex = [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('');
+  return `drip-batch:${hex.slice(0, 48)}`;
+}
+
+/**
+ * Send up to BATCH_CHUNK messages in ONE POST /emails/batch request. Each array entry is its
+ * own separate message — recipients never see each other.
+ *
+ * Returns one SendResult per input item, index-aligned: Resend documents that `data[i]`
+ * corresponds to the payload at the same index. An index with no id is DEFERRED, never marked
+ * sent — we must never record a send we cannot prove happened.
+ */
+async function sendPreInviteBatch(env: PagesEnv, items: Array<{ id: number; opts: SendOpts }>): Promise<SendResult[]> {
+  if (!items.length) return [];
+  const apiKey = env.RESEND_API_KEY;
+  const from = env.JOIN_FROM_EMAIL;
+  if (!apiKey || !from) {
+    return items.map(() => ({ ok: false, error: 'email misconfigured (RESEND_API_KEY / JOIN_FROM_EMAIL)', fail: 'defer' as FailMode }));
+  }
+  // A single row gains nothing from the batch endpoint's all-or-nothing validation.
+  if (items.length === 1) return [await sendPreInvite(env, items[0].opts)];
+
+  const payload = items.map((it) => buildPreInviteMessage(env, from, it.opts));
+  const idempotencyKey = await batchIdempotencyKey(items.map((it) => it.id));
+
+  let resp: Response;
+  try {
+    resp = await fetch('https://api.resend.com/emails/batch', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json', 'Idempotency-Key': idempotencyKey },
+      body: JSON.stringify(payload),   // bare top-level array, per the Resend batch API
+      signal: AbortSignal.timeout(20_000),   // see the single-send path: prevents overlapping ticks
+    });
+  } catch (err) {
+    // A whole-request failure says NOTHING about any individual row, so it must not consume 100
+    // rows' attempts — five such faults would drive them all to unrecoverable failed_permanent.
+    console.error('outreach:resend_batch_threw', { err: String(err), n: items.length });
+    return items.map(() => ({ ok: false, error: 'resend batch request failed', fail: 'defer' as FailMode, retryAfterSec: 60 }));
+  }
+
+  if (!resp.ok) {
+    console.error('outreach:resend_batch_non_2xx', { status: resp.status, n: items.length });
+    // 400/422 means a payload/address was rejected, but the response does not say WHICH entry.
+    // Re-send the chunk as singles so the offender is isolated and only IT can go terminal —
+    // 99 good rows must never be lost for one bad address.
+    if (resp.status === 400 || resp.status === 422) {
+      console.warn('outreach:resend_batch_fallback_singles', { n: items.length });
+      const results: SendResult[] = [];
+      for (const it of items) results.push(await sendPreInvite(env, it.opts));
+      return results;
+    }
+    const cls = classifyResend(resp.status, retryAfterSeconds(resp));
+    return items.map(() => ({ ...cls }));
+  }
+
+  let data: Array<{ id?: string } | null> = [];
+  try {
+    const body = (await resp.json()) as { data?: Array<{ id?: string } | null> };
+    data = Array.isArray(body?.data) ? body.data : [];
+  } catch {
+    // 2xx with an unreadable body: we cannot prove which rows were accepted. Defer them all
+    // rather than mark an unsent row sent; the stable Idempotency-Key keeps the retry safe.
+    console.error('outreach:resend_batch_unparsable', { n: items.length });
+    return items.map(() => ({ ok: false, error: 'resend batch response unparsable', fail: 'defer' as FailMode }));
+  }
+  if (data.length !== items.length) console.error('outreach:resend_batch_length_mismatch', { got: data.length, want: items.length });
+
+  return items.map((_, i) => (
+    data[i]?.id ? { ok: true } : { ok: false, error: `resend batch: no id at index ${i}`, fail: 'defer' as FailMode }
+  ));
 }
 
 // ---- auth + helpers --------------------------------------------------------
@@ -450,9 +667,22 @@ function allowReal(env: PagesEnv): boolean {
   return env.OUTREACH_ALLOW_REAL === '1';
 }
 
-async function isSuppressed(env: PagesEnv, email: string): Promise<boolean> {
-  const row = await env.SUBSCRIBERS_DB!.prepare('SELECT 1 AS x FROM suppressions WHERE email = ?').bind(email).first();
-  return !!row;
+/**
+ * Look up which of `emails` are suppressed, in chunks — D1 permits at most 100 bound
+ * parameters per query, and both callers can exceed that (a job carries up to 1000 recipients;
+ * a drip tick claims up to CLAIM_LIMIT).
+ */
+async function suppressedEmails(db: D1Database, emails: string[]): Promise<Set<string>> {
+  const found = new Set<string>();
+  for (let i = 0; i < emails.length; i += 90) {
+    const slice = emails.slice(i, i + 90);
+    if (!slice.length) continue;
+    const rows = (await db.prepare(
+      `SELECT email FROM suppressions WHERE email IN (${slice.map(() => '?').join(',')})`
+    ).bind(...slice).all<{ email: string }>()).results;
+    for (const r of rows) found.add(r.email);
+  }
+  return found;
 }
 
 // ---- POST /api/outreach/test — bearer-authed single test send --------------
@@ -538,15 +768,9 @@ export async function handleBatch(request: Request, env: PagesEnv): Promise<Resp
     });
   }
 
-  // ONE bulk suppression check instead of a query per recipient (subrequest budget).
-  const emails = [...byEmail.keys()];
-  const suppressedSet = new Set<string>();
-  if (emails.length) {
-    const rows = (await env.SUBSCRIBERS_DB.prepare(
-      `SELECT email FROM suppressions WHERE email IN (${emails.map(() => '?').join(',')})`
-    ).bind(...emails).all<{ email: string }>()).results;
-    for (const s of rows) suppressedSet.add(s.email);
-  }
+  // ONE bulk suppression check instead of a query per recipient (subrequest budget), chunked
+  // to stay inside D1's 100-bound-parameter ceiling.
+  const suppressedSet = await suppressedEmails(env.SUBSCRIBERS_DB, [...byEmail.keys()]);
 
   let slot = 0;
   for (const rec of byEmail.values()) {
@@ -649,7 +873,7 @@ export async function handleMetrics(request: Request, env: PagesEnv): Promise<Re
   if (!checkAuth(request, env)) return json({ error: 'unauthorized' }, 401);
   if (!env.SUBSCRIBERS_DB) return json({ error: 'outreach db not bound' }, 503);
   const db = env.SUBSCRIBERS_DB;
-  const cap = parseInt(env.OUTREACH_DAILY_CAP ?? '', 10) || DEFAULT_DAILY_CAP;
+  const cap = dailyCapOf(env);
 
   const one = async (sql: string, ...binds: unknown[]): Promise<number> =>
     ((await db.prepare(sql).bind(...binds).first<{ n: number }>())?.n) ?? 0;
@@ -732,20 +956,49 @@ export async function handleUnsub(request: Request, env: PagesEnv): Promise<Resp
 
 // ---- drip ------------------------------------------------------------------
 
-const CLAIM_LIMIT = 20;     // rows per tick
+// Rows per tick — this is the INSTANTANEOUS rate limiter, and it is deliberately one batch:
+// 100 rows/tick = a single POST /emails/batch per minute = 100 emails/min, using ~0.02 of
+// Resend's 10 req/s team limit. The daily cap bounds the DAY's volume; this bounds the burst.
+// Both are needed: the cap alone let a spent budget re-open at 00:00 UTC and dump every
+// already-due row at once (docs/OUTREACH_MODULE.md warns about exactly that reputation spike).
+// Raise this only alongside a deliverability decision, in units of BATCH_CHUNK.
+const CLAIM_LIMIT = 100;
+const BATCH_CHUNK = 100;    // Resend's hard maximum per /emails/batch request
 const CLAIM_TTL_MIN = 10;   // reaper re-queues claims older than this (a crashed mid-send)
 const MAX_ATTEMPTS = 5;
 const DEFAULT_DAILY_CAP = 200;
 
-interface DripResult { claimed: number; sent: number; dryrun: number; suppressed: number; failed: number; requeued: number; }
+/** Effective daily cap on real sends. `0` is honoured as a deliberate HARD STOP — the previous
+ *  `parseInt(…) || DEFAULT_DAILY_CAP` silently turned an operator's "0" pause into 200 sends.
+ *  Absent or unparseable falls back to the default. */
+function dailyCapOf(env: PagesEnv): number {
+  const n = parseInt(env.OUTREACH_DAILY_CAP ?? '', 10);
+  return Number.isFinite(n) && n >= 0 ? n : DEFAULT_DAILY_CAP;
+}
+
+interface DripResult {
+  claimed: number; sent: number; dryrun: number; suppressed: number; failed: number;
+  requeued: number;   // retried, consuming one of MAX_ATTEMPTS
+  deferred: number;   // requeued WITHOUT consuming an attempt (cap, rate limit, account)
+  cap: number; sentToday: number;
+}
 
 // One drip tick: reap stale claims → claim K queued → per row: suppression re-check, then
 // send (real/override) or log (dry_run) with a Resend Idempotency-Key, mark terminal.
 // Called by the Cron (scheduled) and by POST /api/outreach/drip. `dry` forces log-only.
 export async function runDrip(env: PagesEnv, opts: { dry?: boolean } = {}): Promise<DripResult> {
-  const out: DripResult = { claimed: 0, sent: 0, dryrun: 0, suppressed: 0, failed: 0, requeued: 0 };
+  const out: DripResult = { claimed: 0, sent: 0, dryrun: 0, suppressed: 0, failed: 0, requeued: 0, deferred: 0, cap: 0, sentToday: 0 };
   const db = env.SUBSCRIBERS_DB;
   if (!db) return out;
+  type Stmt = ReturnType<typeof db.prepare>;
+  // A backoff may only ever DELAY a row — never pull it earlier. `max(send_after, now+backoff)`
+  // matters because the backoff is now unconditional on any deferrable error: a plain
+  // datetime('now','+300 seconds') would drag rows deliberately paced hours out (send_after
+  // 17:00) forward onto one instant, and collapsing a whole tick's remainder onto a single
+  // timestamp is exactly the reputation burst the per-row pacing exists to prevent.
+  const requeue = (id: number, err?: string, backoffSec?: number): Stmt => (backoffSec
+    ? db.prepare("UPDATE outreach SET status='queued', claimed_at=NULL, send_after=max(coalesce(send_after, datetime('now')), datetime('now', ?)), last_error=? WHERE id=?").bind(`+${backoffSec} seconds`, err ?? null, id)
+    : db.prepare("UPDATE outreach SET status='queued', claimed_at=NULL, last_error=? WHERE id=?").bind(err ?? null, id));
   // Pre-flight: never CLAIM rows we can't send. A missing key would otherwise drop each
   // claimed real row to failed_permanent, and send-once blocks re-enqueue → permanent loss.
   if (!env.RESEND_API_KEY || !env.JOIN_FROM_EMAIL) { console.error('outreach:drip_misconfigured'); return out; }
@@ -754,35 +1007,54 @@ export async function runDrip(env: PagesEnv, opts: { dry?: boolean } = {}): Prom
   await db.prepare("UPDATE outreach SET status='queued', claimed_at=NULL WHERE status='claimed' AND claimed_at < datetime('now', ?)")
     .bind(`-${CLAIM_TTL_MIN} minutes`).run();
 
-  const dailyCap = parseInt(env.OUTREACH_DAILY_CAP ?? '', 10) || DEFAULT_DAILY_CAP;
+  const dailyCap = dailyCapOf(env);
   const sentToday = (await db.prepare(
     "SELECT count(*) AS n FROM outreach WHERE mode='real' AND status='sent' AND sent_at >= datetime('now','start of day')"
   ).first<{ n: number }>())?.n ?? 0;
-  let realBudget = Math.max(0, dailyCap - sentToday);
+  const realBudget = Math.max(0, dailyCap - sentToday);
+  out.cap = dailyCap;
+  out.sentToday = sentToday;
+
+  // Never CLAIM more than we can send: clamp the claim to the remaining daily budget. Claiming
+  // past it used to spin the drip into a silent no-op write loop — re-claiming and re-queueing
+  // the same rows ~40 D1 row-writes/minute, sending nothing, for as long as the cap was spent.
+  const claimN = allowReal(env) ? Math.min(CLAIM_LIMIT, realBudget) : CLAIM_LIMIT;
+  if (claimN <= 0) {
+    console.warn('outreach:drip_cap_exhausted', { cap: dailyCap, sent_today: sentToday });
+    return out;
+  }
 
   // claim via the subquery form (bare UPDATE…LIMIT isn't guaranteed in D1's SQLite build).
-  // NB: attempts is NOT incremented here — only on a real transient failure (below). A
-  // cap-deferral or reaper re-queue must not consume the retry budget.
+  // NB: attempts is NOT incremented here — only on a genuine transient failure (below). A
+  // deferral or reaper re-queue must not consume the retry budget.
   const claimed = (await db.prepare(
     `UPDATE outreach SET status='claimed', claimed_at=datetime('now')
      WHERE rowid IN (SELECT rowid FROM outreach WHERE status='queued'
                      AND (send_after IS NULL OR send_after <= datetime('now'))
                      ORDER BY send_after, created_at LIMIT ?)
      RETURNING id, email, mode, track_name, track_region, locale, job_id, override_to, unsub_token, attempts`
-  ).bind(CLAIM_LIMIT).all<OutreachRow>()).results;
+  ).bind(claimN).all<OutreachRow>()).results;
   out.claimed = claimed.length;
+  if (!claimed.length) return out;
+
+  // ONE bulk suppression check for the whole tick (was a query per row — 100 at CLAIM_LIMIT=100).
+  const suppressedSet = await suppressedEmails(db, [...new Set(claimed.map((r) => r.email))]);
+
+  // Partition: rows that never reach Resend get their write queued here; the rest are sent.
+  const pre: Stmt[] = [];
+  const sendable: Array<{ id: number; attempts: number; opts: SendOpts }> = [];
 
   for (const row of claimed) {
-    if (await isSuppressed(env, row.email)) {
-      await db.prepare("UPDATE outreach SET status='suppressed' WHERE id=?").bind(row.id).run();
+    if (suppressedSet.has(row.email)) {
+      pre.push(db.prepare("UPDATE outreach SET status='suppressed' WHERE id=?").bind(row.id));
       out.suppressed++;
       continue;
     }
     // Defense-in-depth: a real row must never send from a non-prod worker (belt to the
     // enqueue gate + the separate prod/preview D1s). Requeue without sending.
     if (row.mode === 'real' && !allowReal(env)) {
-      await db.prepare("UPDATE outreach SET status='queued', claimed_at=NULL WHERE id=?").bind(row.id).run();
-      out.requeued++;
+      pre.push(requeue(row.id, 'deferred: real row on a non-prod worker'));
+      out.deferred++;
       continue;
     }
     // dry_run rows always log; opts.dry additionally logs test (override) rows. A real row
@@ -790,14 +1062,8 @@ export async function runDrip(env: PagesEnv, opts: { dry?: boolean } = {}): Prom
     const isDry = row.mode === 'dry_run' || (opts.dry && row.mode !== 'real');
     if (isDry) {
       console.log('outreach:drip_dryrun', { to: row.email, mode: row.mode, locale: row.locale });
-      await db.prepare("UPDATE outreach SET status='sent_dryrun', sent_at=datetime('now'), last_error=NULL WHERE id=?").bind(row.id).run();
+      pre.push(db.prepare("UPDATE outreach SET status='sent_dryrun', sent_at=datetime('now'), last_error=NULL WHERE id=?").bind(row.id));
       out.dryrun++;
-      continue;
-    }
-    if (row.mode === 'real' && realBudget <= 0) {
-      // daily cap exhausted: requeue WITHOUT consuming an attempt.
-      await db.prepare("UPDATE outreach SET status='queued', claimed_at=NULL WHERE id=?").bind(row.id).run();
-      out.requeued++;
       continue;
     }
 
@@ -809,22 +1075,82 @@ export async function runDrip(env: PagesEnv, opts: { dry?: boolean } = {}): Prom
       ? `${env.MARKETING_BASE}/api/outreach/u?token=${encodeURIComponent(row.unsub_token)}`
       : undefined;
     const subjectPrefix = isOverride ? `[TEST→${row.email}] ` : undefined;
-
-    const res = await sendPreInvite(env, {
-      to: row.email, trackName: row.track_name, locale: row.locale,
-      deliverTo, subjectPrefix, unsubUrl, idempotencyKey: `${row.job_id ?? 'nojob'}:${row.email}`,
+    sendable.push({
+      id: row.id,
+      attempts: row.attempts,
+      // Per-row Idempotency-Key, stable across every retry of this enqueue. Carried so the
+      // single-send paths inside the batch flow (the 1-row shortcut and the 400/422 fallback)
+      // keep provider-side dedupe — without it a re-claim after a crash re-mails the operator.
+      opts: {
+        to: row.email, trackName: row.track_name, locale: row.locale, deliverTo, subjectPrefix, unsubUrl,
+        idempotencyKey: `${row.job_id ?? 'nojob'}:${row.email}`,
+      },
     });
-    if (res.ok) {
-      await db.prepare("UPDATE outreach SET status='sent', sent_at=datetime('now'), last_error=NULL WHERE id=?").bind(row.id).run();
-      if (row.mode === 'real') realBudget--;
-      out.sent++;
-    } else if (res.transient && row.attempts < MAX_ATTEMPTS) {
-      // consume ONE retry attempt here (the only place attempts rises).
-      await db.prepare("UPDATE outreach SET status='queued', claimed_at=NULL, attempts=attempts+1, last_error=? WHERE id=?").bind(res.error ?? 'transient', row.id).run();
-      out.requeued++;
-    } else {
-      await db.prepare("UPDATE outreach SET status='failed_permanent', last_error=? WHERE id=?").bind(res.error ?? 'failed', row.id).run();
-      out.failed++;
+  }
+  if (pre.length) await db.batch(pre);
+
+  // Chunk over id-sorted rows: SQLite's RETURNING order is not specified, and a reproducible
+  // chunk membership is what gives the batch Idempotency-Key a chance to match on a retry.
+  sendable.sort((a, b) => a.id - b.id);
+
+  // Send in chunks of BATCH_CHUNK (one HTTP request each) and write that chunk's outcome to D1
+  // immediately after its response — keeping the window in which an accepted send is not yet
+  // recorded as short as possible.
+  for (let i = 0; i < sendable.length; i += BATCH_CHUNK) {
+    const chunk = sendable.slice(i, i + BATCH_CHUNK);
+    const results = await sendPreInviteBatch(env, chunk.map((c) => ({ id: c.id, opts: c.opts })));
+
+    const writes: Stmt[] = [];
+    const acceptedEmails: string[] = [];
+    let backoffSec: number | undefined;
+    for (let k = 0; k < chunk.length; k++) {
+      const { id, attempts } = chunk[k];
+      const res: SendResult = results[k] ?? { ok: false, error: 'no batch result for row', fail: 'defer' };
+      if (res.ok) {
+        writes.push(db.prepare("UPDATE outreach SET status='sent', sent_at=datetime('now'), last_error=NULL WHERE id=?").bind(id));
+        acceptedEmails.push(chunk[k].opts.to);
+        out.sent++;
+      } else if (res.fail === 'permanent') {
+        writes.push(db.prepare("UPDATE outreach SET status='failed_permanent', last_error=? WHERE id=?").bind(res.error ?? 'failed', id));
+        out.failed++;
+      } else if (res.fail === 'attempt') {
+        // consume ONE retry attempt here (the only place attempts rises).
+        if (attempts < MAX_ATTEMPTS) {
+          writes.push(db.prepare("UPDATE outreach SET status='queued', claimed_at=NULL, attempts=attempts+1, last_error=? WHERE id=?").bind(res.error ?? 'transient', id));
+          out.requeued++;
+        } else {
+          writes.push(db.prepare("UPDATE outreach SET status='failed_permanent', last_error=? WHERE id=?").bind(res.error ?? 'failed', id));
+          out.failed++;
+        }
+      } else {
+        writes.push(requeue(id, res.error ?? 'deferred', res.retryAfterSec));
+        if (res.retryAfterSec) backoffSec = Math.max(backoffSec ?? 0, res.retryAfterSec);
+        out.deferred++;
+      }
+    }
+    // db.batch is atomic: if it throws, NONE of the rows are recorded while the mail is already
+    // accepted by Resend. Log exactly which addresses were accepted so the send is recoverable
+    // from the log rather than lost, then rethrow (the rows stay `claimed` for the reaper).
+    try {
+      await db.batch(writes);
+    } catch (err) {
+      console.error('outreach:drip_write_failed_after_send', {
+        err: String(err), accepted: acceptedEmails, chunk_ids: chunk.map((c) => c.id),
+      });
+      throw err;
+    }
+
+    // Rate-limited or account-blocked: stop the tick instead of hammering Resend with the
+    // remaining chunks. Requeue the untouched remainder so nothing sits `claimed` for the
+    // reaper's 10 minutes.
+    if (backoffSec) {
+      const rest = sendable.slice(i + BATCH_CHUNK);
+      if (rest.length) {
+        await db.batch(rest.map((r) => requeue(r.id, 'deferred: tick backed off', backoffSec)));
+        out.deferred += rest.length;
+      }
+      console.warn('outreach:drip_backoff', { retry_after_sec: backoffSec, deferred: out.deferred });
+      break;
     }
   }
   return out;

@@ -694,6 +694,18 @@ export default {
   // On prod this drains `real` sends under the warm-up budget; on preview it drains
   // test rows (override → your inbox, dry_run → log). Real mode is gated at enqueue.
   async scheduled(_event: unknown, env: Env, ctx: { waitUntil(p: Promise<unknown>): void }): Promise<void> {
-    ctx.waitUntil(runDrip(env, { dry: false }));
+    // Log every tick's DripResult. The counters were previously discarded, so a stalled drip
+    // (cap spent, rate-limited, misconfigured) produced ZERO signal — a 24-minute outage was
+    // found by a human eyeballing the CRM, and diagnosing it needed hand-run D1 queries.
+    ctx.waitUntil((async () => {
+      try {
+        console.log('outreach:drip', await runDrip(env, { dry: false }));
+      } catch (err) {
+        // Log, then RE-THROW. Swallowing it here would hide the failure from Cloudflare's cron
+        // error metrics — the one signal that fires without anyone running `wrangler tail`.
+        console.error('outreach:drip_threw', { err: String(err) });
+        throw err;
+      }
+    })());
   },
 };
