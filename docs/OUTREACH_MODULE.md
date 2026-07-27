@@ -193,6 +193,56 @@ pure-logs (no D1 write); `override` should save, or you aren't really testing th
 **Still open (your call):** the sending-env decision above; the drip interval + warm-up
 curve numbers; and the country source (`tracks.region` vs a dedicated locality column).
 
+### Drip throughput, the daily cap, and failure handling
+
+Three *independent* limiters shape the send rate; conflating them is what caused the
+2026-07-26 stall.
+
+| Limiter | Where | Bounds |
+|---|---|---|
+| `OUTREACH_DAILY_CAP` | `wrangler.jsonc` `vars` (prod) | the **day's** real-send total — a runaway backstop, **not** the throughput knob |
+| `CLAIM_LIMIT` = 100 | `outreach.ts` | the **burst**: rows claimed per tick = one `POST /emails/batch` per minute |
+| per-row `send_after` | stamped at enqueue from the CRM's `start_delay_min`/`interval_min` | the **pacing** of a given job |
+
+**The cap clamps the CLAIM, not the send.** `claimN = min(CLAIM_LIMIT, cap − sentToday)`;
+at zero the tick logs `outreach:drip_cap_exhausted` and returns. Deferring *after* claiming
+(the old shape) meant a spent budget re-claimed and re-queued the same rows every 60s —
+~40 D1 row-writes/minute, zero sends, zero log output. Cap `0` is honoured as a deliberate
+**hard stop**; the old `parseInt(…) || DEFAULT` silently turned an operator's "0" into 200.
+
+**The cap is a ceiling, not the pacer.** With it set far above normal volume, the only
+thing standing between a large batch and a reputation spike is `CLAIM_LIMIT` (100/min) and
+the `interval_min` you choose when enqueuing. **Set `interval_min` on any job you would not
+want delivered at 100/minute** — the cap will not save you.
+
+**Failure classification decides whether a row survives.** A row that reaches
+`failed_permanent` is unrecoverable: the partial unique index `(email) WHERE mode='real'`
+plus `ON CONFLICT … DO NOTHING` makes every later batch report it `already`, forever, while
+the CRM has already stamped the track `contacted`. So the default is **defer**, not failure:
+
+- `defer` — requeue, **no** attempt consumed, `send_after` pushed out by the backoff
+  (`max(send_after, now+backoff)`, so a deliberately-paced row is never pulled *earlier*).
+  Covers 429, 5xx, **and 401/403/404** — a revoked key or paused account is an operator
+  fault, and previously burned every claimed row on its first attempt.
+- `attempt` — requeue, consumes one of `MAX_ATTEMPTS`. Only a single-send network throw,
+  where delivery is genuinely unknown; safe to retry because of the per-row Idempotency-Key.
+- `permanent` — 400/422 only, and a rejected *batch* is retried as singles first so one bad
+  address cannot take 99 good rows with it.
+
+**Batch send.** Up to 100 messages per `POST /emails/batch` (Resend's maximum); `data[i]`
+is index-aligned with the payload, and an index with no `id` is deferred, never marked sent.
+The batch `Idempotency-Key` is a hash of the chunk's sorted row ids — it dedupes a retry
+whose chunk has the *same* membership (the crash-after-accept case), and does not cover a
+retry whose membership shifted. D1 writes for a chunk go out in one atomic `db.batch`
+immediately after its response; if that write throws, the accepted addresses are logged
+(`outreach:drip_write_failed_after_send`) so the send is recoverable rather than lost.
+
+**Staging asymmetry.** Wrangler `vars` are **non-inheritable**, so the `preview` env does not
+see `OUTREACH_DAILY_CAP` — but it also does not see `OUTREACH_ALLOW_REAL`, so `allowReal` is
+false, the claim is never clamped, and the cap path is simply **not exercisable on staging**.
+Staging does exercise the batch send, the failure classification, and the drip log line
+(via `override` mode). `observability` *is* inheritable, so both workers persist logs.
+
 ## Routes, schema, config
 
 **Routes** (in [worker/index.ts](../worker/index.ts) → [worker/_lib/outreach.ts](../worker/_lib/outreach.ts)):
@@ -215,6 +265,8 @@ curve numbers; and the country source (`tracks.region` vs a dedicated locality c
 | `RESEND_API_KEY` | *(secret)* reused — the pre-invite sends over the same Resend account |
 | `RESEND_WEBHOOK_SECRET` | *(secret)* `whsec_…` for `/api/outreach/webhook`. Set on the sending env (prod). Create the webhook in the Resend dashboard → `https://www.dirtbikex.com/api/outreach/webhook`, subscribe to `email.bounced` + `email.complained`, copy the signing secret → `wrangler secret put RESEND_WEBHOOK_SECRET`. Absent → webhook 503s. |
 | `JOIN_FROM_EMAIL` / `JOIN_REPLY_TO` / `JOIN_ORG_ADDRESS` | reused — sender identity, mailto-unsubscribe target, CAN-SPAM footer |
+| `OUTREACH_ALLOW_REAL` | `"1"` on prod only — gates `mode='real'` at enqueue *and* in the drip. Absent on `preview`, which is what makes staging structurally unable to send real cold mail |
+| `OUTREACH_DAILY_CAP` | plain **var**, not a secret — keep it in `wrangler.jsonc` (a value edited in the Cloudflare dashboard is clobbered by the next `wrangler deploy`). Unset → `DEFAULT_DAILY_CAP` = 200. `"0"` = hard stop. See § "Drip throughput" — this is a backstop, not the pacer |
 
 ## Operator setup
 
@@ -256,6 +308,16 @@ worker for **this** env — verify the env's secret and deploy both match.
   or Resend rejected. Worker logs `outreach:resend_non_2xx` / `outreach:resend_threw`.
 - **Email renders English on a non-English locale** — expected: `LOCALES` has no block
   for that locale yet (English fallback). Add the block in `outreach.ts` + redeploy.
+- **The drip silently stops sending** (backlog sits, nothing arrives, no error anywhere) —
+  this is the 2026-07-26 failure. Read the per-tick `outreach:drip` line in the Cloudflare
+  **Workers → Logs** tab (persisted by `observability` in `wrangler.jsonc`; before that it
+  existed only for someone running `wrangler tail`). `cap`/`sentToday` in that line say
+  whether the budget is spent — `outreach:drip_cap_exhausted` is the explicit warning.
+  `outreach:drip_backoff` means Resend rate-limited or the account is blocked. A tick that
+  logs nothing at all did not run: check the Cron trigger and the `scheduled` handler, which
+  re-throws so failures reach Cloudflare's cron error metrics. The **`Outreach pipeline
+  stalled`** alert ([DASHBOARDS_MODULE](../../../guides/DASHBOARDS_MODULE.md) § 4) is the
+  intended pager for this and is **still not created** — the stall was found by eye.
 
 ## Manual verification
 
