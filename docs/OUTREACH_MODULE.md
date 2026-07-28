@@ -61,6 +61,27 @@ a wrong name is worse than none). **Copy is a placeholder** (`TODO(copy)` in
 blocks to a D1/KV store the worker reads at send time (the CRM's Template tab already
 wants a preview endpoint; that endpoint + a store would land together).
 
+### Email layout: a 600px wrapper div, no tables, AA-legible fine print
+The email stays plain-text-styled HTML (no tables, images, tracking pixels, `<style>`
+blocks, media queries or web fonts — see the pitch rationale above), so line length is
+constrained by a single `max-width:600px;margin:0 auto` **div** rather than the usual
+table scaffold. Without it Gmail on a wide window measured **~185 characters per line**
+against a 45–75 optimum; that was the dominant layout defect, not the copy.
+
+Fine print is `13px/#767676`, not `12px/#888`. `#888` on white is **3.54:1** — below
+WCAG AA (4.5:1) — on the one line that carries the Privacy and Unsubscribe links, i.e.
+the legally load-bearing line. `#767676` is 4.54:1. Both footer anchors carry an
+explicit inline colour: an anchor with no inline colour inherits the client's default
+link blue, which made Unsubscribe and Privacy render differently in the same sentence.
+
+**Note the preview endpoint does not show any of this.** `/api/outreach/preview` returns
+`renderPreInvite` — the **body only**. The wrapper, socials line and CAN-SPAM footer are
+added later in `buildPreInviteMessage`, which is private. To see the real mail, drive
+`handleOutreachTest` with a stubbed `fetch` and read the captured Resend payload.
+
+**NOT done:** the intro is still one long paragraph. Splitting it at the sentence
+boundary before the iOS mention needs the operator to review all 21 locale splits first.
+
 ### The route must be registered in `run_worker_first`
 The worker shares its origin with Cloudflare Static Assets, so a path **not** listed
 in `wrangler.jsonc` `run_worker_first` is handled by the assets layer first — and a

@@ -483,18 +483,20 @@ function buildPreInviteMessage(env: PagesEnv, from: string, o: SendOpts): Resend
   // in a test email can't suppress a real operator.
   const unsubMailto = replyTo ? `mailto:${replyTo}?subject=unsubscribe` : '';
   const unsubLink = o.unsubUrl
-    ? `<a href="${escapeHtml(o.unsubUrl)}">Unsubscribe</a> and we won't contact you again.`
-    : (replyTo ? `<a href="mailto:${escapeHtml(replyTo)}?subject=unsubscribe">Unsubscribe</a> and we won't contact you again.` : '');
+    ? `<a href="${escapeHtml(o.unsubUrl)}" style="color:#767676;text-decoration:underline;">Unsubscribe</a>`
+    : (replyTo ? `<a href="mailto:${escapeHtml(replyTo)}?subject=unsubscribe" style="color:#767676;text-decoration:underline;">Unsubscribe</a>` : '');
   // Socials were 12px grey inside the legal fine print — effectively invisible. They now get
   // their own line above the rule, at body size and in link blue, with a lead-in that gives a
   // reason to tap. Kept to text + one arrow: emoji and shout-caps in a footer read as spam.
   const socialHtml = SOCIALS.map(([n, u]) => `<a href="${u}" style="color:#0a58ca;font-weight:600;text-decoration:none;">${n}</a>`).join(' &nbsp;&middot;&nbsp; ');
   const footerHtml = `<p style="font-size:15px;line-height:1.5;margin:22px 0 0;">See riders and tracks already on it &rarr; ${socialHtml}</p>
 <hr style="border:none;border-top:1px solid #ddd;margin:16px 0 12px;">
-<p style="font-size:12px;color:#888;line-height:1.5;">Advertisement. Your track is publicly listed, so you got this once.${address ? `<br>DirtBikeX &middot; ${escapeHtml(address)}` : ''}<br><a href="${SITE_URL}/privacy" style="color:#888;text-decoration:underline;">Privacy</a> &middot; ${unsubLink}</p>`;
+<p style="font-size:13px;color:#767676;line-height:1.5;">Advertisement. Your track is publicly listed, so you got this once.${address ? `<br>DirtBikeX &middot; ${escapeHtml(address)}` : ''}<br><a href="${SITE_URL}/privacy" style="color:#767676;text-decoration:underline;">Privacy</a> &middot; ${unsubLink}</p>`;
   const html = `<!DOCTYPE html><html><body style="font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.55;color:#222;margin:0;padding:24px;">
+<div style="max-width:600px;margin:0 auto;">
 ${bodyHtml}
 ${footerHtml}
+</div>
 </body></html>`;
   const unsubText = o.unsubUrl ? `\nUnsubscribe: ${o.unsubUrl}` : (replyTo ? `\nNot interested? Reply "unsubscribe" and we won't contact you again.` : '');
   const socialText = SOCIALS.map(([n, u]) => `${n}: ${u}`).join('\n');
