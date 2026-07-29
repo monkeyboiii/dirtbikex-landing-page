@@ -48,6 +48,21 @@ Instead the worker owns it and the CRM **proxies** `POST /api/outreach/test`.
 **NOT done:** no SMTP/mailer in the CRM, no second sending domain. **Invalidates if:**
 the CRM ever needs to send without a worker round-trip (it does not).
 
+### Copy is conversion-framed: owner outcomes + a quiet 4-step timeline (EN first)
+2026-07-29 rewrite (operator-decided): the value block sells **operator outcomes**
+(riders' map, direct reach with "no algorithm deciding who sees it", event RSVPs) —
+every claim maps to a shipped feature; and each block may carry `steps`, a *typographic*
+4-step timeline (● you got this note ← you are here / ○ reply / ○ invite / ○ install)
+that shows the whole path costs one reply and one install. Deliberately NOT a graphic
+progress bar — the cold email's plain-text look is load-bearing (see the 600px-wrapper
+decision); the graphic bar lives in the warm steward invite email (JOIN_MODULE).
+`steps` is optional per Block: **EN-only until the operator reviews a live test-send**,
+then the locale pass fills the other 20 (a non-EN send meanwhile stacks old local copy
+above the new EN block). The DM variant compresses the same clarity to its medium:
+profile-one-tap-away replaces links ("our profile here has a 30-second look"), one link
+total, and the next step is channel-consistent ("I'll send your personal invite right
+here" — a DM funnel delivers the `/s/i` link by DM, not email).
+
 ### Template is worker-hardcoded, bilingual, track-name only
 `renderPreInvite(trackName, locale)` fills `{track}` into a hardcoded `Block`
 (`subject/lead/body/cta`). A non-English locale stacks the **local block above the

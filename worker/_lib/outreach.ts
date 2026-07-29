@@ -24,7 +24,12 @@ function escapeHtml(s: string): string {
 // send stacks the local block ABOVE the English one in a single email (send-once
 // forbids two emails to one address). The English copy is finalized; per-language
 // translations go in LOCALES below (same fields), then redeploy.
-interface Block { subject: string; lead: string; intro: string; value: string; cta: string; look: string }
+interface Block {
+  subject: string; lead: string; intro: string; value: string; cta: string; look: string;
+  /** Quiet 4-step timeline (step 1 = this email, arrow "you are here"). EN-only until the
+   *  locale pass — absent means the block renders without it. */
+  steps?: { title: string; got: string; reply: string; invite: string; install: string; here: string };
+}
 
 // Sign-off + social footer are constant across languages (a name/brand/handle isn't
 // translated). SOCIALS mirrors the site's src/config.ts (duplicated because this Pages
@@ -44,10 +49,19 @@ const EN: Block = {
     + "specifically for dirt-bike and motocross people. It's available on iOS and desktop now — not another "
     + "feed to manage, but a focused, forum-based place with no noise, where everyone there is there to ride.",
   value:
-    "I'd like to give {track} a free profile in it: somewhere riders find you, follow you, and get your updates. "
-    + "It won't replace how you already reach people — it just puts you in front of the ones who care most.",
+    "I'd like to set {track} up with a free page: you're on the riders' map, locals follow you, and when you "
+    + "post a session or a race it reaches them directly — no algorithm deciding who sees it. Traveling riders "
+    + "find you by distance; your events take RSVPs, so you know who's coming.",
   cta: "I'll take care of the setup. If you're curious, just reply — I'll send you a personal invite to grab the app.",
   look: "Here's a 30-second look:",
+  steps: {
+    title: "Getting {track} on DirtBikeX — four small steps:",
+    got: "You got this note",
+    reply: "You reply",
+    invite: "I send your personal invite",
+    install: "You install the app — your page is live",
+    here: "you are here",
+  },
 };
 
 // Local-language blocks. A non-English send stacks the local block above the English one.
@@ -260,18 +274,35 @@ function linkIntroText(intro: string): string {
   return intro.replace(BRAND, SITE_LABEL);
 }
 
+function stepsHtml(s: NonNullable<Block['steps']>, t: string): string {
+  const off = (label: string) =>
+    `<tr><td style="padding:1px 8px 1px 0;color:#999;">&#9675;</td><td style="color:#555;">${escapeHtml(label)}</td><td></td></tr>`;
+  return `<p style="margin:18px 0 4px;">${fill(escapeHtml(s.title), t)}</p>
+<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 6px;font-size:14px;line-height:1.6;">
+<tr><td style="padding:1px 8px 1px 0;">&#9679;</td><td>${escapeHtml(s.got)}</td><td style="padding-left:10px;color:#ed6b00;white-space:nowrap;">&#8592; ${escapeHtml(s.here)}</td></tr>
+${off(s.reply)}
+${off(s.invite)}
+${off(s.install)}
+</table>`;
+}
+
+function stepsText(s: NonNullable<Block['steps']>, track: string): string {
+  return `${fill(s.title, track)}\n  ● ${s.got}   <- ${s.here}\n  ○ ${s.reply}\n  ○ ${s.invite}\n  ○ ${s.install}`;
+}
+
 function blockHtml(b: Block, track: string, locale: string): string {
   const t = escapeHtml(track);
   return `<p>${fill(escapeHtml(b.lead), t)}</p>
 <p>${fill(linkIntroHtml(escapeHtml(b.intro), locale), t)}</p>
 <p>${fill(escapeHtml(b.value), t)}</p>
-<p>${escapeHtml(b.look)} <a href="${REEL_URL}" dir="ltr" style="${LINK_STYLE}">instagram.com/reel/DbP-9nTot-v</a></p>
+${b.steps ? stepsHtml(b.steps, t) : ''}<p>${escapeHtml(b.look)} <a href="${REEL_URL}" dir="ltr" style="${LINK_STYLE}">instagram.com/reel/DbP-9nTot-v</a></p>
 <p>${fill(escapeHtml(b.cta), t)}</p>
 <p>${escapeHtml(SIGNATURE)}</p>`;
 }
 
 function blockText(b: Block, track: string): string {
-  return `${fill(b.lead, track)}\n\n${fill(linkIntroText(b.intro), track)}\n\n${fill(b.value, track)}\n\n${b.look} ${REEL_URL}\n\n${fill(b.cta, track)}\n\n${SIGNATURE}`;
+  const steps = b.steps ? `${stepsText(b.steps, track)}\n\n` : '';
+  return `${fill(b.lead, track)}\n\n${fill(linkIntroText(b.intro), track)}\n\n${fill(b.value, track)}\n\n${steps}${b.look} ${REEL_URL}\n\n${fill(b.cta, track)}\n\n${SIGNATURE}`;
 }
 
 const RTL_LOCALES = new Set(['ar', 'fa_IR']);
@@ -295,10 +326,14 @@ export function renderPreInvite(trackName: string, locale: string): { subject: s
 // fills in; the operator copies each message between the ——— dividers as its own DM.
 interface DmBlock { messages: string[] }
 
+// DM copy leans on the medium: the sender profile (grid + reel) is one tap away, so
+// msg 1 points there instead of describing the app; one link total, in msg 2 (links
+// from unknown senders read as spam and get suppressed); the next step is channel-
+// consistent — a DM funnel's invite arrives right here, not by email.
 const EN_DM: DmBlock = {
   messages: [
-    "Hi {track} team 👋 I'm Rubio — a rider who builds software. I'm making DirtBikeX, a community just for dirt-bike & motocross people (iOS + desktop).",
-    "Would love to give {track} a free profile — riders find you, follow your updates, no cost and I set it up. Take a look: {landing}",
+    "Hi {track} team 👋 I'm Rubio — a rider who builds software for a living. I made DirtBikeX: an app just for dirt-bike & motocross people. Our profile here has a 30-second look.",
+    "I'd like to give {track} a free page — you're on the riders' map, locals follow you, your events take RSVPs. I do the setup; if you're in, I'll send your personal invite right here. More at {landing}",
   ],
 };
 

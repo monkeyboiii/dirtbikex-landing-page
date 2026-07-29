@@ -76,11 +76,12 @@ logs `join:no_ratelimit_kv` and proceeds — a missing-binding config gap should
 block opt-ins. Missing `SUBSCRIBERS_DB`, by contrast, returns 503 (can't function).
 **Invalidates if:** abuse forces a hard dependency on the limiter.
 
-### Preview shares the prod D1
-Only one database exists (`dbx-subscribers`), so both the prod and `preview` envs
-bind `SUBSCRIBERS_DB` to it — preview test sign-ups land in the prod table. **NOT
-done:** no `dbx-subscribers-preview` created. **Invalidates if:** preview noise
-pollutes the real list — then create the preview DB and swap only the preview id.
+### Preview binds its own D1 (historical: it briefly shared prod's)
+The envs bind **different** `database_id`s in `wrangler.jsonc` (prod `f906ae03…`,
+preview `32fe8ba2…`) — the separate preview DB was created with the outreach batch
+pipeline so staging test rows (override/dry-run drip, test sign-ups) can never touch
+the real subscriber/outreach ledgers. Migrations must therefore be applied **per env**
+(each migration file's header says so). The original single-DB setup is gone.
 
 ### Special invites: codes in D1, blank cards in R2, invite minted per redemption
 Outreach sends a single-use `…/join?c=<code>` link. The code maps (via `invite_kinds`)
@@ -125,19 +126,24 @@ other kind keeps the generic template byte-for-byte. Rationale: a steward invite
 the operator's own **reply to a cold email/DM** (OUTREACH_MODULE funnel), not a site
 sign-up — so the generic footer's "you requested an invite at our sign-up" was simply
 false for them, and the generic body never said what the recipient must actually do.
-The steward variant: names the group and what stewards get; shows a 3-of-4 step meter
-(reached out ✓ / said yes ✓ / this email ✓ / install the app — the one step left);
-states that on iPhone the button opens the App Store and on desktop the browser forum
-(mirroring `/s/i/:key`'s real device split); says **sign up with this email address** —
-load-bearing, because the invite is email-locked (above) and the claim-hint auto-claim
-cross-checks `redeemed_email`; reframes the attached QR card as the *computer-reader's*
-path (you can't scan the email you're reading on your phone); and swaps the footer
-reason line for an accurate one. Layout follows the outreach email's conventions
-(600px wrapper, 13px/#767676 AA fine print). **NOT done:** localization — the body is
-EN-only (as the generic always was) while the card attachment is already locale-matched;
-add a LOCALES map like `outreach.ts` when non-English stewards start converting.
-**Verified by:** rendering all kinds through the real `sendInviteEmail` with a stubbed
-fetch and asserting the non-steward kinds byte-identical to the pre-change baseline.
+The steward variant (conversion pass 2026-07-29 — progress visual + role clarity per
+operator direction): a filled **75% progress bar** + "3 of 4 — one step left" above the
+step table (reached out ✓ / said yes ✓ / this email ✓ / → install the app); a sharpened
+role line; the **track name read from the invite code row** (`invite_codes.track_name`,
+stamped by the CRM at mint since migration 0004 — the claim's `RETURNING` now selects
+it; NULL → "your track"); one **App Store listing screenshot**
+(`public/email/app-store.jpg`, 560×1154 derivative of `misc/app-store-listing-src.jpg`,
+rendered 260px wide via `${base}/email/…` so each env serves its own copy); a "**what
+happens when you open the app**" paragraph that previews the claim banner (sign up with
+THIS email → app recognizes {track} → one-tap claim + badge) — load-bearing, because the
+invite is email-locked (above) and the claim-hint auto-claim cross-checks
+`redeemed_email`; the QR card reframed as the *computer-reader's* path; and a truthful
+footer reason line. Layout follows the outreach email's conventions (600px wrapper,
+13px/#767676 AA fine print). **NOT done:** localization — the body is EN-only (as the
+generic always was) while the card attachment is already locale-matched; add a LOCALES
+map like `outreach.ts` when non-English stewards start converting. **Verified by:**
+rendering all kinds through the real `sendInviteEmail` with a stubbed fetch and
+asserting the non-steward kinds byte-identical to the deployed baseline.
 
 ### Invite cards: blank templates in R2, QR painted in at send time
 The emailed card is a pre-rendered PNG of the iOS `InviteShareCard`, one per
