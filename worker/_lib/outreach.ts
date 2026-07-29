@@ -46,7 +46,7 @@ const EN: Block = {
   value:
     "I'd like to give {track} a free profile in it: somewhere riders find you, follow you, and get your updates. "
     + "It won't replace how you already reach people — it just puts you in front of the ones who care most.",
-  cta: "I'll take care of the setup for you. If you're curious, just reply.",
+  cta: "I'll take care of the setup. If you're curious, just reply — I'll send you a personal invite to grab the app.",
   look: "Here's a 30-second look:",
 };
 
@@ -59,7 +59,7 @@ const LOCALES: Record<string, Block> = {
     lead: "{track} 团队，你们好：",
     intro: "我是 Rubio——一名平时靠写代码谋生的车手，正在打造 DirtBikeX：一个专为越野摩托和摩托越野人群而生的社区。现已支持 iOS 和桌面端——它不是又一个需要你打理的信息流，而是一个专注、以论坛为核心、没有噪音的地方，来这里的每个人都是为了骑行。",
     value: "我想在上面免费给 {track} 建一个主页：让车手找到你、关注你、收到你的更新。它不会取代你现有的触达方式——只是把你呈现在最在乎的人面前。",
-    cta: "设置的事我来帮你搞定。如果有兴趣，直接回复即可。",
+    cta: "设置的事我来帮你搞定。有兴趣的话，直接回复即可——我会发给你一个专属邀请，用来下载 App。",
     look: "花 30 秒看一下：",
   },
   ja: {
@@ -67,7 +67,7 @@ const LOCALES: Record<string, Block> = {
     lead: "{track} チームのみなさま、",
     intro: "はじめまして、Rubio と申します。普段はソフトウェアを書いて生計を立てているライダーで、DirtBikeX を作っています。ダートバイクとモトクロスに関わる人たちのためだけのコミュニティです。今は iOS とデスクトップで使えます。管理が増えるだけの新しいフィードではなく、ノイズのない、フォーラム中心の集中できる場所で、そこにいる誰もが走るために来ています。",
     value: "その中で {track} の無料プロフィールをご用意したいと思っています。ライダーがあなたを見つけ、フォローし、更新を受け取れる場所です。今の連絡手段を置き換えるものではなく、いちばん関心のある人たちの前にあなたを届けるだけです。",
-    cta: "セットアップはこちらで対応します。ご興味があれば、このまま返信してください。",
+    cta: "セットアップはこちらで対応します。ご興味があれば、このまま返信してください。アプリ用の専用招待をお送りします。",
     look: "30 秒の紹介はこちら：",
   },
   zh_TW: {
@@ -75,7 +75,7 @@ const LOCALES: Record<string, Block> = {
     lead: "{track} 團隊，您好：",
     intro: "我是 Rubio——一名平時靠寫程式維生的車手，正在打造 DirtBikeX：一個專為越野摩托與越野賽車愛好者而生的社群。現已支援 iOS 與桌面版——它不是又一個要你打理的動態牆，而是一個專注、以論壇為核心、沒有雜訊的地方，來這裡的每個人都是為了騎乘。",
     value: "我想在上面免費為 {track} 建立一個主頁：讓車手找到你、追蹤你、收到你的最新消息。它不會取代你現有的觸及方式——只是把你呈現在最在乎的人面前。",
-    cta: "設定的部分我來幫你處理。如果有興趣，直接回覆即可。",
+    cta: "設定的部分我來幫你處理。有興趣的話，直接回覆即可——我會寄給你一個專屬邀請，用來下載 App。",
     look: "花 30 秒看一下：",
   },
   ko: {
@@ -83,7 +83,7 @@ const LOCALES: Record<string, Block> = {
     lead: "{track} 팀 여러분, 안녕하세요.",
     intro: "저는 Rubio입니다. 소프트웨어를 만들며 먹고사는 라이더이고, DirtBikeX를 만들고 있어요. 더트바이크와 모토크로스에 관련된 사람들만을 위한 커뮤니티입니다. 지금은 iOS와 데스크톱에서 사용할 수 있어요. 또 하나 관리해야 할 피드가 아니라, 소음 없이 포럼 중심으로 집중된 공간이고, 여기 있는 모두가 오직 라이딩을 위해 모입니다.",
     value: "그 안에 {track}의 무료 프로필을 만들어 드리고 싶어요. 라이더들이 여러분을 찾고, 팔로우하고, 소식을 받아보는 공간입니다. 기존의 소통 방식을 대체하지 않아요. 그저 가장 관심 있는 사람들 앞에 여러분을 놓아줄 뿐입니다.",
-    cta: "설정은 제가 다 해드릴게요. 관심 있으시면 이 메일에 답장만 주세요.",
+    cta: "설정은 제가 다 해드릴게요. 관심 있으시면 이 메일에 답장만 주세요 — 앱 설치용 개인 초대장을 보내드릴게요.",
     look: "30초짜리 영상으로 보기:",
   },
   de: {
@@ -91,7 +91,7 @@ const LOCALES: Record<string, Block> = {
     lead: "Hallo Team von {track},",
     intro: "Ich bin Rubio – Fahrer und hauptberuflich Softwareentwickler – und ich baue DirtBikeX: eine Community speziell für Dirtbike- und Motocross-Leute. Ab sofort für iOS und Desktop verfügbar – kein weiterer Feed, den du pflegen musst, sondern ein fokussierter, forumbasierter Ort ohne Rauschen, an dem alle nur zum Fahren da sind.",
     value: "Ich würde {track} dort gern ein kostenloses Profil einrichten: ein Ort, an dem Fahrer dich finden, dir folgen und deine Updates bekommen. Es ersetzt nicht, wie du deine Leute schon erreichst – es bringt dich einfach vor die, denen es am meisten bedeutet.",
-    cta: "Um die Einrichtung kümmere ich mich. Bei Interesse antworte einfach auf diese Mail.",
+    cta: "Um die Einrichtung kümmere ich mich. Bei Interesse antworte einfach auf diese Mail – ich schicke dir eine persönliche Einladung für die App.",
     look: "Hier ein 30-Sekunden-Einblick:",
   },
   it: {
@@ -99,7 +99,7 @@ const LOCALES: Record<string, Block> = {
     lead: "Ciao team di {track},",
     intro: "Sono Rubio – rider e sviluppatore software di professione – e sto costruendo DirtBikeX: una community pensata solo per chi vive il mondo delle dirt bike e del motocross. Ora disponibile su iOS e desktop – non un altro feed da gestire, ma un posto concentrato, basato su forum e senza rumore, dove chi c'è è lì solo per andare in moto.",
     value: "Mi piacerebbe creare lì un profilo gratuito per {track}: un posto dove i rider ti trovano, ti seguono e ricevono i tuoi aggiornamenti. Non sostituisce come raggiungi già la gente – ti mette solo davanti a chi tiene di più.",
-    cta: "Alla configurazione ci penso io. Se ti va, rispondi pure a questa email.",
+    cta: "Alla configurazione ci penso io. Se ti va, rispondi pure a questa email: ti mando un invito personale per l'app.",
     look: "Ecco uno sguardo di 30 secondi:",
   },
   fr: {
@@ -107,7 +107,7 @@ const LOCALES: Record<string, Block> = {
     lead: "Bonjour l'équipe de {track},",
     intro: "Je suis Rubio – pilote et développeur de logiciels au quotidien – et je construis DirtBikeX : une communauté pensée uniquement pour les passionnés de dirt bike et de motocross. Disponible dès maintenant sur iOS et ordinateur – pas un énième fil à gérer, mais un endroit ciblé, basé sur un forum et sans bruit, où tout le monde est là pour rouler.",
     value: "J'aimerais y créer un profil gratuit pour {track} : un endroit où les pilotes te trouvent, te suivent et reçoivent tes actus. Ça ne remplace pas ta façon de toucher les gens – ça te met juste devant ceux que ça intéresse le plus.",
-    cta: "Je m'occupe de tout mettre en place. Si ça t'intéresse, réponds simplement à cet e-mail.",
+    cta: "Je m'occupe de tout mettre en place. Si ça t'intéresse, réponds simplement à cet e-mail — je t'enverrai une invitation personnelle pour l'appli.",
     look: "Un aperçu en 30 secondes :",
   },
   es: {
@@ -115,7 +115,7 @@ const LOCALES: Record<string, Block> = {
     lead: "Hola equipo de {track},",
     intro: "Soy Rubio, piloto y programador de profesión, y estoy creando DirtBikeX: una comunidad pensada solo para la gente del dirt bike y el motocross. Ya disponible en iOS y escritorio; no es otro feed más que gestionar, sino un lugar centrado, basado en foro y sin ruido, donde todos están para rodar.",
     value: "Me gustaría crear ahí un perfil gratis para {track}: un sitio donde los pilotos te encuentren, te sigan y reciban tus novedades. No reemplaza cómo ya llegas a la gente; solo te pone frente a quienes más les importa.",
-    cta: "De la configuración me encargo yo. Si te interesa, responde a este correo.",
+    cta: "De la configuración me encargo yo. Si te interesa, responde a este correo y te mando una invitación personal para la app.",
     look: "Aquí tienes un vistazo de 30 segundos:",
   },
   ar: {
@@ -123,7 +123,7 @@ const LOCALES: Record<string, Block> = {
     lead: "مرحبًا فريق {track}،",
     intro: "أنا Rubio، سائق أعمل في تطوير البرمجيات، وأبني DirtBikeX: مجتمع مخصّص لعشّاق الدراجات الترابية والموتوكروس. متاح الآن على iOS وسطح المكتب — ليس مجرد موجز آخر عليك إدارته، بل مكان مركّز قائم على المنتدى وبلا ضجيج، كل من فيه موجود ليقود فقط.",
     value: "أودّ أن أنشئ لـ {track} ملفًا مجانيًا هناك: مكان يجدك فيه السائقون ويتابعونك ويصلهم جديدك. لن يحلّ محلّ طريقتك الحالية في الوصول إلى الناس — إنما يضعك أمام الأكثر اهتمامًا فقط.",
-    cta: "سأتولّى الإعداد بنفسي. إن كنت مهتمًا، فقط ردّ على هذه الرسالة.",
+    cta: "سأتولّى الإعداد بنفسي. إن كنت مهتمًا، فقط ردّ على هذه الرسالة — وسأرسل لك دعوة شخصية لتحميل التطبيق.",
     look: "إليك لمحة في 30 ثانية:",
   },
   da: {
@@ -131,7 +131,7 @@ const LOCALES: Record<string, Block> = {
     lead: "Hej {track}-team,",
     intro: "Jeg er Rubio – kører og softwareudvikler til daglig – og jeg bygger DirtBikeX: et fællesskab lavet specifikt til dirtbike- og motocross-folk. Nu tilgængeligt på iOS og computer – ikke endnu et feed, du skal passe, men et fokuseret, forumbaseret sted uden støj, hvor alle er der for at køre.",
     value: "Jeg vil gerne oprette en gratis profil til {track} derinde: et sted, hvor kørere finder dig, følger dig og får dine opdateringer. Det erstatter ikke, hvordan du allerede når folk – det stiller dig bare foran dem, der er mest interesserede.",
-    cta: "Jeg klarer opsætningen for dig. Er du nysgerrig, så svar bare på denne mail.",
+    cta: "Jeg klarer opsætningen for dig. Er du nysgerrig, så svar bare på denne mail – så sender jeg dig en personlig invitation til appen.",
     look: "Her er et kig på 30 sekunder:",
   },
   el: {
@@ -139,7 +139,7 @@ const LOCALES: Record<string, Block> = {
     lead: "Γεια σας, ομάδα της {track},",
     intro: "Είμαι ο Rubio — αναβάτης και επαγγελματίας προγραμματιστής — και φτιάχνω το DirtBikeX: μια κοινότητα φτιαγμένη αποκλειστικά για τους ανθρώπους του dirt bike και του motocross. Διαθέσιμο τώρα σε iOS και υπολογιστή — όχι άλλο ένα feed για να διαχειρίζεσαι, αλλά ένας εστιασμένος χώρος βασισμένος σε φόρουμ, χωρίς θόρυβο, όπου όλοι είναι εκεί μόνο για να καβαλήσουν.",
     value: "Θα ήθελα να φτιάξω εκεί ένα δωρεάν προφίλ για την {track}: ένα μέρος όπου οι αναβάτες σε βρίσκουν, σε ακολουθούν και λαμβάνουν τα νέα σου. Δεν αντικαθιστά τον τρόπο που ήδη επικοινωνείς — απλώς σε βάζει μπροστά σε αυτούς που ενδιαφέρονται περισσότερο.",
-    cta: "Τη ρύθμιση την αναλαμβάνω εγώ. Αν σε ενδιαφέρει, απλώς απάντησε σε αυτό το email.",
+    cta: "Τη ρύθμιση την αναλαμβάνω εγώ. Αν σε ενδιαφέρει, απλώς απάντησε σε αυτό το email — θα σου στείλω μια προσωπική πρόσκληση για την εφαρμογή.",
     look: "Δείτε το σε 30 δευτερόλεπτα:",
   },
   sv: {
@@ -147,7 +147,7 @@ const LOCALES: Record<string, Block> = {
     lead: "Hej {track}-teamet,",
     intro: "Jag heter Rubio – förare och mjukvaruutvecklare till vardags – och jag bygger DirtBikeX: en gemenskap gjord specifikt för dirtbike- och motocrossfolk. Nu tillgänglig för iOS och dator – inte ännu ett flöde att sköta, utan en fokuserad, forumbaserad plats utan brus, där alla är där för att köra.",
     value: "Jag vill gärna skapa en gratis profil för {track} där: en plats där förare hittar dig, följer dig och får dina uppdateringar. Den ersätter inte hur du redan når folk – den ställer dig bara framför dem som bryr sig mest.",
-    cta: "Jag fixar uppsättningen åt dig. Är du nyfiken, svara bara på det här mejlet.",
+    cta: "Jag fixar uppsättningen åt dig. Är du nyfiken, svara bara på det här mejlet – så skickar jag en personlig inbjudan till appen.",
     look: "Här är en titt på 30 sekunder:",
   },
   th: {
@@ -155,7 +155,7 @@ const LOCALES: Record<string, Block> = {
     lead: "สวัสดีทีมงาน {track}",
     intro: "ผมชื่อ Rubio เป็นนักขี่ที่ทำงานเขียนซอฟต์แวร์เป็นอาชีพ และกำลังสร้าง DirtBikeX คอมมูนิตี้ที่ทำมาเพื่อคนสายเดิร์ทไบก์และโมโตครอสโดยเฉพาะ ตอนนี้ใช้ได้ทั้งบน iOS และเดสก์ท็อป ไม่ใช่ฟีดอีกอันที่คุณต้องคอยดูแล แต่เป็นพื้นที่ที่โฟกัส เน้นฟอรัม ไม่มีสิ่งรบกวน และทุกคนที่นี่มาเพื่อขี่จริง ๆ",
     value: "ผมอยากสร้างโปรไฟล์ฟรีให้ {track} ในนั้น เป็นที่ที่นักขี่จะเจอคุณ ติดตามคุณ และรับข่าวสารจากคุณ มันไม่ได้มาแทนช่องทางที่คุณใช้อยู่ แต่ช่วยพาคุณไปอยู่ตรงหน้าคนที่สนใจมากที่สุด",
-    cta: "เรื่องตั้งค่าผมจัดการให้เอง ถ้าสนใจ ตอบกลับอีเมลนี้ได้เลย",
+    cta: "เรื่องตั้งค่าผมจัดการให้เอง ถ้าสนใจ ตอบกลับอีเมลนี้ได้เลย แล้วผมจะส่งคำเชิญส่วนตัวสำหรับดาวน์โหลดแอปให้ครับ",
     look: "ดูคลิป 30 วินาทีได้ที่นี่:",
   },
   id: {
@@ -163,7 +163,7 @@ const LOCALES: Record<string, Block> = {
     lead: "Halo tim {track},",
     intro: "Saya Rubio — seorang rider yang sehari-hari menulis perangkat lunak — dan saya membangun DirtBikeX: komunitas yang dibuat khusus untuk orang-orang dirt bike dan motocross. Sekarang tersedia di iOS dan desktop — bukan satu feed lagi yang harus kamu urus, tapi tempat yang fokus, berbasis forum, tanpa gangguan, di mana semua yang ada di sana hadir untuk riding.",
     value: "Saya ingin membuatkan {track} profil gratis di sana: tempat para rider menemukanmu, mengikutimu, dan mendapatkan kabar terbarumu. Ini tidak menggantikan cara kamu menjangkau orang selama ini — hanya menempatkanmu di depan mereka yang paling peduli.",
-    cta: "Soal pengaturan biar saya yang urus. Kalau tertarik, cukup balas email ini.",
+    cta: "Soal pengaturan biar saya yang urus. Kalau tertarik, cukup balas email ini — nanti saya kirim undangan pribadi untuk aplikasinya.",
     look: "Ini cuplikan 30 detik:",
   },
   pt: {
@@ -171,7 +171,7 @@ const LOCALES: Record<string, Block> = {
     lead: "Olá, equipe da {track},",
     intro: "Sou o Rubio — piloto e desenvolvedor de software de profissão — e estou criando o DirtBikeX: uma comunidade feita só para a galera do dirt bike e do motocross. Já disponível para iOS e desktop — não é mais um feed para você gerenciar, mas um lugar focado, baseado em fórum e sem ruído, onde todo mundo está ali só para pilotar.",
     value: "Eu gostaria de criar um perfil gratuito para a {track} nela: um lugar onde os pilotos te encontram, te seguem e recebem suas novidades. Não substitui como você já alcança as pessoas — só coloca você na frente de quem mais se importa.",
-    cta: "Da configuração eu cuido. Se tiver interesse, é só responder a este e-mail.",
+    cta: "Da configuração eu cuido. Se tiver interesse, é só responder a este e-mail — eu te mando um convite pessoal para o app.",
     look: "Aqui vai um olhar de 30 segundos:",
   },
   fa_IR: {
@@ -179,7 +179,7 @@ const LOCALES: Record<string, Block> = {
     lead: "سلام تیم {track}،",
     intro: "من Rubio هستم؛ یک موتورسوار که کارش برنامه‌نویسی است و دارم DirtBikeX را می‌سازم: جامعه‌ای که مخصوص آدم‌های دنیای درت‌بایک و موتوکراس ساخته شده. حالا روی iOS و دسکتاپ در دسترس است — نه یک فید دیگر که باید مدیریتش کنی، بلکه جایی متمرکز و مبتنی بر انجمن و بدون شلوغی، که هر کسی آنجاست فقط برای رایدینگ آمده.",
     value: "دوست دارم آنجا برای {track} یک پروفایل رایگان بسازم: جایی که موتورسوارها پیدایت می‌کنند، دنبالت می‌کنند و به‌روزرسانی‌هایت را می‌گیرند. جای روش فعلی‌ات برای رسیدن به مردم را نمی‌گیرد — فقط تو را جلوی چشم کسانی می‌گذارد که بیشتر از همه برایشان مهم است.",
-    cta: "راه‌اندازی‌اش با من. اگر علاقه‌مندی، کافی است همین ایمیل را پاسخ بدهی.",
+    cta: "راه‌اندازی‌اش با من. اگر علاقه‌مندی، کافی است همین ایمیل را پاسخ بدهی — یک دعوت‌نامهٔ شخصی برای اپ برایت می‌فرستم.",
     look: "یک نگاه ۳۰ ثانیه‌ای:",
   },
   fi: {
@@ -187,7 +187,7 @@ const LOCALES: Record<string, Block> = {
     lead: "Hei {track}-tiimi,",
     intro: "Olen Rubio – kuljettaja ja työkseni ohjelmistokehittäjä – ja rakennan DirtBikeX:ää: yhteisöä, joka on tehty vain dirtbike- ja motocross-väelle. Nyt saatavilla iOS:lle ja tietokoneelle – ei taas yksi syöte hallittavaksi, vaan keskittynyt, foorumipohjainen paikka ilman kohinaa, jossa kaikki ovat vain ajamista varten.",
     value: "Haluaisin tehdä {track}:lle sinne ilmaisen profiilin: paikan, josta kuljettajat löytävät sinut, seuraavat sinua ja saavat päivityksesi. Se ei korvaa tapaa, jolla jo tavoitat ihmiset – se vain tuo sinut niiden eteen, joita se eniten kiinnostaa.",
-    cta: "Hoidan käyttöönoton puolestasi. Jos kiinnostuit, vastaa vain tähän viestiin.",
+    cta: "Hoidan käyttöönoton puolestasi. Jos kiinnostuit, vastaa vain tähän viestiin – lähetän sinulle henkilökohtaisen kutsun sovellukseen.",
     look: "Tässä 30 sekunnin katsaus:",
   },
   nl: {
@@ -195,7 +195,7 @@ const LOCALES: Record<string, Block> = {
     lead: "Hallo team van {track},",
     intro: "Ik ben Rubio – rijder en van beroep softwareontwikkelaar – en ik bouw DirtBikeX: een community speciaal voor dirtbike- en motocrossmensen. Nu beschikbaar op iOS en desktop – niet nóg een feed om te beheren, maar een gerichte, forumgebaseerde plek zonder ruis, waar iedereen er is om te rijden.",
     value: "Ik wil daar graag een gratis profiel voor {track} aanmaken: een plek waar rijders je vinden, je volgen en je updates krijgen. Het vervangt niet hoe je mensen nu al bereikt – het zet je alleen voor de mensen die er het meest om geven.",
-    cta: "De installatie regel ik voor je. Heb je interesse, reageer dan gewoon op deze mail.",
+    cta: "De installatie regel ik voor je. Heb je interesse, reageer dan gewoon op deze mail – dan stuur ik je een persoonlijke uitnodiging voor de app.",
     look: "Hier is een blik van 30 seconden:",
   },
   tr_TR: {
@@ -203,7 +203,7 @@ const LOCALES: Record<string, Block> = {
     lead: "Merhaba {track} ekibi,",
     intro: "Ben Rubio — hem sürücü hem de mesleği yazılım geliştirmek olan biri — ve DirtBikeX'i geliştiriyorum: dirt bike ve motokros dünyasının insanları için özel olarak yapılmış bir topluluk. Artık iOS ve masaüstünde kullanılabiliyor — yönetmen gereken bir akış daha değil, odaklanmış, forum tabanlı, gürültüsüz bir yer; oradaki herkes yalnızca sürmek için orada.",
     value: "Orada {track} için ücretsiz bir profil oluşturmak isterim: sürücülerin seni bulduğu, takip ettiği ve güncellemelerini aldığı bir yer. İnsanlara zaten ulaşma şeklinin yerini almaz — seni yalnızca en çok önemseyenlerin önüne çıkarır.",
-    cta: "Kurulumu senin için ben hallederim. İlgileniyorsan bu e-postayı yanıtlaman yeterli.",
+    cta: "Kurulumu senin için ben hallederim. İlgileniyorsan bu e-postayı yanıtlaman yeterli — sana uygulama için kişisel bir davet gönderirim.",
     look: "30 saniyelik bir bakış:",
   },
   vi: {
@@ -211,7 +211,7 @@ const LOCALES: Record<string, Block> = {
     lead: "Chào đội ngũ {track},",
     intro: "Tôi là Rubio — một tay đua đồng thời làm nghề viết phần mềm — và tôi đang xây dựng DirtBikeX: một cộng đồng dành riêng cho những người chơi dirt bike và motocross. Hiện đã có trên iOS và máy tính — không phải thêm một bảng tin để bạn quản lý, mà là một nơi tập trung, dựa trên diễn đàn, không nhiễu, nơi ai cũng đến chỉ để chạy xe.",
     value: "Tôi muốn tạo cho {track} một hồ sơ miễn phí trong đó: nơi các tay đua tìm thấy bạn, theo dõi bạn và nhận tin cập nhật từ bạn. Nó không thay thế cách bạn đang tiếp cận mọi người — chỉ đưa bạn đến trước những người quan tâm nhất.",
-    cta: "Việc thiết lập cứ để tôi lo. Nếu bạn quan tâm, chỉ cần trả lời email này.",
+    cta: "Việc thiết lập cứ để tôi lo. Nếu bạn quan tâm, chỉ cần trả lời email này — tôi sẽ gửi cho bạn lời mời cá nhân để tải ứng dụng.",
     look: "Xem thử trong 30 giây:",
   },
 };
