@@ -284,7 +284,7 @@ function bytesToBase64(bytes: Uint8Array): string {
   return btoa(binary);
 }
 
-async function sendInviteEmail(
+export async function sendInviteEmail(
   env: PagesEnv, email: string, token: string, kind: string,
   cfg: { label: string; inviteUrl: string }, cardBase64: string | null,
 ): Promise<boolean> {
@@ -308,7 +308,8 @@ async function sendInviteEmail(
     : '';
   const cardLine = cardBase64 ? '<p>Your personal invite card is attached — scan the QR to join.</p>' : '';
 
-  const html = `<!DOCTYPE html><html><body style="font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.55;color:#222;margin:0;padding:24px;">
+  let subject = 'Your DirtBikeX invite is inside';
+  let html = `<!DOCTYPE html><html><body style="font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.55;color:#222;margin:0;padding:24px;">
 <p>Here's your <strong>${label}</strong> invite to <strong>DirtBikeX</strong> — the dirt-bike community app, live on the App Store.</p>
 ${cardLine}
 ${inviteBtn}
@@ -317,7 +318,7 @@ ${inviteBtn}
 <p style="font-size:12px;color:#888;line-height:1.5;">DirtBikeX${address ? `<br>${escapeHtml(address)}` : ''}<br>You received this because you requested an invite at our sign-up. <a href="${unsubUrl}">Unsubscribe</a>${replyTo ? ` · <a href="mailto:${replyTo}">Contact us</a>` : ''}.</p>
 </body></html>`;
 
-  const text = `Here's your ${cfg.label} invite to DirtBikeX — the dirt-bike community app, live on the App Store.
+  let text = `Here's your ${cfg.label} invite to DirtBikeX — the dirt-bike community app, live on the App Store.
 ${cfg.inviteUrl ? `\nOpen your invite: ${cfg.inviteUrl}\n` : ''}${cardBase64 ? 'Your personal invite card is attached — scan the QR to join.\n' : ''}
 Want perks and first looks too? Confirm your email: ${confirmUrl}
 
@@ -325,6 +326,58 @@ Want perks and first looks too? Confirm your email: ${confirmUrl}
 DirtBikeX${address ? `\n${address}` : ''}
 You received this because you requested an invite at our sign-up.
 Unsubscribe: ${unsubUrl}`;
+
+  // Track-steward invites answer the operator's own reply to a cold email/DM — a
+  // different provenance than the waitlist, so the copy, the step meter, and the
+  // footer reason line are steward-specific. See JOIN_MODULE.md § "Steward invite email".
+  if (kind === 'track_stewards') {
+    subject = 'Your Track Stewards invite — one step to go';
+    const check = '<td style="padding:2px 10px 2px 0;color:#1a7f37;">&#10003;</td>';
+    const stewardCard = cardBase64
+      ? '<p style="font-size:13px;color:#666;">Reading this on a computer? The attached card carries the same invite — scan it with your phone.</p>'
+      : '';
+    html = `<!DOCTYPE html><html><body style="font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.55;color:#222;margin:0;padding:24px;">
+<div style="max-width:600px;margin:0 auto;">
+<p>You're in — thanks for the reply.</p>
+<p><strong>Track Stewards</strong> is the group we keep for the people who actually run the tracks. Stewards get a verified badge, their track's page in their own hands, and events riders can find and RSVP to. Your track already has a profile waiting — I'll take care of the setup; the app will offer it to you when you sign in.</p>
+<p style="margin:20px 0 4px;"><strong>Your onboarding — 3 of 4 done:</strong></p>
+<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 4px;">
+<tr>${check}<td style="padding:2px 0;color:#666;">We reached out</td></tr>
+<tr>${check}<td style="padding:2px 0;color:#666;">You said yes</td></tr>
+<tr>${check}<td style="padding:2px 0;color:#666;">Your personal invite — this email</td></tr>
+<tr><td style="padding:2px 10px 2px 0;color:#ed6b00;">&#9675;</td><td style="padding:2px 0;font-weight:600;">Install the app and sign up</td></tr>
+</table>
+${inviteBtn}
+<p style="font-size:13px;color:#666;">On an iPhone, the button opens the App Store — DirtBikeX is live for iOS. On a computer, it opens the community in your browser instead.</p>
+<p><strong>One thing that matters:</strong> sign up with this email address (${escapeHtml(email)}) — your invite and your track are tied to it.</p>
+${stewardCard}
+<p style="font-size:13px;color:#767676;">Want early-supporter perks and new-feature first looks too? <a href="${confirmUrl}" style="color:#767676;">Confirm your email</a>.</p>
+<hr style="border:none;border-top:1px solid #ddd;margin:24px 0 12px;">
+<p style="font-size:13px;color:#767676;line-height:1.5;">You're receiving this one-time invite because you asked for it when we talked.${address ? `<br>DirtBikeX &middot; ${escapeHtml(address)}` : ''}<br><a href="${base}/privacy" style="color:#767676;text-decoration:underline;">Privacy</a> &middot; <a href="${unsubUrl}" style="color:#767676;text-decoration:underline;">Unsubscribe</a>${replyTo ? ` &middot; <a href="mailto:${replyTo}" style="color:#767676;text-decoration:underline;">Contact us</a>` : ''}</p>
+</div>
+</body></html>`;
+    text = `You're in — thanks for the reply.
+
+Track Stewards is the group we keep for the people who actually run the tracks. Stewards get a verified badge, their track's page in their own hands, and events riders can find and RSVP to. Your track already has a profile waiting — I'll take care of the setup; the app will offer it to you when you sign in.
+
+Your onboarding — 3 of 4 done:
+[x] We reached out
+[x] You said yes
+[x] Your personal invite — this email
+[ ] Install the app and sign up
+${cfg.inviteUrl ? `\nOpen your invite: ${cfg.inviteUrl}\n` : ''}
+On an iPhone, that link opens the App Store — DirtBikeX is live for iOS. On a computer, it opens the community in your browser instead.
+
+One thing that matters: sign up with this email address (${email}) — your invite and your track are tied to it.
+${cardBase64 ? '\nReading this on a computer? The attached card carries the same invite — scan it with your phone.\n' : ''}
+Want early-supporter perks and new-feature first looks too? Confirm your email: ${confirmUrl}
+
+—
+You're receiving this one-time invite because you asked for it when we talked.
+DirtBikeX${address ? ` · ${address}` : ''}
+Privacy: ${base}/privacy
+Unsubscribe: ${unsubUrl}`;
+  }
 
   let resp: Response;
   try {
@@ -334,7 +387,7 @@ Unsubscribe: ${unsubUrl}`;
       body: JSON.stringify({
         from,
         to: [email],
-        subject: 'Your DirtBikeX invite is inside',
+        subject,
         html,
         text,
         ...(replyTo ? { reply_to: replyTo } : {}),

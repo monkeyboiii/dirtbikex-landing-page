@@ -119,6 +119,26 @@ expires. Retries are idempotent because `Invite.generate` reuses an existing red
 invite for the same `(email, invited_by)`.
 **Invalidates if:** a kind ever needs a multi-use invite (email-locking would have to go).
 
+### Steward invite email: kind-specific copy for the outreach funnel
+The invite email branches on `kind === 'track_stewards'` inside `sendInviteEmail`; every
+other kind keeps the generic template byte-for-byte. Rationale: a steward invite answers
+the operator's own **reply to a cold email/DM** (OUTREACH_MODULE funnel), not a site
+sign-up — so the generic footer's "you requested an invite at our sign-up" was simply
+false for them, and the generic body never said what the recipient must actually do.
+The steward variant: names the group and what stewards get; shows a 3-of-4 step meter
+(reached out ✓ / said yes ✓ / this email ✓ / install the app — the one step left);
+states that on iPhone the button opens the App Store and on desktop the browser forum
+(mirroring `/s/i/:key`'s real device split); says **sign up with this email address** —
+load-bearing, because the invite is email-locked (above) and the claim-hint auto-claim
+cross-checks `redeemed_email`; reframes the attached QR card as the *computer-reader's*
+path (you can't scan the email you're reading on your phone); and swaps the footer
+reason line for an accurate one. Layout follows the outreach email's conventions
+(600px wrapper, 13px/#767676 AA fine print). **NOT done:** localization — the body is
+EN-only (as the generic always was) while the card attachment is already locale-matched;
+add a LOCALES map like `outreach.ts` when non-English stewards start converting.
+**Verified by:** rendering all kinds through the real `sendInviteEmail` with a stubbed
+fetch and asserting the non-steward kinds byte-identical to the pre-change baseline.
+
 ### Invite cards: blank templates in R2, QR painted in at send time
 The emailed card is a pre-rendered PNG of the iOS `InviteShareCard`, one per
 `(kind, locale)`, committed under [templates/](../templates/) and repainted offline by
