@@ -43,9 +43,7 @@
 	"triggers": {
 		"crons": ["* * * * *"]
 	},
-	// Persist console output. Without this, the drip's per-tick `outreach:drip` line and the
-	// `outreach:drip_cap_exhausted` warning exist ONLY for someone running `wrangler tail` —
-	// which is how a 24-minute silent stall went unnoticed on 2026-07-26.
+	// Persist logs — docs/OUTREACH_MODULE.md § Debugging (silent-stall entry).
 	"observability": { "enabled": true, "head_sampling_rate": 1 },
 	"vars": {
 		"FORUM_BASE": "https://forum.dirtbikex.com",
@@ -70,14 +68,8 @@
 		"JOIN_ORG_ADDRESS": "DirtBikeX LLC, 30 N Gould St Ste N, Sheridan, WY 82801, USA",
 		"MARKETING_BASE": "https://www.dirtbikex.com",
 		"OUTREACH_ALLOW_REAL": "1",
-		// Ceiling on REAL drip sends per UTC day. This limit is OURS, not Resend's — Resend has
-		// no daily limit. Unset it and the code falls back to DEFAULT_DAILY_CAP=200, which is what
-		// silently stalled the backlog on 2026-07-26. Keep the value HERE: editing it in the
-		// Cloudflare dashboard is clobbered by the next `wrangler deploy`.
-		// Operator-set ceiling, deliberately far above normal volume so the cap is a runaway
-		// backstop and NOT the throughput limiter. The instantaneous rate is bounded separately
-		// by CLAIM_LIMIT (100/tick = 100/min) and by each row's send_after. Set to "0" for an
-		// immediate hard stop — dailyCapOf() honours 0 (it used to silently mean 200).
+		// Backstop, not the pacer; keep the value in THIS file (dashboard edits are
+		// clobbered by deploy). docs/OUTREACH_MODULE.md § "Drip throughput".
 		"OUTREACH_DAILY_CAP": "10000"
 	},
 	"d1_databases": [
@@ -125,7 +117,10 @@
 				"JOIN_FROM_EMAIL": "DirtBikeX <team@joindirtbikex.com>",
 				"JOIN_REPLY_TO": "support@dirtbikex.com",
 				"JOIN_ORG_ADDRESS": "DirtBikeX LLC, 30 N Gould St Ste N, Sheridan, WY 82801, USA",
-				"MARKETING_BASE": "https://www.dirtbikechina.com"
+				"MARKETING_BASE": "https://www.dirtbikechina.com",
+				// docs/OUTREACH_MODULE.md § "Staging asymmetry"
+				"OUTREACH_ALLOW_REAL": "0",
+				"OUTREACH_DAILY_CAP": "1000"
 			},
 			"assets": {
 				"directory": "./dist",

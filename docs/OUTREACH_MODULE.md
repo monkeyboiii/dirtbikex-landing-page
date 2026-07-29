@@ -258,11 +258,13 @@ retry whose membership shifted. D1 writes for a chunk go out in one atomic `db.b
 immediately after its response; if that write throws, the accepted addresses are logged
 (`outreach:drip_write_failed_after_send`) so the send is recoverable rather than lost.
 
-**Staging asymmetry.** Wrangler `vars` are **non-inheritable**, so the `preview` env does not
-see `OUTREACH_DAILY_CAP` — but it also does not see `OUTREACH_ALLOW_REAL`, so `allowReal` is
-false, the claim is never clamped, and the cap path is simply **not exercisable on staging**.
-Staging does exercise the batch send, the failure classification, and the drip log line
-(via `override` mode). `observability` *is* inheritable, so both workers persist logs.
+**Staging asymmetry.** Wrangler `vars` are **non-inheritable**, so both knobs are declared
+explicitly in `env.preview.vars` (2026-07-29): `OUTREACH_ALLOW_REAL: "0"` and
+`OUTREACH_DAILY_CAP: "1000"`. With `allowReal` false the claim is never clamped, so the cap
+path is still **not exercisable on staging** — the preview cap value only feeds the staging
+`/metrics` gauge and the per-tick drip log line. Staging does exercise the batch send, the
+failure classification, and the drip log line (via `override` mode). `observability` *is*
+inheritable, so both workers persist logs.
 
 ## Routes, schema, config
 
