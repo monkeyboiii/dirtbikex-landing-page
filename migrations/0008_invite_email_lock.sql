@@ -1,12 +1,14 @@
--- Per-code email locking becomes OPT-IN (operator decision 2026-07-29): by default a
--- redeemed code now mints a generic one-use Discourse invite (no email lock), because
--- "sign up with exactly this address" proved too strong a premise for operators. A
--- CRM mint-form checkbox sets email_locked=1 to restore the old behavior per code.
--- Existing rows take the DEFAULT 0 — outstanding codes become unlocked, deliberately.
--- Trade recorded in JOIN_MODULE.md: unlocked invites weaken the claim-hint auto-claim
--- (it cross-checks redeemed_email against the joined account).
+-- SUPERSEDED same day (2026-07-29) — DO NOT APPLY.
 --
--- Apply to BOTH databases (single additive ALTER — use --command, no import outage):
---   pnpm wrangler d1 execute dbx-subscribers --env preview --remote --command "ALTER TABLE invite_codes ADD COLUMN email_locked INTEGER NOT NULL DEFAULT 0"
---   pnpm wrangler d1 execute dbx-subscribers --env "" --remote --command "ALTER TABLE invite_codes ADD COLUMN email_locked INTEGER NOT NULL DEFAULT 0"   # prod
-ALTER TABLE invite_codes ADD COLUMN email_locked INTEGER NOT NULL DEFAULT 0;
+-- First cut put email locking on the D1 join-code row (a CRM mint-time preset). That
+-- was the wrong end of the funnel: the email at stake belongs to whoever redeems the
+-- join code on the landing page, so the lock choice is theirs, at redeem time — it now
+-- rides `POST /api/join` as `email_locked: true` (a checkbox on the join page's invite
+-- mode), and no code-row column is involved. See JOIN_MODULE.md § "Per-redemption
+-- Discourse invites".
+--
+-- History: the ALTER below ran on the PREVIEW database only, before the rethink. The
+-- column sits there dormant and unread — harmless. Prod was never migrated and must
+-- not be; this file stays to explain the preview/prod schema difference.
+--
+-- ALTER TABLE invite_codes ADD COLUMN email_locked INTEGER NOT NULL DEFAULT 0;

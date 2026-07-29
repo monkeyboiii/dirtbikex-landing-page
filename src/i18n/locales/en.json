@@ -199,6 +199,7 @@
   "join.invite.title.line2": "DirtBikeX invite.",
   "join.invite.subtitle": "Drop your email and we'll send your invite link and QR code straight to your inbox.",
   "join.invite.cta": "Send my invite",
+  "join.invite.lock": "Lock my invite to this email — a forwarded link won't work for anyone else",
   "join.invite.sent.title": "Check your inbox",
   "join.invite.sent.body": "Your invite link and QR code are on the way. Confirm the email to lock it in — check spam if it's not there in a minute.",
   "join.code.invalid.title": "This invite link isn't valid",

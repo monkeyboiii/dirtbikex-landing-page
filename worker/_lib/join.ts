@@ -74,7 +74,7 @@ export async function handleJoinSubmit(request: Request, env: PagesEnv): Promise
     return json(503, { error: 'service_misconfigured' });
   }
 
-  let body: { email?: unknown; locale?: unknown; code?: unknown };
+  let body: { email?: unknown; locale?: unknown; code?: unknown; email_locked?: unknown };
   try {
     body = (await request.json()) as typeof body;
   } catch {
@@ -86,6 +86,9 @@ export async function handleJoinSubmit(request: Request, env: PagesEnv): Promise
   const rawLocale = typeof body.locale === 'string' ? body.locale : 'en';
   const locale = LOCALES.includes(rawLocale) ? rawLocale : 'en';
   const code = typeof body.code === 'string' ? body.code.trim() : '';
+  // Redeem-time choice by whoever enters the email on the join page (checkbox,
+  // default off). NOT a property of the D1 code row — see JOIN_MODULE.md.
+  const emailLocked = body.email_locked === true;
 
   // Abuse caps. Warn-and-allow if KV is unbound — a sign-up shouldn't hard-fail
   // on a missing-binding config gap (unlike the auth SMS gateway, which fails closed).
@@ -104,7 +107,7 @@ export async function handleJoinSubmit(request: Request, env: PagesEnv): Promise
 
   // Special influencer invite: a ?c=<code> redemption takes a different path
   // (claim the code, send card + invite link). A confirmed subscriber still gets it.
-  if (code) return redeemInvite(env, email, locale, code);
+  if (code) return redeemInvite(env, email, locale, code, emailLocked);
 
   const existing = await env.SUBSCRIBERS_DB
     .prepare('SELECT status, token FROM subscribers WHERE email = ?')
@@ -199,15 +202,15 @@ export async function handleCodePrecheck(request: Request, env: PagesEnv): Promi
 
 /** Claim + deliver an invite. The claim is race-safe (UPDATE…RETURNING); on a
  *  send failure the claim is released so a code is never burned without an email. */
-async function redeemInvite(env: PagesEnv, email: string, locale: string, code: string): Promise<Response> {
+async function redeemInvite(env: PagesEnv, email: string, locale: string, code: string, emailLocked: boolean): Promise<Response> {
   const claim = await env.SUBSCRIBERS_DB!
     .prepare(
       "UPDATE invite_codes SET used_count = used_count + 1, redeemed_email = ?, redeemed_at = datetime('now') " +
       "WHERE code = ? AND used_count < max_uses AND (expires_at IS NULL OR expires_at > datetime('now')) " +
-      'RETURNING kind, track_name, email_locked',
+      'RETURNING kind, track_name',
     )
     .bind(email, code)
-    .first<{ kind: string; track_name: string | null; email_locked: number }>();
+    .first<{ kind: string; track_name: string | null }>();
   if (!claim) return json(409, { error: 'code_invalid' });
   const kind = claim.kind;
 
@@ -234,7 +237,7 @@ async function redeemInvite(env: PagesEnv, email: string, locale: string, code: 
       console.error('join:group_unconfigured', { kind, var: groupVar });
       return json(503, { error: 'service_misconfigured' });
     }
-    const minted = await mintInvite(env, claim.email_locked ? email : null, groupId, cfg.label, code);
+    const minted = await mintInvite(env, emailLocked ? email : null, groupId, cfg.label, code);
     if (!minted.ok) {
       await releaseCode(env, code);
       console.error('join:mint_failed', { kind, reason: minted.reason });
@@ -244,7 +247,7 @@ async function redeemInvite(env: PagesEnv, email: string, locale: string, code: 
   }
 
   const card = await fetchCardBase64(env, kind, locale, inviteUrl);
-  if (!(await sendInviteEmail(env, email, token, kind, { label: cfg.label, inviteUrl, trackName: claim.track_name, emailLocked: !!claim.email_locked }, card))) {
+  if (!(await sendInviteEmail(env, email, token, kind, { label: cfg.label, inviteUrl, trackName: claim.track_name, emailLocked }, card))) {
     await releaseCode(env, code);
     console.error('join:invite_send_failed', { kind });
     return json(502, { error: 'send_failed' });

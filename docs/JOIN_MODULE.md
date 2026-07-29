@@ -21,7 +21,7 @@ GET|POST /api/unsubscribe?token  ─► D1 →'unsubscribed'  (POST = RFC 8058 o
 | Form + states UI | [src/components/JoinBody.astro](../src/components/JoinBody.astro) | hero shell; scoped styles (theme tokens); inline script does `fetch` + `?state` switching |
 | Copy (21 langs) | [src/i18n/locales/*.json](../src/i18n/locales/) | `join.*` keys; `UIKey = keyof typeof en` so EN is the source of truth, others fall back |
 | Worker handlers | [worker/_lib/join.ts](../worker/_lib/join.ts) | plain: `handleJoinSubmit` / `handleJoinConfirm` / `handleUnsubscribe` + `sendConfirmationEmail`. Invites: `handleCodePrecheck` / `redeemInvite` / `fetchCardBase64` / `sendInviteEmail` (Resend) |
-| Discourse minting | [worker/_lib/forumInvite.ts](../worker/_lib/forumInvite.ts) | `mintInvite` — email-locked, group-attached, `skip_email`; logs `mintInvite:<reason>` |
+| Discourse minting | [worker/_lib/forumInvite.ts](../worker/_lib/forumInvite.ts) | `mintInvite` — group-attached; email-locked only when the redeemer opted in; logs `mintInvite:<reason>` |
 | Card compositing | [worker/_lib/qrCard.ts](../worker/_lib/qrCard.ts) | `composeCard` — finds the magenta sentinel, paints the QR (`fast-png` + `qrcode-generator`) |
 | Route dispatch | [worker/index.ts](../worker/index.ts) | matches `/api/join`, `/api/join/code`, `/join/confirm`, `/api/unsubscribe` before the `ASSETS` fallthrough |
 | Env + D1/R2 types | [worker/_lib/types.ts](../worker/_lib/types.ts) | `PagesEnv` join fields + minimal `D1Database` / `R2Bucket` interfaces |
@@ -97,19 +97,26 @@ The card + link are delivered immediately; the email's confirm CTA is the list o
 per-row token; the `crew_allotment` idea (one steward email carrying extra multi-use
 crew invites) was dropped — each kind now has its own code and its own card.
 
-### Per-redemption Discourse invites, group-attached; email locking is per-code OPT-IN
-Since migration 0008 (operator decision 2026-07-29: "must use exactly this address" was
-too strong a premise), `invite_codes.email_locked` (default **0**) decides what
-`mintInvite` sends: locked → `/invites.json` with the redeemer's `email` +
-`skip_email=true`, so Discourse refuses any other address (forwarded link/QR admits
-nobody); unlocked (default) → **no email param**, a generic one-use link invite anyone
-can redeem. The CRM mint form's "lock to email" checkbox sets the flag; existing codes
-took the unlocked default deliberately. **Trade, recorded:** an unlocked redeemer may
-sign up with a different address, which fails the claim-hint identity cross-check
-(`redeemed_email` vs the joined account) — auto-claim degrades to the manual path; the
-steward email therefore *recommends* the delivered address instead of requiring it.
-Unlocked orphans (send-failure released the code but the invite minted) are live
-shareable invites until forum expiry — acceptable at current volume, group-only stakes.
+### Per-redemption Discourse invites, group-attached; email locking is the REDEEMER's redeem-time choice
+Two codes, two layers — keep them named apart: the **join code** (D1 `invite_codes`,
+the `/join?c=` link outreach hands out) and the **Discourse invite** (minted fresh per
+redemption, the `/s/i/:key` the redeemer actually joins with). The email at stake is
+the one the *redeemer types on the join page*, so the lock decision is **theirs, made
+at redeem time** (operator decision 2026-07-29 — "must use exactly this address" was
+too strong a default; a first cut wrongly put the flag on the join-code row as a CRM
+mint preset, reverted same day — 0008 is superseded, its column dormant on preview
+only). Wire: the join page's invite mode reveals a "lock my invite to this email"
+checkbox (default off, EN key `join.invite.lock`, others fall back) → `POST /api/join`
+carries `email_locked: true` → locked mints `/invites.json` with the redeemer's
+`email` + `skip_email=true` (Discourse refuses any other address); unlocked (default)
+sends **no email param** — a generic one-use link invite. The CRM's server-side
+Deliver sends no flag, so delivered invites are unlocked. **Trade, recorded:** an
+unlocked redeemer may sign up with a different address, which fails the claim-hint
+identity cross-check (`redeemed_email` vs the joined account) — auto-claim degrades to
+the manual path; the steward email therefore *recommends* the delivered address
+instead of requiring it. Unlocked orphans (send-failure released the code but the
+invite minted) are live shareable invites until forum expiry — acceptable at current
+volume, group-only stakes.
 `max_redemptions_allowed` is **omitted**: Discourse rejects any value but `1` alongside an
 email, and defaults to `1`. `expires_at` is **omitted** too, so the forum's own
 `invite_expiry_days` governs and expiry stays canonical in Discourse.
@@ -184,7 +191,7 @@ attach a bare QR instead of a card).
 | Method · path | Does | Returns |
 |---|---|---|
 | `POST /api/join` | validate · rate-limit · upsert `pending`+token · send confirm | `200 {ok}` · `400/429/502/503` |
-| `POST /api/join` `{code}` | claim invite code (race-safe) · mint Discourse invite · send card + link + confirm | `200 {ok,invite}` · `409 code_invalid` · `502 mint_failed`/`send_failed` · `503` |
+| `POST /api/join` `{code, email_locked?}` | claim join code (race-safe) · mint Discourse invite (locked to the entered email only if `email_locked:true`) · send card + link | `200 {ok,invite}` · `409 code_invalid` · `502 mint_failed`/`send_failed` · `503` |
 | `GET /api/join/code?c=` | precheck a code (no claim) — page theming / dead-link reject | `200 {valid,kind,label}` |
 | `GET /join/confirm?token` | `pending`→`confirmed` (idempotent) | `302 → /<locale>/join?state=confirmed` (or `=expired`) |
 | `GET /api/unsubscribe?token` | →`unsubscribed` | `302 → …?state=unsubscribed` |
@@ -304,7 +311,7 @@ redemptions immediately; only worker *code* changes need a redeploy.
 5. Click unsubscribe in the email → row `unsubscribed`; one-click `POST /api/unsubscribe` returns 200.
 6. **Invite (group kind):** `upload-template ./templates`, `mint --kind track_stewards --campaign test` → open the printed `/join?c=…` (hero reframes to the invite) → submit a test address → email arrives with the card attached; scan its QR with a phone → `/s/i/<key>` renders "Rubio invited you" + the group → accepting with a *different* email is refused → re-open the `?c=` link → "isn't valid" (single-use consumed).
 7. **Invite (plain):** `kinds set --kind plain --url …`, `mint --kind plain` → same flow, no Discourse mint, card carries the static link and an empty label strip.
-8. **Rollback:** break `RESEND_API_KEY`, redeem a code → `502 send_failed`, and `admin.mjs codes` shows `used_count` back at `0/1` (the code is reusable; the minted invite is orphaned but email-locked and expiring).
+8. **Rollback:** break `RESEND_API_KEY`, redeem a code → `502 send_failed`, and `admin.mjs codes` shows `used_count` back at `0/1` (the code is reusable; the minted invite is orphaned — locked only if the redeemer opted in — and expiring).
 
 ## Tests
 

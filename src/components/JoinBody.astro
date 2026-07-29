@@ -42,6 +42,10 @@ const joinPath = localizedPath(lang, '/join');
           />
           <button class="btn btn--primary btn--lg" type="submit">{t('join.cta')}</button>
         </form>
+        <label class="join__lock" data-join-lock hidden>
+          <input type="checkbox" name="email_locked" form="join-form" />
+          <span>{t('join.invite.lock')}</span>
+        </label>
         <p class="join__error" data-join-error hidden></p>
         <p class="join__fine">{t('join.finePrint')}</p>
         <p class="join__consent">{t('join.consent')}</p>
@@ -98,6 +102,8 @@ const joinPath = localizedPath(lang, '/join');
   .join__consent { margin: var(--space-2) auto 0; font-size: 12px; color: var(--fg-tertiary); max-width: 48ch; }
   .join__msg-title { font: var(--text-h2); color: var(--fg); margin: 0 0 var(--space-3); }
   .join__msg-body { font: var(--text-body-lg); color: var(--fg-secondary); margin: 0 auto var(--space-5); max-width: 52ch; }
+  .join__lock { display: flex; gap: 8px; align-items: baseline; justify-content: center; margin-top: var(--space-3); font: var(--text-body-sm, 14px/1.5 inherit); color: var(--fg-secondary); cursor: pointer; }
+  .join__lock input { accent-color: var(--accent, #ed6b00); }
 </style>
 
 <script is:inline>
@@ -138,6 +144,8 @@ const joinPath = localizedPath(lang, '/join');
           setText('[data-join-title2]', root.getAttribute('data-invite-title2'));
           setText('[data-join-sub]', root.getAttribute('data-invite-sub'));
           if (btn) btn.textContent = root.getAttribute('data-invite-cta');
+          var lockEl = root.querySelector('[data-join-lock]');
+          if (lockEl) lockEl.hidden = false;
         })
         .catch(function () { /* leave the form as-is; submit will validate the code */ });
     }
@@ -149,7 +157,11 @@ const joinPath = localizedPath(lang, '/join');
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { fail(msgInvalid); return; }
       if (btn) btn.disabled = true;
       var payload = { email: email, locale: locale };
-      if (code) payload.code = code;
+      if (code) {
+        payload.code = code;
+        var lockBox = form.elements.email_locked;
+        if (lockBox && lockBox.checked) payload.email_locked = true;
+      }
       fetch('/api/join', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
