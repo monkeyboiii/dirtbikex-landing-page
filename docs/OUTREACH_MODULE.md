@@ -48,11 +48,15 @@ Instead the worker owns it and the CRM **proxies** `POST /api/outreach/test`.
 **NOT done:** no SMTP/mailer in the CRM, no second sending domain. **Invalidates if:**
 the CRM ever needs to send without a worker round-trip (it does not).
 
-### Copy is conversion-framed: owner outcomes + a quiet 4-step timeline (EN first)
-2026-07-29 rewrite (operator-decided): the value block sells **operator outcomes**
-(riders' map, direct reach with "no algorithm deciding who sees it", event RSVPs) —
-every claim maps to a shipped feature; and each block may carry `steps`, a *typographic*
-4-step timeline (● you got this note ← you are here / ○ reply / ○ invite / ○ install)
+### Copy is conversion-framed: incremental reach + a quiet 4-step timeline (EN first)
+2026-07-29 rewrite (operator-decided, two rounds): the value block argues **incremental
+reach, never channel replacement** — a track's Facebook already covers the riders who
+know it, so RSVP/local-reach claims argue against their existing tools; the pitch is
+the riders they *can't* reach: map-searchers, travelers, newcomers, the global catalog.
+The reel link rides inside the intro paragraph (the "see it" belongs beside the
+description), the CTA is one line ("If you're in, just reply." — the timeline carries
+the mechanics), and each block may carry `steps`, a *typographic* 4-step timeline
+(● you got this note ← you are here / ○ you reply to agree / ○ invite / ○ install)
 that shows the whole path costs one reply and one install. Deliberately NOT a graphic
 progress bar — the cold email's plain-text look is load-bearing (see the 600px-wrapper
 decision); the graphic bar lives in the warm steward invite email (JOIN_MODULE).

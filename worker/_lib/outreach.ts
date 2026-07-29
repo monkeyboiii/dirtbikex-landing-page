@@ -49,15 +49,15 @@ const EN: Block = {
     + "specifically for dirt-bike and motocross people. It's available on iOS and desktop now — not another "
     + "feed to manage, but a focused, forum-based place with no noise, where everyone there is there to ride.",
   value:
-    "I'd like to set {track} up with a free page: you're on the riders' map, locals follow you, and when you "
-    + "post a session or a race it reaches them directly — no algorithm deciding who sees it. Traveling riders "
-    + "find you by distance; your events take RSVPs, so you know who's coming.",
-  cta: "I'll take care of the setup. If you're curious, just reply — I'll send you a personal invite to grab the app.",
+    "I'd like to give {track} a free page in it. Your own channels already reach the riders who know you — "
+    + "this is for the ones who don't yet: riders searching the map for somewhere to ride, traveling through, "
+    + "or new to the sport. One global track catalog, and {track} is on it.",
+  cta: "If you're in, just reply.",
   look: "Here's a 30-second look:",
   steps: {
     title: "Getting {track} on DirtBikeX — four small steps:",
     got: "You got this note",
-    reply: "You reply",
+    reply: "You reply to agree",
     invite: "I send your personal invite",
     install: "You install the app — your page is live",
     here: "you are here",
@@ -290,19 +290,20 @@ function stepsText(s: NonNullable<Block['steps']>, track: string): string {
   return `${fill(s.title, track)}\n  ● ${s.got}   <- ${s.here}\n  ○ ${s.reply}\n  ○ ${s.invite}\n  ○ ${s.install}`;
 }
 
+// The reel rides INSIDE the intro paragraph (the app is described there; "see it" belongs
+// beside the description, not stranded above the CTA) — same words per locale, merged para.
 function blockHtml(b: Block, track: string, locale: string): string {
   const t = escapeHtml(track);
   return `<p>${fill(escapeHtml(b.lead), t)}</p>
-<p>${fill(linkIntroHtml(escapeHtml(b.intro), locale), t)}</p>
+<p>${fill(linkIntroHtml(escapeHtml(b.intro), locale), t)} ${escapeHtml(b.look)} <a href="${REEL_URL}" dir="ltr" style="${LINK_STYLE}">instagram.com/reel/DbP-9nTot-v</a></p>
 <p>${fill(escapeHtml(b.value), t)}</p>
-${b.steps ? stepsHtml(b.steps, t) : ''}<p>${escapeHtml(b.look)} <a href="${REEL_URL}" dir="ltr" style="${LINK_STYLE}">instagram.com/reel/DbP-9nTot-v</a></p>
-<p>${fill(escapeHtml(b.cta), t)}</p>
+${b.steps ? stepsHtml(b.steps, t) : ''}<p>${fill(escapeHtml(b.cta), t)}</p>
 <p>${escapeHtml(SIGNATURE)}</p>`;
 }
 
 function blockText(b: Block, track: string): string {
   const steps = b.steps ? `${stepsText(b.steps, track)}\n\n` : '';
-  return `${fill(b.lead, track)}\n\n${fill(linkIntroText(b.intro), track)}\n\n${fill(b.value, track)}\n\n${steps}${b.look} ${REEL_URL}\n\n${fill(b.cta, track)}\n\n${SIGNATURE}`;
+  return `${fill(b.lead, track)}\n\n${fill(linkIntroText(b.intro), track)} ${b.look} ${REEL_URL}\n\n${fill(b.value, track)}\n\n${steps}${fill(b.cta, track)}\n\n${SIGNATURE}`;
 }
 
 const RTL_LOCALES = new Set(['ar', 'fa_IR']);
