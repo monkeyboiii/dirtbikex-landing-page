@@ -46,6 +46,7 @@ export interface PagesEnv {
   MARKETING_BASE?: string;
   /** R2 bucket holding blank invite cards at `template/<kind>/<locale>.png`. `wrangler r2 bucket create dbx-qr`. */
   QR_BUCKET?: R2Bucket;
+  ASSETS?: AssetsBinding;
   /** Shared bearer for the /api/outreach/* endpoints (the CRM's pre-invite test + batch). Secret. */
   OUTREACH_SECRET?: string;
   /** "1" ONLY on the prod worker — the structural gate that permits `mode='real'` batch
@@ -85,6 +86,10 @@ export interface KVNamespace {
   get(key: string): Promise<string | null>;
   put(key: string, value: string, options?: { expirationTtl?: number }): Promise<void>;
 }
+
+/** Static-assets binding — the steward invite email fetches its screenshot attachment
+ *  from the worker's own assets at send time (no base64 baked into the bundle). */
+export interface AssetsBinding { fetch(request: Request): Promise<Response> }
 
 /** Minimal D1 shape — prepare/bind + first/run/all covers the join + outreach flows. */
 export interface D1Database {

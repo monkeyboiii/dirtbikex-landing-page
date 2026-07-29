@@ -60,9 +60,7 @@ the mechanics), and each block may carry `steps`, a *typographic* 4-step timelin
 that shows the whole path costs one reply and one install. Deliberately NOT a graphic
 progress bar — the cold email's plain-text look is load-bearing (see the 600px-wrapper
 decision); the graphic bar lives in the warm steward invite email (JOIN_MODULE).
-`steps` is optional per Block: **EN-only until the operator reviews a live test-send**,
-then the locale pass fills the other 20 (a non-EN send meanwhile stacks old local copy
-above the new EN block). The DM variant compresses the same clarity to its medium:
+`steps`/`early` are per-Block; the **locale pass is DONE** (2026-07-29, all 21 — machine-translated, native review advised before large sends). The DM variant compresses the same clarity to its medium:
 profile-one-tap-away replaces links ("our profile here has a 30-second look"), one link
 total, and the next step is channel-consistent ("I'll send your personal invite right
 here" — a DM funnel delivers the `/s/i` link by DM, not email).

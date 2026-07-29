@@ -147,9 +147,10 @@ operator direction): a filled **75% progress bar** + "3 of 4 — one step left" 
 step table (reached out ✓ / said yes ✓ / this email ✓ / → install the app); a sharpened
 role line; the **track name read from the invite code row** (`invite_codes.track_name`,
 stamped by the CRM at mint since migration 0004 — the claim's `RETURNING` now selects
-it; NULL → "your track"); one **App Store listing screenshot**
-(`public/email/app-store.jpg`, 560×1154 derivative of `misc/app-store-listing-src.jpg`,
-rendered 260px wide via `${base}/email/…` so each env serves its own copy); a "**what
+it; NULL → "your track"); the **App Store listing screenshot as the FIRST attachment** (before the QR card;
+`public/email/app-store.jpg`, 560×1154 derivative of `misc/app-store-listing-src.jpg`,
+fetched at send time via the `ASSETS` binding — a remote `<img>` rendered as a broken
+blue "?" on mobile and stalled the body load, so the body is now image-free); a "**what
 happens when you open the app**" paragraph that previews the claim banner and matches
 the code's lock flag (locked: "your invite is tied to it"; unlocked default: "any email
 works, though using this one lets DirtBikeX recognize {track} automatically" — the

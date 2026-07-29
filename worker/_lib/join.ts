@@ -376,7 +376,6 @@ Unsubscribe: ${unsubUrl}`;
 ${inviteBtn}
 <p style="font-size:13px;color:#666;">On an iPhone, the button opens the App Store — DirtBikeX is live for iOS. On a computer, it opens the community in your browser instead.</p>
 <p><strong>What happens when you open the app:</strong> ${lockLine}. One tap claims your page, steward badge included. I'll have the basics filled in already.</p>
-<p style="margin:20px 0 0;"><img src="${base}/email/app-store.jpg" width="280" alt="DirtBikeX on the App Store" style="max-width:100%;height:auto;border-radius:12px;border:1px solid #e5e5e5;"></p>
 <hr style="border:none;border-top:1px solid #ddd;margin:24px 0 12px;">
 <p style="font-size:13px;color:#767676;line-height:1.5;">${cardNote}You're receiving this one-time invite because you asked for it when we talked.${address ? `<br>DirtBikeX &middot; ${escapeHtml(address)}` : ''}<br><a href="${base}/privacy" style="color:#767676;text-decoration:underline;">Privacy</a> &middot; <a href="${unsubUrl}" style="color:#767676;text-decoration:underline;">Unsubscribe</a>${replyTo ? ` &middot; <a href="mailto:${replyTo}" style="color:#767676;text-decoration:underline;">Contact us</a>` : ''}</p>
 </div>
@@ -406,6 +405,24 @@ Privacy: ${base}/privacy
 Unsubscribe: ${unsubUrl}`;
   }
 
+  // Steward emails carry the App Store screenshot as the FIRST attachment: a remote
+  // <img> rendered as a broken blue "?" on mobile clients and stalled the body load
+  // (operator-reported); an attachment ships with the message. Fetched from the
+  // worker's own assets so the bundle stays image-free.
+  let screenshotB64: string | null = null;
+  if (kind === 'track_stewards' && env.ASSETS) {
+    try {
+      const shot = await env.ASSETS.fetch(new Request(`${base}/email/app-store.jpg`));
+      if (shot.ok) screenshotB64 = bytesToBase64(new Uint8Array(await shot.arrayBuffer()));
+    } catch (err) {
+      console.error('join:screenshot_fetch_failed', { err: String(err) });
+    }
+  }
+  const attachments = [
+    ...(screenshotB64 ? [{ filename: 'dirtbikex-app-store.jpg', content: screenshotB64 }] : []),
+    ...(cardBase64 ? [{ filename: `dirtbikex-${kind}.png`, content: cardBase64 }] : []),
+  ];
+
   let resp: Response;
   try {
     resp = await fetch('https://api.resend.com/emails', {
@@ -418,7 +435,7 @@ Unsubscribe: ${unsubUrl}`;
         html,
         text,
         ...(replyTo ? { reply_to: replyTo } : {}),
-        ...(cardBase64 ? { attachments: [{ filename: `dirtbikex-${kind}.png`, content: cardBase64 }] } : {}),
+        ...(attachments.length ? { attachments } : {}),
         headers: {
           'List-Unsubscribe': listUnsub,
           'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
