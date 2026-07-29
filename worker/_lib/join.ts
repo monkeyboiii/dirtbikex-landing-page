@@ -59,6 +59,15 @@ function escapeHtml(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
+// Operator/test identities exempt from the join abuse caps (exact emails + own domains).
+const RATE_EXEMPT_EMAILS = new Set(['hl88usa@gmail.com', 'teamdirtbikex@gmail.com']);
+const RATE_EXEMPT_DOMAINS = new Set(['dirtbikexllc.com', 'dirtbikex.com']);
+function rateExempt(email: string): boolean {
+  if (RATE_EXEMPT_EMAILS.has(email)) return true;
+  const at = email.lastIndexOf('@');
+  return at >= 0 && RATE_EXEMPT_DOMAINS.has(email.slice(at + 1));
+}
+
 export async function handleJoinSubmit(request: Request, env: PagesEnv): Promise<Response> {
   if (!env.SUBSCRIBERS_DB) {
     console.error('join:no_db');
@@ -80,7 +89,10 @@ export async function handleJoinSubmit(request: Request, env: PagesEnv): Promise
 
   // Abuse caps. Warn-and-allow if KV is unbound — a sign-up shouldn't hard-fail
   // on a missing-binding config gap (unlike the auth SMS gateway, which fails closed).
-  if (env.RATELIMIT_KV) {
+  // Operator/test addresses are exempt: repeated Deliver tests tripped the 3/day
+  // email cap, and the CRM's server-side Deliver funnels ALL sends through one
+  // egress IP against the 10/h cap. See JOIN_MODULE.md § Debugging.
+  if (env.RATELIMIT_KV && !rateExempt(email)) {
     const byIp = await rateLimitConsume(env.RATELIMIT_KV, `join:ip:${clientIp(request)}:1h`, 10, 3600);
     const byEmail = await rateLimitConsume(env.RATELIMIT_KV, `join:email:${email}:1d`, 3, 86400);
     if (!byIp.allowed || !byEmail.allowed) {

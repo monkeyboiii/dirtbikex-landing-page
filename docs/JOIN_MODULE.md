@@ -259,6 +259,13 @@ redemptions immediately; only worker *code* changes need a redeploy.
 
 ## Debugging
 
+- **Deliver / join POST → 429** — the abuse caps: 3/day per email, 10/h per IP — and the
+  CRM's server-side Deliver funnels *every* send through one egress IP, so batch
+  delivering trips the IP cap on its own. Operator identities are exempt
+  (`RATE_EXEMPT_EMAILS`/`_DOMAINS` in join.ts: hl88usa@gmail.com,
+  teamdirtbikex@gmail.com, @dirtbikexllc.com, @dirtbikex.com); real recipients are
+  deliberately not — wait out the window or extend the lists in code.
+
 - **`/api/join` → 502 `send_failed`** — Resend rejected. Check `RESEND_API_KEY` set, `joindirtbikex.com` verified in Resend, `JOIN_FROM_EMAIL` on that domain. Worker logs `join:resend_non_2xx`/`join:email_misconfigured`.
 - **`/api/join` → 503 `service_misconfigured`** — `SUBSCRIBERS_DB` not bound / wrong id. `wrangler d1 list` vs wrangler.jsonc.
 - **Binding present but queries fail** — binding name must be exactly `SUBSCRIBERS_DB` (code reads `env.SUBSCRIBERS_DB`); `wrangler d1 create` auto-suggests a name-derived binding (`dbx_subscribers`) — rename it.
