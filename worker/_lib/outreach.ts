@@ -29,6 +29,8 @@ interface Block {
   /** Quiet 4-step timeline (step 1 = this email, arrow "you are here"). EN-only until the
    *  locale pass — absent means the block renders without it. */
   steps?: { title: string; got: string; reply: string; invite: string; install: string; here: string };
+  /** Single early-supporter line rendered between the timeline and the cta. EN-only for now. */
+  early?: string;
 }
 
 // Sign-off + social footer are constant across languages (a name/brand/handle isn't
@@ -62,6 +64,7 @@ const EN: Block = {
     install: "You install the app — your page is live",
     here: "you are here",
   },
+  early: "We're early-stage — the first tracks on board shape what gets built, and early supporters will be rewarded as DirtBikeX grows.",
 };
 
 // Local-language blocks. A non-English send stacks the local block above the English one.
@@ -297,13 +300,14 @@ function blockHtml(b: Block, track: string, locale: string): string {
   return `<p>${fill(escapeHtml(b.lead), t)}</p>
 <p>${fill(linkIntroHtml(escapeHtml(b.intro), locale), t)} ${escapeHtml(b.look)} <a href="${REEL_URL}" dir="ltr" style="${LINK_STYLE}">instagram.com/reel/DbP-9nTot-v</a></p>
 <p>${fill(escapeHtml(b.value), t)}</p>
-${b.steps ? stepsHtml(b.steps, t) : ''}<p>${fill(escapeHtml(b.cta), t)}</p>
+${b.steps ? stepsHtml(b.steps, t) : ''}${b.early ? `<p>${fill(escapeHtml(b.early), t)}</p>\n` : ''}<p>${fill(escapeHtml(b.cta), t)}</p>
 <p>${escapeHtml(SIGNATURE)}</p>`;
 }
 
 function blockText(b: Block, track: string): string {
   const steps = b.steps ? `${stepsText(b.steps, track)}\n\n` : '';
-  return `${fill(b.lead, track)}\n\n${fill(linkIntroText(b.intro), track)} ${b.look} ${REEL_URL}\n\n${fill(b.value, track)}\n\n${steps}${fill(b.cta, track)}\n\n${SIGNATURE}`;
+  const early = b.early ? `${fill(b.early, track)}\n\n` : '';
+  return `${fill(b.lead, track)}\n\n${fill(linkIntroText(b.intro), track)} ${b.look} ${REEL_URL}\n\n${fill(b.value, track)}\n\n${steps}${early}${fill(b.cta, track)}\n\n${SIGNATURE}`;
 }
 
 const RTL_LOCALES = new Set(['ar', 'fa_IR']);
