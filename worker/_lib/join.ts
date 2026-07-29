@@ -204,10 +204,10 @@ async function redeemInvite(env: PagesEnv, email: string, locale: string, code: 
     .prepare(
       "UPDATE invite_codes SET used_count = used_count + 1, redeemed_email = ?, redeemed_at = datetime('now') " +
       "WHERE code = ? AND used_count < max_uses AND (expires_at IS NULL OR expires_at > datetime('now')) " +
-      'RETURNING kind, track_name',
+      'RETURNING kind, track_name, email_locked',
     )
     .bind(email, code)
-    .first<{ kind: string; track_name: string | null }>();
+    .first<{ kind: string; track_name: string | null; email_locked: number }>();
   if (!claim) return json(409, { error: 'code_invalid' });
   const kind = claim.kind;
 
@@ -234,7 +234,7 @@ async function redeemInvite(env: PagesEnv, email: string, locale: string, code: 
       console.error('join:group_unconfigured', { kind, var: groupVar });
       return json(503, { error: 'service_misconfigured' });
     }
-    const minted = await mintInvite(env, email, groupId, cfg.label, code);
+    const minted = await mintInvite(env, claim.email_locked ? email : null, groupId, cfg.label, code);
     if (!minted.ok) {
       await releaseCode(env, code);
       console.error('join:mint_failed', { kind, reason: minted.reason });
@@ -244,7 +244,7 @@ async function redeemInvite(env: PagesEnv, email: string, locale: string, code: 
   }
 
   const card = await fetchCardBase64(env, kind, locale, inviteUrl);
-  if (!(await sendInviteEmail(env, email, token, kind, { label: cfg.label, inviteUrl, trackName: claim.track_name }, card))) {
+  if (!(await sendInviteEmail(env, email, token, kind, { label: cfg.label, inviteUrl, trackName: claim.track_name, emailLocked: !!claim.email_locked }, card))) {
     await releaseCode(env, code);
     console.error('join:invite_send_failed', { kind });
     return json(502, { error: 'send_failed' });
@@ -298,7 +298,7 @@ function bytesToBase64(bytes: Uint8Array): string {
 
 export async function sendInviteEmail(
   env: PagesEnv, email: string, token: string, kind: string,
-  cfg: { label: string; inviteUrl: string; trackName?: string | null }, cardBase64: string | null,
+  cfg: { label: string; inviteUrl: string; trackName?: string | null; emailLocked?: boolean }, cardBase64: string | null,
 ): Promise<boolean> {
   const apiKey = env.RESEND_API_KEY;
   const from = env.JOIN_FROM_EMAIL;
@@ -341,21 +341,27 @@ Unsubscribe: ${unsubUrl}`;
 
   // Track-steward invites answer the operator's own reply to a cold email/DM — a
   // different provenance than the waitlist, so the copy, the step meter, and the
-  // footer reason line are steward-specific. See JOIN_MODULE.md § "Steward invite email".
+  // footer reason line are steward-specific. Layout + lock semantics:
+  // JOIN_MODULE.md § "Steward invite email" / § "Per-redemption Discourse invites".
   if (kind === 'track_stewards') {
     subject = 'Your Track Stewards invite — one step to go';
     const check = '<td style="padding:2px 10px 2px 0;color:#1a7f37;">&#10003;</td>';
     const trackDisp = cfg.trackName ? escapeHtml(cfg.trackName) : 'your track';
-    const stewardCard = cardBase64
-      ? '<p style="font-size:13px;color:#666;">Reading this on a computer? The attached card carries the same invite — scan it with your phone.</p>'
+    // Opt-in email locking (invite_codes.email_locked, migration 0008): the sentence must
+    // match what the minted Discourse invite actually enforces.
+    const lockLine = cfg.emailLocked
+      ? `sign up with this email address (${escapeHtml(email)}) — your invite is tied to it — and DirtBikeX recognizes ${trackDisp} is yours`
+      : `sign up — any email works, though using this one (${escapeHtml(email)}) lets DirtBikeX recognize ${trackDisp} is yours automatically`;
+    const cardNote = cardBase64
+      ? 'Reading this on a computer? The attached card carries the same invite — scan it with your phone.<br>'
       : '';
     html = `<!DOCTYPE html><html><body style="font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.55;color:#222;margin:0;padding:24px;">
 <div style="max-width:600px;margin:0 auto;">
 <p>You're in — thanks for the reply.</p>
 <p><strong>Track Stewards</strong> is the operators' group: a verified badge, ${trackDisp === 'your track' ? 'your track' : `<strong>${trackDisp}</strong>`}'s page in your own hands, and your events in front of people who opened a dirt-bike app on purpose.</p>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:20px 0 6px;"><tr>
-<td width="75%" style="background:#1a7f37;height:8px;border-radius:4px 0 0 4px;font-size:0;line-height:0;">&nbsp;</td>
-<td width="25%" style="background:#e6e6e6;height:8px;border-radius:0 4px 4px 0;font-size:0;line-height:0;">&nbsp;</td>
+<td width="75%" height="8" bgcolor="#1a7f37" style="background:#1a7f37;height:8px;line-height:8px;font-size:8px;border-radius:4px 0 0 4px;">&nbsp;</td>
+<td width="25%" height="8" bgcolor="#e6e6e6" style="background:#e6e6e6;height:8px;line-height:8px;font-size:8px;border-radius:0 4px 4px 0;">&nbsp;</td>
 </tr></table>
 <p style="margin:0 0 8px;font-size:13px;color:#666;"><strong style="color:#1a7f37;">3 of 4</strong> — one step left</p>
 <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 4px;">
@@ -366,15 +372,16 @@ Unsubscribe: ${unsubUrl}`;
 </table>
 ${inviteBtn}
 <p style="font-size:13px;color:#666;">On an iPhone, the button opens the App Store — DirtBikeX is live for iOS. On a computer, it opens the community in your browser instead.</p>
-<p style="margin:16px 0;"><img src="${base}/email/app-store.jpg" width="260" alt="DirtBikeX on the App Store" style="max-width:100%;height:auto;border-radius:12px;border:1px solid #e5e5e5;"></p>
-<p><strong>What happens when you open the app:</strong> sign up with this email address (${escapeHtml(email)}) — your invite is tied to it — and DirtBikeX recognizes ${trackDisp} is yours. One tap claims your page, steward badge included. I'll have the basics filled in already.</p>
-${stewardCard}
-<p style="font-size:13px;color:#767676;">Want early-supporter perks and new-feature first looks too? <a href="${confirmUrl}" style="color:#767676;">Confirm your email</a>.</p>
+<p><strong>What happens when you open the app:</strong> ${lockLine}. One tap claims your page, steward badge included. I'll have the basics filled in already.</p>
+<p style="margin:20px 0 0;"><img src="${base}/email/app-store.jpg" width="280" alt="DirtBikeX on the App Store" style="max-width:100%;height:auto;border-radius:12px;border:1px solid #e5e5e5;"></p>
 <hr style="border:none;border-top:1px solid #ddd;margin:24px 0 12px;">
-<p style="font-size:13px;color:#767676;line-height:1.5;">You're receiving this one-time invite because you asked for it when we talked.${address ? `<br>DirtBikeX &middot; ${escapeHtml(address)}` : ''}<br><a href="${base}/privacy" style="color:#767676;text-decoration:underline;">Privacy</a> &middot; <a href="${unsubUrl}" style="color:#767676;text-decoration:underline;">Unsubscribe</a>${replyTo ? ` &middot; <a href="mailto:${replyTo}" style="color:#767676;text-decoration:underline;">Contact us</a>` : ''}</p>
+<p style="font-size:13px;color:#767676;line-height:1.5;">${cardNote}You're receiving this one-time invite because you asked for it when we talked.${address ? `<br>DirtBikeX &middot; ${escapeHtml(address)}` : ''}<br><a href="${base}/privacy" style="color:#767676;text-decoration:underline;">Privacy</a> &middot; <a href="${unsubUrl}" style="color:#767676;text-decoration:underline;">Unsubscribe</a>${replyTo ? ` &middot; <a href="mailto:${replyTo}" style="color:#767676;text-decoration:underline;">Contact us</a>` : ''}</p>
 </div>
 </body></html>`;
     const trackText = cfg.trackName || 'your track';
+    const lockText = cfg.emailLocked
+      ? `sign up with this email address (${email}) — your invite is tied to it — and DirtBikeX recognizes ${trackText} is yours`
+      : `sign up — any email works, though using this one (${email}) lets DirtBikeX recognize ${trackText} is yours automatically`;
     text = `You're in — thanks for the reply.
 
 Track Stewards is the operators' group: a verified badge, ${trackText}'s page in your own hands, and your events in front of people who opened a dirt-bike app on purpose.
@@ -387,10 +394,8 @@ Your onboarding — 3 of 4 done, one step left:
 ${cfg.inviteUrl ? `\nOpen your invite: ${cfg.inviteUrl}\n` : ''}
 On an iPhone, that link opens the App Store — DirtBikeX is live for iOS. On a computer, it opens the community in your browser instead.
 
-What happens when you open the app: sign up with this email address (${email}) — your invite is tied to it — and DirtBikeX recognizes ${trackText} is yours. One tap claims your page, steward badge included. I'll have the basics filled in already.
+What happens when you open the app: ${lockText}. One tap claims your page, steward badge included. I'll have the basics filled in already.
 ${cardBase64 ? '\nReading this on a computer? The attached card carries the same invite — scan it with your phone.\n' : ''}
-Want early-supporter perks and new-feature first looks too? Confirm your email: ${confirmUrl}
-
 —
 You're receiving this one-time invite because you asked for it when we talked.
 DirtBikeX${address ? ` · ${address}` : ''}

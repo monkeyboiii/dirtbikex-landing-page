@@ -97,10 +97,19 @@ The card + link are delivered immediately; the email's confirm CTA is the list o
 per-row token; the `crew_allotment` idea (one steward email carrying extra multi-use
 crew invites) was dropped — each kind now has its own code and its own card.
 
-### Per-redemption Discourse invites, email-locked and group-attached
-`mintInvite` POSTs `/invites.json` with the redeemer's `email`, the kind's `group_ids`,
-and `skip_email=true` (Resend is the only sender). Because the invite carries an email,
-Discourse locks redemption to that address — a forwarded link or leaked QR admits nobody.
+### Per-redemption Discourse invites, group-attached; email locking is per-code OPT-IN
+Since migration 0008 (operator decision 2026-07-29: "must use exactly this address" was
+too strong a premise), `invite_codes.email_locked` (default **0**) decides what
+`mintInvite` sends: locked → `/invites.json` with the redeemer's `email` +
+`skip_email=true`, so Discourse refuses any other address (forwarded link/QR admits
+nobody); unlocked (default) → **no email param**, a generic one-use link invite anyone
+can redeem. The CRM mint form's "lock to email" checkbox sets the flag; existing codes
+took the unlocked default deliberately. **Trade, recorded:** an unlocked redeemer may
+sign up with a different address, which fails the claim-hint identity cross-check
+(`redeemed_email` vs the joined account) — auto-claim degrades to the manual path; the
+steward email therefore *recommends* the delivered address instead of requiring it.
+Unlocked orphans (send-failure released the code but the invite minted) are live
+shareable invites until forum expiry — acceptable at current volume, group-only stakes.
 `max_redemptions_allowed` is **omitted**: Discourse rejects any value but `1` alongside an
 email, and defaults to `1`. `expires_at` is **omitted** too, so the forum's own
 `invite_expiry_days` governs and expiry stays canonical in Discourse.
@@ -134,12 +143,17 @@ stamped by the CRM at mint since migration 0004 — the claim's `RETURNING` now 
 it; NULL → "your track"); one **App Store listing screenshot**
 (`public/email/app-store.jpg`, 560×1154 derivative of `misc/app-store-listing-src.jpg`,
 rendered 260px wide via `${base}/email/…` so each env serves its own copy); a "**what
-happens when you open the app**" paragraph that previews the claim banner (sign up with
-THIS email → app recognizes {track} → one-tap claim + badge) — load-bearing, because the
-invite is email-locked (above) and the claim-hint auto-claim cross-checks
-`redeemed_email`; the QR card reframed as the *computer-reader's* path; and a truthful
-footer reason line. Layout follows the outreach email's conventions (600px wrapper,
-13px/#767676 AA fine print). **NOT done:** localization — the body is EN-only (as the
+happens when you open the app**" paragraph that previews the claim banner and matches
+the code's lock flag (locked: "your invite is tied to it"; unlocked default: "any email
+works, though using this one lets DirtBikeX recognize {track} automatically" — the
+claim-hint cross-check is why the same address is still recommended); the QR card note
+folded into the fine print; and a truthful footer reason line. **Gmail-render pass
+(live PDF review 2026-07-29):** the screenshot sits at the END of the flow so it never
+splits the instructions; the bar uses `bgcolor`+`height` *attributes* (Gmail drops
+height-on-td styles — the styled-only bar rendered as nothing); the perks/confirm
+cross-sell was cut from the steward variant (tail was six stacked small lines). Layout
+otherwise follows the outreach email's conventions (600px wrapper, 13px/#767676 AA
+fine print). **NOT done:** localization — the body is EN-only (as the
 generic always was) while the card attachment is already locale-matched; add a LOCALES
 map like `outreach.ts` when non-English stewards start converting. **Verified by:**
 rendering all kinds through the real `sendInviteEmail` with a stubbed fetch and

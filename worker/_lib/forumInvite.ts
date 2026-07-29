@@ -11,7 +11,7 @@ export type MintResult =
  */
 export async function mintInvite(
   env: PagesEnv,
-  email: string,
+  email: string | null,
   groupId: string,
   label: string,
   code: string,
@@ -36,12 +36,13 @@ export async function mintInvite(
     resp = await fetch(`${env.FORUM_BASE}/invites.json`, {
       method: 'POST',
       headers,
+      // No email -> a generic one-use link invite (email locking is per-code opt-in
+      // since migration 0008; see JOIN_MODULE.md "Per-redemption Discourse invites").
       body: new URLSearchParams({
-        email,
         group_ids: groupId,
-        skip_email: 'true',
         custom_message: label,
         description: `code:${code}`,
+        ...(email ? { email, skip_email: 'true' } : {}),
       }),
     });
   } catch (err) {

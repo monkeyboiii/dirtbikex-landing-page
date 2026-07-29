@@ -1,0 +1,12 @@
+-- Per-code email locking becomes OPT-IN (operator decision 2026-07-29): by default a
+-- redeemed code now mints a generic one-use Discourse invite (no email lock), because
+-- "sign up with exactly this address" proved too strong a premise for operators. A
+-- CRM mint-form checkbox sets email_locked=1 to restore the old behavior per code.
+-- Existing rows take the DEFAULT 0 — outstanding codes become unlocked, deliberately.
+-- Trade recorded in JOIN_MODULE.md: unlocked invites weaken the claim-hint auto-claim
+-- (it cross-checks redeemed_email against the joined account).
+--
+-- Apply to BOTH databases (single additive ALTER — use --command, no import outage):
+--   pnpm wrangler d1 execute dbx-subscribers --env preview --remote --command "ALTER TABLE invite_codes ADD COLUMN email_locked INTEGER NOT NULL DEFAULT 0"
+--   pnpm wrangler d1 execute dbx-subscribers --env "" --remote --command "ALTER TABLE invite_codes ADD COLUMN email_locked INTEGER NOT NULL DEFAULT 0"   # prod
+ALTER TABLE invite_codes ADD COLUMN email_locked INTEGER NOT NULL DEFAULT 0;
