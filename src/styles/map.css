@@ -13,8 +13,11 @@
   --wm-text-faint: #6e6c69;
   --wm-accent: #ed6b00;
   --wm-accent-soft: rgba(237, 107, 0, 0.12);
-  --wm-tone-success: #2fa84f;
-  --wm-tone-partial: #6f9c62;
+  --wm-tone-success: #1f7a39;
+  --wm-tone-partial: #5f8f4a;
+  --wm-chip-verified: #1f7a39;
+  --wm-chip-claimed: #a34d00;
+  --wm-ball-glow: 0 0 10px rgba(var(--wm-veil), 0.8);
   --wm-raise: rgba(22, 20, 15, 0.07);
   --wm-raise-line: rgba(22, 20, 15, 0.4);
   --wm-blur: saturate(140%) blur(14px);
@@ -41,6 +44,10 @@
   --wm-accent-soft: rgba(237, 107, 0, 0.16);
   --wm-raise: rgba(255, 255, 255, 0.1);
   --wm-raise-line: rgba(255, 255, 255, 0.34);
+  --wm-tone-success: #2fa84f;
+  --wm-tone-partial: #8fbf7a;
+  --wm-chip-verified: #7fd08f;
+  --wm-chip-claimed: #ffb469;
 }
 
 body.is-map-page {
@@ -241,7 +248,7 @@ body.is-map-page .site-header__inner {
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 6px 0 2px;
+  padding: 12px 0 10px;
   overflow-x: auto;
   overscroll-behavior-x: contain;
   scroll-snap-type: x proximity;
@@ -306,7 +313,7 @@ body.is-map-page .site-header__inner {
   background: transparent;
   cursor: pointer;
   appearance: none;
-  box-shadow: 0 0 10px rgba(var(--wm-veil), 0.8);
+  box-shadow: var(--wm-ball-glow);
   transition: transform var(--dur-fast, 120ms) var(--ease-spring, ease),
     box-shadow var(--dur-base, 200ms) ease;
 }
@@ -328,24 +335,27 @@ body.is-map-page .site-header__inner {
   background: var(--wm-tone-success);
   border-color: var(--wm-tone-success);
 }
+/* Hollow rather than filled: "we were there, it didn't fully land". Colour alone
+   at this size is indistinguishable from `success`. */
 .wm-ball[data-tone='partial'] {
-  background: var(--wm-tone-partial);
+  background: transparent;
   border-color: var(--wm-tone-partial);
+  border-width: 2.5px;
 }
 .wm-ball[data-tone='success'].is-live {
-  box-shadow: 0 0 0 3px rgba(47, 168, 79, 0.22);
+  box-shadow: 0 0 0 3px rgba(47, 168, 79, 0.26), var(--wm-ball-glow);
 }
 .wm-ball[data-tone='partial'].is-live {
-  box-shadow: 0 0 0 3px rgba(111, 156, 98, 0.22);
+  box-shadow: 0 0 0 3px rgba(143, 191, 122, 0.26), var(--wm-ball-glow);
 }
 .wm-ball[data-tone='success'].is-active {
-  box-shadow: 0 0 0 4px rgba(47, 168, 79, 0.3);
+  box-shadow: 0 0 0 4px rgba(47, 168, 79, 0.34), var(--wm-ball-glow);
 }
 .wm-ball[data-tone='partial'].is-active {
-  box-shadow: 0 0 0 4px rgba(111, 156, 98, 0.3);
+  box-shadow: 0 0 0 4px rgba(143, 191, 122, 0.34), var(--wm-ball-glow);
 }
 .wm-ball.is-live {
-  box-shadow: 0 0 0 3px rgba(237, 107, 0, 0.22);
+  box-shadow: 0 0 0 3px rgba(237, 107, 0, 0.22), var(--wm-ball-glow);
 }
 .wm-ball--side {
   width: 8px;
@@ -353,10 +363,7 @@ body.is-map-page .site-header__inner {
   border-radius: 2px;
   transform: rotate(45deg);
 }
-.wm-ball--side.is-active,
-.wm-ball--side:hover {
-  transform: rotate(45deg) scale(1.35);
-}
+
 .wm-ball--empty {
   cursor: default;
   opacity: 0.55;
@@ -365,8 +372,12 @@ body.is-map-page .site-header__inner {
 .wm-ball.is-active {
   transform: scale(1.35);
 }
+.wm-ball--side:hover,
+.wm-ball--side.is-active {
+  transform: rotate(45deg) scale(1.35);
+}
 .wm-ball.is-active {
-  box-shadow: 0 0 0 4px rgba(237, 107, 0, 0.28);
+  box-shadow: 0 0 0 4px rgba(237, 107, 0, 0.28), var(--wm-ball-glow);
 }
 .wm-ball:focus-visible {
   outline: 2px solid var(--wm-accent);
@@ -736,13 +747,13 @@ body.is-map-page .site-header__inner {
   color: var(--wm-text-dim);
 }
 .wm-chip--verified {
-  border-color: rgba(47, 168, 79, 0.4);
-  color: #7fd08f;
+  border-color: color-mix(in oklab, var(--wm-chip-verified) 45%, transparent);
+  color: var(--wm-chip-verified);
 }
 .wm-chip--claimed {
-  border-color: rgba(237, 107, 0, 0.5);
+  border-color: color-mix(in oklab, var(--wm-chip-claimed) 50%, transparent);
   background: var(--wm-accent-soft);
-  color: #ffb469;
+  color: var(--wm-chip-claimed);
 }
 .wm-panel__link {
   justify-self: start;

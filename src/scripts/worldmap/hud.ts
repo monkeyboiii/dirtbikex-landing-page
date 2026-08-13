@@ -68,12 +68,18 @@ export function createHud(deps: HudDeps, series: SeriesDoc, placements: Map<Seri
     return `${text.slice(0, LABEL_MAX - 1).replace(/[\s,;·、，]+$/, '')}…`;
   }
 
-  function centre(ball: HTMLElement, smooth = true) {
+  /** Returns true only when it actually moved — arming the self-scroll guard for a
+      zero-distance "centre" would swallow the visitor's next real scroll. */
+  function centre(ball: HTMLElement, smooth = true): boolean {
+    const box = ball.getBoundingClientRect();
+    const mid = bar.getBoundingClientRect().left + bar.clientWidth / 2;
+    if (Math.abs(box.left + box.width / 2 - mid) < 2) return false;
     ball.scrollIntoView({
       behavior: smooth && !window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'smooth' : 'auto',
       inline: 'center',
       block: 'nearest',
     });
+    return true;
   }
 
   function render() {
@@ -130,6 +136,7 @@ export function createHud(deps: HudDeps, series: SeriesDoc, placements: Map<Seri
   let settle: ReturnType<typeof setTimeout> | undefined;
 
   function setActive(entry: SeriesEntry | null, smooth = true, scroll = true) {
+    clearTimeout(settle);
     let hit: HTMLElement | null = null;
     for (const ball of rail.querySelectorAll<HTMLElement>('.wm-ball')) {
       const active = !!entry && ball.dataset.label === entry.label;
@@ -138,9 +145,8 @@ export function createHud(deps: HudDeps, series: SeriesDoc, placements: Map<Seri
     }
     activeLabel = entry?.label ?? null;
     labelEl.textContent = entry ? shortLabel(entry) : '';
-    if (hit && scroll) {
+    if (hit && scroll && centre(hit, smooth)) {
       selfScrollUntil = Date.now() + SELF_SCROLL_MS;
-      centre(hit, smooth);
     }
   }
 
@@ -162,6 +168,10 @@ export function createHud(deps: HudDeps, series: SeriesDoc, placements: Map<Seri
 
   // Scrolling the rail selects whatever lands in the middle: the label and dot
   // follow immediately (with a tick of haptics), the sheet once scrolling settles.
+  bar.addEventListener('scrollend', () => {
+    selfScrollUntil = 0;
+  });
+
   bar.addEventListener(
     'scroll',
     () => {
