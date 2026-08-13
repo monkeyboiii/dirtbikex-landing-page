@@ -304,10 +304,12 @@ export function createPanel(deps: PanelDeps) {
             el('p', 'wm-panel__status', strings['map.panel.inProduction'] ?? 'Episode in production'),
           );
         }
-        host.appendChild(platformRow(entry));
+        // Platform jumps lead, episode arrows trail — one row.
+        const actions = el('div', 'wm-panel__actions');
+        actions.append(platformRow(entry), stepper(steps.prev, steps.next));
+        host.appendChild(actions);
 
         if (track) trackInfo(host, track);
-        host.appendChild(stepper(steps.prev, steps.next));
       });
     },
   };

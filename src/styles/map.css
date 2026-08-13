@@ -543,10 +543,16 @@ body.is-map-page .site-header__inner {
   background: var(--wm-accent);
   box-shadow: 0 0 0 3px var(--wm-accent-soft);
 }
+.wm-panel__actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 6px;
+}
 .wm-panel__socials {
   display: flex;
   gap: 8px;
-  margin-top: 6px;
 }
 .wm-social {
   width: 44px;
@@ -683,12 +689,10 @@ body.is-map-page .site-header__inner {
   background: var(--wm-text-dim);
 }
 
-/* Bottom-trailing episode stepper. */
+/* Episode stepper — trailing end of the platform row. */
 .wm-panel__nav {
   display: flex;
-  justify-content: flex-end;
   gap: 6px;
-  margin-top: 12px;
 }
 .wm-step {
   width: 34px;
