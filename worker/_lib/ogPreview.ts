@@ -167,20 +167,31 @@ function decodeEntities(value: string): string {
 }
 
 /**
- * Reads one og:/twitter: property, tolerating either attribute order. The quote
- * character is backreferenced so an apostrophe inside a double-quoted caption
- * doesn't truncate the value.
+ * Collects the head's meta tags once.
+ *
+ * Earlier versions regexed the whole document per property. A non-greedy
+ * `content=(["'])([\s\S]*?)\1` that finds no match backtracks across the entire
+ * body at every start position — on Facebook's wall page that blew the worker's
+ * CPU limit (error 1102). Scanning bounded `<meta …>` tags and reading their
+ * attributes is linear and can't backtrack.
  */
-function meta(html: string, property: string): string | null {
-  const patterns = [
-    new RegExp(`<meta[^>]+(?:property|name)=["']${property}["'][^>]*?content=(["'])([\\s\\S]*?)\\1`, 'i'),
-    new RegExp(`<meta[^>]+content=(["'])([\\s\\S]*?)\\1[^>]*?(?:property|name)=["']${property}["']`, 'i'),
-  ];
-  for (const re of patterns) {
-    const hit = re.exec(html);
-    if (hit?.[2]) return decodeEntities(hit[2]).trim();
+function attr(tag: string, name: string): string | null {
+  const hit = new RegExp(`\\b${name}\\s*=\\s*("([^"]*)"|'([^']*)'|([^\\s"'>]+))`, 'i').exec(tag);
+  if (!hit) return null;
+  return hit[2] ?? hit[3] ?? hit[4] ?? null;
+}
+
+function collectMeta(html: string): Map<string, string> {
+  const end = html.indexOf('</head>');
+  const head = end > 0 ? html.slice(0, end) : html;
+  const out = new Map<string, string>();
+  for (const match of head.matchAll(/<meta\b[^>]{0,3000}>/gi)) {
+    const tag = match[0];
+    const key = (attr(tag, 'property') ?? attr(tag, 'name'))?.toLowerCase();
+    const content = attr(tag, 'content');
+    if (key && content != null && !out.has(key)) out.set(key, decodeEntities(content).trim());
   }
-  return null;
+  return out;
 }
 
 function toBase64(bytes: Uint8Array): string {
@@ -229,12 +240,13 @@ async function previewOne(start: URL): Promise<Preview | null> {
 
   const bytes = await readCapped(hit.resp, MAX_HTML_BYTES, true).catch(() => null);
   if (!bytes) return null;
-  const html = new TextDecoder().decode(bytes);
+  const tags = collectMeta(new TextDecoder().decode(bytes));
+  const pick = (...keys: string[]) => keys.map((k) => tags.get(k)).find((v) => !!v) ?? null;
 
-  let title = meta(html, 'og:title') ?? meta(html, 'twitter:title');
-  let image = meta(html, 'og:image') ?? meta(html, 'twitter:image');
-  let description = meta(html, 'og:description') ?? meta(html, 'twitter:description');
-  const site = meta(html, 'og:site_name');
+  let title = pick('og:title', 'twitter:title');
+  let image = pick('og:image', 'twitter:image');
+  let description = pick('og:description', 'twitter:description');
+  const site = pick('og:site_name');
 
   if (/(^|\.)tiktok\.com$/.test(hit.url.hostname)) {
     const oembed = await tiktokOembed(hit.url);
