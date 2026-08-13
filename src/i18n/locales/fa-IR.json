@@ -218,12 +218,13 @@
   "map.cat.club": "باشگاه",
   "map.cat.trail_area": "منطقهٔ مسیرها",
   "map.cat.other": "محل موتورسواری",
-  "map.drawer.about": "دربارهٔ DirtBikeX",
+  "map.drawer.about": "درباره",
   "map.drawer.intro": "DirtBikeX جامعه‌ای است برای موتورسواران ترائیل — پیست‌ها، مسیرها و کسانی که در آن‌ها می‌رانند. هر نشان روی این نقشه یک جای واقعی است.",
   "map.drawer.close": "بستن",
   "map.boot.tap": "برای کاوش نقشه ضربه بزنید",
   "map.boot.loading": "در حال بارگذاری جهان",
   "map.a11y.map": "نقشهٔ جهانی تعاملی پیست‌های ترائیل",
   "map.legend.tracks": "{count} پیست روی نقشه",
-  "map.err.unavailable": "نقشه اینجا بارگذاری نشد. DirtBikeX را در ادامه ببینید."
+  "map.err.unavailable": "نقشه اینجا بارگذاری نشد. DirtBikeX را در ادامه ببینید.",
+  "map.control.recenter": "بازگشت به آخرین قسمت"
 }

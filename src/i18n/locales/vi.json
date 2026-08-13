@@ -218,12 +218,13 @@
   "map.cat.club": "Câu lạc bộ",
   "map.cat.trail_area": "Khu cung đường",
   "map.cat.other": "Điểm chạy xe",
-  "map.drawer.about": "Về DirtBikeX",
+  "map.drawer.about": "Giới thiệu",
   "map.drawer.intro": "DirtBikeX là cộng đồng dành cho biker dirt bike — đường đua, cung đường và những người chạy trên đó. Mỗi ghim trên bản đồ này là một nơi có thật.",
   "map.drawer.close": "Đóng",
   "map.boot.tap": "Chạm để khám phá bản đồ",
   "map.boot.loading": "Đang tải thế giới",
   "map.a11y.map": "Bản đồ thế giới tương tác về các đường đua dirt bike",
   "map.legend.tracks": "{count} đường đua trên bản đồ",
-  "map.err.unavailable": "Bản đồ không tải được ở đây. Khám phá DirtBikeX bên dưới."
+  "map.err.unavailable": "Bản đồ không tải được ở đây. Khám phá DirtBikeX bên dưới.",
+  "map.control.recenter": "Về lại tập mới nhất"
 }

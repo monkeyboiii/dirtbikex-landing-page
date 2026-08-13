@@ -42,7 +42,9 @@ export interface SeriesDoc {
 
 export interface MapConfig {
   lang: string;
-  styleUrl: string;
+  /** Two forks of the basemap; the map follows the site's light/dark toggle. */
+  styleDarkUrl: string;
+  styleLightUrl: string;
   tracksUrl: string;
   seriesUrl: string;
   markersBase: string;

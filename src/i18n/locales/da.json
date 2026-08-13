@@ -218,12 +218,13 @@
   "map.cat.club": "Klub",
   "map.cat.trail_area": "Trailområde",
   "map.cat.other": "Kørested",
-  "map.drawer.about": "Om DirtBikeX",
+  "map.drawer.about": "Om os",
   "map.drawer.intro": "DirtBikeX er et fællesskab for dirtbike-kørere — baner, trails og folkene, der kører dem. Hver markør på dette kort er et rigtigt sted.",
   "map.drawer.close": "Luk",
   "map.boot.tap": "Tryk for at udforske kortet",
   "map.boot.loading": "Indlæser verden",
   "map.a11y.map": "Interaktivt verdenskort over dirtbike-baner",
   "map.legend.tracks": "{count} baner på kortet",
-  "map.err.unavailable": "Kortet kunne ikke indlæses her. Udforsk DirtBikeX nedenfor."
+  "map.err.unavailable": "Kortet kunne ikke indlæses her. Udforsk DirtBikeX nedenfor.",
+  "map.control.recenter": "Tilbage til seneste afsnit"
 }

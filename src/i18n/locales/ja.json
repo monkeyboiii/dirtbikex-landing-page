@@ -221,12 +221,13 @@
   "map.cat.club": "クラブ",
   "map.cat.trail_area": "トレイルエリア",
   "map.cat.other": "ライディングスポット",
-  "map.drawer.about": "DirtBikeX について",
+  "map.drawer.about": "概要",
   "map.drawer.intro": "DirtBikeX はダートバイク乗りのためのコミュニティ。コース、トレイル、そしてそこを走る人たち。この地図のピンは、すべて実在する場所です。",
   "map.drawer.close": "閉じる",
   "map.boot.tap": "タップして地図を開く",
   "map.boot.loading": "世界を読み込み中",
   "map.a11y.map": "ダートバイクコースのインタラクティブ世界地図",
   "map.legend.tracks": "地図上に {count} コース",
-  "map.err.unavailable": "ここでは地図を読み込めませんでした。下から DirtBikeX をご覧ください。"
+  "map.err.unavailable": "ここでは地図を読み込めませんでした。下から DirtBikeX をご覧ください。",
+  "map.control.recenter": "最新エピソードに戻る"
 }

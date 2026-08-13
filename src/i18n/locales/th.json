@@ -218,12 +218,13 @@
   "map.cat.club": "คลับ",
   "map.cat.trail_area": "พื้นที่เส้นทาง",
   "map.cat.other": "จุดขับขี่",
-  "map.drawer.about": "เกี่ยวกับ DirtBikeX",
+  "map.drawer.about": "เกี่ยวกับเรา",
   "map.drawer.intro": "DirtBikeX คือคอมมูนิตี้ของคนขี่ดีร์ทไบค์ — สนาม เส้นทาง และผู้คนที่ขี่อยู่ตรงนั้น ทุกหมุดบนแผนที่นี้คือสถานที่จริง",
   "map.drawer.close": "ปิด",
   "map.boot.tap": "แตะเพื่อสำรวจแผนที่",
   "map.boot.loading": "กำลังโหลดโลก",
   "map.a11y.map": "แผนที่โลกแบบอินเทอร์แอกทีฟของสนามดีร์ทไบค์",
   "map.legend.tracks": "{count} สนามบนแผนที่",
-  "map.err.unavailable": "แผนที่โหลดไม่ได้ที่นี่ สำรวจ DirtBikeX ด้านล่างได้เลย"
+  "map.err.unavailable": "แผนที่โหลดไม่ได้ที่นี่ สำรวจ DirtBikeX ด้านล่างได้เลย",
+  "map.control.recenter": "กลับไปยังตอนล่าสุด"
 }

@@ -218,12 +218,13 @@
   "map.cat.club": "Kulüp",
   "map.cat.trail_area": "Patika bölgesi",
   "map.cat.other": "Sürüş noktası",
-  "map.drawer.about": "DirtBikeX hakkında",
+  "map.drawer.about": "Hakkında",
   "map.drawer.intro": "DirtBikeX, dirt bike sürücüleri için bir topluluk — parkurlar, patikalar ve onları süren insanlar. Bu haritadaki her iğne gerçek bir yer.",
   "map.drawer.close": "Kapat",
   "map.boot.tap": "Haritayı keşfetmek için dokun",
   "map.boot.loading": "Dünya yükleniyor",
   "map.a11y.map": "Dirt bike parkurlarının etkileşimli dünya haritası",
   "map.legend.tracks": "Haritada {count} parkur",
-  "map.err.unavailable": "Harita burada yüklenemedi. DirtBikeX'i aşağıda keşfet."
+  "map.err.unavailable": "Harita burada yüklenemedi. DirtBikeX'i aşağıda keşfet.",
+  "map.control.recenter": "Son bölüme dön"
 }

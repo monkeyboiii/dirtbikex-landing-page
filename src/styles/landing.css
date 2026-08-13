@@ -23,6 +23,16 @@
 .site-nav a:hover { color: var(--brand); }
 .site-tools { display: flex; align-items: center; gap: 10px; }
 
+/* Get-app CTA: full label on desktop, bare Apple mark on phones so the bar
+   keeps its space for the language picker and theme toggle. */
+.site-getapp { display: inline-flex; align-items: center; gap: 8px; }
+.site-getapp__mark { display: none; flex-shrink: 0; }
+@media (max-width: 767px) {
+  .site-getapp { padding-left: 12px; padding-right: 12px; }
+  .site-getapp__mark { display: block; }
+  .site-getapp__label { display: none; }
+}
+
 /* ---- Hero ---- */
 .hero {
   position: relative;

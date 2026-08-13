@@ -1,18 +1,18 @@
-/* World map homepage — always dark regardless of the site theme (CONCRETE_MAP_PLAN.md D4).
-   Surface values are declared locally rather than inherited from .dark so the map keeps its
-   identity while the surrounding chrome still follows the user's toggle. */
+/* World map homepage. The map follows the site's light/dark toggle: these tokens are the
+   light set, `.dark .wm` swaps them, and the island reloads a matching basemap style. */
 
 .wm {
-  --wm-ink: #0d0c09;
-  --wm-surface: rgba(22, 20, 15, 0.82);
-  --wm-surface-solid: #16140f;
-  --wm-line: rgba(231, 224, 210, 0.14);
-  --wm-line-strong: rgba(231, 224, 210, 0.28);
-  --wm-text: #f4f1ea;
-  --wm-text-dim: #b7b3ad;
-  --wm-text-faint: #85817a;
+  --wm-ink: #faf8f4;
+  --wm-veil: 250, 248, 244;
+  --wm-surface: rgba(255, 255, 255, 0.86);
+  --wm-surface-solid: #ffffff;
+  --wm-line: rgba(22, 20, 15, 0.12);
+  --wm-line-strong: rgba(22, 20, 15, 0.26);
+  --wm-text: #16140f;
+  --wm-text-dim: #57544f;
+  --wm-text-faint: #6e6c69;
   --wm-accent: #ed6b00;
-  --wm-accent-soft: rgba(237, 107, 0, 0.16);
+  --wm-accent-soft: rgba(237, 107, 0, 0.12);
   --wm-blur: saturate(140%) blur(14px);
 
   position: fixed;
@@ -22,6 +22,19 @@
   background: var(--wm-ink);
   color: var(--wm-text);
   font-family: var(--font-sans, 'Geist', system-ui, sans-serif);
+}
+
+.dark .wm {
+  --wm-ink: #0d0c09;
+  --wm-veil: 13, 12, 9;
+  --wm-surface: rgba(22, 20, 15, 0.82);
+  --wm-surface-solid: #16140f;
+  --wm-line: rgba(231, 224, 210, 0.14);
+  --wm-line-strong: rgba(231, 224, 210, 0.28);
+  --wm-text: #f4f1ea;
+  --wm-text-dim: #b7b3ad;
+  --wm-text-faint: #85817a;
+  --wm-accent-soft: rgba(237, 107, 0, 0.16);
 }
 
 body.is-map-page {
@@ -34,12 +47,16 @@ body.is-map-page .site-header {
   position: fixed;
   inset: 0 0 auto 0;
   z-index: 30;
-  background: linear-gradient(to bottom, rgba(13, 12, 9, 0.92), rgba(13, 12, 9, 0));
+  background: linear-gradient(to bottom, rgba(250, 248, 244, 0.94), rgba(250, 248, 244, 0));
   border-bottom: 0;
   backdrop-filter: none;
 }
-body.is-map-page .site-header a,
-body.is-map-page .site-header button {
+body.is-map-page.dark .site-header,
+.dark body.is-map-page .site-header {
+  background: linear-gradient(to bottom, rgba(13, 12, 9, 0.92), rgba(13, 12, 9, 0));
+}
+.dark body.is-map-page .site-header a,
+.dark body.is-map-page .site-header button {
   color: #f4f1ea;
 }
 body.is-map-page .site-header .btn--primary {
@@ -76,8 +93,8 @@ body.is-map-page .site-header__inner {
   pointer-events: none;
   z-index: 2;
   background:
-    radial-gradient(120% 90% at 50% 45%, rgba(13, 12, 9, 0) 45%, rgba(13, 12, 9, 0.55) 100%),
-    linear-gradient(to top, rgba(13, 12, 9, 0.75) 0%, rgba(13, 12, 9, 0) 28%);
+    radial-gradient(120% 90% at 50% 45%, rgba(var(--wm-veil), 0) 45%, rgba(var(--wm-veil), 0.5) 100%),
+    linear-gradient(to top, rgba(var(--wm-veil), 0.72) 0%, rgba(var(--wm-veil), 0) 28%);
   opacity: 0;
   transition: opacity 900ms var(--ease-out, ease);
 }
@@ -96,17 +113,20 @@ body.is-map-page .site-header__inner {
   text-align: center;
   padding: var(--space-6, 24px);
   background:
-    radial-gradient(80% 60% at 50% 30%, rgba(237, 107, 0, 0.14), transparent 70%),
-    linear-gradient(180deg, #16140f 0%, #0d0c09 100%);
+    radial-gradient(80% 60% at 50% 30%, rgba(237, 107, 0, 0.12), transparent 70%),
+    linear-gradient(180deg, var(--wm-surface-solid) 0%, var(--wm-ink) 100%);
   transition: opacity 700ms var(--ease-out, ease), visibility 700ms;
+}
+.dark .wm__gate::before {
+  opacity: 0.16;
+  mix-blend-mode: screen;
 }
 .wm__gate::before {
   content: '';
   position: absolute;
   inset: 0;
   background: url('/brand/topo-pattern.svg') center / 900px repeat;
-  opacity: 0.16;
-  mix-blend-mode: screen;
+  opacity: 0.1;
 }
 .wm__gate[data-state='done'] {
   opacity: 0;
@@ -136,35 +156,6 @@ body.is-map-page .site-header__inner {
   font-size: 0.9rem;
   line-height: 1.5;
 }
-.wm__boot {
-  margin-top: var(--space-2, 8px);
-  padding: 13px 26px;
-  border-radius: var(--radius-pill, 999px);
-  border: 0;
-  background: var(--wm-accent);
-  color: #fff;
-  font: inherit;
-  font-weight: 650;
-  font-size: 0.95rem;
-  cursor: pointer;
-  box-shadow: var(--shadow-brand, 0 8px 24px -8px rgba(237, 107, 0, 0.5));
-  transition: transform var(--dur-fast, 120ms) var(--ease-out, ease);
-}
-.wm__boot:hover {
-  transform: translateY(-1px);
-}
-.wm__boot:active {
-  transform: translateY(0);
-}
-/* Desktop auto-boots — the gate is only a backdrop while tiles arrive. */
-@media (min-width: 768px) {
-  .wm__boot {
-    display: none;
-  }
-}
-.wm__gate[data-state='loading'] .wm__boot {
-  display: none;
-}
 .wm__gate-spinner {
   display: none;
   width: 22px;
@@ -185,7 +176,6 @@ body.is-map-page .site-header__inner {
 .wm__gate[data-state='unavailable'] .wm__gate-error {
   display: block;
 }
-.wm__gate[data-state='unavailable'] .wm__boot,
 .wm__gate[data-state='unavailable'] .wm__gate-sub {
   display: none;
 }
@@ -477,7 +467,7 @@ body.is-map-page .site-header__inner {
   place-items: center;
   border-radius: 50%;
   border: 1px solid var(--wm-line);
-  background: rgba(13, 12, 9, 0.6);
+  background: rgba(var(--wm-veil), 0.6);
   color: var(--wm-text-dim);
   cursor: pointer;
   z-index: 2;
@@ -685,7 +675,7 @@ body.is-map-page .site-header__inner {
   inset: auto 0 0 0;
   z-index: 20;
   border-top: 1px solid var(--wm-line);
-  background: rgba(13, 12, 9, 0.9);
+  background: rgba(var(--wm-veil), 0.92);
   backdrop-filter: var(--wm-blur);
   -webkit-backdrop-filter: var(--wm-blur);
   transition: transform 360ms var(--ease-out, ease);
@@ -762,14 +752,33 @@ body.is-map-page .site-header__inner {
   text-decoration: underline;
 }
 
+.wm__drawer-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
 /* ---------- attribution + controls ---------- */
+
+.wm .wm-ctrl-recenter button {
+  color: var(--wm-accent);
+}
+.wm .wm-ctrl-recenter button svg {
+  display: block;
+  margin: auto;
+}
 
 .wm .maplibregl-ctrl-bottom-right {
   bottom: calc(46px + env(safe-area-inset-bottom));
   z-index: 10;
 }
+.wm .maplibregl-ctrl-top-right {
+  top: calc(64px + var(--space-3, 12px));
+  z-index: 10;
+}
 .wm .maplibregl-ctrl-attrib {
-  background: rgba(13, 12, 9, 0.72);
+  background: rgba(var(--wm-veil), 0.78);
   color: var(--wm-text-faint);
   font-size: 10px;
   border-radius: var(--radius-sm, 6px);
@@ -786,8 +795,8 @@ body.is-map-page .site-header__inner {
 .wm .maplibregl-ctrl-group button + button {
   border-top: 1px solid var(--wm-line);
 }
-.wm .maplibregl-ctrl-group button .maplibregl-ctrl-icon {
-  filter: invert(1) opacity(0.7);
+.dark .wm .maplibregl-ctrl-group button .maplibregl-ctrl-icon {
+  filter: invert(1) opacity(0.75);
 }
 
 /* ---------- mobile ---------- */
@@ -797,21 +806,20 @@ body.is-map-page .site-header__inner {
     left: 12px;
     right: 12px;
     max-width: none;
-    bottom: calc(130px + env(safe-area-inset-bottom));
+    bottom: calc(78px + env(safe-area-inset-bottom));
     padding: 11px 13px 10px;
   }
   .wm-hud__title {
     font-size: 0.74rem;
     max-width: 18ch;
   }
+  /* The header's app button is the mobile CTA — a floating pill on top of it is
+     redundant and eats a third of the map. */
   .wm__cta {
-    left: 12px;
-    right: 12px;
-    bottom: calc(78px + env(safe-area-inset-bottom));
-    justify-content: center;
+    display: none;
   }
-  /* Pinch-zoom makes the +/- buttons redundant and they crowd the CTA. */
-  .wm .maplibregl-ctrl-group {
+  /* Pinch-zoom makes +/- redundant; recenter stays, it has no gesture equivalent. */
+  .wm .maplibregl-ctrl-group:not(.wm-ctrl-recenter) {
     display: none;
   }
   .wm-panel {
@@ -834,7 +842,6 @@ body.is-map-page .site-header__inner {
   }
   /* An open sheet owns the bottom edge — HUD, CTAs and drawer stand down. */
   .wm:has(.wm-panel.is-open) .wm-hud,
-  .wm:has(.wm-panel.is-open) .wm__cta,
   .wm:has(.wm-panel.is-open) .wm__drawer {
     opacity: 0;
     pointer-events: none;

@@ -27,17 +27,36 @@ const CATEGORY_TO_GLYPH: Record<string, string> = {
   other: 'other',
 };
 
-const COLOR = {
-  breadth: '#6e6c69',
-  verified: '#a9a49b',
-  claimed: '#ed6b00',
-  halo: '#ed6b00',
-  label: '#d8d4cd',
-  labelHalo: '#0d0c09',
-};
+const ACCENT = '#ed6b00';
+
+/** Pin colours track the basemap: light discs on the dark map, dark discs on the light one. */
+function palette(dark: boolean) {
+  return dark
+    ? {
+        breadth: '#6e6c69',
+        verified: '#a9a49b',
+        glyph: '#0d0c09',
+        glyphOnClaimed: '#ffffff',
+        pinStroke: '#0d0c09',
+        label: '#d8d4cd',
+        labelHalo: '#0d0c09',
+      }
+    : {
+        breadth: '#aea291',
+        verified: '#57544f',
+        glyph: '#faf8f4',
+        glyphOnClaimed: '#ffffff',
+        pinStroke: '#faf8f4',
+        label: '#3c3b3a',
+        labelHalo: '#faf8f4',
+      };
+}
 
 const DIM = 0.22;
 const WORLD_VIEW = { center: [14, 34] as [number, number], zoom: 2.1 };
+/** The journey opens at city level — "show me Hangzhou", not "show me Asia". */
+const CITY_ZOOM = 10.4;
+const CITY_ZOOM_NARROW = 9.8;
 
 setWorkerUrl(maplibreWorkerUrl);
 
@@ -67,6 +86,8 @@ function hasWebGL2(): boolean {
 
 const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const isNarrow = () => window.matchMedia('(max-width: 767px)').matches;
+const isDarkTheme = () => document.documentElement.classList.contains('dark');
+const cityZoom = () => (isNarrow() ? CITY_ZOOM_NARROW : CITY_ZOOM);
 
 function entryOrder(a: SeriesEntry, b: SeriesEntry) {
   return a.main - b.main || a.sub - b.sub;
@@ -103,12 +124,12 @@ function styleFont(map: MapLibreMap): string[] {
   return ['Noto Sans Regular'];
 }
 
-function radiusExpr(scale: number): unknown {
+function radiusExpr(): unknown {
   const pick = (verified: number, breadth: number) => [
     'case',
     ['==', ['get', 'tier'], 'verified'],
-    verified * scale,
-    breadth * scale,
+    verified,
+    breadth,
   ];
   return [
     'interpolate',
@@ -138,15 +159,32 @@ function blurExpr(): unknown {
   return ['interpolate', ['linear'], ['zoom'], 1, 0.7, 6, 0];
 }
 
-function colorExpr(): unknown {
-  return [
-    'case',
-    ['==', ['get', 'claimed'], true],
-    COLOR.claimed,
-    ['==', ['get', 'tier'], 'verified'],
-    COLOR.verified,
-    COLOR.breadth,
-  ];
+/** Flies the camera back to the episode the map opened on. */
+class RecenterControl {
+  constructor(
+    private readonly onPress: () => void,
+    private readonly label: string,
+  ) {}
+
+  onAdd(): HTMLElement {
+    const group = document.createElement('div');
+    group.className = 'maplibregl-ctrl maplibregl-ctrl-group wm-ctrl-recenter';
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.title = this.label;
+    button.setAttribute('aria-label', this.label);
+    button.innerHTML =
+      '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
+      '<circle cx="12" cy="12" r="4.5" fill="currentColor"/>' +
+      '<circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.6"/>' +
+      '<path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>' +
+      '</svg>';
+    button.addEventListener('click', () => this.onPress());
+    group.appendChild(button);
+    return group;
+  }
+
+  onRemove() {}
 }
 
 class WorldMap {
@@ -155,8 +193,10 @@ class WorldMap {
   private hud!: Hud;
   private seriesMode = false;
   private selected: string | null = null;
+  private dark = isDarkTheme();
   private placements = new Map<SeriesEntry, EntryPlacement>();
   private tracksBySlug = new Map<string, TrackProps>();
+  private opening: SeriesEntry | null = null;
 
   constructor(
     private root: HTMLElement,
@@ -165,7 +205,11 @@ class WorldMap {
     private tracks: GeoJSON.FeatureCollection,
   ) {}
 
-  async start(canvas: HTMLElement) {
+  private get styleUrl() {
+    return this.dark ? this.cfg.styleDarkUrl : this.cfg.styleLightUrl;
+  }
+
+  async start(canvas: HTMLElement, strings: Strings) {
     for (const feature of this.tracks.features) {
       const props = feature.properties as TrackProps | null;
       if (!props?.slug) continue;
@@ -174,15 +218,15 @@ class WorldMap {
     }
     this.resolvePlacements();
 
-    const opening = openingEntry(this.series);
-    const openingAt = opening ? this.placements.get(opening)?.lngLat : null;
-    const zoom = openingAt ? (isNarrow() ? 2.9 : 3.6) : WORLD_VIEW.zoom;
+    this.opening = openingEntry(this.series);
+    const openingAt = this.opening ? this.placements.get(this.opening)?.lngLat : null;
+    const zoom = openingAt ? cityZoom() : WORLD_VIEW.zoom;
 
     this.map = new MapLibreMap({
       container: canvas,
-      style: this.cfg.styleUrl,
+      style: this.styleUrl,
       center: openingAt ?? WORLD_VIEW.center,
-      zoom: reducedMotion() ? zoom : Math.max(1.4, zoom - 1.2),
+      zoom: reducedMotion() ? zoom : Math.max(1.4, zoom - 1.6),
       minZoom: 1,
       maxZoom: 14,
       attributionControl: false,
@@ -193,26 +237,62 @@ class WorldMap {
     });
     this.map.touchZoomRotate.disableRotation();
     this.map.addControl(new AttributionControl({ compact: true }), 'bottom-right');
-    this.map.addControl(new NavigationControl({ showCompass: false }), 'bottom-right');
+    // Controls live under the header on the right; the bottom-right corner is spoken
+    // for by the attribution and the CTA row.
+    this.map.addControl(new NavigationControl({ showCompass: false }), 'top-right');
+    this.map.addControl(
+      new RecenterControl(
+        () => this.recenter(),
+        strings['map.control.recenter'] ?? 'Back to the latest episode',
+      ),
+      'top-right',
+    );
 
     this.map.on('error', (e) => console.warn('worldmap', e?.error?.message ?? e));
 
     await new Promise<void>((resolve) => this.map.on('load', () => resolve()));
 
-    try {
-      this.map.setProjection({ type: 'globe' });
-    } catch {
-      /* mercator is an acceptable fallback */
-    }
-
+    this.applyProjection();
     await this.addLayers();
     this.addEpisodeMarkers();
     this.wireInteractions();
+    this.watchTheme();
     this.root.classList.add('is-live');
 
     if (!reducedMotion()) {
       this.map.easeTo({ zoom, duration: 2200, essential: false });
     }
+  }
+
+  private applyProjection() {
+    try {
+      this.map.setProjection({ type: 'globe' });
+    } catch {
+      /* mercator is an acceptable fallback */
+    }
+  }
+
+  /** The site theme toggle only flips a class on <html>; mirror it onto the map. */
+  private watchTheme() {
+    new MutationObserver(() => {
+      const dark = isDarkTheme();
+      if (dark !== this.dark) void this.applyTheme(dark);
+    }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+  }
+
+  private async applyTheme(dark: boolean) {
+    this.dark = dark;
+    await new Promise<void>((resolve) => {
+      this.map.once('style.load', () => resolve());
+      this.map.setStyle(this.styleUrl);
+    });
+    // setStyle drops every source, layer and runtime image — rebuild ours, then
+    // put the interaction state back the way the visitor left it.
+    this.applyProjection();
+    await this.addLayers();
+    this.setHalo(this.selected);
+    this.setDimmed(this.seriesMode || !!this.selected);
+    this.map.setPaintProperty('journey-line', 'line-opacity', this.seriesMode ? 0.55 : 0);
   }
 
   private resolvePlacements() {
@@ -233,14 +313,15 @@ class WorldMap {
 
   private async addLayers() {
     const map = this.map;
+    const c = palette(this.dark);
     map.addSource('tracks', { type: 'geojson', data: this.tracks });
 
     await Promise.all([
       ...GLYPHS.flatMap((name) => [
-        addGlyph(map, `cat-${name}-off`, `${this.cfg.markersBase}${name}.svg`, COLOR.labelHalo),
-        addGlyph(map, `cat-${name}-on`, `${this.cfg.markersBase}${name}.svg`, '#ffffff'),
+        addGlyph(map, `cat-${name}-off`, `${this.cfg.markersBase}${name}.svg`, c.glyph),
+        addGlyph(map, `cat-${name}-on`, `${this.cfg.markersBase}${name}.svg`, c.glyphOnClaimed),
       ]),
-      addGlyph(map, 'claim-seal', `${this.cfg.markersBase}seal.svg`, COLOR.claimed),
+      addGlyph(map, 'claim-seal', `${this.cfg.markersBase}seal.svg`, ACCENT),
     ]).catch((err) => console.warn('worldmap glyphs', err));
 
     map.addLayer({
@@ -250,9 +331,9 @@ class WorldMap {
       filter: ['==', ['get', 'slug'], ''],
       paint: {
         'circle-radius': ['case', ['==', ['get', 'precision'], 'centroid'], 26, 16],
-        'circle-color': COLOR.halo,
+        'circle-color': ACCENT,
         'circle-opacity': 0.12,
-        'circle-stroke-color': COLOR.halo,
+        'circle-stroke-color': ACCENT,
         'circle-stroke-width': 1,
         'circle-stroke-opacity': 0.5,
       },
@@ -263,11 +344,18 @@ class WorldMap {
       type: 'circle',
       source: 'tracks',
       paint: {
-        'circle-radius': radiusExpr(1) as never,
-        'circle-color': colorExpr() as never,
+        'circle-radius': radiusExpr() as never,
+        'circle-color': [
+          'case',
+          ['==', ['get', 'claimed'], true],
+          ACCENT,
+          ['==', ['get', 'tier'], 'verified'],
+          c.verified,
+          c.breadth,
+        ] as never,
         'circle-opacity': opacityExpr(1) as never,
         'circle-blur': blurExpr() as never,
-        'circle-stroke-color': '#0d0c09',
+        'circle-stroke-color': c.pinStroke,
         'circle-stroke-width': ['interpolate', ['linear'], ['zoom'], 6, 0, 9, 1] as never,
         'circle-stroke-opacity': 0.7,
       },
@@ -326,8 +414,8 @@ class WorldMap {
         'text-max-width': 9,
       },
       paint: {
-        'text-color': COLOR.label,
-        'text-halo-color': COLOR.labelHalo,
+        'text-color': c.label,
+        'text-halo-color': c.labelHalo,
         'text-halo-width': 1.3,
         'text-opacity': ['interpolate', ['linear'], ['zoom'], 9, 0, 10, 1] as never,
       },
@@ -351,7 +439,7 @@ class WorldMap {
       source: 'journey',
       layout: { 'line-cap': 'round', 'line-join': 'round' },
       paint: {
-        'line-color': COLOR.claimed,
+        'line-color': ACCENT,
         'line-width': 1.5,
         'line-opacity': 0,
         'line-dasharray': [2, 2.5],
@@ -441,7 +529,7 @@ class WorldMap {
     const [lng, lat] = feature.geometry.coordinates as [number, number];
     this.map.easeTo({
       center: [lng, lat],
-      zoom: Math.max(this.map.getZoom(), 8.5),
+      zoom: Math.max(this.map.getZoom(), cityZoom()),
       duration: reducedMotion() ? 0 : 900,
     });
   }
@@ -458,7 +546,7 @@ class WorldMap {
     if (opts.fly && at) {
       this.map.easeTo({
         center: at,
-        zoom: Math.max(this.map.getZoom(), 7.5),
+        zoom: Math.max(this.map.getZoom(), cityZoom()),
         duration: reducedMotion() ? 0 : 900,
       });
     }
@@ -474,9 +562,20 @@ class WorldMap {
     this.setSeriesMode(true);
     this.map.easeTo({
       center: placement.lngLat,
-      zoom: Math.max(5.5, Math.min(this.map.getZoom(), 8)),
+      zoom: cityZoom(),
       duration: reducedMotion() ? 0 : 1100,
     });
+  }
+
+  /** Map control: back to the episode the map opened on. */
+  recenter() {
+    const at = this.opening ? this.placements.get(this.opening)?.lngLat : null;
+    if (!at) {
+      this.map.easeTo({ ...WORLD_VIEW, duration: reducedMotion() ? 0 : 900 });
+      return;
+    }
+    this.hud.highlight(this.opening);
+    this.map.easeTo({ center: at, zoom: cityZoom(), duration: reducedMotion() ? 0 : 1100 });
   }
 
   clearSelection() {
@@ -503,14 +602,11 @@ class WorldMap {
     const points = [...this.placements.values()].map((p) => p.lngLat).filter((c): c is [number, number] => !!c);
     if (points.length === 0) return;
     if (points.length === 1) {
-      this.map.easeTo({ center: points[0]!, zoom: 5.5, duration: reducedMotion() ? 0 : 900 });
+      this.map.easeTo({ center: points[0]!, zoom: cityZoom(), duration: reducedMotion() ? 0 : 900 });
       return;
     }
-    const bounds = points.reduce(
-      (acc, c) => acc.extend(c),
-      new LngLatBounds(points[0]!, points[0]!),
-    );
-    this.map.fitBounds(bounds, { padding: 96, maxZoom: 6, duration: reducedMotion() ? 0 : 1100 });
+    const bounds = points.reduce((acc, c) => acc.extend(c), new LngLatBounds(points[0]!, points[0]!));
+    this.map.fitBounds(bounds, { padding: 96, maxZoom: cityZoom(), duration: reducedMotion() ? 0 : 1100 });
   }
 
   /** Runs only after attach() — selection needs both the panel and the HUD. */
@@ -578,7 +674,6 @@ export async function bootWorldMap() {
   if (!cfg) return;
 
   const gate = root.querySelector<HTMLElement>('[data-map-gate]')!;
-  const gateBtn = root.querySelector<HTMLButtonElement>('[data-map-boot]')!;
   const canvas = root.querySelector<HTMLElement>('[data-map-canvas]')!;
 
   if (!hasWebGL2()) {
@@ -587,50 +682,41 @@ export async function bootWorldMap() {
     return;
   }
 
-  let started = false;
-  const start = async () => {
-    if (started) return;
-    started = true;
-    gate.dataset.state = 'loading';
-    try {
-      const [series, tracks] = await Promise.all([
-        // The worker route is the live projection; the committed seed keeps `astro dev`
-        // (no worker) and any R2 outage on a working page.
-        fetchJson(cfg.seriesUrl).catch(() => fetchJson('/map/series.seed.json')),
-        fetchJson(cfg.tracksUrl),
-      ]);
+  gate.dataset.state = 'loading';
+  try {
+    const [series, tracks] = await Promise.all([
+      // The worker route is the live projection; the committed seed keeps `astro dev`
+      // (no worker) and any R2 outage on a working page.
+      fetchJson(cfg.seriesUrl).catch(() => fetchJson('/map/series.seed.json')),
+      fetchJson(cfg.tracksUrl),
+    ]);
 
-      const world = new WorldMap(root, cfg, series as SeriesDoc, tracks as GeoJSON.FeatureCollection);
-      const panel = createPanel({
-        root: root.querySelector<HTMLElement>('[data-panel]')!,
+    const world = new WorldMap(root, cfg, series as SeriesDoc, tracks as GeoJSON.FeatureCollection);
+    const panel = createPanel({
+      root: root.querySelector<HTMLElement>('[data-panel]')!,
+      strings,
+      lang: cfg.lang,
+      joinUrl: cfg.joinUrl,
+      onClose: () => world.clearSelection(),
+    });
+    await world.start(canvas, strings);
+    const hud = createHud(
+      {
+        root: root.querySelector<HTMLElement>('[data-hud]')!,
         strings,
         lang: cfg.lang,
-        joinUrl: cfg.joinUrl,
-        onClose: () => world.clearSelection(),
-      });
-      await world.start(canvas);
-      const hud = createHud(
-        {
-          root: root.querySelector<HTMLElement>('[data-hud]')!,
-          strings,
-          lang: cfg.lang,
-          onPick: (placement) => world.jumpToEntry(placement),
-          onToggleSeries: () => world.toggleSeriesMode(),
-        },
-        series as SeriesDoc,
-        world.placementIndex,
-      );
-      world.attach(panel, hud);
-      world.applyDeepLink();
-      gate.dataset.state = 'done';
-    } catch (err) {
-      console.warn('worldmap boot', err);
-      started = false;
-      root.classList.add('is-unavailable');
-      gate.dataset.state = 'unavailable';
-    }
-  };
-
-  gateBtn.addEventListener('click', () => void start());
-  if (!isNarrow()) void start();
+        onPick: (placement) => world.jumpToEntry(placement),
+        onToggleSeries: () => world.toggleSeriesMode(),
+      },
+      series as SeriesDoc,
+      world.placementIndex,
+    );
+    world.attach(panel, hud);
+    world.applyDeepLink();
+    gate.dataset.state = 'done';
+  } catch (err) {
+    console.warn('worldmap boot', err);
+    root.classList.add('is-unavailable');
+    gate.dataset.state = 'unavailable';
+  }
 }

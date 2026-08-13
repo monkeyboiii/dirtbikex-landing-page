@@ -218,12 +218,13 @@
   "map.cat.club": "Kerho",
   "map.cat.trail_area": "Trail-alue",
   "map.cat.other": "Ajopaikka",
-  "map.drawer.about": "Tietoa DirtBikeXistä",
+  "map.drawer.about": "Tietoja",
   "map.drawer.intro": "DirtBikeX on yhteisö dirtbike-ajajille — radat, trailit ja ihmiset, jotka niillä ajavat. Jokainen merkki tällä kartalla on oikea paikka.",
   "map.drawer.close": "Sulje",
   "map.boot.tap": "Napauta ja tutki karttaa",
   "map.boot.loading": "Ladataan maailmaa",
   "map.a11y.map": "Interaktiivinen maailmankartta dirtbike-radoista",
   "map.legend.tracks": "{count} rataa kartalla",
-  "map.err.unavailable": "Kartta ei latautunut täällä. Tutustu DirtBikeXiin alta."
+  "map.err.unavailable": "Kartta ei latautunut täällä. Tutustu DirtBikeXiin alta.",
+  "map.control.recenter": "Takaisin uusimpaan jaksoon"
 }

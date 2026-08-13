@@ -218,12 +218,13 @@
   "map.cat.club": "Club",
   "map.cat.trail_area": "Trailgebied",
   "map.cat.other": "Rijplek",
-  "map.drawer.about": "Over DirtBikeX",
+  "map.drawer.about": "Over ons",
   "map.drawer.intro": "DirtBikeX is een community voor dirtbike-rijders — terreinen, trails en de mensen die er rijden. Elke pin op deze kaart is een echte plek.",
   "map.drawer.close": "Sluiten",
   "map.boot.tap": "Tik om de kaart te verkennen",
   "map.boot.loading": "De wereld wordt geladen",
   "map.a11y.map": "Interactieve wereldkaart met dirtbike-terreinen",
   "map.legend.tracks": "{count} terreinen op de kaart",
-  "map.err.unavailable": "De kaart kon hier niet laden. Ontdek DirtBikeX hieronder."
+  "map.err.unavailable": "De kaart kon hier niet laden. Ontdek DirtBikeX hieronder.",
+  "map.control.recenter": "Terug naar de nieuwste aflevering"
 }

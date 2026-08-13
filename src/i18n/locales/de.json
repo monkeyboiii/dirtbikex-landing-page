@@ -218,12 +218,13 @@
   "map.cat.club": "Club",
   "map.cat.trail_area": "Trail-Gebiet",
   "map.cat.other": "Fahrspot",
-  "map.drawer.about": "Über DirtBikeX",
+  "map.drawer.about": "Über uns",
   "map.drawer.intro": "DirtBikeX ist eine Community für Dirtbike-Fahrer — Strecken, Trails und die Leute, die sie fahren. Jeder Pin auf dieser Karte ist ein echter Ort.",
   "map.drawer.close": "Schließen",
   "map.boot.tap": "Tippen, um die Karte zu erkunden",
   "map.boot.loading": "Die Welt wird geladen",
   "map.a11y.map": "Interaktive Weltkarte mit Dirtbike-Strecken",
   "map.legend.tracks": "{count} Strecken auf der Karte",
-  "map.err.unavailable": "Die Karte konnte hier nicht geladen werden. Entdecke DirtBikeX weiter unten."
+  "map.err.unavailable": "Die Karte konnte hier nicht geladen werden. Entdecke DirtBikeX weiter unten.",
+  "map.control.recenter": "Zurück zur neuesten Folge"
 }

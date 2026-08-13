@@ -218,12 +218,13 @@
   "map.cat.club": "نادٍ",
   "map.cat.trail_area": "منطقة مسارات",
   "map.cat.other": "موقع ركوب",
-  "map.drawer.about": "عن DirtBikeX",
+  "map.drawer.about": "نبذة",
   "map.drawer.intro": "DirtBikeX مجتمع لراكبي الدراجات الترابيّة — مضامير ومسارات والناس الذين يركبونها. كل علامة على هذه الخريطة مكان حقيقي.",
   "map.drawer.close": "إغلاق",
   "map.boot.tap": "اضغط لاستكشاف الخريطة",
   "map.boot.loading": "جارٍ تحميل العالم",
   "map.a11y.map": "خريطة عالميّة تفاعليّة لمضامير الدراجات الترابيّة",
   "map.legend.tracks": "{count} مضمار على الخريطة",
-  "map.err.unavailable": "تعذّر تحميل الخريطة هنا. استكشف DirtBikeX في الأسفل."
+  "map.err.unavailable": "تعذّر تحميل الخريطة هنا. استكشف DirtBikeX في الأسفل.",
+  "map.control.recenter": "العودة إلى أحدث حلقة"
 }

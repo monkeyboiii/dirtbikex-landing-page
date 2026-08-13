@@ -220,12 +220,13 @@
   "map.cat.club": "Klubb",
   "map.cat.trail_area": "Spårområde",
   "map.cat.other": "Körställe",
-  "map.drawer.about": "Om DirtBikeX",
+  "map.drawer.about": "Om oss",
   "map.drawer.intro": "DirtBikeX är en gemenskap för dirtbike-förare — banor, spår och folket som kör dem. Varje nål på den här kartan är en riktig plats.",
   "map.drawer.close": "Stäng",
   "map.boot.tap": "Tryck för att utforska kartan",
   "map.boot.loading": "Laddar världen",
   "map.a11y.map": "Interaktiv världskarta över dirtbike-banor",
   "map.legend.tracks": "{count} banor på kartan",
-  "map.err.unavailable": "Kartan kunde inte laddas här. Utforska DirtBikeX nedanför."
+  "map.err.unavailable": "Kartan kunde inte laddas här. Utforska DirtBikeX nedanför.",
+  "map.control.recenter": "Tillbaka till senaste avsnittet"
 }

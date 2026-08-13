@@ -221,12 +221,13 @@
   "map.cat.club": "俱樂部",
   "map.cat.trail_area": "越野路線區",
   "map.cat.other": "騎行地點",
-  "map.drawer.about": "關於 DirtBikeX",
+  "map.drawer.about": "關於",
   "map.drawer.intro": "DirtBikeX 是越野摩托車騎士的社群——賽道、路線,以及在這裡騎行的人。地圖上的每一個標記都是真實存在的地方。",
   "map.drawer.close": "關閉",
   "map.boot.tap": "點擊探索地圖",
   "map.boot.loading": "正在載入世界",
   "map.a11y.map": "越野賽道互動世界地圖",
   "map.legend.tracks": "地圖上共有 {count} 條賽道",
-  "map.err.unavailable": "地圖在這裡無法載入。可在下方了解 DirtBikeX。"
+  "map.err.unavailable": "地圖在這裡無法載入。可在下方了解 DirtBikeX。",
+  "map.control.recenter": "回到最新一集"
 }

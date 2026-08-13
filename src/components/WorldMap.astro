@@ -29,11 +29,11 @@ const DEFAULTS: Record<string, string> = {
   'map.cat.club': 'Club',
   'map.cat.trail_area': 'Trail area',
   'map.cat.other': 'Riding spot',
-  'map.drawer.about': 'About DirtBikeX',
+  'map.drawer.about': 'About',
   'map.drawer.intro':
     'DirtBikeX is a community for dirt bike riders — tracks, trails, and the people who ride them. Every pin on this map is a real place.',
   'map.drawer.close': 'Close',
-  'map.boot.tap': 'Tap to explore the map',
+  'map.control.recenter': 'Back to the latest episode',
   'map.boot.loading': 'Loading the world',
   'map.a11y.map': 'Interactive world map of dirt bike tracks',
   'map.legend.tracks': '{count} tracks on the map',
@@ -61,7 +61,8 @@ try {
 
 const config = {
   lang,
-  styleUrl: '/map/style-dark.json',
+  styleDarkUrl: '/map/style-dark.json',
+  styleLightUrl: '/map/style-light.json',
   tracksUrl: '/map/tracks.json',
   seriesUrl: '/api/map/series.json',
   markersBase: '/map/markers/',
@@ -81,7 +82,6 @@ const config = {
       <p class="wm__gate-sub">
         {trackCount > 0 ? s('map.legend.tracks').replace('{count}', trackCount.toLocaleString('en-US')) : ''}
       </p>
-      <button type="button" class="wm__boot" data-map-boot>{s('map.boot.tap')}</button>
       <div class="wm__gate-spinner" role="status" aria-label={s('map.boot.loading')}></div>
       <p class="wm__gate-error">{s('map.err.unavailable')}</p>
     </div>
@@ -121,7 +121,7 @@ const config = {
         <span><b data-stat="users_count">—</b> riders</span>
         <span><b data-stat="topics_count">—</b> threads</span>
       </span>
-      <span>
+      <span class="wm__drawer-label">
         {s('map.drawer.about')}
         <svg class="wm__drawer-chevron" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"
           ><path d="M2 4.5L6 8.5l4-4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" /></svg

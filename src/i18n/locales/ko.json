@@ -218,12 +218,13 @@
   "map.cat.club": "클럽",
   "map.cat.trail_area": "트레일 지역",
   "map.cat.other": "라이딩 스팟",
-  "map.drawer.about": "DirtBikeX 소개",
+  "map.drawer.about": "소개",
   "map.drawer.intro": "DirtBikeX는 더트바이크 라이더를 위한 커뮤니티입니다. 트랙과 트레일, 그리고 그곳을 달리는 사람들. 이 지도의 핀은 모두 실제 장소입니다.",
   "map.drawer.close": "닫기",
   "map.boot.tap": "탭해서 지도 살펴보기",
   "map.boot.loading": "세계를 불러오는 중",
   "map.a11y.map": "더트바이크 트랙 인터랙티브 세계 지도",
   "map.legend.tracks": "지도에 트랙 {count}곳",
-  "map.err.unavailable": "여기서는 지도를 불러올 수 없었습니다. 아래에서 DirtBikeX를 둘러보세요."
+  "map.err.unavailable": "여기서는 지도를 불러올 수 없었습니다. 아래에서 DirtBikeX를 둘러보세요.",
+  "map.control.recenter": "최신 에피소드로 돌아가기"
 }
