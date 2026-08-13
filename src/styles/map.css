@@ -13,6 +13,8 @@
   --wm-text-faint: #6e6c69;
   --wm-accent: #ed6b00;
   --wm-accent-soft: rgba(237, 107, 0, 0.12);
+  --wm-raise: rgba(22, 20, 15, 0.07);
+  --wm-raise-line: rgba(22, 20, 15, 0.4);
   --wm-blur: saturate(140%) blur(14px);
 
   position: fixed;
@@ -35,6 +37,8 @@
   --wm-text-dim: #b7b3ad;
   --wm-text-faint: #85817a;
   --wm-accent-soft: rgba(237, 107, 0, 0.16);
+  --wm-raise: rgba(255, 255, 255, 0.1);
+  --wm-raise-line: rgba(255, 255, 255, 0.34);
 }
 
 body.is-map-page {
@@ -673,10 +677,11 @@ body.is-map-page .site-header__inner {
   font-weight: 600;
   transition: border-color var(--dur-fast, 120ms) ease, background var(--dur-fast, 120ms) ease;
 }
-/* Same flavour, a touch more pull — the forum is the thing you can use today. */
+/* Same flavour as the header's glass CTA, a touch more pull — the forum is the
+   thing a visitor can actually use today. */
 .wm__drawer-cta a.is-lead {
-  background: rgba(var(--wm-veil), 0.55);
-  border-color: var(--wm-text-faint);
+  background: var(--wm-raise);
+  border-color: var(--wm-raise-line);
 }
 .wm__drawer-cta a:hover {
   border-color: var(--wm-accent);
