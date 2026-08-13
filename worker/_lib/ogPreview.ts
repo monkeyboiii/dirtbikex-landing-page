@@ -99,6 +99,22 @@ async function inlineImage(src: string): Promise<string | null> {
   }
 }
 
+/**
+ * TikTok's og:title is just "TikTok · <author>"; its public oEmbed carries the real
+ * caption. No key required — this is the same endpoint embed widgets use.
+ */
+async function tiktokOembed(url: URL): Promise<{ title?: string; thumbnail_url?: string; author_name?: string } | null> {
+  try {
+    const resp = await fetch(`https://www.tiktok.com/oembed?url=${encodeURIComponent(url.toString())}`, {
+      headers: { Accept: 'application/json' },
+    });
+    if (!resp.ok) return null;
+    return (await resp.json()) as { title?: string; thumbnail_url?: string; author_name?: string };
+  } catch {
+    return null;
+  }
+}
+
 async function previewOne(url: URL): Promise<Preview | null> {
   let html: string;
   try {
@@ -116,17 +132,29 @@ async function previewOne(url: URL): Promise<Preview | null> {
     return null;
   }
 
-  const title = meta(html, 'og:title') ?? meta(html, 'twitter:title');
-  const image = meta(html, 'og:image') ?? meta(html, 'twitter:image');
+  let title = meta(html, 'og:title') ?? meta(html, 'twitter:title');
+  let image = meta(html, 'og:image') ?? meta(html, 'twitter:image');
+  let description = meta(html, 'og:description') ?? meta(html, 'twitter:description');
+  const site = meta(html, 'og:site_name');
+
+  if (/(^|\.)tiktok\.com$/.test(url.hostname)) {
+    const oembed = await tiktokOembed(url);
+    if (oembed?.title) {
+      description = title && title !== oembed.title ? title : description;
+      title = oembed.title;
+    }
+    if (!image && oembed?.thumbnail_url) image = oembed.thumbnail_url;
+  }
+
   if (!title && !image) return null;
 
   return {
     ok: true,
     url: url.toString(),
     title,
-    description: meta(html, 'og:description') ?? meta(html, 'twitter:description'),
+    description,
     image: image ? await inlineImage(image) : null,
-    site: meta(html, 'og:site_name'),
+    site,
   };
 }
 
