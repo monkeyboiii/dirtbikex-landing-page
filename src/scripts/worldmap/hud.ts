@@ -5,12 +5,29 @@ import type { EntryPlacement, SeriesDoc, SeriesEntry, Strings } from './types';
 const RUNWAY = 6;
 /** Longest label we'll put under the active stop before trimming. */
 const LABEL_MAX = 18;
+/** Idle time after a scroll before the centred stop is actually opened. */
+const SETTLE_MS = 170;
+/** Our own smooth-scrolls must not be read back as the visitor scrolling. */
+const SELF_SCROLL_MS = 480;
+
+/** Android fires; iOS Safari has no web haptics, so this is a no-op there. */
+function buzz() {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  try {
+    navigator.vibrate?.(6);
+  } catch {
+    /* vibrate is gated on some browsers; never let it break scrolling */
+  }
+}
 
 export interface HudDeps {
   root: HTMLElement;
   strings: Strings;
   lang: string;
-  onPick(placement: EntryPlacement): void;
+  /** Scrub: centre the stop and take the camera there. Never opens the sheet. */
+  onFocus(placement: EntryPlacement): void;
+  /** Commit: open the episode sheet. Only the centred stop or its label does this. */
+  onOpen(placement: EntryPlacement): void;
   onToggleSeries(): void;
 }
 
@@ -74,8 +91,19 @@ export function createHud(deps: HudDeps, series: SeriesDoc, placements: Map<Seri
         .filter(Boolean)
         .join(' ');
       ball.dataset.label = entry.label;
+      // Dot colour is operator-set per entry (series.json `tone`).
+      if (entry.tone) ball.dataset.tone = entry.tone;
       ball.setAttribute('aria-label', `${entry.label} — ${shortLabel(entry)}`);
-      ball.addEventListener('click', () => deps.onPick(placements.get(entry) ?? { entry, lngLat: null }));
+      ball.addEventListener('click', () => {
+        const placement = placements.get(entry) ?? { entry, lngLat: null };
+        // Tapping an off-centre stop only scrubs to it; the sheet needs a second
+        // tap on the stop once it is centred (or on its label).
+        if (entry.label === activeLabel) deps.onOpen(placement);
+        else {
+          setActive(entry);
+          deps.onFocus(placement);
+        }
+      });
       rail.appendChild(ball);
     }
 
@@ -97,16 +125,62 @@ export function createHud(deps: HudDeps, series: SeriesDoc, placements: Map<Seri
     }
   }
 
-  function setActive(entry: SeriesEntry | null, smooth = true) {
+  let activeLabel: string | null = null;
+  let selfScrollUntil = 0;
+  let settle: ReturnType<typeof setTimeout> | undefined;
+
+  function setActive(entry: SeriesEntry | null, smooth = true, scroll = true) {
     let hit: HTMLElement | null = null;
     for (const ball of rail.querySelectorAll<HTMLElement>('.wm-ball')) {
       const active = !!entry && ball.dataset.label === entry.label;
       ball.classList.toggle('is-active', active);
       if (active) hit = ball;
     }
+    activeLabel = entry?.label ?? null;
     labelEl.textContent = entry ? shortLabel(entry) : '';
-    if (hit) centre(hit, smooth);
+    if (hit && scroll) {
+      selfScrollUntil = Date.now() + SELF_SCROLL_MS;
+      centre(hit, smooth);
+    }
   }
+
+  /** The stop closest to the middle of the rail — empties aren't selectable. */
+  function centred(): SeriesEntry | null {
+    const mid = bar.getBoundingClientRect().left + bar.clientWidth / 2;
+    let best: SeriesEntry | null = null;
+    let bestDist = Infinity;
+    for (const ball of rail.querySelectorAll<HTMLElement>('.wm-ball.is-done')) {
+      const box = ball.getBoundingClientRect();
+      const dist = Math.abs(box.left + box.width / 2 - mid);
+      if (dist < bestDist) {
+        bestDist = dist;
+        best = shown.find((e) => e.label === ball.dataset.label) ?? null;
+      }
+    }
+    return best;
+  }
+
+  // Scrolling the rail selects whatever lands in the middle: the label and dot
+  // follow immediately (with a tick of haptics), the sheet once scrolling settles.
+  bar.addEventListener(
+    'scroll',
+    () => {
+      if (Date.now() < selfScrollUntil) return;
+      const entry = centred();
+      if (!entry || entry.label === activeLabel) return;
+      setActive(entry, false, false);
+      buzz();
+      clearTimeout(settle);
+      settle = setTimeout(() => deps.onFocus(placements.get(entry) ?? { entry, lngLat: null }), SETTLE_MS);
+    },
+    { passive: true },
+  );
+
+  // The label under the rail is the commit affordance for the centred stop.
+  labelEl.addEventListener('click', () => {
+    const entry = shown.find((e) => e.label === activeLabel);
+    if (entry) deps.onOpen(placements.get(entry) ?? { entry, lngLat: null });
+  });
 
   render();
   // Open on the newest completed stop so the label and the camera agree.

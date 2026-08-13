@@ -11,12 +11,15 @@
       "track_slug": null,
       "coords": null,
       "venue": null,
-      "title": { "en": "Track zero", "zh-CN": "第零站" },
+      "title": {
+        "en": "Track zero",
+        "zh-CN": "第零站"
+      },
       "tagline": {
         "en": "The counter starts here and runs to 100.",
         "zh-CN": "计数从这里开始，一直数到 100。"
       },
-      "status": "visited",
+      "status": "live",
       "links": {
         "douyin": "https://v.douyin.com/tbKq6rzIXjk/",
         "tiktok": "https://www.tiktok.com/t/ZTDepy5dV/",
@@ -25,7 +28,8 @@
       },
       "thumb": null,
       "visited_on": null,
-      "published_on": null
+      "published_on": null,
+      "tone": "success"
     },
     {
       "main": 1,
@@ -34,14 +38,23 @@
       "kind": "episode",
       "video_id": "DBX-APP-S03E001",
       "track_slug": null,
-      "coords": { "lat": 30.8703, "lng": 120.0933 },
-      "venue": { "en": "Huzhou", "zh-CN": "湖州" },
-      "title": { "en": "Day one, track one down", "zh-CN": "第一天，第一站" },
+      "coords": {
+        "lat": 30.8703,
+        "lng": 120.0933
+      },
+      "venue": {
+        "en": "Huzhou",
+        "zh-CN": "湖州"
+      },
+      "title": {
+        "en": "Day one, track one down",
+        "zh-CN": "第一天，第一站"
+      },
       "tagline": {
         "en": "One real track per episode, counted toward 100.",
         "zh-CN": "每集一条真实赛道，计入 100。"
       },
-      "status": "visited",
+      "status": "live",
       "links": {
         "douyin": "https://v.douyin.com/lDBUNZbTP7Q/",
         "tiktok": "https://www.tiktok.com/t/ZTDepmtHq/",
@@ -50,7 +63,8 @@
       },
       "thumb": null,
       "visited_on": null,
-      "published_on": null
+      "published_on": null,
+      "tone": "success"
     },
     {
       "main": 2,
@@ -59,9 +73,18 @@
       "kind": "episode",
       "video_id": "DBX-APP-S03E002",
       "track_slug": null,
-      "coords": { "lat": 30.2374, "lng": 120.15 },
-      "venue": { "en": "Liulang Wenying, Hangzhou", "zh-CN": "杭州 柳浪闻莺" },
-      "title": { "en": "E-bike park, day two", "zh-CN": "电动车公园，第二天" },
+      "coords": {
+        "lat": 30.2374,
+        "lng": 120.15
+      },
+      "venue": {
+        "en": "Liulang Wenying, Hangzhou",
+        "zh-CN": "杭州 柳浪闻莺"
+      },
+      "title": {
+        "en": "E-bike park, day two",
+        "zh-CN": "电动车公园，第二天"
+      },
       "tagline": {
         "en": "I came back and suddenly all the bikes had batteries.",
         "zh-CN": "我回来了，突然发现车都带电池了。"
@@ -69,13 +92,14 @@
       "status": "live",
       "links": {
         "douyin": "https://v.douyin.com/cm9B2y_dcUU/",
-        "tiktok": "https://www.tiktok.com/t/ZTDegAfqp/",
+        "tiktok": "https://www.tiktok.com/t/ZTDeKnUAL/",
         "instagram": "https://www.instagram.com/reel/Db64MHvD3TI/",
         "facebook": "https://www.facebook.com/share/r/18q3XSZjsF/?mibextid=wwXIfr"
       },
       "thumb": null,
       "visited_on": null,
-      "published_on": null
+      "published_on": null,
+      "tone": "partial"
     }
   ]
 }

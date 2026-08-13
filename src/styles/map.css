@@ -13,6 +13,8 @@
   --wm-text-faint: #6e6c69;
   --wm-accent: #ed6b00;
   --wm-accent-soft: rgba(237, 107, 0, 0.12);
+  --wm-tone-success: #2fa84f;
+  --wm-tone-partial: #6f9c62;
   --wm-raise: rgba(22, 20, 15, 0.07);
   --wm-raise-line: rgba(22, 20, 15, 0.4);
   --wm-blur: saturate(140%) blur(14px);
@@ -242,6 +244,7 @@ body.is-map-page .site-header__inner {
   padding: 6px 0 2px;
   overflow-x: auto;
   overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
   scrollbar-width: none;
   -webkit-mask-image: linear-gradient(to right, transparent 0, #000 16%, #000 84%, transparent 100%);
   mask-image: linear-gradient(to right, transparent 0, #000 16%, #000 84%, transparent 100%);
@@ -258,6 +261,11 @@ body.is-map-page .site-header__inner {
   padding-inline: 50%;
 }
 .wm-hud__label {
+  appearance: none;
+  border: 0;
+  background: none;
+  padding: 2px 6px;
+  cursor: pointer;
   font-family: var(--font-mono, 'Geist Mono', monospace);
   font-size: 0.66rem;
   letter-spacing: 0.14em;
@@ -266,7 +274,15 @@ body.is-map-page .site-header__inner {
   opacity: 0.75;
   text-shadow: 0 1px 12px rgba(var(--wm-veil), 0.95);
   white-space: nowrap;
-  min-height: 1em;
+  min-height: 1.1em;
+  transition: opacity var(--dur-fast, 120ms) ease;
+}
+.wm-hud__label:hover,
+.wm-hud__label:focus-visible {
+  opacity: 1;
+}
+.wm-hud__label:empty {
+  pointer-events: none;
 }
 
 .wm-ball__rest {
@@ -304,8 +320,29 @@ body.is-map-page .site-header__inner {
   border-top: 1.5px dotted var(--wm-line-strong);
 }
 .wm-ball.is-done {
+  scroll-snap-align: center;
   background: var(--wm-accent);
   border-color: var(--wm-accent);
+}
+.wm-ball[data-tone='success'] {
+  background: var(--wm-tone-success);
+  border-color: var(--wm-tone-success);
+}
+.wm-ball[data-tone='partial'] {
+  background: var(--wm-tone-partial);
+  border-color: var(--wm-tone-partial);
+}
+.wm-ball[data-tone='success'].is-live {
+  box-shadow: 0 0 0 3px rgba(47, 168, 79, 0.22);
+}
+.wm-ball[data-tone='partial'].is-live {
+  box-shadow: 0 0 0 3px rgba(111, 156, 98, 0.22);
+}
+.wm-ball[data-tone='success'].is-active {
+  box-shadow: 0 0 0 4px rgba(47, 168, 79, 0.3);
+}
+.wm-ball[data-tone='partial'].is-active {
+  box-shadow: 0 0 0 4px rgba(111, 156, 98, 0.3);
 }
 .wm-ball.is-live {
   box-shadow: 0 0 0 3px rgba(237, 107, 0, 0.22);

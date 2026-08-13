@@ -28,6 +28,9 @@ export interface SeriesEntry {
   title?: Record<string, string> | null;
   tagline?: Record<string, string> | null;
   status: 'visited' | 'live';
+  /** Operator-set dot colour on the journey rail: "success" | "partial" (green
+   *  shades) — anything else, or absent, uses the brand accent. */
+  tone?: string | null;
   links?: Record<string, string | null> | null;
   thumb?: string | null;
   visited_on?: string | null;

@@ -563,8 +563,24 @@ class WorldMap {
     });
   }
 
-  /** HUD stop: opens the sheet and takes the camera there. */
-  jumpToEntry(placement: EntryPlacement) {
+  /** HUD scrub: camera only. An already-open sheet follows along; a closed one stays shut. */
+  focusEntry(placement: EntryPlacement) {
+    const entry = placement.entry;
+    if (placement.lngLat) {
+      this.map.easeTo({
+        center: placement.lngLat,
+        zoom: Math.max(this.map.getZoom(), cityZoom()),
+        duration: reducedMotion() ? 0 : 900,
+      });
+    }
+    if (this.panel.isOpen()) {
+      const track = entry.track_slug ? this.tracksBySlug.get(entry.track_slug) ?? null : null;
+      this.showEntrySheet(entry, track);
+    }
+  }
+
+  /** HUD commit: open the sheet for this stop. */
+  openEntry(placement: EntryPlacement) {
     this.selectEntry(placement.entry, { fly: !!placement.lngLat });
   }
 
@@ -716,7 +732,8 @@ export async function bootWorldMap() {
         root: root.querySelector<HTMLElement>('[data-hud]')!,
         strings,
         lang: cfg.lang,
-        onPick: (placement) => world.jumpToEntry(placement),
+        onFocus: (placement) => world.focusEntry(placement),
+        onOpen: (placement) => world.openEntry(placement),
         onToggleSeries: () => world.toggleSeriesMode(),
       },
       series as SeriesDoc,
