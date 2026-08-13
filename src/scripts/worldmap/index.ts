@@ -195,6 +195,8 @@ class WorldMap {
   private selected: string | null = null;
   private dark = isDarkTheme();
   private placements = new Map<SeriesEntry, EntryPlacement>();
+  private ordered: SeriesEntry[] = [];
+  private current: SeriesEntry | null = null;
   private tracksBySlug = new Map<string, TrackProps>();
   private opening: SeriesEntry | null = null;
 
@@ -217,6 +219,7 @@ class WorldMap {
       this.tracksBySlug.set(props.slug, props);
     }
     this.resolvePlacements();
+    this.ordered = [...this.series.entries].sort(entryOrder);
 
     this.opening = openingEntry(this.series);
     const openingAt = this.opening ? this.placements.get(this.opening)?.lngLat : null;
@@ -517,7 +520,7 @@ class WorldMap {
     this.setHalo(slug);
     this.setDimmed(true);
     this.hud.highlight(entry ?? null);
-    if (entry) this.panel.showEntry(entry, track, this.series.target);
+    if (entry) this.showEntrySheet(entry, track);
     else this.panel.showTrack(track);
     if (opts.fly) this.flyToSlug(slug);
   }
@@ -540,7 +543,7 @@ class WorldMap {
     this.setHalo(entry.track_slug ?? null);
     this.setDimmed(true);
     this.hud.highlight(entry);
-    this.panel.showEntry(entry, track, this.series.target);
+    this.showEntrySheet(entry, track);
     const at = this.placements.get(entry)?.lngLat;
     if (opts.fly && at) {
       this.map.easeTo({
@@ -551,19 +554,25 @@ class WorldMap {
     }
   }
 
-  /** HUD ball: camera only — the card stays closed (operator-specified). */
-  jumpToEntry(placement: EntryPlacement) {
-    this.hud.highlight(placement.entry);
-    if (!placement.lngLat) {
-      this.selectEntry(placement.entry);
-      return;
-    }
-    this.setSeriesMode(true);
-    this.map.easeTo({
-      center: placement.lngLat,
-      zoom: cityZoom(),
-      duration: reducedMotion() ? 0 : 1100,
+  private showEntrySheet(entry: SeriesEntry, track: TrackProps | null) {
+    this.current = entry;
+    const index = this.ordered.indexOf(entry);
+    this.panel.showEntry(entry, track, this.series.target, {
+      prev: index > 0,
+      next: index >= 0 && index < this.ordered.length - 1,
     });
+  }
+
+  /** HUD stop: opens the sheet and takes the camera there. */
+  jumpToEntry(placement: EntryPlacement) {
+    this.selectEntry(placement.entry, { fly: !!placement.lngLat });
+  }
+
+  /** Sheet arrows: walk the journey without going back to the map. */
+  stepEntry(delta: number) {
+    const from = this.current ? this.ordered.indexOf(this.current) : -1;
+    const next = this.ordered[from + delta];
+    if (next) this.selectEntry(next, { fly: true });
   }
 
   /** Map control: back to the episode the map opened on. */
@@ -579,6 +588,7 @@ class WorldMap {
 
   clearSelection() {
     this.selected = null;
+    this.current = null;
     this.setHalo(null);
     this.setDimmed(this.seriesMode);
     this.panel.close();
@@ -698,6 +708,7 @@ export async function bootWorldMap() {
       socials: cfg.socials,
       contactUrl: cfg.contactUrl,
       onClose: () => world.clearSelection(),
+      onStep: (delta) => world.stepEntry(delta),
     });
     await world.start(canvas, strings);
     const hud = createHud(

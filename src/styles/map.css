@@ -195,7 +195,7 @@ body.is-map-page .site-header__inner {
   left: 50%;
   bottom: calc(80px + env(safe-area-inset-bottom));
   z-index: 12;
-  width: min(760px, calc(100vw - 32px));
+  width: min(380px, calc(100vw - 32px));
   display: grid;
   justify-items: center;
   gap: 8px;
@@ -243,8 +243,8 @@ body.is-map-page .site-header__inner {
   overflow-x: auto;
   overscroll-behavior-x: contain;
   scrollbar-width: none;
-  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 9%, #000 91%, transparent 100%);
-  mask-image: linear-gradient(to right, transparent 0, #000 9%, #000 91%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 16%, #000 84%, transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0, #000 16%, #000 84%, transparent 100%);
 }
 .wm-hud__bar::-webkit-scrollbar {
   display: none;
@@ -253,9 +253,22 @@ body.is-map-page .site-header__inner {
   display: inline-flex;
   align-items: center;
   gap: 14px;
-  margin-inline: auto;
-  padding-inline: 6px;
+  /* Half a viewport of slack on each end so the first and last stop can still
+     scroll to dead centre. */
+  padding-inline: 50%;
 }
+.wm-hud__label {
+  font-family: var(--font-mono, 'Geist Mono', monospace);
+  font-size: 0.66rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--wm-text-dim);
+  opacity: 0.75;
+  text-shadow: 0 1px 12px rgba(var(--wm-veil), 0.95);
+  white-space: nowrap;
+  min-height: 1em;
+}
+
 .wm-ball__rest {
   position: relative;
   flex: none;
@@ -323,37 +336,6 @@ body.is-map-page .site-header__inner {
   outline-offset: 3px;
 }
 
-.wm-hud__tip {
-  position: absolute;
-  bottom: calc(100% + 12px);
-  transform: translateX(-50%);
-  min-width: 150px;
-  max-width: 240px;
-  display: grid;
-  gap: 2px;
-  padding: 9px 11px;
-  border-radius: var(--radius-md, 10px);
-  border: 1px solid var(--wm-line);
-  background: var(--wm-surface-solid);
-  box-shadow: var(--shadow-lg, 0 16px 40px -8px rgba(0, 0, 0, 0.7));
-  pointer-events: none;
-  z-index: 2;
-}
-.wm-hud__tip strong {
-  font-family: var(--font-mono, 'Geist Mono', monospace);
-  font-size: 0.7rem;
-  letter-spacing: 0.08em;
-  color: var(--wm-accent);
-}
-.wm-hud__tip span {
-  font-size: 0.85rem;
-  line-height: 1.3;
-}
-.wm-hud__tip em {
-  font-style: normal;
-  font-size: 0.72rem;
-  color: var(--wm-text-faint);
-}
 
 /* ---------- episode markers ---------- */
 
@@ -547,30 +529,97 @@ body.is-map-page .site-header__inner {
   transform: translateY(-1px);
 }
 
-/* Link preview — the platform's own card, fetched worker-side (worker/_lib/ogPreview.ts). */
-.wm-preview {
-  display: block;
+/* Swipeable platform previews. Each slide fetches its own Open Graph card only
+   once it is scrolled into view (worker/_lib/ogPreview.ts). */
+.wm-carousel {
   margin-top: 4px;
+  display: grid;
+  gap: 7px;
+}
+.wm-carousel__track {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+.wm-carousel__track::-webkit-scrollbar {
+  display: none;
+}
+.wm-slide {
+  position: relative;
+  flex: 0 0 100%;
+  scroll-snap-align: center;
+  aspect-ratio: 16 / 10;
   border-radius: var(--radius-md, 10px);
   border: 1px solid var(--wm-line);
-  background: rgba(var(--wm-veil), 0.35);
+  background: rgba(var(--wm-veil), 0.4);
   overflow: hidden;
   text-decoration: none;
   color: inherit;
-  transition: border-color var(--dur-fast, 120ms) ease;
+  display: block;
 }
-.wm-preview:hover {
+.wm-slide:hover {
   border-color: var(--wm-text-faint);
 }
-.wm-preview.is-loading {
-  height: 92px;
-  background: linear-gradient(
-      100deg,
-      transparent 20%,
-      rgba(var(--wm-veil), 0.6) 50%,
-      transparent 80%
-    )
-    rgba(var(--wm-veil), 0.35);
+.wm-slide__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.wm-slide__badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(var(--wm-veil), 0.72);
+  color: var(--wm-text);
+  backdrop-filter: blur(6px);
+}
+.wm-slide.is-bare .wm-slide__badge {
+  top: 50%;
+  right: 50%;
+  transform: translate(50%, -70%);
+  width: 40px;
+  height: 40px;
+}
+.wm-slide__caption {
+  position: absolute;
+  inset: auto 0 0 0;
+  z-index: 1;
+  padding: 22px 10px 9px;
+  font-size: 0.76rem;
+  line-height: 1.3;
+  color: #fff;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.82), transparent);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.wm-slide.is-bare .wm-slide__caption {
+  inset: auto 0 0 0;
+  text-align: center;
+  padding: 8px;
+  color: var(--wm-text-dim);
+  background: none;
+  font-family: var(--font-mono, 'Geist Mono', monospace);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.wm-slide__shimmer {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 20%, rgba(var(--wm-veil), 0.55) 50%, transparent 80%);
   background-size: 220% 100%;
   animation: wm-shimmer 1.4s linear infinite;
 }
@@ -579,42 +628,49 @@ body.is-map-page .site-header__inner {
     background-position: -120% 0;
   }
 }
-.wm-preview__img {
-  display: block;
-  width: 100%;
-  max-height: 220px;
-  object-fit: cover;
-  background: rgba(var(--wm-veil), 0.5);
+.wm-carousel__dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
 }
-.wm-preview__meta {
+.wm-carousel__dot {
+  width: 6px;
+  height: 6px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--wm-line-strong);
+  cursor: pointer;
+}
+.wm-carousel__dot.is-active {
+  background: var(--wm-text-dim);
+}
+
+/* Bottom-trailing episode stepper. */
+.wm-panel__nav {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 12px;
+}
+.wm-step {
+  width: 34px;
+  height: 34px;
   display: grid;
-  gap: 3px;
-  padding: 10px 12px 11px;
-}
-.wm-preview__title {
-  font-size: 0.88rem;
-  font-weight: 600;
-  line-height: 1.3;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-.wm-preview__desc {
-  font-size: 0.8rem;
-  line-height: 1.35;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid var(--wm-line-strong);
+  background: transparent;
   color: var(--wm-text-dim);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  cursor: pointer;
 }
-.wm-preview__host {
-  font-family: var(--font-mono, 'Geist Mono', monospace);
-  font-size: 0.66rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--wm-text-faint);
+.wm-step:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+.wm-step:hover:not(:disabled) {
+  color: var(--wm-text);
+  border-color: var(--wm-text-faint);
 }
 .wm-panel__section {
   margin: 12px 0 0;

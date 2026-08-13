@@ -34,6 +34,8 @@ const DEFAULTS: Record<string, string> = {
     'DirtBikeX is a community for dirt bike riders — tracks, trails, and the people who ride them. Every pin on this map is a real place.',
   'map.drawer.close': 'Close',
   'map.control.recenter': 'Back to the latest episode',
+  'map.panel.prev': 'Previous episode',
+  'map.panel.next': 'Next episode',
   'map.boot.loading': 'Loading the world',
   'map.a11y.map': 'Interactive world map of dirt bike tracks',
   'map.legend.tracks': '{count} tracks on the map',
@@ -106,7 +108,7 @@ const config = {
       <span data-hud-counter>—</span>
     </button>
     <div class="wm-hud__bar" data-hud-bar></div>
-    <div class="wm-hud__tip" data-hud-tip hidden></div>
+    <span class="wm-hud__label" data-hud-label></span>
   </section>
 
   <aside class="wm-panel" data-panel hidden aria-live="polite">

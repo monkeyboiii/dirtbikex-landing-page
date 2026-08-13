@@ -34,7 +34,8 @@ const PLATFORM_LABELS: Record<string, string> = {
 };
 
 /** Douyin stands in for TikTok where TikTok isn't the platform people use. */
-const platformsFor = (lang: string) => [lang === 'zh-CN' ? 'douyin' : 'tiktok', 'facebook', 'instagram'];
+const platformsFor = (lang: string) =>
+  lang === 'zh-CN' ? ['douyin', 'instagram', 'facebook'] : ['tiktok', 'instagram', 'facebook'];
 
 export interface PanelDeps {
   root: HTMLElement;
@@ -43,6 +44,8 @@ export interface PanelDeps {
   socials: Partial<Record<string, string>>;
   contactUrl: string;
   onClose(): void;
+  /** Bottom-trailing arrows: -1 = previous episode, +1 = next. */
+  onStep(delta: number): void;
 }
 
 /** Picks the viewer's locale out of a {locale: text} block, falling back to en. */
@@ -56,6 +59,10 @@ function el(tag: string, className?: string, text?: string): HTMLElement {
   if (className) node.className = className;
   if (text != null) node.textContent = text;
   return node;
+}
+
+function markSvg(platform: string, uid: string, size = 20): string {
+  return `<svg viewBox="0 0 24 24" width="${size}" height="${size}" aria-hidden="true">${PLATFORM_ICONS[platform]?.(uid) ?? ''}</svg>`;
 }
 
 export function createPanel(deps: PanelDeps) {
@@ -74,13 +81,120 @@ export function createPanel(deps: PanelDeps) {
     build(body);
     root.hidden = false;
     root.classList.add('is-open');
-    closeBtn.focus({ preventScroll: true });
+    body.scrollTop = 0;
+  }
+
+  function close() {
+    generation++;
+    root.classList.remove('is-open');
+    root.hidden = true;
+    body.replaceChildren();
   }
 
   /**
-   * Jump straight to this episode on each platform. Until an episode carries its
-   * per-platform link the button falls back to our profile there, and to /contact
-   * for platforms we have no profile URL for.
+   * One slide per platform the episode is on, each fetching its own Open Graph card
+   * only once it is swiped into view. Platforms that serve a wall (Douyin, Facebook)
+   * keep their slide but fall back to the brand mark.
+   */
+  function carousel(entry: SeriesEntry, host: HTMLElement) {
+    const slides = platformsFor(lang)
+      .map((platform) => ({ platform, href: entry.links?.[platform] || null }))
+      .filter((s): s is { platform: string; href: string } => !!s.href);
+    if (!slides.length) return;
+
+    const mine = generation;
+    const wrap = el('div', 'wm-carousel');
+    const track = el('div', 'wm-carousel__track');
+    const dots = el('div', 'wm-carousel__dots');
+
+    slides.forEach(({ platform, href }, index) => {
+      const slide = el('a', 'wm-slide is-pending') as HTMLAnchorElement;
+      slide.href = href;
+      slide.target = '_blank';
+      slide.rel = 'noopener';
+      slide.dataset.platform = platform;
+      slide.setAttribute(
+        'aria-label',
+        `${strings['map.panel.watch'] ?? 'Watch'} · ${PLATFORM_LABELS[platform] ?? platform}`,
+      );
+      slide.innerHTML =
+        `<span class="wm-slide__shimmer"></span>` +
+        `<span class="wm-slide__badge">${markSvg(platform, `${platform}-${index}-${generation}`, 16)}</span>`;
+      track.appendChild(slide);
+
+      const dot = el('button', 'wm-carousel__dot') as HTMLButtonElement;
+      dot.type = 'button';
+      dot.title = PLATFORM_LABELS[platform] ?? platform;
+      dot.addEventListener('click', () => slide.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' }));
+      dots.appendChild(dot);
+    });
+
+    wrap.append(track, dots);
+    host.appendChild(wrap);
+    if (slides.length < 2) dots.remove();
+
+    const syncDots = () => {
+      const mid = track.scrollLeft + track.clientWidth / 2;
+      let active = 0;
+      [...track.children].forEach((child, i) => {
+        const node = child as HTMLElement;
+        if (node.offsetLeft <= mid && node.offsetLeft + node.offsetWidth > mid) active = i;
+      });
+      [...dots.children].forEach((d, i) => d.classList.toggle('is-active', i === active));
+    };
+    track.addEventListener('scroll', syncDots, { passive: true });
+    syncDots();
+
+    const load = (slide: HTMLElement) => {
+      if (slide.dataset.loaded) return;
+      slide.dataset.loaded = '1';
+      const href = (slide as HTMLAnchorElement).href;
+      fetch(`/api/map/og?u=${encodeURIComponent(href)}`)
+        .then((r) => (r.ok ? r.json() : Promise.reject(new Error('og'))))
+        .then((og: { ok?: boolean; title?: string; image?: string }) => {
+          if (mine !== generation) return;
+          slide.classList.remove('is-pending');
+          if (!og?.ok || (!og.image && !og.title)) {
+            slide.classList.add('is-bare');
+            slide.querySelector('.wm-slide__shimmer')?.remove();
+            slide.appendChild(el('span', 'wm-slide__caption', PLATFORM_LABELS[slide.dataset.platform ?? ''] ?? ''));
+            return;
+          }
+          const shimmer = slide.querySelector('.wm-slide__shimmer');
+          shimmer?.remove();
+          if (og.image) {
+            const img = document.createElement('img');
+            img.className = 'wm-slide__img';
+            img.src = og.image;
+            img.alt = '';
+            slide.insertBefore(img, slide.firstChild);
+          }
+          if (og.title) {
+            const cap = el('span', 'wm-slide__caption', og.title);
+            slide.appendChild(cap);
+          }
+        })
+        .catch(() => {
+          if (mine !== generation) return;
+          slide.classList.remove('is-pending');
+          slide.classList.add('is-bare');
+          slide.querySelector('.wm-slide__shimmer')?.remove();
+          slide.appendChild(el('span', 'wm-slide__caption', PLATFORM_LABELS[slide.dataset.platform ?? ''] ?? ''));
+        });
+    };
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) if (e.isIntersecting) load(e.target as HTMLElement);
+      },
+      { root: track, threshold: 0.4 },
+    );
+    for (const slide of track.children) io.observe(slide);
+  }
+
+  /**
+   * Direct jumps. Until an episode carries a per-platform link the button falls back
+   * to our profile there, and to /contact for platforms we have no profile for.
    */
   function platformRow(entry: SeriesEntry): HTMLElement {
     const row = el('div', 'wm-panel__socials');
@@ -95,17 +209,27 @@ export function createPanel(deps: PanelDeps) {
         a.target = '_blank';
         a.rel = 'noopener';
       }
-      const uid = `${platform}-${generation}`;
-      a.innerHTML = `<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">${PLATFORM_ICONS[platform]?.(uid) ?? ''}</svg>`;
+      a.innerHTML = markSvg(platform, `${platform}-row-${generation}`);
       row.appendChild(a);
     }
     return row;
   }
 
-  function close() {
-    root.classList.remove('is-open');
-    root.hidden = true;
-    body.replaceChildren();
+  function stepper(canPrev: boolean, canNext: boolean): HTMLElement {
+    const nav = el('div', 'wm-panel__nav');
+    for (const [delta, glyph, key] of [
+      [-1, 'M9 2 3.5 8 9 14', 'map.panel.prev'],
+      [1, 'M4 2 9.5 8 4 14', 'map.panel.next'],
+    ] as const) {
+      const btn = el('button', 'wm-step') as HTMLButtonElement;
+      btn.type = 'button';
+      btn.disabled = delta < 0 ? !canPrev : !canNext;
+      btn.setAttribute('aria-label', strings[key] ?? (delta < 0 ? 'Previous episode' : 'Next episode'));
+      btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 13 16" fill="none" aria-hidden="true"><path d="${glyph}" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+      btn.addEventListener('click', () => deps.onStep(delta));
+      nav.appendChild(btn);
+    }
+    return nav;
   }
 
   function trackInfo(host: HTMLElement, track: TrackProps) {
@@ -147,58 +271,6 @@ export function createPanel(deps: PanelDeps) {
     }
   }
 
-  function attachPreview(entry: SeriesEntry, host: HTMLElement, tagline: HTMLElement | null) {
-    const candidates = platformsFor(lang)
-      .concat(Object.keys(entry.links ?? {}))
-      .map((platform) => entry.links?.[platform])
-      .filter((href, i, all): href is string => !!href && all.indexOf(href) === i)
-      .slice(0, 4);
-    if (!candidates.length) return;
-
-    const mine = generation;
-    const card = el('a', 'wm-preview is-loading') as HTMLAnchorElement;
-    card.href = candidates[0]!;
-    card.target = '_blank';
-    card.rel = 'noopener';
-    host.appendChild(card);
-
-    const query = candidates.map((u) => `u=${encodeURIComponent(u)}`).join('&');
-    fetch(`/api/map/og?${query}`)
-      .then((r) => (r.ok ? r.json() : Promise.reject(new Error('og'))))
-      .then((og: { ok?: boolean; url?: string; title?: string; description?: string; image?: string }) => {
-        if (mine !== generation) return;
-        if (!og?.ok) {
-          card.remove();
-          return;
-        }
-        if (og.url) card.href = og.url;
-        card.classList.remove('is-loading');
-        card.replaceChildren();
-        if (og.image) {
-          const img = document.createElement('img');
-          img.className = 'wm-preview__img';
-          img.src = og.image;
-          img.alt = '';
-          img.loading = 'lazy';
-          card.appendChild(img);
-        }
-        const meta = el('span', 'wm-preview__meta');
-        if (og.title) meta.appendChild(el('strong', 'wm-preview__title', og.title));
-        if (og.description) meta.appendChild(el('span', 'wm-preview__desc', og.description));
-        try {
-          meta.appendChild(el('span', 'wm-preview__host', new URL(card.href).hostname.replace(/^www\.|^v\./, '')));
-        } catch {
-          /* href is always absolute here, but never let a bad URL kill the card */
-        }
-        card.appendChild(meta);
-        // The platform's own copy supersedes ours — no need to say it twice.
-        tagline?.remove();
-      })
-      .catch(() => {
-        if (mine === generation) card.remove();
-      });
-  }
-
   return {
     close,
     isOpen: () => !root.hidden,
@@ -211,7 +283,12 @@ export function createPanel(deps: PanelDeps) {
     },
 
     /** Episode-first card; `track` is the catalog row when the venue is one. */
-    showEntry(entry: SeriesEntry, track: TrackProps | null, target: number) {
+    showEntry(
+      entry: SeriesEntry,
+      track: TrackProps | null,
+      target: number,
+      steps: { prev: boolean; next: boolean } = { prev: false, next: false },
+    ) {
       open((host) => {
         const counter = entry.kind === 'episode' ? `${entry.label} / ${target}` : entry.label;
         host.appendChild(el('span', 'wm-panel__counter', counter));
@@ -220,19 +297,7 @@ export function createPanel(deps: PanelDeps) {
         const venue = localized(entry.venue, lang) ?? track?.name ?? null;
         if (venue) host.appendChild(el('p', 'wm-panel__meta', venue));
 
-        if (entry.thumb) {
-          const img = document.createElement('img');
-          img.className = 'wm-panel__thumb';
-          img.src = entry.thumb;
-          img.alt = '';
-          img.loading = 'lazy';
-          host.appendChild(img);
-        }
-
-        const taglineText = localized(entry.tagline, lang);
-        const taglineEl = taglineText ? el('p', 'wm-panel__tagline', taglineText) : null;
-        if (taglineEl) host.appendChild(taglineEl);
-        attachPreview(entry, host, taglineEl);
+        carousel(entry, host);
 
         if (entry.status !== 'live') {
           host.appendChild(
@@ -242,6 +307,7 @@ export function createPanel(deps: PanelDeps) {
         host.appendChild(platformRow(entry));
 
         if (track) trackInfo(host, track);
+        host.appendChild(stepper(steps.prev, steps.next));
       });
     },
   };

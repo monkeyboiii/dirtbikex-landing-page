@@ -1,8 +1,10 @@
 import type { EntryPlacement, SeriesDoc, SeriesEntry, Strings } from './types';
 
-/** Stops drawn ahead of the journey. Capped so the rail can't scroll forever —
-    whatever is left over is summed into a muted "+N" at the end. */
-const RUNWAY = 20;
+/** Stops drawn ahead of the journey. Deliberately short — the rail is a position
+    indicator, not the whole route; the remainder is summed into a muted "+N". */
+const RUNWAY = 6;
+/** Longest label we'll put under the active stop before trimming. */
+const LABEL_MAX = 18;
 
 export interface HudDeps {
   root: HTMLElement;
@@ -20,13 +22,13 @@ function localized(block: Record<string, string> | null | undefined, lang: strin
 export function createHud(deps: HudDeps, series: SeriesDoc, placements: Map<SeriesEntry, EntryPlacement>) {
   const { root, strings, lang } = deps;
   const bar = root.querySelector<HTMLElement>('[data-hud-bar]')!;
-  // Inner rail so the stops centre when they fit and scroll when they don't.
+  // Inner rail, padded by half the viewport so any stop can sit dead centre.
   const rail = document.createElement('div');
   rail.className = 'wm-hud__rail';
   bar.appendChild(rail);
   const counterEl = root.querySelector<HTMLElement>('[data-hud-counter]')!;
   const toggleBtn = root.querySelector<HTMLButtonElement>('[data-hud-toggle]')!;
-  const tip = root.querySelector<HTMLElement>('[data-hud-tip]')!;
+  const labelEl = root.querySelector<HTMLElement>('[data-hud-label]')!;
 
   // Shown entries: every episode, plus side entries the operator flagged `hud: "show"`.
   const shown = series.entries
@@ -43,30 +45,10 @@ export function createHud(deps: HudDeps, series: SeriesDoc, placements: Map<Seri
 
   toggleBtn.addEventListener('click', () => deps.onToggleSeries());
 
-  function showTip(anchor: HTMLElement, entry: SeriesEntry) {
-    const title = localized(entry.title, lang) ?? localized(entry.venue, lang) ?? entry.label;
-    const status =
-      entry.status === 'live'
-        ? strings['map.panel.watch'] ?? 'Watch'
-        : strings['map.panel.inProduction'] ?? 'Episode in production';
-    const date = entry.published_on ?? entry.visited_on ?? '';
-    tip.replaceChildren();
-    const label = document.createElement('strong');
-    label.textContent = entry.label;
-    const line = document.createElement('span');
-    line.textContent = title;
-    const foot = document.createElement('em');
-    foot.textContent = date ? `${status} · ${date}` : status;
-    tip.append(label, line, foot);
-    tip.hidden = false;
-    // Position over the ball, clamped inside the HUD.
-    const barBox = bar.getBoundingClientRect();
-    const box = anchor.getBoundingClientRect();
-    tip.style.left = `${Math.max(0, box.left - barBox.left + box.width / 2)}px`;
-  }
-
-  function hideTip() {
-    tip.hidden = true;
+  function shortLabel(entry: SeriesEntry): string {
+    const text = localized(entry.venue, lang) ?? localized(entry.title, lang) ?? entry.label;
+    if (text.length <= LABEL_MAX) return text;
+    return `${text.slice(0, LABEL_MAX - 1).replace(/[\s,;·、，]+$/, '')}…`;
   }
 
   function centre(ball: HTMLElement, smooth = true) {
@@ -92,16 +74,8 @@ export function createHud(deps: HudDeps, series: SeriesDoc, placements: Map<Seri
         .filter(Boolean)
         .join(' ');
       ball.dataset.label = entry.label;
-      ball.setAttribute(
-        'aria-label',
-        `${entry.label} — ${localized(entry.title, lang) ?? localized(entry.venue, lang) ?? ''}`.trim(),
-      );
-      const pick = () => deps.onPick(placements.get(entry) ?? { entry, lngLat: null });
-      ball.addEventListener('click', pick);
-      ball.addEventListener('mouseenter', () => showTip(ball, entry));
-      ball.addEventListener('focus', () => showTip(ball, entry));
-      ball.addEventListener('mouseleave', hideTip);
-      ball.addEventListener('blur', hideTip);
+      ball.setAttribute('aria-label', `${entry.label} — ${shortLabel(entry)}`);
+      ball.addEventListener('click', () => deps.onPick(placements.get(entry) ?? { entry, lngLat: null }));
       rail.appendChild(ball);
     }
 
@@ -123,10 +97,21 @@ export function createHud(deps: HudDeps, series: SeriesDoc, placements: Map<Seri
     }
   }
 
+  function setActive(entry: SeriesEntry | null, smooth = true) {
+    let hit: HTMLElement | null = null;
+    for (const ball of rail.querySelectorAll<HTMLElement>('.wm-ball')) {
+      const active = !!entry && ball.dataset.label === entry.label;
+      ball.classList.toggle('is-active', active);
+      if (active) hit = ball;
+    }
+    labelEl.textContent = entry ? shortLabel(entry) : '';
+    if (hit) centre(hit, smooth);
+  }
+
   render();
-  // Open on the newest completed stop, centred.
-  const last = [...rail.querySelectorAll<HTMLElement>('.wm-ball.is-done')].pop();
-  if (last) centre(last, false);
+  // Open on the newest completed stop so the label and the camera agree.
+  const opening = [...shown].reverse().find((e) => e.status === 'live' || e.status === 'visited') ?? null;
+  setActive(opening, false);
 
   return {
     setSeriesMode(on: boolean) {
@@ -137,11 +122,7 @@ export function createHud(deps: HudDeps, series: SeriesDoc, placements: Map<Seri
         : strings['map.hud.seriesMode'] ?? 'Series mode';
     },
     highlight(entry: SeriesEntry | null) {
-      for (const ball of rail.querySelectorAll<HTMLElement>('.wm-ball')) {
-        const active = !!entry && ball.dataset.label === entry.label;
-        ball.classList.toggle('is-active', active);
-        if (active) centre(ball);
-      }
+      setActive(entry ?? opening);
     },
   };
 }
