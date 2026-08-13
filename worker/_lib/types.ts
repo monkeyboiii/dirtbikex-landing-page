@@ -46,6 +46,10 @@ export interface PagesEnv {
   MARKETING_BASE?: string;
   /** R2 bucket holding blank invite cards at `template/<kind>/<locale>.png`. `wrangler r2 bucket create dbx-qr`. */
   QR_BUCKET?: R2Bucket;
+  /** R2 bucket holding the world map's operator-curated story data. `wrangler r2 bucket create dbx-map`. */
+  MAP_BUCKET?: R2Bucket;
+  /** Object-key prefix isolating this env's map data inside the shared bucket: `prod` / `preview`. */
+  MAP_DATA_PREFIX?: string;
   ASSETS?: AssetsBinding;
   /** Shared bearer for the /api/outreach/* endpoints (the CRM's pre-invite test + batch). Secret. */
   OUTREACH_SECRET?: string;
@@ -112,6 +116,7 @@ export interface R2Bucket {
 }
 export interface R2ObjectBody {
   arrayBuffer(): Promise<ArrayBuffer>;
+  text(): Promise<string>;
 }
 
 /**

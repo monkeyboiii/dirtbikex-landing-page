@@ -20,6 +20,7 @@
     "astro": "^6.4.8",
     "aws4fetch": "^1.0.20",
     "fast-png": "^8.0.0",
+    "maplibre-gl": "^6.3.0",
     "qrcode-generator": "^2.0.4",
     "tailwindcss": "^3.4.0"
   },

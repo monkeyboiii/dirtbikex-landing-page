@@ -1,0 +1,856 @@
+/* World map homepage — always dark regardless of the site theme (CONCRETE_MAP_PLAN.md D4).
+   Surface values are declared locally rather than inherited from .dark so the map keeps its
+   identity while the surrounding chrome still follows the user's toggle. */
+
+.wm {
+  --wm-ink: #0d0c09;
+  --wm-surface: rgba(22, 20, 15, 0.82);
+  --wm-surface-solid: #16140f;
+  --wm-line: rgba(231, 224, 210, 0.14);
+  --wm-line-strong: rgba(231, 224, 210, 0.28);
+  --wm-text: #f4f1ea;
+  --wm-text-dim: #b7b3ad;
+  --wm-text-faint: #85817a;
+  --wm-accent: #ed6b00;
+  --wm-accent-soft: rgba(237, 107, 0, 0.16);
+  --wm-blur: saturate(140%) blur(14px);
+
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  background: var(--wm-ink);
+  color: var(--wm-text);
+  font-family: var(--font-sans, 'Geist', system-ui, sans-serif);
+}
+
+body.is-map-page {
+  overflow: hidden;
+  height: 100dvh;
+}
+
+/* The map runs full-bleed under the header; a scrim keeps the nav legible. */
+body.is-map-page .site-header {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 30;
+  background: linear-gradient(to bottom, rgba(13, 12, 9, 0.92), rgba(13, 12, 9, 0));
+  border-bottom: 0;
+  backdrop-filter: none;
+}
+body.is-map-page .site-header a,
+body.is-map-page .site-header button {
+  color: #f4f1ea;
+}
+body.is-map-page .site-header .btn--primary {
+  color: #fff;
+}
+body.is-map-page main {
+  flex: none;
+}
+/* A centred 1040px bar looks marooned over a full-bleed map — run it edge to edge. */
+body.is-map-page .site-header__inner {
+  max-width: none;
+  padding-left: max(var(--space-6, 24px), env(safe-area-inset-left));
+  padding-right: max(var(--space-6, 24px), env(safe-area-inset-right));
+}
+
+/* Local rules below set `display`, which would otherwise beat the UA's [hidden]
+   rule and leave invisible panels swallowing clicks over the map. */
+.wm [hidden] {
+  display: none !important;
+}
+
+.wm__canvas {
+  position: absolute;
+  inset: 0;
+}
+.wm__canvas canvas {
+  outline: none;
+}
+
+/* Edge vignette + grain: floats the overlays without darkening the centre. */
+.wm__grade {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  background:
+    radial-gradient(120% 90% at 50% 45%, rgba(13, 12, 9, 0) 45%, rgba(13, 12, 9, 0.55) 100%),
+    linear-gradient(to top, rgba(13, 12, 9, 0.75) 0%, rgba(13, 12, 9, 0) 28%);
+  opacity: 0;
+  transition: opacity 900ms var(--ease-out, ease);
+}
+.wm.is-live .wm__grade {
+  opacity: 1;
+}
+
+/* ---------- boot gate ---------- */
+
+.wm__gate {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: var(--space-6, 24px);
+  background:
+    radial-gradient(80% 60% at 50% 30%, rgba(237, 107, 0, 0.14), transparent 70%),
+    linear-gradient(180deg, #16140f 0%, #0d0c09 100%);
+  transition: opacity 700ms var(--ease-out, ease), visibility 700ms;
+}
+.wm__gate::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url('/brand/topo-pattern.svg') center / 900px repeat;
+  opacity: 0.16;
+  mix-blend-mode: screen;
+}
+.wm__gate[data-state='done'] {
+  opacity: 0;
+  visibility: hidden;
+}
+.wm__gate-inner {
+  position: relative;
+  max-width: 30ch;
+  display: grid;
+  gap: var(--space-4, 16px);
+  justify-items: center;
+}
+.wm__gate-mark {
+  width: 44px;
+  height: 44px;
+  opacity: 0.9;
+}
+.wm__gate-title {
+  font-family: var(--font-display, 'Bricolage Grotesque', sans-serif);
+  font-weight: 700;
+  font-size: clamp(1.35rem, 1.1rem + 1.2vw, 2rem);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+.wm__gate-sub {
+  color: var(--wm-text-dim);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+.wm__boot {
+  margin-top: var(--space-2, 8px);
+  padding: 13px 26px;
+  border-radius: var(--radius-pill, 999px);
+  border: 0;
+  background: var(--wm-accent);
+  color: #fff;
+  font: inherit;
+  font-weight: 650;
+  font-size: 0.95rem;
+  cursor: pointer;
+  box-shadow: var(--shadow-brand, 0 8px 24px -8px rgba(237, 107, 0, 0.5));
+  transition: transform var(--dur-fast, 120ms) var(--ease-out, ease);
+}
+.wm__boot:hover {
+  transform: translateY(-1px);
+}
+.wm__boot:active {
+  transform: translateY(0);
+}
+/* Desktop auto-boots — the gate is only a backdrop while tiles arrive. */
+@media (min-width: 768px) {
+  .wm__boot {
+    display: none;
+  }
+}
+.wm__gate[data-state='loading'] .wm__boot {
+  display: none;
+}
+.wm__gate-spinner {
+  display: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid rgba(237, 107, 0, 0.25);
+  border-top-color: var(--wm-accent);
+  animation: wm-spin 720ms linear infinite;
+}
+.wm__gate[data-state='loading'] .wm__gate-spinner {
+  display: block;
+}
+.wm__gate-error {
+  display: none;
+  color: var(--wm-text-dim);
+  font-size: 0.9rem;
+}
+.wm__gate[data-state='unavailable'] .wm__gate-error {
+  display: block;
+}
+.wm__gate[data-state='unavailable'] .wm__boot,
+.wm__gate[data-state='unavailable'] .wm__gate-sub {
+  display: none;
+}
+@keyframes wm-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---------- journey HUD ---------- */
+
+.wm-hud {
+  position: absolute;
+  left: max(var(--space-5, 20px), env(safe-area-inset-left));
+  bottom: calc(80px + env(safe-area-inset-bottom));
+  z-index: 12;
+  max-width: min(420px, calc(100vw - 40px));
+  padding: 14px 16px 12px;
+  border-radius: var(--radius-lg, 14px);
+  border: 1px solid var(--wm-line);
+  background: var(--wm-surface);
+  backdrop-filter: var(--wm-blur);
+  -webkit-backdrop-filter: var(--wm-blur);
+  box-shadow: 0 18px 44px -18px rgba(0, 0, 0, 0.9);
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 600ms var(--ease-out, ease), transform 600ms var(--ease-out, ease);
+}
+.wm.is-live .wm-hud {
+  opacity: 1;
+  transform: none;
+}
+.wm-hud__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-4, 16px);
+}
+.wm-hud__title {
+  appearance: none;
+  border: 0;
+  background: none;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+  color: var(--wm-text);
+  font-family: var(--font-display, 'Bricolage Grotesque', sans-serif);
+  font-weight: 700;
+  font-size: 0.82rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  line-height: 1.25;
+  max-width: 22ch;
+}
+.wm-hud__title:hover {
+  color: var(--wm-accent);
+}
+.wm-hud.is-series .wm-hud__title {
+  color: var(--wm-accent);
+}
+.wm-hud__counter {
+  font-family: var(--font-mono, 'Geist Mono', monospace);
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--wm-accent);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.wm-hud__bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 12px;
+  padding-bottom: 2px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.wm-hud__bar::-webkit-scrollbar {
+  display: none;
+}
+
+.wm-ball {
+  position: relative;
+  flex: none;
+  width: 11px;
+  height: 11px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1.5px solid var(--wm-line-strong);
+  background: transparent;
+  cursor: pointer;
+  appearance: none;
+  transition: transform var(--dur-fast, 120ms) var(--ease-spring, ease),
+    box-shadow var(--dur-base, 200ms) ease;
+}
+/* dotted connector to the previous ball */
+.wm-ball:not(:first-child)::before,
+.wm-ball__tail::before {
+  content: '';
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  width: 14px;
+  border-top: 1.5px dotted rgba(231, 224, 210, 0.3);
+}
+.wm-ball.is-done {
+  background: var(--wm-accent);
+  border-color: var(--wm-accent);
+}
+.wm-ball.is-live {
+  box-shadow: 0 0 0 3px rgba(237, 107, 0, 0.22);
+}
+.wm-ball--side {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  transform: rotate(45deg);
+}
+.wm-ball--side.is-active,
+.wm-ball--side:hover {
+  transform: rotate(45deg) scale(1.35);
+}
+.wm-ball--empty {
+  cursor: default;
+  opacity: 0.55;
+}
+.wm-ball--more {
+  width: auto;
+  height: auto;
+  border: 0;
+  border-radius: var(--radius-xs, 4px);
+  color: var(--wm-text-faint);
+  font-size: 0.85rem;
+  line-height: 1;
+  padding: 2px 3px;
+}
+.wm-ball--more::before {
+  display: none;
+}
+.wm-ball:hover,
+.wm-ball.is-active {
+  transform: scale(1.35);
+}
+.wm-ball.is-active {
+  box-shadow: 0 0 0 4px rgba(237, 107, 0, 0.28);
+}
+.wm-ball:focus-visible {
+  outline: 2px solid var(--wm-accent);
+  outline-offset: 3px;
+}
+.wm-ball__tail {
+  position: relative;
+  flex: none;
+  color: var(--wm-text-faint);
+  font-size: 0.8rem;
+  line-height: 1;
+}
+
+.wm-hud__tip {
+  position: absolute;
+  bottom: calc(100% + 12px);
+  transform: translateX(-50%);
+  min-width: 150px;
+  max-width: 240px;
+  display: grid;
+  gap: 2px;
+  padding: 9px 11px;
+  border-radius: var(--radius-md, 10px);
+  border: 1px solid var(--wm-line);
+  background: var(--wm-surface-solid);
+  box-shadow: var(--shadow-lg, 0 16px 40px -8px rgba(0, 0, 0, 0.7));
+  pointer-events: none;
+  z-index: 2;
+}
+.wm-hud__tip strong {
+  font-family: var(--font-mono, 'Geist Mono', monospace);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  color: var(--wm-accent);
+}
+.wm-hud__tip span {
+  font-size: 0.85rem;
+  line-height: 1.3;
+}
+.wm-hud__tip em {
+  font-style: normal;
+  font-size: 0.72rem;
+  color: var(--wm-text-faint);
+}
+
+/* ---------- episode markers ---------- */
+
+.wm-ep {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  background: var(--wm-accent);
+  color: #fff;
+  cursor: pointer;
+  appearance: none;
+  box-shadow: 0 4px 14px -2px rgba(0, 0, 0, 0.7), 0 0 0 0 rgba(237, 107, 0, 0.5);
+  transition: transform 160ms var(--ease-spring, ease);
+}
+.wm-ep__num {
+  font-family: var(--font-mono, 'Geist Mono', monospace);
+  font-weight: 700;
+  font-size: 0.72rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.wm-ep:hover,
+.wm-ep:focus-visible {
+  transform: scale(1.14);
+  outline: none;
+}
+.wm-ep.is-visited {
+  background: #3c3b3a;
+  border-color: rgba(255, 255, 255, 0.6);
+}
+.wm-ep.is-live::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(237, 107, 0, 0.55);
+  animation: wm-ring 2.6s var(--ease-out, ease) infinite;
+}
+.wm-ep--side {
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+}
+@keyframes wm-ring {
+  0% {
+    transform: scale(0.85);
+    opacity: 0.9;
+  }
+  70%,
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+.wm.is-dimmed .maplibregl-marker .wm-ep:not(:hover) {
+  opacity: 0.35;
+}
+.maplibregl-marker {
+  transition: opacity var(--dur-base, 200ms) ease;
+}
+
+/* ---------- selection panel ---------- */
+
+.wm-panel {
+  position: absolute;
+  top: calc(64px + var(--space-4, 16px));
+  right: var(--space-5, 20px);
+  z-index: 14;
+  width: 372px;
+  max-width: calc(100vw - 40px);
+  max-height: calc(100dvh - 64px - var(--space-4, 16px) - 96px);
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius-lg, 14px);
+  border: 1px solid var(--wm-line);
+  background: var(--wm-surface);
+  backdrop-filter: var(--wm-blur);
+  -webkit-backdrop-filter: var(--wm-blur);
+  box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.95);
+  transform: translateX(16px);
+  opacity: 0;
+  transition: transform 320ms var(--ease-spring, ease), opacity 240ms ease;
+}
+.wm-panel.is-open {
+  transform: none;
+  opacity: 1;
+}
+.wm-panel__close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid var(--wm-line);
+  background: rgba(13, 12, 9, 0.6);
+  color: var(--wm-text-dim);
+  cursor: pointer;
+  z-index: 2;
+}
+.wm-panel__close:hover {
+  color: var(--wm-text);
+  border-color: var(--wm-line-strong);
+}
+.wm-panel__body {
+  padding: 20px 20px 22px;
+  overflow-y: auto;
+  display: grid;
+  gap: 10px;
+  align-content: start;
+}
+.wm-panel__counter {
+  font-family: var(--font-mono, 'Geist Mono', monospace);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--wm-accent);
+}
+.wm-panel__title {
+  font-family: var(--font-display, 'Bricolage Grotesque', sans-serif);
+  font-weight: 700;
+  font-size: 1.28rem;
+  line-height: 1.18;
+  letter-spacing: -0.015em;
+  margin: 0;
+  padding-right: 28px;
+}
+.wm-panel__meta {
+  margin: 0;
+  color: var(--wm-text-dim);
+  font-size: 0.86rem;
+  line-height: 1.4;
+}
+.wm-panel__thumb {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: var(--radius-md, 10px);
+  border: 1px solid var(--wm-line);
+}
+.wm-panel__tagline {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: var(--wm-text);
+}
+.wm-panel__status {
+  margin: 4px 0 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--wm-text-dim);
+}
+.wm-panel__status::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--wm-accent);
+  box-shadow: 0 0 0 3px var(--wm-accent-soft);
+}
+.wm-panel__watch {
+  display: grid;
+  gap: 7px;
+  margin-top: 4px;
+}
+.wm-watch {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 13px;
+  border-radius: var(--radius-md, 10px);
+  border: 1px solid var(--wm-line-strong);
+  color: var(--wm-text);
+  text-decoration: none;
+  font-size: 0.88rem;
+  font-weight: 550;
+  transition: border-color var(--dur-fast, 120ms) ease, background var(--dur-fast, 120ms) ease;
+}
+.wm-watch::before {
+  content: '';
+  width: 0;
+  height: 0;
+  border-left: 8px solid var(--wm-accent);
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+}
+.wm-watch:hover {
+  border-color: var(--wm-accent);
+  background: var(--wm-accent-soft);
+}
+.wm-panel__section {
+  margin: 12px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--wm-line);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--wm-text-faint);
+}
+.wm-panel__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.wm-chip {
+  padding: 4px 9px;
+  border-radius: var(--radius-pill, 999px);
+  border: 1px solid var(--wm-line);
+  font-size: 0.74rem;
+  color: var(--wm-text-dim);
+}
+.wm-chip--verified {
+  border-color: rgba(47, 168, 79, 0.4);
+  color: #7fd08f;
+}
+.wm-chip--claimed {
+  border-color: rgba(237, 107, 0, 0.5);
+  background: var(--wm-accent-soft);
+  color: #ffb469;
+}
+.wm-panel__link {
+  justify-self: start;
+  color: var(--wm-text-dim);
+  font-size: 0.86rem;
+  text-decoration: none;
+  border-bottom: 1px solid var(--wm-line-strong);
+  padding-bottom: 1px;
+}
+.wm-panel__link:hover {
+  color: var(--wm-accent);
+  border-color: var(--wm-accent);
+}
+.wm-panel__join {
+  margin-top: 14px;
+  padding: 11px 18px;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--wm-accent);
+  color: #fff;
+  text-align: center;
+  text-decoration: none;
+  font-weight: 650;
+  font-size: 0.9rem;
+}
+.wm-panel__join:hover {
+  background: #cf5300;
+}
+
+/* ---------- floating CTAs ---------- */
+
+.wm__cta {
+  position: absolute;
+  right: var(--space-5, 20px);
+  bottom: calc(84px + env(safe-area-inset-bottom));
+  z-index: 11;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  opacity: 0;
+  transition: opacity 600ms var(--ease-out, ease) 200ms;
+}
+.wm.is-live .wm__cta {
+  opacity: 1;
+}
+.wm-panel.is-open ~ .wm__cta {
+  opacity: 0;
+  pointer-events: none;
+}
+.wm__cta-join {
+  padding: 11px 20px;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--wm-accent);
+  color: #fff;
+  text-decoration: none;
+  font-weight: 650;
+  font-size: 0.9rem;
+  box-shadow: var(--shadow-brand, 0 8px 24px -8px rgba(237, 107, 0, 0.5));
+}
+.wm__cta-app {
+  display: inline-flex;
+  padding: 8px 12px;
+  border-radius: var(--radius-pill, 999px);
+  border: 1px solid var(--wm-line-strong);
+  background: var(--wm-surface);
+  backdrop-filter: var(--wm-blur);
+  -webkit-backdrop-filter: var(--wm-blur);
+}
+.wm__cta-app img {
+  height: 20px;
+  width: auto;
+}
+
+/* ---------- bottom drawer ---------- */
+
+.wm__drawer {
+  position: absolute;
+  inset: auto 0 0 0;
+  z-index: 20;
+  border-top: 1px solid var(--wm-line);
+  background: rgba(13, 12, 9, 0.9);
+  backdrop-filter: var(--wm-blur);
+  -webkit-backdrop-filter: var(--wm-blur);
+  transition: transform 360ms var(--ease-out, ease);
+}
+.wm__drawer-handle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4, 16px);
+  padding: 12px max(var(--space-5, 20px), env(safe-area-inset-left)) calc(12px + env(safe-area-inset-bottom));
+  border: 0;
+  background: none;
+  color: var(--wm-text-dim);
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+.wm__drawer-handle:hover {
+  color: var(--wm-text);
+}
+.wm__stats {
+  display: flex;
+  gap: 18px;
+  font-family: var(--font-mono, 'Geist Mono', monospace);
+  font-size: 0.76rem;
+  letter-spacing: 0.02em;
+  color: var(--wm-text-faint);
+}
+.wm__stats b {
+  color: var(--wm-text);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.wm__drawer-chevron {
+  transition: transform var(--dur-base, 200ms) ease;
+}
+.wm__drawer.is-open .wm__drawer-chevron {
+  transform: rotate(180deg);
+}
+.wm__drawer-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 400ms var(--ease-out, ease);
+}
+.wm__drawer.is-open .wm__drawer-body {
+  max-height: min(72dvh, 720px);
+  overflow-y: auto;
+}
+.wm__drawer-body .site-footer {
+  border-top: 1px solid var(--wm-line);
+  background: transparent;
+  color: var(--wm-text);
+}
+.wm__drawer-intro {
+  margin: 0 auto;
+  padding: var(--space-6, 24px) var(--space-5, 20px) 0;
+  max-width: 62ch;
+  color: var(--wm-text-dim);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.wm__drawer-credit {
+  margin: 8px auto 0;
+  padding: 0 var(--space-5, 20px);
+  text-align: center;
+  font-size: 0.72rem;
+  color: var(--wm-text-faint);
+}
+.wm__drawer-credit a {
+  color: var(--wm-text-faint);
+  text-decoration: underline;
+}
+
+/* ---------- attribution + controls ---------- */
+
+.wm .maplibregl-ctrl-bottom-right {
+  bottom: calc(46px + env(safe-area-inset-bottom));
+  z-index: 10;
+}
+.wm .maplibregl-ctrl-attrib {
+  background: rgba(13, 12, 9, 0.72);
+  color: var(--wm-text-faint);
+  font-size: 10px;
+  border-radius: var(--radius-sm, 6px);
+}
+.wm .maplibregl-ctrl-attrib a {
+  color: var(--wm-text-dim);
+}
+.wm .maplibregl-ctrl-group {
+  background: var(--wm-surface);
+  border: 1px solid var(--wm-line);
+  border-radius: var(--radius-md, 10px);
+  overflow: hidden;
+}
+.wm .maplibregl-ctrl-group button + button {
+  border-top: 1px solid var(--wm-line);
+}
+.wm .maplibregl-ctrl-group button .maplibregl-ctrl-icon {
+  filter: invert(1) opacity(0.7);
+}
+
+/* ---------- mobile ---------- */
+
+@media (max-width: 767px) {
+  .wm-hud {
+    left: 12px;
+    right: 12px;
+    max-width: none;
+    bottom: calc(130px + env(safe-area-inset-bottom));
+    padding: 11px 13px 10px;
+  }
+  .wm-hud__title {
+    font-size: 0.74rem;
+    max-width: 18ch;
+  }
+  .wm__cta {
+    left: 12px;
+    right: 12px;
+    bottom: calc(78px + env(safe-area-inset-bottom));
+    justify-content: center;
+  }
+  /* Pinch-zoom makes the +/- buttons redundant and they crowd the CTA. */
+  .wm .maplibregl-ctrl-group {
+    display: none;
+  }
+  .wm-panel {
+    top: auto;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: auto;
+    max-width: none;
+    max-height: 76dvh;
+    border-radius: var(--radius-xl, 20px) var(--radius-xl, 20px) 0 0;
+    border-bottom: 0;
+    transform: translateY(18px);
+  }
+  .wm-panel.is-open {
+    transform: none;
+  }
+  .wm-panel__body {
+    padding-bottom: calc(24px + env(safe-area-inset-bottom));
+  }
+  /* An open sheet owns the bottom edge — HUD, CTAs and drawer stand down. */
+  .wm:has(.wm-panel.is-open) .wm-hud,
+  .wm:has(.wm-panel.is-open) .wm__cta,
+  .wm:has(.wm-panel.is-open) .wm__drawer {
+    opacity: 0;
+    pointer-events: none;
+  }
+  .wm__stats {
+    gap: 12px;
+    font-size: 0.7rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wm *,
+  .wm *::after,
+  .wm *::before {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

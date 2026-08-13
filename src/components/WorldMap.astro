@@ -1,0 +1,149 @@
+---
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import '../styles/map.css';
+import Footer from './Footer.astro';
+import AppStoreBadge from './AppStoreBadge.astro';
+import { getLangFromUrl, localizedPath } from '../i18n/utils';
+import { ui, defaultLang } from '../i18n/ui';
+
+/** English source of every map string; per-locale overrides come from src/i18n/locales. */
+const DEFAULTS: Record<string, string> = {
+  'map.hud.series': 'Visiting 100 dirt bike tracks',
+  'map.hud.counter': '{done} / {total}',
+  'map.hud.seriesMode': 'Series mode',
+  'map.hud.worldMode': 'Back to the world',
+  'map.panel.close': 'Close',
+  'map.panel.inProduction': 'Episode in production',
+  'map.panel.watch': 'Watch',
+  'map.panel.trackInfo': 'Track info',
+  'map.panel.verified': 'Verified',
+  'map.panel.unverified': 'Unverified',
+  'map.panel.claimed': 'Claimed by its steward',
+  'map.panel.approxArea': 'Approximate area',
+  'map.panel.website': 'Website',
+  'map.panel.join': 'Join DirtBikeX',
+  'map.cat.motocross': 'Motocross track',
+  'map.cat.riding_park': 'Riding park',
+  'map.cat.ebike_park': 'E-bike park',
+  'map.cat.club': 'Club',
+  'map.cat.trail_area': 'Trail area',
+  'map.cat.other': 'Riding spot',
+  'map.drawer.about': 'About DirtBikeX',
+  'map.drawer.intro':
+    'DirtBikeX is a community for dirt bike riders — tracks, trails, and the people who ride them. Every pin on this map is a real place.',
+  'map.drawer.close': 'Close',
+  'map.boot.tap': 'Tap to explore the map',
+  'map.boot.loading': 'Loading the world',
+  'map.a11y.map': 'Interactive world map of dirt bike tracks',
+  'map.legend.tracks': '{count} tracks on the map',
+  'map.err.unavailable': "The map couldn't load here. Explore DirtBikeX below.",
+};
+
+const lang = getLangFromUrl(Astro.url);
+const dict: Record<string, string> = { ...DEFAULTS };
+for (const key of Object.keys(DEFAULTS)) {
+  const localised = (ui[lang] as Record<string, string>)[key] ?? (ui[defaultLang] as Record<string, string>)[key];
+  if (localised) dict[key] = localised;
+}
+const s = (key: string) => dict[key] ?? key;
+
+// Baked at build time so the gate and drawer show a real number before any fetch.
+// Resolved from the project root — `import.meta.url` points into Astro's compiled
+// output, not src/, so a relative URL misses the file and silently yields 0.
+let trackCount = 0;
+try {
+  const raw = readFileSync(join(process.cwd(), 'public/map/tracks.json'), 'utf8');
+  trackCount = (JSON.parse(raw).features ?? []).length;
+} catch {
+  trackCount = 0;
+}
+
+const config = {
+  lang,
+  styleUrl: '/map/style-dark.json',
+  tracksUrl: '/map/tracks.json',
+  seriesUrl: '/api/map/series.json',
+  markersBase: '/map/markers/',
+  joinUrl: localizedPath(lang, '/join'),
+  claimed: [] as string[],
+};
+---
+
+<div id="worldmap" class="wm" data-worldmap>
+  <div class="wm__canvas" data-map-canvas role="application" aria-label={s('map.a11y.map')}></div>
+  <div class="wm__grade" aria-hidden="true"></div>
+
+  <div class="wm__gate" data-map-gate data-state="idle">
+    <div class="wm__gate-inner">
+      <img src="/brand/logo-mark.svg" alt="" class="wm__gate-mark" />
+      <p class="wm__gate-title">{s('map.hud.series')}</p>
+      <p class="wm__gate-sub">
+        {trackCount > 0 ? s('map.legend.tracks').replace('{count}', trackCount.toLocaleString('en-US')) : ''}
+      </p>
+      <button type="button" class="wm__boot" data-map-boot>{s('map.boot.tap')}</button>
+      <div class="wm__gate-spinner" role="status" aria-label={s('map.boot.loading')}></div>
+      <p class="wm__gate-error">{s('map.err.unavailable')}</p>
+    </div>
+  </div>
+
+  <section class="wm-hud" data-hud aria-label={s('map.hud.series')}>
+    <div class="wm-hud__head">
+      <button type="button" class="wm-hud__title" data-hud-title aria-pressed="false" title={s('map.hud.seriesMode')}>
+        {s('map.hud.series')}
+      </button>
+      <span class="wm-hud__counter" data-hud-counter>—</span>
+    </div>
+    <div class="wm-hud__bar" data-hud-bar></div>
+    <div class="wm-hud__tip" data-hud-tip hidden></div>
+  </section>
+
+  <aside class="wm-panel" data-panel hidden aria-live="polite">
+    <button type="button" class="wm-panel__close" data-panel-close aria-label={s('map.panel.close')}>
+      <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"
+        ><path d="M2 2l10 10M12 2L2 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg
+      >
+    </button>
+    <div class="wm-panel__body" data-panel-body></div>
+  </aside>
+
+  <div class="wm__cta">
+    <a class="wm__cta-join" href={config.joinUrl}>{s('map.panel.join')}</a>
+    <span class="wm__cta-app"><AppStoreBadge /></span>
+  </div>
+
+  <div class="wm__drawer" data-drawer>
+    <button type="button" class="wm__drawer-handle" data-drawer-toggle aria-expanded="false">
+      <span class="wm__stats" data-stats>
+        {trackCount > 0 && (
+          <span data-stat-static><b>{trackCount.toLocaleString('en-US')}</b> tracks</span>
+        )}
+        <span><b data-stat="users_count">—</b> riders</span>
+        <span><b data-stat="topics_count">—</b> threads</span>
+      </span>
+      <span>
+        {s('map.drawer.about')}
+        <svg class="wm__drawer-chevron" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"
+          ><path d="M2 4.5L6 8.5l4-4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" /></svg
+        >
+      </span>
+    </button>
+    <div class="wm__drawer-body">
+      <p class="wm__drawer-intro">{s('map.drawer.intro')}</p>
+      <p class="wm__drawer-credit">
+        Map data: <a href="https://openfreemap.org" target="_blank" rel="noopener">OpenFreeMap</a>
+        <a href="https://www.openmaptiles.org/" target="_blank" rel="noopener">© OpenMapTiles</a>, Data from
+        <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>
+      </p>
+      <Footer />
+    </div>
+  </div>
+
+  <script type="application/json" id="worldmap-config" set:html={JSON.stringify(config)} is:inline></script>
+  <script type="application/json" id="worldmap-i18n" set:html={JSON.stringify(dict)} is:inline></script>
+</div>
+
+<script>
+  import { bootWorldMap } from '../scripts/worldmap/index';
+  void bootWorldMap();
+</script>

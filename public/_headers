@@ -31,6 +31,27 @@
 /og-image.png
   Cache-Control: public, max-age=86400
 
+# World map assets. Markers are content-stable; the baked catalog and the forked
+# basemap style move on a deploy cadence, the story seed on an R2-push cadence.
+/map/markers/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/map/style-dark.json
+  Content-Type: application/json
+  Cache-Control: public, max-age=3600
+
+/map/tracks.json
+  Content-Type: application/json
+  Cache-Control: public, max-age=86400
+
+/map/series.seed.json
+  Content-Type: application/json
+  Cache-Control: public, max-age=300
+
+/api/map/series.json
+  Content-Type: application/json
+  Cache-Control: public, max-age=60, s-maxage=300
+
 /site.webmanifest
   Content-Type: application/manifest+json
   Cache-Control: public, max-age=3600

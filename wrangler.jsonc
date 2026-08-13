@@ -32,6 +32,7 @@
 			"/api/proxy/*",
 			"/api/resolve/*",
 			"/api/forum/*",
+			"/api/map/*",
 			"/api/logto/*",
 			"/api/join",
 			"/api/join/code",
@@ -67,6 +68,9 @@
 		"JOIN_REPLY_TO": "support@dirtbikex.com",
 		"JOIN_ORG_ADDRESS": "DirtBikeX LLC, 30 N Gould St Ste N, Sheridan, WY 82801, USA",
 		"MARKETING_BASE": "https://www.dirtbikex.com",
+		// World map story data lives at <prefix>/series.json in the shared dbx-map bucket —
+		// the prefix is what keeps a preview push off the live homepage.
+		"MAP_DATA_PREFIX": "prod",
 		"OUTREACH_ALLOW_REAL": "1",
 		// Backstop, not the pacer; keep the value in THIS file (dashboard edits are
 		// clobbered by deploy). docs/OUTREACH_MODULE.md § "Drip throughput".
@@ -86,6 +90,12 @@
 		{
 			"binding": "QR_BUCKET",
 			"bucket_name": "dbx-qr"
+		},
+		// `wrangler r2 bucket create dbx-map` — world map story data, pushed by
+		// scripts/push-map-data.mjs without a redeploy.
+		{
+			"binding": "MAP_BUCKET",
+			"bucket_name": "dbx-map"
 		}
 	],
 	"kv_namespaces": [
@@ -118,6 +128,7 @@
 				"JOIN_REPLY_TO": "support@dirtbikex.com",
 				"JOIN_ORG_ADDRESS": "DirtBikeX LLC, 30 N Gould St Ste N, Sheridan, WY 82801, USA",
 				"MARKETING_BASE": "https://www.dirtbikechina.com",
+				"MAP_DATA_PREFIX": "preview",
 				// docs/OUTREACH_MODULE.md § "Staging asymmetry"
 				"OUTREACH_ALLOW_REAL": "0",
 				"OUTREACH_DAILY_CAP": "1000"
@@ -131,6 +142,7 @@
 					"/api/proxy/*",
 					"/api/resolve/*",
 					"/api/forum/*",
+					"/api/map/*",
 					"/api/logto/*",
 					"/api/join",
 					"/api/join/code",
@@ -159,6 +171,10 @@
 				{
 					"binding": "QR_BUCKET",
 					"bucket_name": "dbx-qr"
+				},
+				{
+					"binding": "MAP_BUCKET",
+					"bucket_name": "dbx-map"
 				}
 			]
 		}

@@ -9,6 +9,7 @@ import { handleLogtoSms } from './_lib/logtoSms';
 import { handleOutreachTest, handleBatch, handlePreview, handleStatus, handleMetrics, handleUnsub, handleDrip, handleWebhook, runDrip } from './_lib/outreach';
 import { handleJoinSubmit, handleJoinConfirm, handleUnsubscribe, handleCodePrecheck } from './_lib/join';
 import { handleShortlinkResolve } from './_lib/shortlink';
+import { handleMapSeries } from './_lib/mapData';
 import type { Lang, PagesEnv, ShareLandingProps } from './_lib/types';
 
 interface Env extends PagesEnv {
@@ -617,7 +618,11 @@ async function handleForumFeatured(env: Env): Promise<Response> {
 }
 
 export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
+  async fetch(
+    request: Request,
+    env: Env,
+    ctx: { waitUntil(p: Promise<unknown>): void },
+  ): Promise<Response> {
     const url = new URL(request.url);
     const m = url.pathname.match(/^\/s\/i\/([^/]+)\/?$/);
     if (m && request.method === 'GET') {
@@ -634,6 +639,8 @@ export default {
     if (request.method === 'GET') {
       if (url.pathname === '/api/forum/metrics.json') return handleForumMetrics(env);
       if (url.pathname === '/api/forum/featured.json') return handleForumFeatured(env);
+      // World map story data — R2 projection with the committed seed as fallback.
+      if (url.pathname === '/api/map/series.json') return handleMapSeries(request, env, ctx);
       if (url.pathname === '/api/proxy/sponsors') return fetchSponsors(env);
       const lb = url.pathname.match(/^\/api\/proxy\/leaderboard\/([a-z_]+)\.json$/);
       if (lb) return fetchLeaderboard(env, lb[1]!);

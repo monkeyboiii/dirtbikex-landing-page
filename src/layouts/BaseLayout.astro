@@ -9,11 +9,14 @@ import { defaultLang, languages, rtlLocales, type Lang } from '../i18n/ui';
 interface Props {
   title?: string;
   description?: string;
+  /** `map` = full-viewport takeover: no page footer (the map drawer carries it), no page scroll. */
+  chrome?: 'default' | 'map';
 }
 
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
-const { title = t('meta.title'), description = t('meta.description') } = Astro.props;
+const { title = t('meta.title'), description = t('meta.description'), chrome = 'default' } = Astro.props;
+const isMapChrome = chrome === 'map';
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const dir = rtlLocales.includes(lang) ? 'rtl' : 'ltr';
 const localeCodes = Object.keys(languages) as Lang[];
@@ -221,11 +224,11 @@ const hreflangs = localeCodes.map((code) => ({
       })();
     </script>
   </head>
-  <body class="min-h-screen flex flex-col">
+  <body class:list={['min-h-screen flex flex-col', isMapChrome && 'is-map-page']}>
     <Header />
     <main class="flex-1">
       <slot />
     </main>
-    <Footer />
+    {!isMapChrome && <Footer />}
   </body>
 </html>

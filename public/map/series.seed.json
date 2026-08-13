@@ -1,0 +1,66 @@
+{
+  "series": "visiting-100-tracks",
+  "target": 100,
+  "entries": [
+    {
+      "main": 0,
+      "sub": 0,
+      "label": "00",
+      "kind": "episode",
+      "video_id": "DBX-APP-S03E000",
+      "track_slug": null,
+      "coords": null,
+      "venue": null,
+      "title": { "en": "Track zero", "zh-CN": "第零站" },
+      "tagline": {
+        "en": "The counter starts here and runs to 100.",
+        "zh-CN": "计数从这里开始，一直数到 100。"
+      },
+      "status": "visited",
+      "links": null,
+      "thumb": null,
+      "visited_on": null,
+      "published_on": null
+    },
+    {
+      "main": 1,
+      "sub": 0,
+      "label": "01",
+      "kind": "episode",
+      "video_id": "DBX-APP-S03E001",
+      "track_slug": null,
+      "coords": { "lat": 30.8703, "lng": 120.0933 },
+      "venue": { "en": "Huzhou", "zh-CN": "湖州" },
+      "title": { "en": "Day one, track one down", "zh-CN": "第一天，第一站" },
+      "tagline": {
+        "en": "One real track per episode, counted toward 100.",
+        "zh-CN": "每集一条真实赛道，计入 100。"
+      },
+      "status": "visited",
+      "links": null,
+      "thumb": null,
+      "visited_on": null,
+      "published_on": null
+    },
+    {
+      "main": 2,
+      "sub": 0,
+      "label": "02",
+      "kind": "episode",
+      "video_id": "DBX-APP-S03E002",
+      "track_slug": null,
+      "coords": { "lat": 30.2374, "lng": 120.15 },
+      "venue": { "en": "Liulang Wenying, Hangzhou", "zh-CN": "杭州 柳浪闻莺" },
+      "title": { "en": "E-bike park, day two", "zh-CN": "电动车公园，第二天" },
+      "tagline": {
+        "en": "I came back and suddenly all the bikes had batteries.",
+        "zh-CN": "我回来了，突然发现车都带电池了。"
+      },
+      "status": "live",
+      "links": null,
+      "thumb": null,
+      "visited_on": null,
+      "published_on": null
+    }
+  ]
+}

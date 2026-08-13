@@ -16,7 +16,8 @@ test('header language picker opens the Swedish landing page', async ({ page }) =
 
   await expect(page).toHaveURL(/\/sv\/?$/);
   await expect(page.locator('html')).toHaveAttribute('lang', 'sv');
-  await expect(page.locator('.hero__title')).toContainText('Dirt bike-communityt');
+  // The homepage is the world map; its gate title is the SSR'd localized string.
+  await expect(page.locator('.wm__gate-title')).toContainText('Besöker 100 dirtbike-banor');
 });
 
 test('stored Swedish preference does not redirect Swedish pages recursively', async ({ page }) => {

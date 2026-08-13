@@ -1,0 +1,5 @@
+# pnpm 11 requires build scripts to be approved explicitly. Astro needs both:
+# esbuild installs its platform binary, sharp its libvips bindings for image work.
+allowBuilds:
+  esbuild: true
+  sharp: true
