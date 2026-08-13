@@ -108,10 +108,15 @@ async function fetchChecked(
   return null;
 }
 
-/** Reads at most `max` bytes, aborting mid-stream rather than buffering first. */
-async function readCapped(resp: Response, max: number): Promise<Uint8Array | null> {
+/**
+ * Reads at most `max` bytes, capping mid-stream rather than buffering first.
+ * `truncate` keeps the prefix (HTML — Instagram ships well over 300KB and the OG
+ * tags are in the head); without it an oversized body is refused outright, which
+ * is what we want for an image that would be useless half-read.
+ */
+async function readCapped(resp: Response, max: number, truncate = false): Promise<Uint8Array | null> {
   const declared = Number(resp.headers.get('content-length') ?? '');
-  if (Number.isFinite(declared) && declared > max) return null;
+  if (!truncate && Number.isFinite(declared) && declared > max) return null;
 
   const reader = resp.body?.getReader();
   if (!reader) return null;
@@ -121,11 +126,16 @@ async function readCapped(resp: Response, max: number): Promise<Uint8Array | nul
     const { done, value } = await reader.read();
     if (done) break;
     if (!value) continue;
-    total += value.byteLength;
-    if (total > max) {
+    if (total + value.byteLength > max) {
+      if (truncate) {
+        chunks.push(value.subarray(0, max - total));
+        total = max;
+      }
       await reader.cancel().catch(() => {});
-      return null;
+      if (!truncate) return null;
+      break;
     }
+    total += value.byteLength;
     chunks.push(value);
   }
   const out = new Uint8Array(total);
@@ -217,7 +227,7 @@ async function previewOne(start: URL): Promise<Preview | null> {
   });
   if (!hit) return null;
 
-  const bytes = await readCapped(hit.resp, MAX_HTML_BYTES).catch(() => null);
+  const bytes = await readCapped(hit.resp, MAX_HTML_BYTES, true).catch(() => null);
   if (!bytes) return null;
   const html = new TextDecoder().decode(bytes);
 
