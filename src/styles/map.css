@@ -245,6 +245,22 @@ body.is-map-page .site-header__inner {
 .wm-hud__bar::-webkit-scrollbar {
   display: none;
 }
+.wm-hud__rail {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  margin-inline: auto;
+  padding-inline: 6px;
+}
+.wm-ball__rest {
+  position: relative;
+  flex: none;
+  margin-left: 4px;
+  font-family: var(--font-mono, 'Geist Mono', monospace);
+  font-size: 0.7rem;
+  color: var(--wm-text-faint);
+  opacity: 0.75;
+}
 
 .wm-ball {
   position: relative;
@@ -517,14 +533,84 @@ body.is-map-page .site-header__inner {
   border-radius: var(--radius-md, 10px);
   border: 1px solid var(--wm-line-strong);
   background: rgba(var(--wm-veil), 0.32);
-  color: var(--wm-text-dim);
-  transition: color var(--dur-fast, 120ms) ease, border-color var(--dur-fast, 120ms) ease,
-    background var(--dur-fast, 120ms) ease;
+  color: var(--wm-text);
+  transition: border-color var(--dur-fast, 120ms) ease, background var(--dur-fast, 120ms) ease,
+    transform var(--dur-fast, 120ms) ease;
 }
 .wm-social:hover {
-  color: var(--wm-text);
   border-color: var(--wm-text-faint);
-  background: rgba(var(--wm-veil), 0.6);
+  background: rgba(var(--wm-veil), 0.62);
+  transform: translateY(-1px);
+}
+
+/* Link preview — the platform's own card, fetched worker-side (worker/_lib/ogPreview.ts). */
+.wm-preview {
+  display: block;
+  margin-top: 4px;
+  border-radius: var(--radius-md, 10px);
+  border: 1px solid var(--wm-line);
+  background: rgba(var(--wm-veil), 0.35);
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color var(--dur-fast, 120ms) ease;
+}
+.wm-preview:hover {
+  border-color: var(--wm-text-faint);
+}
+.wm-preview.is-loading {
+  height: 92px;
+  background: linear-gradient(
+      100deg,
+      transparent 20%,
+      rgba(var(--wm-veil), 0.6) 50%,
+      transparent 80%
+    )
+    rgba(var(--wm-veil), 0.35);
+  background-size: 220% 100%;
+  animation: wm-shimmer 1.4s linear infinite;
+}
+@keyframes wm-shimmer {
+  to {
+    background-position: -120% 0;
+  }
+}
+.wm-preview__img {
+  display: block;
+  width: 100%;
+  max-height: 220px;
+  object-fit: cover;
+  background: rgba(var(--wm-veil), 0.5);
+}
+.wm-preview__meta {
+  display: grid;
+  gap: 3px;
+  padding: 10px 12px 11px;
+}
+.wm-preview__title {
+  font-size: 0.88rem;
+  font-weight: 600;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.wm-preview__desc {
+  font-size: 0.8rem;
+  line-height: 1.35;
+  color: var(--wm-text-dim);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.wm-preview__host {
+  font-family: var(--font-mono, 'Geist Mono', monospace);
+  font-size: 0.66rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--wm-text-faint);
 }
 .wm-panel__section {
   margin: 12px 0 0;
@@ -682,6 +768,8 @@ body.is-map-page .site-header__inner {
 /* ---------- attribution + controls ---------- */
 
 .wm .wm-ctrl-recenter button {
+  width: 40px;
+  height: 40px;
   color: var(--wm-text-dim);
 }
 .wm .wm-ctrl-recenter button:hover {
@@ -731,6 +819,10 @@ body.is-map-page .site-header__inner {
   /* Pinch-zoom makes +/- redundant; recenter stays, it has no gesture equivalent. */
   .wm .maplibregl-ctrl-group:not(.wm-ctrl-recenter) {
     display: none;
+  }
+  .wm .wm-ctrl-recenter button {
+    width: 46px;
+    height: 46px;
   }
   .wm-panel {
     top: auto;

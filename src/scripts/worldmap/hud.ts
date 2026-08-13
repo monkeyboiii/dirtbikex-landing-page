@@ -1,7 +1,8 @@
 import type { EntryPlacement, SeriesDoc, SeriesEntry, Strings } from './types';
 
-/** Shortest runway we ever draw, for the day the target is nearly met. */
-const MIN_RUNWAY = 3;
+/** Stops drawn ahead of the journey. Capped so the rail can't scroll forever —
+    whatever is left over is summed into a muted "+N" at the end. */
+const RUNWAY = 20;
 
 export interface HudDeps {
   root: HTMLElement;
@@ -19,6 +20,10 @@ function localized(block: Record<string, string> | null | undefined, lang: strin
 export function createHud(deps: HudDeps, series: SeriesDoc, placements: Map<SeriesEntry, EntryPlacement>) {
   const { root, strings, lang } = deps;
   const bar = root.querySelector<HTMLElement>('[data-hud-bar]')!;
+  // Inner rail so the stops centre when they fit and scroll when they don't.
+  const rail = document.createElement('div');
+  rail.className = 'wm-hud__rail';
+  bar.appendChild(rail);
   const counterEl = root.querySelector<HTMLElement>('[data-hud-counter]')!;
   const toggleBtn = root.querySelector<HTMLButtonElement>('[data-hud-toggle]')!;
   const tip = root.querySelector<HTMLElement>('[data-hud-tip]')!;
@@ -64,8 +69,16 @@ export function createHud(deps: HudDeps, series: SeriesDoc, placements: Map<Seri
     tip.hidden = true;
   }
 
+  function centre(ball: HTMLElement, smooth = true) {
+    ball.scrollIntoView({
+      behavior: smooth && !window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'smooth' : 'auto',
+      inline: 'center',
+      block: 'nearest',
+    });
+  }
+
   function render() {
-    bar.replaceChildren();
+    rail.replaceChildren();
 
     for (const entry of shown) {
       const ball = document.createElement('button');
@@ -89,25 +102,31 @@ export function createHud(deps: HudDeps, series: SeriesDoc, placements: Map<Seri
       ball.addEventListener('focus', () => showTip(ball, entry));
       ball.addEventListener('mouseleave', hideTip);
       ball.addEventListener('blur', hideTip);
-      bar.appendChild(ball);
+      rail.appendChild(ball);
     }
 
-    // One empty ball per remaining stop, so the rail literally is the 100. Inert by
-    // design — there is no committed target list to reveal.
-    const runway = Math.max(MIN_RUNWAY, series.target - done);
-    for (let i = 0; i < runway; i++) {
+    // Upcoming stops are inert by design — there is no committed target list to reveal.
+    const remaining = Math.max(0, series.target - done);
+    const drawn = Math.min(RUNWAY, remaining);
+    for (let i = 0; i < drawn; i++) {
       const ball = document.createElement('span');
       ball.className = 'wm-ball wm-ball--empty';
       ball.setAttribute('aria-hidden', 'true');
-      bar.appendChild(ball);
+      rail.appendChild(ball);
+    }
+    if (remaining > drawn) {
+      const rest = document.createElement('span');
+      rest.className = 'wm-ball__rest';
+      rest.setAttribute('aria-hidden', 'true');
+      rest.textContent = `+${remaining - drawn}`;
+      rail.appendChild(rest);
     }
   }
 
   render();
-  // Park the rail on the newest completed stop with the runway trailing off to the
-  // right — scrolling to the far end would hide the progress the counter is about.
-  const last = [...bar.querySelectorAll<HTMLElement>('.wm-ball.is-done')].pop();
-  if (last) bar.scrollLeft = Math.max(0, last.offsetLeft - bar.clientWidth * 0.38);
+  // Open on the newest completed stop, centred.
+  const last = [...rail.querySelectorAll<HTMLElement>('.wm-ball.is-done')].pop();
+  if (last) centre(last, false);
 
   return {
     setSeriesMode(on: boolean) {
@@ -118,8 +137,10 @@ export function createHud(deps: HudDeps, series: SeriesDoc, placements: Map<Seri
         : strings['map.hud.seriesMode'] ?? 'Series mode';
     },
     highlight(entry: SeriesEntry | null) {
-      for (const ball of bar.querySelectorAll<HTMLElement>('.wm-ball')) {
-        ball.classList.toggle('is-active', !!entry && ball.dataset.label === entry.label);
+      for (const ball of rail.querySelectorAll<HTMLElement>('.wm-ball')) {
+        const active = !!entry && ball.dataset.label === entry.label;
+        ball.classList.toggle('is-active', active);
+        if (active) centre(ball);
       }
     },
   };
