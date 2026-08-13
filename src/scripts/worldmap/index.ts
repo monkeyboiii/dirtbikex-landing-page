@@ -236,17 +236,16 @@ class WorldMap {
       fadeDuration: 120,
     });
     this.map.touchZoomRotate.disableRotation();
+    // Bottom-right stacks upward in insertion order: info button, then recenter, then zoom.
     this.map.addControl(new AttributionControl({ compact: true }), 'bottom-right');
-    // Controls live under the header on the right; the bottom-right corner is spoken
-    // for by the attribution and the CTA row.
-    this.map.addControl(new NavigationControl({ showCompass: false }), 'top-right');
     this.map.addControl(
       new RecenterControl(
         () => this.recenter(),
         strings['map.control.recenter'] ?? 'Back to the latest episode',
       ),
-      'top-right',
+      'bottom-right',
     );
+    this.map.addControl(new NavigationControl({ showCompass: false }), 'bottom-right');
 
     this.map.on('error', (e) => console.warn('worldmap', e?.error?.message ?? e));
 
@@ -696,7 +695,8 @@ export async function bootWorldMap() {
       root: root.querySelector<HTMLElement>('[data-panel]')!,
       strings,
       lang: cfg.lang,
-      joinUrl: cfg.joinUrl,
+      socials: cfg.socials,
+      contactUrl: cfg.contactUrl,
       onClose: () => world.clearSelection(),
     });
     await world.start(canvas, strings);

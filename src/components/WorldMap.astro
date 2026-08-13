@@ -3,9 +3,9 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import '../styles/map.css';
 import Footer from './Footer.astro';
-import AppStoreBadge from './AppStoreBadge.astro';
 import { getLangFromUrl, localizedPath } from '../i18n/utils';
 import { ui, defaultLang } from '../i18n/ui';
+import { SOCIALS } from '../config';
 
 /** English source of every map string; per-locale overrides come from src/i18n/locales. */
 const DEFAULTS: Record<string, string> = {
@@ -59,6 +59,7 @@ try {
   trackCount = 0;
 }
 
+const joinUrl = localizedPath(lang, '/join');
 const config = {
   lang,
   styleDarkUrl: '/map/style-dark.json',
@@ -66,7 +67,9 @@ const config = {
   tracksUrl: '/map/tracks.json',
   seriesUrl: '/api/map/series.json',
   markersBase: '/map/markers/',
-  joinUrl: localizedPath(lang, '/join'),
+  // Episode links win; these profiles are the fallback, /contact the last resort.
+  socials: { facebook: SOCIALS.facebook, instagram: SOCIALS.instagram },
+  contactUrl: localizedPath(lang, '/contact'),
   claimed: [] as string[],
 };
 ---
@@ -88,12 +91,15 @@ const config = {
   </div>
 
   <section class="wm-hud" data-hud aria-label={s('map.hud.series')}>
-    <div class="wm-hud__head">
-      <button type="button" class="wm-hud__title" data-hud-title aria-pressed="false" title={s('map.hud.seriesMode')}>
-        {s('map.hud.series')}
-      </button>
-      <span class="wm-hud__counter" data-hud-counter>—</span>
-    </div>
+    <button
+      type="button"
+      class="wm-hud__counter"
+      data-hud-toggle
+      aria-pressed="false"
+      title={s('map.hud.seriesMode')}
+    >
+      <span data-hud-counter>—</span>
+    </button>
     <div class="wm-hud__bar" data-hud-bar></div>
     <div class="wm-hud__tip" data-hud-tip hidden></div>
   </section>
@@ -106,11 +112,6 @@ const config = {
     </button>
     <div class="wm-panel__body" data-panel-body></div>
   </aside>
-
-  <div class="wm__cta">
-    <a class="wm__cta-join" href={config.joinUrl}>{s('map.panel.join')}</a>
-    <span class="wm__cta-app"><AppStoreBadge /></span>
-  </div>
 
   <div class="wm__drawer" data-drawer>
     <button type="button" class="wm__drawer-handle" data-drawer-toggle aria-expanded="false">
@@ -130,6 +131,9 @@ const config = {
     </button>
     <div class="wm__drawer-body">
       <p class="wm__drawer-intro">{s('map.drawer.intro')}</p>
+      <p class="wm__drawer-cta">
+        <a href={joinUrl}>{s('map.panel.join')}</a>
+      </p>
       <p class="wm__drawer-credit">
         Map data: <a href="https://openfreemap.org" target="_blank" rel="noopener">OpenFreeMap</a>
         <a href="https://www.openmaptiles.org/" target="_blank" rel="noopener">© OpenMapTiles</a>, Data from

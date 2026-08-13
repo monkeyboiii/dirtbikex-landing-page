@@ -1,23 +1,33 @@
 import type { SeriesEntry, Strings, TrackProps } from './types';
 
-const PLATFORM_LABELS: Record<string, string> = {
-  douyin: '抖音 Douyin',
-  bilibili: 'Bilibili',
-  rednote: '小红书 RedNote',
-  wechat: 'WeChat',
-  tiktok: 'TikTok',
-  ytshorts: 'YouTube',
-  reels: 'Instagram',
+/** Monochrome marks — the map's only saturated colour is its data, not its chrome. */
+const PLATFORM_ICONS: Record<string, string> = {
+  tiktok:
+    '<path fill="currentColor" d="M16.6 5.82A4.28 4.28 0 0 1 15.54 3h-3.09v12.4a2.59 2.59 0 1 1-1.86-2.48V9.77a5.68 5.68 0 1 0 4.95 5.63V9.01a7.35 7.35 0 0 0 4.3 1.38V7.3a4.29 4.29 0 0 1-3.24-1.48Z"/>',
+  douyin:
+    '<path fill="currentColor" d="M16.6 5.82A4.28 4.28 0 0 1 15.54 3h-3.09v12.4a2.59 2.59 0 1 1-1.86-2.48V9.77a5.68 5.68 0 1 0 4.95 5.63V9.01a7.35 7.35 0 0 0 4.3 1.38V7.3a4.29 4.29 0 0 1-3.24-1.48Z"/><path fill="currentColor" opacity=".55" d="M5.1 14.7a5.68 5.68 0 0 1 5.49-5.68v2.2a3.48 3.48 0 1 0 2.4 3.3v-.3h2.2v.3a5.68 5.68 0 1 1-10.09-3.6"/>',
+  facebook:
+    '<path fill="currentColor" d="M22 12.06C22 6.5 17.52 2 12 2S2 6.5 2 12.06c0 5.02 3.66 9.18 8.44 9.94v-7.03H7.9v-2.9h2.54V9.85c0-2.52 1.49-3.91 3.77-3.91 1.09 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.78-1.63 1.57v1.89h2.78l-.45 2.9h-2.33V22c4.78-.76 8.44-4.92 8.44-9.94Z"/>',
+  instagram:
+    '<path fill="currentColor" d="M12 2.16c3.2 0 3.58.01 4.85.07 1.17.05 1.8.25 2.23.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.06.41 2.23.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.25 1.8-.41 2.23-.22.56-.48.96-.9 1.38-.42.42-.82.68-1.38.9-.42.16-1.06.36-2.23.41-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.8-.25-2.23-.41a3.7 3.7 0 0 1-1.38-.9 3.7 3.7 0 0 1-.9-1.38c-.16-.42-.36-1.06-.41-2.23-.06-1.27-.07-1.65-.07-4.85s.01-3.58.07-4.85c.05-1.17.25-1.8.41-2.23.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.42-.16 1.06-.36 2.23-.41C8.42 2.17 8.8 2.16 12 2.16Zm0 5.68a4.16 4.16 0 1 0 0 8.32 4.16 4.16 0 0 0 0-8.32Zm0 6.86a2.7 2.7 0 1 1 0-5.4 2.7 2.7 0 0 1 0 5.4Zm5.3-7.02a.97.97 0 1 1-1.94 0 .97.97 0 0 1 1.94 0Z"/>',
 };
 
-const CN_FIRST = ['rednote', 'douyin', 'bilibili', 'wechat', 'tiktok', 'ytshorts', 'reels'];
-const INTL_FIRST = ['tiktok', 'ytshorts', 'reels', 'douyin', 'bilibili', 'rednote', 'wechat'];
+const PLATFORM_LABELS: Record<string, string> = {
+  tiktok: 'TikTok',
+  douyin: '抖音',
+  facebook: 'Facebook',
+  instagram: 'Instagram',
+};
+
+/** Douyin stands in for TikTok where TikTok isn't the platform people use. */
+const platformsFor = (lang: string) => [lang === 'zh-CN' ? 'douyin' : 'tiktok', 'facebook', 'instagram'];
 
 export interface PanelDeps {
   root: HTMLElement;
   strings: Strings;
   lang: string;
-  joinUrl: string;
+  socials: Partial<Record<string, string>>;
+  contactUrl: string;
   onClose(): void;
 }
 
@@ -35,7 +45,7 @@ function el(tag: string, className?: string, text?: string): HTMLElement {
 }
 
 export function createPanel(deps: PanelDeps) {
-  const { root, strings, lang, joinUrl } = deps;
+  const { root, strings, lang, socials, contactUrl } = deps;
   const body = root.querySelector<HTMLElement>('[data-panel-body]')!;
   const closeBtn = root.querySelector<HTMLButtonElement>('[data-panel-close]')!;
 
@@ -45,12 +55,33 @@ export function createPanel(deps: PanelDeps) {
   function open(build: (host: HTMLElement) => void) {
     body.replaceChildren();
     build(body);
-    const join = el('a', 'wm-panel__join', strings['map.panel.join'] ?? 'Join DirtBikeX') as HTMLAnchorElement;
-    join.href = joinUrl;
-    body.appendChild(join);
     root.hidden = false;
     root.classList.add('is-open');
     closeBtn.focus({ preventScroll: true });
+  }
+
+  /**
+   * Jump straight to this episode on each platform. Until an episode carries its
+   * per-platform link the button falls back to our profile there, and to /contact
+   * for platforms we have no profile URL for.
+   */
+  function platformRow(entry: SeriesEntry): HTMLElement {
+    const row = el('div', 'wm-panel__socials');
+    for (const platform of platformsFor(lang)) {
+      const href = entry.links?.[platform] || socials[platform] || contactUrl;
+      const external = /^https?:/.test(href);
+      const a = el('a', 'wm-social') as HTMLAnchorElement;
+      a.href = href;
+      a.title = PLATFORM_LABELS[platform] ?? platform;
+      a.setAttribute('aria-label', `${strings['map.panel.watch'] ?? 'Watch'} · ${PLATFORM_LABELS[platform] ?? platform}`);
+      if (external) {
+        a.target = '_blank';
+        a.rel = 'noopener';
+      }
+      a.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">${PLATFORM_ICONS[platform] ?? ''}</svg>`;
+      row.appendChild(a);
+    }
+    return row;
   }
 
   function close() {
@@ -131,27 +162,12 @@ export function createPanel(deps: PanelDeps) {
         const tagline = localized(entry.tagline, lang);
         if (tagline) host.appendChild(el('p', 'wm-panel__tagline', tagline));
 
-        const watch = el('div', 'wm-panel__watch');
-        if (entry.status === 'live' && entry.links) {
-          const order = lang.startsWith('zh') ? CN_FIRST : INTL_FIRST;
-          for (const platform of order) {
-            const href = entry.links[platform];
-            if (!href) continue;
-            const a = el('a', 'wm-watch', `${strings['map.panel.watch'] ?? 'Watch'} · ${PLATFORM_LABELS[platform] ?? platform}`) as HTMLAnchorElement;
-            a.href = href;
-            a.target = '_blank';
-            a.rel = 'noopener';
-            watch.appendChild(a);
-          }
-        }
-        // A live entry whose links aren't filled in yet still needs to say something.
-        if (watch.childElementCount) {
-          host.appendChild(watch);
-        } else {
+        if (entry.status !== 'live') {
           host.appendChild(
             el('p', 'wm-panel__status', strings['map.panel.inProduction'] ?? 'Episode in production'),
           );
         }
+        host.appendChild(platformRow(entry));
 
         if (track) trackInfo(host, track);
       });

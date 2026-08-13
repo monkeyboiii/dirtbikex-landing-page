@@ -48,7 +48,10 @@ export interface MapConfig {
   tracksUrl: string;
   seriesUrl: string;
   markersBase: string;
-  joinUrl: string;
+  /** DirtBikeX profile per platform — the fallback when an episode has no link yet. */
+  socials: Partial<Record<string, string>>;
+  /** Last-resort fallback for platforms we have no profile URL for. */
+  contactUrl: string;
   /** Curated active-claim slugs; replaced by a forum endpoint in V1.5 (D8). */
   claimed: string[];
 }

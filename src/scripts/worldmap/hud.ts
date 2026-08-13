@@ -1,9 +1,7 @@
 import type { EntryPlacement, SeriesDoc, SeriesEntry, Strings } from './types';
 
-/** Empty balls trailing the journey — runway, not a 100-ball bar. */
-const RUNWAY = 3;
-/** Filled/side balls kept in the visible window; older ones collapse behind a "⋯" chip. */
-const WINDOW = 5;
+/** Shortest runway we ever draw, for the day the target is nearly met. */
+const MIN_RUNWAY = 3;
 
 export interface HudDeps {
   root: HTMLElement;
@@ -22,7 +20,7 @@ export function createHud(deps: HudDeps, series: SeriesDoc, placements: Map<Seri
   const { root, strings, lang } = deps;
   const bar = root.querySelector<HTMLElement>('[data-hud-bar]')!;
   const counterEl = root.querySelector<HTMLElement>('[data-hud-counter]')!;
-  const titleBtn = root.querySelector<HTMLButtonElement>('[data-hud-title]')!;
+  const toggleBtn = root.querySelector<HTMLButtonElement>('[data-hud-toggle]')!;
   const tip = root.querySelector<HTMLElement>('[data-hud-tip]')!;
 
   // Shown entries: every episode, plus side entries the operator flagged `hud: "show"`.
@@ -38,7 +36,7 @@ export function createHud(deps: HudDeps, series: SeriesDoc, placements: Map<Seri
     .replace('{done}', String(done).padStart(2, '0'))
     .replace('{total}', String(series.target));
 
-  titleBtn.addEventListener('click', () => deps.onToggleSeries());
+  toggleBtn.addEventListener('click', () => deps.onToggleSeries());
 
   function showTip(anchor: HTMLElement, entry: SeriesEntry) {
     const title = localized(entry.title, lang) ?? localized(entry.venue, lang) ?? entry.label;
@@ -68,23 +66,8 @@ export function createHud(deps: HudDeps, series: SeriesDoc, placements: Map<Seri
 
   function render() {
     bar.replaceChildren();
-    const overflow = shown.length - WINDOW;
-    const visible = overflow > 0 ? shown.slice(overflow) : shown;
 
-    if (overflow > 0) {
-      const more = document.createElement('button');
-      more.type = 'button';
-      more.className = 'wm-ball wm-ball--more';
-      more.textContent = '⋯';
-      more.title = `+${overflow}`;
-      more.addEventListener('click', () => {
-        const first = shown[0]!;
-        deps.onPick(placements.get(first) ?? { entry: first, lngLat: null });
-      });
-      bar.appendChild(more);
-    }
-
-    for (const entry of visible) {
+    for (const entry of shown) {
       const ball = document.createElement('button');
       ball.type = 'button';
       ball.className = [
@@ -109,27 +92,28 @@ export function createHud(deps: HudDeps, series: SeriesDoc, placements: Map<Seri
       bar.appendChild(ball);
     }
 
-    // Runway: inert by design — there is no committed target list to reveal.
-    for (let i = 0; i < RUNWAY; i++) {
+    // One empty ball per remaining stop, so the rail literally is the 100. Inert by
+    // design — there is no committed target list to reveal.
+    const runway = Math.max(MIN_RUNWAY, series.target - done);
+    for (let i = 0; i < runway; i++) {
       const ball = document.createElement('span');
       ball.className = 'wm-ball wm-ball--empty';
       ball.setAttribute('aria-hidden', 'true');
       bar.appendChild(ball);
     }
-    const ellipsis = document.createElement('span');
-    ellipsis.className = 'wm-ball__tail';
-    ellipsis.setAttribute('aria-hidden', 'true');
-    ellipsis.textContent = '⋯';
-    bar.appendChild(ellipsis);
   }
 
   render();
+  // Park the rail on the newest completed stop with the runway trailing off to the
+  // right — scrolling to the far end would hide the progress the counter is about.
+  const last = [...bar.querySelectorAll<HTMLElement>('.wm-ball.is-done')].pop();
+  if (last) bar.scrollLeft = Math.max(0, last.offsetLeft - bar.clientWidth * 0.38);
 
   return {
     setSeriesMode(on: boolean) {
       root.classList.toggle('is-series', on);
-      titleBtn.setAttribute('aria-pressed', String(on));
-      titleBtn.title = on
+      toggleBtn.setAttribute('aria-pressed', String(on));
+      toggleBtn.title = on
         ? strings['map.hud.worldMode'] ?? 'Back to the world'
         : strings['map.hud.seriesMode'] ?? 'Series mode';
     },

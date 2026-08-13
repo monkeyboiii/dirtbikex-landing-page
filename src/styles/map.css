@@ -59,9 +59,6 @@ body.is-map-page.dark .site-header,
 .dark body.is-map-page .site-header button {
   color: #f4f1ea;
 }
-body.is-map-page .site-header .btn--primary {
-  color: #fff;
-}
 body.is-map-page main {
   flex: none;
 }
@@ -187,72 +184,63 @@ body.is-map-page .site-header__inner {
 
 /* ---------- journey HUD ---------- */
 
+/* A launch-sequence rail: counter over a run of stops that fades off both edges.
+   No card — it floats directly on the map. */
 .wm-hud {
   position: absolute;
-  left: max(var(--space-5, 20px), env(safe-area-inset-left));
+  left: 50%;
   bottom: calc(80px + env(safe-area-inset-bottom));
   z-index: 12;
-  max-width: min(420px, calc(100vw - 40px));
-  padding: 14px 16px 12px;
-  border-radius: var(--radius-lg, 14px);
-  border: 1px solid var(--wm-line);
-  background: var(--wm-surface);
-  backdrop-filter: var(--wm-blur);
-  -webkit-backdrop-filter: var(--wm-blur);
-  box-shadow: 0 18px 44px -18px rgba(0, 0, 0, 0.9);
+  width: min(760px, calc(100vw - 32px));
+  display: grid;
+  justify-items: center;
+  gap: 8px;
   opacity: 0;
-  transform: translateY(8px);
+  transform: translate(-50%, 8px);
   transition: opacity 600ms var(--ease-out, ease), transform 600ms var(--ease-out, ease);
 }
 .wm.is-live .wm-hud {
   opacity: 1;
-  transform: none;
+  transform: translate(-50%, 0);
 }
-.wm-hud__head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--space-4, 16px);
-}
-.wm-hud__title {
+.wm-hud__counter {
   appearance: none;
   border: 0;
   background: none;
-  padding: 0;
-  text-align: left;
+  padding: 0 4px;
   cursor: pointer;
-  color: var(--wm-text);
-  font-family: var(--font-display, 'Bricolage Grotesque', sans-serif);
-  font-weight: 700;
-  font-size: 0.82rem;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-  line-height: 1.25;
-  max-width: 22ch;
-}
-.wm-hud__title:hover {
-  color: var(--wm-accent);
-}
-.wm-hud.is-series .wm-hud__title {
-  color: var(--wm-accent);
-}
-.wm-hud__counter {
   font-family: var(--font-mono, 'Geist Mono', monospace);
   font-weight: 700;
-  font-size: 1.05rem;
-  color: var(--wm-accent);
+  font-size: 1.5rem;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  color: var(--wm-text);
+  opacity: 0.5;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+  text-shadow: 0 1px 14px rgba(var(--wm-veil), 0.95);
+  transition: opacity var(--dur-base, 200ms) ease;
+}
+.wm-hud__counter:hover,
+.wm-hud__counter:focus-visible {
+  opacity: 0.85;
+}
+.wm-hud.is-series .wm-hud__counter {
+  opacity: 0.9;
+  color: var(--wm-accent);
 }
 .wm-hud__bar {
   position: relative;
+  width: 100%;
   display: flex;
   align-items: center;
   gap: 14px;
-  margin-top: 12px;
-  padding-bottom: 2px;
+  padding: 6px 0 2px;
   overflow-x: auto;
+  overscroll-behavior-x: contain;
   scrollbar-width: none;
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 9%, #000 91%, transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0, #000 9%, #000 91%, transparent 100%);
 }
 .wm-hud__bar::-webkit-scrollbar {
   display: none;
@@ -269,18 +257,18 @@ body.is-map-page .site-header__inner {
   background: transparent;
   cursor: pointer;
   appearance: none;
+  box-shadow: 0 0 10px rgba(var(--wm-veil), 0.8);
   transition: transform var(--dur-fast, 120ms) var(--ease-spring, ease),
     box-shadow var(--dur-base, 200ms) ease;
 }
 /* dotted connector to the previous ball */
-.wm-ball:not(:first-child)::before,
-.wm-ball__tail::before {
+.wm-ball:not(:first-child)::before {
   content: '';
   position: absolute;
   right: 100%;
   top: 50%;
   width: 14px;
-  border-top: 1.5px dotted rgba(231, 224, 210, 0.3);
+  border-top: 1.5px dotted var(--wm-line-strong);
 }
 .wm-ball.is-done {
   background: var(--wm-accent);
@@ -303,19 +291,6 @@ body.is-map-page .site-header__inner {
   cursor: default;
   opacity: 0.55;
 }
-.wm-ball--more {
-  width: auto;
-  height: auto;
-  border: 0;
-  border-radius: var(--radius-xs, 4px);
-  color: var(--wm-text-faint);
-  font-size: 0.85rem;
-  line-height: 1;
-  padding: 2px 3px;
-}
-.wm-ball--more::before {
-  display: none;
-}
 .wm-ball:hover,
 .wm-ball.is-active {
   transform: scale(1.35);
@@ -326,13 +301,6 @@ body.is-map-page .site-header__inner {
 .wm-ball:focus-visible {
   outline: 2px solid var(--wm-accent);
   outline-offset: 3px;
-}
-.wm-ball__tail {
-  position: relative;
-  flex: none;
-  color: var(--wm-text-faint);
-  font-size: 0.8rem;
-  line-height: 1;
 }
 
 .wm-hud__tip {
@@ -536,35 +504,27 @@ body.is-map-page .site-header__inner {
   background: var(--wm-accent);
   box-shadow: 0 0 0 3px var(--wm-accent-soft);
 }
-.wm-panel__watch {
-  display: grid;
-  gap: 7px;
-  margin-top: 4px;
-}
-.wm-watch {
+.wm-panel__socials {
   display: flex;
-  align-items: center;
-  gap: 9px;
-  padding: 10px 13px;
+  gap: 8px;
+  margin-top: 6px;
+}
+.wm-social {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
   border-radius: var(--radius-md, 10px);
   border: 1px solid var(--wm-line-strong);
+  background: rgba(var(--wm-veil), 0.32);
+  color: var(--wm-text-dim);
+  transition: color var(--dur-fast, 120ms) ease, border-color var(--dur-fast, 120ms) ease,
+    background var(--dur-fast, 120ms) ease;
+}
+.wm-social:hover {
   color: var(--wm-text);
-  text-decoration: none;
-  font-size: 0.88rem;
-  font-weight: 550;
-  transition: border-color var(--dur-fast, 120ms) ease, background var(--dur-fast, 120ms) ease;
-}
-.wm-watch::before {
-  content: '';
-  width: 0;
-  height: 0;
-  border-left: 8px solid var(--wm-accent);
-  border-top: 5px solid transparent;
-  border-bottom: 5px solid transparent;
-}
-.wm-watch:hover {
-  border-color: var(--wm-accent);
-  background: var(--wm-accent-soft);
+  border-color: var(--wm-text-faint);
+  background: rgba(var(--wm-veil), 0.6);
 }
 .wm-panel__section {
   margin: 12px 0 0;
@@ -609,63 +569,23 @@ body.is-map-page .site-header__inner {
   color: var(--wm-accent);
   border-color: var(--wm-accent);
 }
-.wm-panel__join {
-  margin-top: 14px;
-  padding: 11px 18px;
-  border-radius: var(--radius-pill, 999px);
-  background: var(--wm-accent);
-  color: #fff;
+.wm__drawer-cta {
+  margin: 14px 0 0;
   text-align: center;
-  text-decoration: none;
-  font-weight: 650;
-  font-size: 0.9rem;
 }
-.wm-panel__join:hover {
-  background: #cf5300;
-}
-
-/* ---------- floating CTAs ---------- */
-
-.wm__cta {
-  position: absolute;
-  right: var(--space-5, 20px);
-  bottom: calc(84px + env(safe-area-inset-bottom));
-  z-index: 11;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  opacity: 0;
-  transition: opacity 600ms var(--ease-out, ease) 200ms;
-}
-.wm.is-live .wm__cta {
-  opacity: 1;
-}
-.wm-panel.is-open ~ .wm__cta {
-  opacity: 0;
-  pointer-events: none;
-}
-.wm__cta-join {
-  padding: 11px 20px;
-  border-radius: var(--radius-pill, 999px);
-  background: var(--wm-accent);
-  color: #fff;
-  text-decoration: none;
-  font-weight: 650;
-  font-size: 0.9rem;
-  box-shadow: var(--shadow-brand, 0 8px 24px -8px rgba(237, 107, 0, 0.5));
-}
-.wm__cta-app {
-  display: inline-flex;
-  padding: 8px 12px;
+.wm__drawer-cta a {
+  display: inline-block;
+  padding: 9px 20px;
   border-radius: var(--radius-pill, 999px);
   border: 1px solid var(--wm-line-strong);
-  background: var(--wm-surface);
-  backdrop-filter: var(--wm-blur);
-  -webkit-backdrop-filter: var(--wm-blur);
+  color: var(--wm-text);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 600;
 }
-.wm__cta-app img {
-  height: 20px;
-  width: auto;
+.wm__drawer-cta a:hover {
+  border-color: var(--wm-accent);
+  color: var(--wm-accent);
 }
 
 /* ---------- bottom drawer ---------- */
@@ -762,6 +682,9 @@ body.is-map-page .site-header__inner {
 /* ---------- attribution + controls ---------- */
 
 .wm .wm-ctrl-recenter button {
+  color: var(--wm-text-dim);
+}
+.wm .wm-ctrl-recenter button:hover {
   color: var(--wm-accent);
 }
 .wm .wm-ctrl-recenter button svg {
@@ -771,10 +694,6 @@ body.is-map-page .site-header__inner {
 
 .wm .maplibregl-ctrl-bottom-right {
   bottom: calc(46px + env(safe-area-inset-bottom));
-  z-index: 10;
-}
-.wm .maplibregl-ctrl-top-right {
-  top: calc(64px + var(--space-3, 12px));
   z-index: 10;
 }
 .wm .maplibregl-ctrl-attrib {
@@ -803,20 +722,11 @@ body.is-map-page .site-header__inner {
 
 @media (max-width: 767px) {
   .wm-hud {
-    left: 12px;
-    right: 12px;
-    max-width: none;
+    width: calc(100vw - 24px);
     bottom: calc(78px + env(safe-area-inset-bottom));
-    padding: 11px 13px 10px;
   }
-  .wm-hud__title {
-    font-size: 0.74rem;
-    max-width: 18ch;
-  }
-  /* The header's app button is the mobile CTA — a floating pill on top of it is
-     redundant and eats a third of the map. */
-  .wm__cta {
-    display: none;
+  .wm-hud__counter {
+    font-size: 1.25rem;
   }
   /* Pinch-zoom makes +/- redundant; recenter stays, it has no gesture equivalent. */
   .wm .maplibregl-ctrl-group:not(.wm-ctrl-recenter) {
