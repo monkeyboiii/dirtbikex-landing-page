@@ -1,5 +1,10 @@
-# pnpm 11 requires build scripts to be approved explicitly. Astro needs both:
-# esbuild installs its platform binary, sharp its libvips bindings for image work.
+# Single-package repo. `packages` is required — without it pnpm 10 (the deploy
+# box) fails every command with "packages field missing or empty".
+packages:
+  - .
+
+# pnpm 11 gates dependency build scripts. Astro needs both: esbuild installs its
+# platform binary, sharp its libvips bindings.
 allowBuilds:
   esbuild: true
   sharp: true
