@@ -5,7 +5,7 @@ import '../styles/map.css';
 import Footer from './Footer.astro';
 import { getLangFromUrl, localizedPath } from '../i18n/utils';
 import { ui, defaultLang } from '../i18n/ui';
-import { SOCIALS } from '../config';
+import { SOCIALS, FORUM_BASE } from '../config';
 
 /** English source of every map string; per-locale overrides come from src/i18n/locales. */
 const DEFAULTS: Record<string, string> = {
@@ -60,6 +60,11 @@ try {
 }
 
 const joinUrl = localizedPath(lang, '/join');
+// Reuse the footer's existing label rather than minting a 21-locale key for it.
+const forumLabel =
+  (ui[lang] as Record<string, string>)['footer.forum'] ??
+  (ui[defaultLang] as Record<string, string>)['footer.forum'] ??
+  'Web forum';
 const config = {
   lang,
   styleDarkUrl: '/map/style-dark.json',
@@ -132,12 +137,8 @@ const config = {
     <div class="wm__drawer-body">
       <p class="wm__drawer-intro">{s('map.drawer.intro')}</p>
       <p class="wm__drawer-cta">
+        <a class="is-lead" href={FORUM_BASE} target="_blank" rel="noopener">{forumLabel}</a>
         <a href={joinUrl}>{s('map.panel.join')}</a>
-      </p>
-      <p class="wm__drawer-credit">
-        Map data: <a href="https://openfreemap.org" target="_blank" rel="noopener">OpenFreeMap</a>
-        <a href="https://www.openmaptiles.org/" target="_blank" rel="noopener">© OpenMapTiles</a>, Data from
-        <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>
       </p>
       <Footer />
     </div>

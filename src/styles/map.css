@@ -657,7 +657,10 @@ body.is-map-page .site-header__inner {
 }
 .wm__drawer-cta {
   margin: 14px 0 0;
-  text-align: center;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 .wm__drawer-cta a {
   display: inline-block;
@@ -668,6 +671,12 @@ body.is-map-page .site-header__inner {
   text-decoration: none;
   font-size: 0.9rem;
   font-weight: 600;
+  transition: border-color var(--dur-fast, 120ms) ease, background var(--dur-fast, 120ms) ease;
+}
+/* Same flavour, a touch more pull — the forum is the thing you can use today. */
+.wm__drawer-cta a.is-lead {
+  background: rgba(var(--wm-veil), 0.55);
+  border-color: var(--wm-text-faint);
 }
 .wm__drawer-cta a:hover {
   border-color: var(--wm-accent);
@@ -744,18 +753,6 @@ body.is-map-page .site-header__inner {
   font-size: 0.95rem;
   line-height: 1.6;
   text-align: center;
-}
-
-.wm__drawer-credit {
-  margin: 8px auto 0;
-  padding: 0 var(--space-5, 20px);
-  text-align: center;
-  font-size: 0.72rem;
-  color: var(--wm-text-faint);
-}
-.wm__drawer-credit a {
-  color: var(--wm-text-faint);
-  text-decoration: underline;
 }
 
 .wm__drawer-label {
