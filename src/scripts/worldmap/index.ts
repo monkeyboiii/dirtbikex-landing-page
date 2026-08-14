@@ -144,10 +144,18 @@ function entryOrder(a: SeriesEntry, b: SeriesEntry) {
   return a.main - b.main || a.sub - b.sub;
 }
 
-/** Latest live episode wins the opening camera; falls back to latest visited. */
+/** The map opens on the biggest WHOLE-NUMBER live episode: a side stop (2.5) is a detour,
+    not where the journey has got to. Falls back to visited, then to any stop at all. */
 function openingEntry(series: SeriesDoc): SeriesEntry | null {
   const ranked = [...series.entries].sort(entryOrder).reverse();
-  return ranked.find((e) => e.status === 'live') ?? ranked.find((e) => e.status === 'visited') ?? null;
+  const whole = (e: SeriesEntry) => e.kind === 'episode' && e.sub === 0;
+  return (
+    ranked.find((e) => whole(e) && e.status === 'live') ??
+    ranked.find((e) => whole(e) && e.status === 'visited') ??
+    ranked.find((e) => e.status === 'live') ??
+    ranked.find((e) => e.status === 'visited') ??
+    null
+  );
 }
 
 /** Recolors a currentColor glyph and registers it with the map at 2× for crisp text-size icons. */
@@ -912,6 +920,10 @@ class WorldMap {
     this.hud = hud;
   }
 
+  get openingStop() {
+    return this.opening;
+  }
+
   get placementIndex() {
     return this.placements;
   }
@@ -1012,6 +1024,7 @@ export async function bootWorldMap() {
         onFocus: (placement) => world.focusEntry(placement),
         onOpen: (placement) => world.openEntry(placement),
         onToggleSeries: () => world.toggleSeriesMode(),
+        opening: world.openingStop,
       },
       series as SeriesDoc,
       world.placementIndex,

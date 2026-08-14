@@ -438,7 +438,10 @@ export function createPanel(deps: PanelDeps) {
 
         carousel(entry, host);
 
-        if (entry.status !== 'live') {
+        // "In production" is about whether there is anything to watch yet, not about
+        // whether the ride happened — a live episode with no links is still unpublished.
+        const published = !!entry.links && Object.values(entry.links).some(Boolean);
+        if (!published) {
           host.appendChild(
             el('p', 'wm-panel__status', strings['map.panel.inProduction'] ?? 'Episode in production'),
           );

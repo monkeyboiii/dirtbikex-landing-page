@@ -31,6 +31,8 @@ export interface HudDeps {
   /** Commit: open the episode sheet. Only the centred stop or its label does this. */
   onOpen(placement: EntryPlacement): void;
   onToggleSeries(): void;
+  /** The stop the map opened on — the island owns the rule, the rail follows it. */
+  opening: SeriesEntry | null;
 }
 
 function localized(block: Record<string, string> | null | undefined, lang: string): string | null {
@@ -58,9 +60,14 @@ export function createHud(deps: HudDeps, series: SeriesDoc, placements: Map<Seri
     (e) => e.kind === 'episode' && e.main >= 1 && (e.status === 'visited' || e.status === 'live'),
   ).length;
 
-  counterEl.textContent = (strings['map.hud.counter'] ?? '{done} / {total}')
-    .replace('{done}', String(done).padStart(2, '0'))
-    .replace('{total}', String(series.target));
+  /** The counter reads the stop you are looking at, so it follows the rail as you scrub.
+      The number is the entry's own label, which is how a side stop reads as "2.5". */
+  function setCounter(entry: SeriesEntry | null) {
+    counterEl.textContent = (strings['map.hud.counter'] ?? '{done} / {total}')
+      .replace('{done}', entry ? entry.label : String(done).padStart(2, '0'))
+      .replace('{total}', String(series.target));
+  }
+  setCounter(null);
 
   toggleBtn.addEventListener('click', () => deps.onToggleSeries());
 
@@ -148,6 +155,7 @@ export function createHud(deps: HudDeps, series: SeriesDoc, placements: Map<Seri
     }
     activeLabel = entry?.label ?? null;
     labelEl.textContent = entry ? shortLabel(entry) : '';
+    setCounter(entry);
     if (hit && scroll && centre(hit, smooth)) {
       selfScrollUntil = Date.now() + SELF_SCROLL_MS;
     }
@@ -196,8 +204,11 @@ export function createHud(deps: HudDeps, series: SeriesDoc, placements: Map<Seri
   });
 
   render();
-  // Open on the newest completed stop so the label and the camera agree.
-  const opening = [...shown].reverse().find((e) => e.status === 'live' || e.status === 'visited') ?? null;
+  // The label and the camera must agree, so the rail opens on the island's choice.
+  const opening =
+    deps.opening && shown.includes(deps.opening)
+      ? deps.opening
+      : [...shown].reverse().find((e) => e.status === 'live' || e.status === 'visited') ?? null;
   setActive(opening, false);
 
   return {
