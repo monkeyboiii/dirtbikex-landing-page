@@ -228,5 +228,8 @@
   "map.err.unavailable": "Die Karte konnte hier nicht geladen werden. Entdecke DirtBikeX weiter unten.",
   "map.control.recenter": "Zurück zur neuesten Folge",
   "map.panel.watchOn": "Ansehen auf",
-  "map.panel.recommended": "Empfohlen"
+  "map.panel.recommended": "Empfohlen",
+  "map.layer.tracks": "Strecken",
+  "map.layer.ride": "Die 100er-Challenge",
+  "map.layer.title": "Ebenen"
 }

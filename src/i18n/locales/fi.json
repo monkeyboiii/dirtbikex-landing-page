@@ -228,5 +228,8 @@
   "map.err.unavailable": "Kartta ei latautunut täällä. Tutustu DirtBikeXiin alta.",
   "map.control.recenter": "Takaisin uusimpaan jaksoon",
   "map.panel.watchOn": "Katso palvelussa",
-  "map.panel.recommended": "Suositeltu"
+  "map.panel.recommended": "Suositeltu",
+  "map.layer.tracks": "Radat",
+  "map.layer.ride": "100 radan haaste",
+  "map.layer.title": "Tasot"
 }

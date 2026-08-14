@@ -228,5 +228,8 @@
   "map.err.unavailable": "El mapa no se pudo cargar aquí. Explora DirtBikeX más abajo.",
   "map.control.recenter": "Volver al último episodio",
   "map.panel.watchOn": "Ver en",
-  "map.panel.recommended": "Recomendado"
+  "map.panel.recommended": "Recomendado",
+  "map.layer.tracks": "Circuitos",
+  "map.layer.ride": "El reto de los 100",
+  "map.layer.title": "Capas"
 }

@@ -228,5 +228,8 @@
   "map.err.unavailable": "Ο χάρτης δεν φόρτωσε εδώ. Εξερεύνησε το DirtBikeX παρακάτω.",
   "map.control.recenter": "Πίσω στο τελευταίο επεισόδιο",
   "map.panel.watchOn": "Παρακολούθηση σε",
-  "map.panel.recommended": "Προτεινόμενο"
+  "map.panel.recommended": "Προτεινόμενο",
+  "map.layer.tracks": "Πίστες",
+  "map.layer.ride": "Η πρόκληση των 100",
+  "map.layer.title": "Επίπεδα"
 }

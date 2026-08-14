@@ -228,5 +228,8 @@
   "map.err.unavailable": "De kaart kon hier niet laden. Ontdek DirtBikeX hieronder.",
   "map.control.recenter": "Terug naar de nieuwste aflevering",
   "map.panel.watchOn": "Bekijk op",
-  "map.panel.recommended": "Aanbevolen"
+  "map.panel.recommended": "Aanbevolen",
+  "map.layer.tracks": "Circuits",
+  "map.layer.ride": "De 100-uitdaging",
+  "map.layer.title": "Lagen"
 }

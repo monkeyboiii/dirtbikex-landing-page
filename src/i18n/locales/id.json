@@ -228,5 +228,8 @@
   "map.err.unavailable": "Peta tidak bisa dimuat di sini. Jelajahi DirtBikeX di bawah.",
   "map.control.recenter": "Kembali ke episode terbaru",
   "map.panel.watchOn": "Tonton di",
-  "map.panel.recommended": "Direkomendasikan"
+  "map.panel.recommended": "Direkomendasikan",
+  "map.layer.tracks": "Trek",
+  "map.layer.ride": "Tantangan 100",
+  "map.layer.title": "Lapisan"
 }

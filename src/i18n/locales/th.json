@@ -228,5 +228,8 @@
   "map.err.unavailable": "แผนที่โหลดไม่ได้ที่นี่ สำรวจ DirtBikeX ด้านล่างได้เลย",
   "map.control.recenter": "กลับไปยังตอนล่าสุด",
   "map.panel.watchOn": "ดูบน",
-  "map.panel.recommended": "แนะนำ"
+  "map.panel.recommended": "แนะนำ",
+  "map.layer.tracks": "สนาม",
+  "map.layer.ride": "ชาเลนจ์ 100 สนาม",
+  "map.layer.title": "เลเยอร์"
 }

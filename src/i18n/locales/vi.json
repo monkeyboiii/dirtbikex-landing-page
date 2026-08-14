@@ -228,5 +228,8 @@
   "map.err.unavailable": "Bản đồ không tải được ở đây. Khám phá DirtBikeX bên dưới.",
   "map.control.recenter": "Về lại tập mới nhất",
   "map.panel.watchOn": "Xem trên",
-  "map.panel.recommended": "Được đề xuất"
+  "map.panel.recommended": "Được đề xuất",
+  "map.layer.tracks": "Đường đua",
+  "map.layer.ride": "Thử thách 100",
+  "map.layer.title": "Lớp"
 }

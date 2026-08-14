@@ -228,5 +228,8 @@
   "map.err.unavailable": "نقشه اینجا بارگذاری نشد. DirtBikeX را در ادامه ببینید.",
   "map.control.recenter": "بازگشت به آخرین قسمت",
   "map.panel.watchOn": "تماشا در",
-  "map.panel.recommended": "پیشنهادی"
+  "map.panel.recommended": "پیشنهادی",
+  "map.layer.tracks": "پیست‌ها",
+  "map.layer.ride": "چالش ۱۰۰",
+  "map.layer.title": "لایه‌ها"
 }

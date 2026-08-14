@@ -231,5 +231,8 @@
   "map.err.unavailable": "地圖在這裡無法載入。可在下方了解 DirtBikeX。",
   "map.control.recenter": "回到最新一集",
   "map.panel.watchOn": "觀看平台",
-  "map.panel.recommended": "推薦"
+  "map.panel.recommended": "推薦",
+  "map.layer.tracks": "賽道",
+  "map.layer.ride": "百場挑戰",
+  "map.layer.title": "圖層"
 }

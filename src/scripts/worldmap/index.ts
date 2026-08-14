@@ -62,6 +62,33 @@ function renderBudget(map: MapLibreMap): number {
 }
 
 const EMPTY: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: [] };
+
+/** Toggleable map layers. `styleLayers` are MapLibre ids rebuilt by addLayers(); the
+    rest of each layer's surface (DOM markers, the HUD) is toggled alongside them. */
+const LAYERS = {
+  tracks: ['tracks-halo', 'tracks-dot', 'tracks-glyph', 'tracks-seal', 'tracks-label'],
+  ride: ['journey-line'],
+} as const;
+type LayerId = keyof typeof LAYERS;
+const LAYER_IDS = Object.keys(LAYERS) as LayerId[];
+const LAYER_STORE = 'dbx-map-layers';
+
+/** URL wins (shareable), then the visitor's last choice, then everything on. */
+function initialLayers(): Record<LayerId, boolean> {
+  const on = Object.fromEntries(LAYER_IDS.map((id) => [id, true])) as Record<LayerId, boolean>;
+  const fromUrl = new URLSearchParams(location.search).get('layers');
+  const raw = fromUrl ?? (() => {
+    try {
+      return localStorage.getItem(LAYER_STORE);
+    } catch {
+      return null;
+    }
+  })();
+  if (raw == null) return on;
+  const wanted = new Set(raw.split(',').map((s) => s.trim()).filter(Boolean));
+  for (const id of LAYER_IDS) on[id] = wanted.has(id);
+  return on;
+}
 const WORLD_VIEW = { center: [14, 34] as [number, number], zoom: 2.1 };
 /** The journey opens at city level — "show me Hangzhou", not "show me Asia". */
 const CITY_ZOOM = 10.4;
@@ -205,6 +232,8 @@ class WorldMap {
   private dark = isDarkTheme();
   private placements = new Map<SeriesEntry, EntryPlacement>();
   private ordered: SeriesEntry[] = [];
+  private episodeMarkers: HTMLElement[] = [];
+  private visible = initialLayers();
   private current: SeriesEntry | null = null;
   private tracksBySlug = new Map<string, TrackProps>();
   private opening: SeriesEntry | null = null;
@@ -267,6 +296,7 @@ class WorldMap {
     await this.addLayers();
     this.renderVisible();
     this.addEpisodeMarkers();
+    this.applyLayers();
     this.wireInteractions();
     this.watchTheme();
     this.root.classList.add('is-live');
@@ -303,6 +333,7 @@ class WorldMap {
     this.applyProjection();
     await this.addLayers();
     this.renderVisible();
+    this.applyLayers();
     this.setHalo(this.selected);
     this.setDimmed(this.seriesMode || !!this.selected);
     this.map.setPaintProperty('journey-line', 'line-opacity', this.seriesMode ? 0.55 : 0);
@@ -470,7 +501,7 @@ class WorldMap {
    * panel is describing would strand the halo and the sheet.
    */
   private renderVisible() {
-    if (!this.map.getSource('tracks')) return;
+    if (!this.map.getSource('tracks') || !this.visible.tracks) return;
     const map = this.map;
     const bounds = map.getBounds();
     const budget = renderBudget(map);
@@ -536,6 +567,7 @@ class WorldMap {
   }
 
   private addEpisodeMarkers() {
+    this.episodeMarkers = [];
     for (const [entry, placement] of this.placements) {
       if (!placement.lngLat) continue;
       const el = document.createElement('button');
@@ -554,6 +586,7 @@ class WorldMap {
         this.selectEntry(entry, { fly: true });
       });
       new Marker({ element: el, anchor: 'center' }).setLngLat(placement.lngLat).addTo(this.map);
+      this.episodeMarkers.push(el);
     }
   }
 
@@ -584,6 +617,52 @@ class WorldMap {
       if (this.selected) this.clearSelection();
       else if (this.seriesMode) this.setSeriesMode(false);
     });
+  }
+
+  /**
+   * Applies layer visibility to everything a layer owns. Re-run after every
+   * addLayers(), including the theme restyle — setStyle drops the style layers and
+   * they come back visible by default.
+   */
+  private applyLayers() {
+    for (const id of LAYER_IDS) {
+      const on = this.visible[id];
+      for (const layerId of LAYERS[id]) {
+        if (this.map.getLayer(layerId)) {
+          this.map.setLayoutProperty(layerId, 'visibility', on ? 'visible' : 'none');
+        }
+      }
+    }
+    for (const el of this.episodeMarkers) el.style.display = this.visible.ride ? '' : 'none';
+    this.root.classList.toggle('is-ride-off', !this.visible.ride);
+    this.root.classList.toggle('is-tracks-off', !this.visible.tracks);
+  }
+
+  setLayer(id: LayerId, on: boolean) {
+    if (this.visible[id] === on) return;
+    this.visible[id] = on;
+    // A hidden layer must not keep a sheet open about one of its features.
+    // Episodes ride on catalog pins, so "is this an episode?" is a slug lookup.
+    if (!on && this.selected) {
+      const isEpisode = [...this.placements.keys()].some((e) => e.track_slug === this.selected);
+      if (id === 'tracks' ? !isEpisode || !this.visible.ride : isEpisode) this.clearSelection();
+    }
+    if (id === 'ride' && !on && this.seriesMode) this.setSeriesMode(false);
+    this.applyLayers();
+    if (id === 'tracks' && on) this.renderVisible();
+    const enabled = LAYER_IDS.filter((l) => this.visible[l]);
+    try {
+      localStorage.setItem(LAYER_STORE, enabled.join(','));
+    } catch {
+      /* private mode — the toggle still works for this visit */
+    }
+    const url = new URL(location.href);
+    url.searchParams.set('layers', enabled.join(','));
+    history.replaceState(null, '', url);
+  }
+
+  layerState(id: LayerId) {
+    return this.visible[id];
   }
 
   private setDimmed(on: boolean) {
@@ -750,6 +829,23 @@ class WorldMap {
   }
 }
 
+function wireRail(root: HTMLElement, world: WorldMap) {
+  for (const button of root.querySelectorAll<HTMLButtonElement>('[data-layer]')) {
+    const id = button.dataset.layer as LayerId;
+    const sync = () => button.setAttribute('aria-pressed', String(world.layerState(id)));
+    sync();
+    let hint: ReturnType<typeof setTimeout>;
+    button.addEventListener('click', () => {
+      world.setLayer(id, !world.layerState(id));
+      sync();
+      // Touch has no hover, so flash the label as confirmation of what moved.
+      button.dataset.hint = '';
+      clearTimeout(hint);
+      hint = setTimeout(() => delete button.dataset.hint, 1600);
+    });
+  }
+}
+
 function wireDrawer(root: HTMLElement) {
   const drawer = root.querySelector<HTMLElement>('[data-drawer]');
   const toggle = root.querySelector<HTMLButtonElement>('[data-drawer-toggle]');
@@ -831,6 +927,7 @@ export async function bootWorldMap() {
       world.placementIndex,
     );
     world.attach(panel, hud);
+    wireRail(root, world);
     world.applyDeepLink();
     gate.dataset.state = 'done';
   } catch (err) {

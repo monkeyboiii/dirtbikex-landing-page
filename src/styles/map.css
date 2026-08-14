@@ -454,10 +454,10 @@ body.is-map-page .site-header__inner {
 .wm-panel {
   position: absolute;
   top: calc(64px + var(--space-4, 16px));
-  right: var(--space-5, 20px);
+  right: calc(var(--space-5, 20px) + 50px);
   z-index: 14;
   width: 372px;
-  max-width: calc(100vw - 40px);
+  max-width: calc(100vw - 90px);
   max-height: calc(100dvh - 64px - var(--space-4, 16px) - 96px);
   display: flex;
   flex-direction: column;
@@ -988,6 +988,85 @@ body.is-map-page .site-header__inner {
   filter: invert(1) opacity(0.75);
 }
 
+/* ---------- layer rail ---------- */
+
+.wm-rail {
+  position: absolute;
+  top: calc(64px + var(--space-4, 16px));
+  right: var(--space-5, 20px);
+  /* Above the HUD (12) and the controls (13); the open sheet (14) still wins. */
+  z-index: 13;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  /* Only the buttons take taps — the column's gaps stay map. */
+  pointer-events: none;
+}
+.wm-rail__btn {
+  position: relative;
+  pointer-events: auto;
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--wm-line);
+  border-radius: var(--radius-md, 10px);
+  background: var(--wm-surface);
+  backdrop-filter: var(--wm-blur);
+  -webkit-backdrop-filter: var(--wm-blur);
+  color: var(--wm-text);
+  cursor: pointer;
+  transition: color 160ms ease, border-color 160ms ease, background 160ms ease;
+}
+.wm-rail__btn:hover {
+  border-color: var(--wm-line-strong);
+}
+.wm-rail__btn[aria-pressed='false'] {
+  color: var(--wm-text-faint);
+  background: rgba(var(--wm-veil), 0.5);
+}
+/* A struck-through glyph reads as "layer off" without a colour cue. */
+.wm-rail__btn[aria-pressed='false']::after {
+  content: '';
+  position: absolute;
+  left: 9px;
+  right: 9px;
+  top: 50%;
+  height: 1.5px;
+  background: currentColor;
+  border-radius: 1px;
+  transform: rotate(-45deg);
+}
+/* The HUD is the 100-challenge surface — it goes with the layer. */
+.wm.is-ride-off .wm-hud,
+.wm.is-ride-off .wm-ctrl-recenter {
+  display: none;
+}
+.wm-rail__label {
+  position: absolute;
+  right: calc(100% + 8px);
+  top: 50%;
+  white-space: nowrap;
+  padding: 5px 9px;
+  border-radius: var(--radius-sm, 6px);
+  border: 1px solid var(--wm-line);
+  background: var(--wm-surface-solid);
+  color: var(--wm-text-dim);
+  font-size: 0.72rem;
+  letter-spacing: 0.01em;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(6px, -50%);
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+.wm-rail__btn:hover .wm-rail__label,
+.wm-rail__btn:focus-visible .wm-rail__label,
+.wm-rail__btn[data-hint] .wm-rail__label {
+  opacity: 1;
+  transform: translate(0, -50%);
+}
+
 /* ---------- mobile ---------- */
 
 @media (max-width: 767px) {
@@ -1025,9 +1104,19 @@ body.is-map-page .site-header__inner {
   .wm-panel__body {
     padding-bottom: calc(24px + env(safe-area-inset-bottom));
   }
+  .wm-rail {
+    top: calc(58px + var(--space-3, 12px));
+    right: 12px;
+    gap: 6px;
+  }
+  .wm-rail__btn {
+    width: 38px;
+    height: 38px;
+  }
   /* An open sheet owns the bottom edge — HUD, CTAs and drawer stand down. */
   .wm:has(.wm-panel.is-open) .wm-hud,
-  .wm:has(.wm-panel.is-open) .wm__drawer {
+  .wm:has(.wm-panel.is-open) .wm__drawer,
+  .wm:has(.wm-panel.is-open) .wm-rail {
     opacity: 0;
     pointer-events: none;
   }

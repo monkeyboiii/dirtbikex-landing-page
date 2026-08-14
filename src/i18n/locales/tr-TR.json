@@ -228,5 +228,8 @@
   "map.err.unavailable": "Harita burada yüklenemedi. DirtBikeX'i aşağıda keşfet.",
   "map.control.recenter": "Son bölüme dön",
   "map.panel.watchOn": "Şurada izle",
-  "map.panel.recommended": "Önerilen"
+  "map.panel.recommended": "Önerilen",
+  "map.layer.tracks": "Pistler",
+  "map.layer.ride": "100 parkur mücadelesi",
+  "map.layer.title": "Katmanlar"
 }

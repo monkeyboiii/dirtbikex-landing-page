@@ -228,5 +228,8 @@
   "map.err.unavailable": "O mapa não carregou aqui. Explore o DirtBikeX abaixo.",
   "map.control.recenter": "Voltar para o último episódio",
   "map.panel.watchOn": "Assistir no",
-  "map.panel.recommended": "Recomendado"
+  "map.panel.recommended": "Recomendado",
+  "map.layer.tracks": "Pistas",
+  "map.layer.ride": "O desafio dos 100",
+  "map.layer.title": "Camadas"
 }

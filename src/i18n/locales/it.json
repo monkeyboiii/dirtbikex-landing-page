@@ -228,5 +228,8 @@
   "map.err.unavailable": "La mappa non si è caricata qui. Esplora DirtBikeX qui sotto.",
   "map.control.recenter": "Torna all'ultimo episodio",
   "map.panel.watchOn": "Guarda su",
-  "map.panel.recommended": "Consigliato"
+  "map.panel.recommended": "Consigliato",
+  "map.layer.tracks": "Piste",
+  "map.layer.ride": "La sfida dei 100",
+  "map.layer.title": "Livelli"
 }

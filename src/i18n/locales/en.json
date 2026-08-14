@@ -234,5 +234,8 @@
   "map.err.unavailable": "The map couldn't load here. Explore DirtBikeX below.",
   "map.control.recenter": "Back to the latest episode",
   "map.panel.watchOn": "Watch on",
-  "map.panel.recommended": "Recommended"
+  "map.panel.recommended": "Recommended",
+  "map.layer.tracks": "Tracks",
+  "map.layer.ride": "The 100 challenge",
+  "map.layer.title": "Layers"
 }

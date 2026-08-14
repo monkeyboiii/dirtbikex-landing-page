@@ -231,5 +231,8 @@
   "map.err.unavailable": "ここでは地図を読み込めませんでした。下から DirtBikeX をご覧ください。",
   "map.control.recenter": "最新エピソードに戻る",
   "map.panel.watchOn": "視聴する",
-  "map.panel.recommended": "おすすめ"
+  "map.panel.recommended": "おすすめ",
+  "map.layer.tracks": "コース",
+  "map.layer.ride": "100か所チャレンジ",
+  "map.layer.title": "レイヤー"
 }

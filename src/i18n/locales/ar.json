@@ -228,5 +228,8 @@
   "map.err.unavailable": "تعذّر تحميل الخريطة هنا. استكشف DirtBikeX في الأسفل.",
   "map.control.recenter": "العودة إلى أحدث حلقة",
   "map.panel.watchOn": "شاهد على",
-  "map.panel.recommended": "موصى به"
+  "map.panel.recommended": "موصى به",
+  "map.layer.tracks": "المضامير",
+  "map.layer.ride": "تحدي المئة",
+  "map.layer.title": "الطبقات"
 }

@@ -228,5 +228,8 @@
   "map.err.unavailable": "La carte n’a pas pu se charger ici. Découvre DirtBikeX plus bas.",
   "map.control.recenter": "Retour au dernier épisode",
   "map.panel.watchOn": "Regarder sur",
-  "map.panel.recommended": "Recommandé"
+  "map.panel.recommended": "Recommandé",
+  "map.layer.tracks": "Circuits",
+  "map.layer.ride": "Le défi des 100",
+  "map.layer.title": "Calques"
 }

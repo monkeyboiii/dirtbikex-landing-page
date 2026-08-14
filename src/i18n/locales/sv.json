@@ -230,5 +230,8 @@
   "map.err.unavailable": "Kartan kunde inte laddas här. Utforska DirtBikeX nedanför.",
   "map.control.recenter": "Tillbaka till senaste avsnittet",
   "map.panel.watchOn": "Se på",
-  "map.panel.recommended": "Rekommenderas"
+  "map.panel.recommended": "Rekommenderas",
+  "map.layer.tracks": "Banor",
+  "map.layer.ride": "100-utmaningen",
+  "map.layer.title": "Lager"
 }
