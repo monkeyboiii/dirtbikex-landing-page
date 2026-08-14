@@ -12,11 +12,18 @@ const entries = (Object.keys(languages) as Lang[]).map((code) => ({
 }));
 
 const currentEntry = entries.find((e) => e.active) ?? entries[0];
+
+/** Two uppercase letters for the trigger: the region when there is one
+ *  (zh-CN → CN), otherwise the language (en → EN). The menu keeps full codes. */
+const shortCode = (code: string) => {
+  const [language, region] = code.split('-');
+  return (region ?? language).toUpperCase();
+};
 ---
 
 <details class="langswitch-dd" data-langswitch>
   <summary class="langswitch-dd__btn" aria-label="Switch language">
-    <span class="langswitch-dd__current">{currentEntry.code}</span>
+    <span class="langswitch-dd__current">{shortCode(currentEntry.code)}</span>
     <svg
       class="langswitch-dd__chevron"
       width="12"
