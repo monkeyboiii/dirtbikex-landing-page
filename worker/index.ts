@@ -9,7 +9,7 @@ import { handleLogtoSms } from './_lib/logtoSms';
 import { handleOutreachTest, handleBatch, handlePreview, handleStatus, handleMetrics, handleUnsub, handleDrip, handleWebhook, runDrip } from './_lib/outreach';
 import { handleJoinSubmit, handleJoinConfirm, handleUnsubscribe, handleCodePrecheck } from './_lib/join';
 import { handleShortlinkResolve } from './_lib/shortlink';
-import { handleMapSeries } from './_lib/mapData';
+import { handleMapDoc } from './_lib/mapData';
 import { handleOgPreview } from './_lib/ogPreview';
 import type { Lang, PagesEnv, ShareLandingProps } from './_lib/types';
 
@@ -641,7 +641,8 @@ export default {
       if (url.pathname === '/api/forum/metrics.json') return handleForumMetrics(env);
       if (url.pathname === '/api/forum/featured.json') return handleForumFeatured(env);
       // World map story data — R2 projection with the committed seed as fallback.
-      if (url.pathname === '/api/map/series.json') return handleMapSeries(request, env, ctx);
+      if (url.pathname === '/api/map/series.json') return handleMapDoc(request, env, ctx, 'series');
+      if (url.pathname === '/api/map/trails.json') return handleMapDoc(request, env, ctx, 'trails');
       if (url.pathname === '/api/map/og') return handleOgPreview(request, env, ctx);
       if (url.pathname === '/api/proxy/sponsors') return fetchSponsors(env);
       const lb = url.pathname.match(/^\/api\/proxy\/leaderboard\/([a-z_]+)\.json$/);

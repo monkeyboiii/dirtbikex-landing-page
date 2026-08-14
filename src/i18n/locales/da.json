@@ -231,5 +231,9 @@
   "map.panel.recommended": "Anbefalet",
   "map.layer.tracks": "Baner",
   "map.layer.ride": "100-udfordringen",
+  "map.layer.trails": "Køreres spor",
+  "map.trail.rider": "Kører",
+  "map.trail.thread": "Forumtråd",
+  "map.trail.studio": "Åbn i gpx.studio",
   "map.layer.title": "Lag"
 }

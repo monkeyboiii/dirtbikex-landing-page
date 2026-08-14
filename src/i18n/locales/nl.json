@@ -231,5 +231,9 @@
   "map.panel.recommended": "Aanbevolen",
   "map.layer.tracks": "Circuits",
   "map.layer.ride": "De 100-uitdaging",
+  "map.layer.trails": "Trails van rijders",
+  "map.trail.rider": "Rijder",
+  "map.trail.thread": "Forumtopic",
+  "map.trail.studio": "Openen in gpx.studio",
   "map.layer.title": "Lagen"
 }

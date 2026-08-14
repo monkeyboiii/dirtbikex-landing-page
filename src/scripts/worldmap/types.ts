@@ -45,6 +45,26 @@ export interface SeriesDoc {
   entries: SeriesEntry[];
 }
 
+/** A GPX ride promoted from the forum — MAP_LAYERS_PLAN.md §3b.
+ *  The author is stored as the numeric forum id (usernames can be renamed);
+ *  `author_username` is the cached resolution the profile link uses. */
+export interface Trail {
+  id: string;
+  title?: Record<string, string> | null;
+  author_user_id: number;
+  author_username: string;
+  post_url?: string | null;
+  gpx_url?: string | null;
+  distance_km?: number | null;
+  /** One entry per GPX track segment: [lng, lat] pairs. */
+  lines: [number, number][][];
+}
+
+export interface TrailsDoc {
+  version?: number;
+  trails: Trail[];
+}
+
 export interface MapConfig {
   lang: string;
   /** Two forks of the basemap; the map follows the site's light/dark toggle. */
@@ -52,6 +72,7 @@ export interface MapConfig {
   styleLightUrl: string;
   tracksUrl: string;
   seriesUrl: string;
+  trailsUrl: string;
   markersBase: string;
   /** DirtBikeX profile per platform — the fallback when an episode has no link yet. */
   socials: Partial<Record<string, string>>;

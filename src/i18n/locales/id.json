@@ -231,5 +231,9 @@
   "map.panel.recommended": "Direkomendasikan",
   "map.layer.tracks": "Trek",
   "map.layer.ride": "Tantangan 100",
+  "map.layer.trails": "Jalur rider",
+  "map.trail.rider": "Rider",
+  "map.trail.thread": "Utas forum",
+  "map.trail.studio": "Buka di gpx.studio",
   "map.layer.title": "Lapisan"
 }

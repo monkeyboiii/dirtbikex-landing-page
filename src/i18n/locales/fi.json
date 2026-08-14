@@ -231,5 +231,9 @@
   "map.panel.recommended": "Suositeltu",
   "map.layer.tracks": "Radat",
   "map.layer.ride": "100 radan haaste",
+  "map.layer.trails": "Kuljettajien reitit",
+  "map.trail.rider": "Kuljettaja",
+  "map.trail.thread": "Foorumiketju",
+  "map.trail.studio": "Avaa gpx.studiossa",
   "map.layer.title": "Tasot"
 }

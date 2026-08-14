@@ -231,5 +231,9 @@
   "map.panel.recommended": "Consigliato",
   "map.layer.tracks": "Piste",
   "map.layer.ride": "La sfida dei 100",
+  "map.layer.trails": "Percorsi dei rider",
+  "map.trail.rider": "Rider",
+  "map.trail.thread": "Discussione nel forum",
+  "map.trail.studio": "Apri in gpx.studio",
   "map.layer.title": "Livelli"
 }

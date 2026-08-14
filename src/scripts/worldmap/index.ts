@@ -15,7 +15,16 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import { createPanel, type Panel } from './panel';
 import { createHud, type Hud } from './hud';
-import type { EntryPlacement, MapConfig, SeriesDoc, SeriesEntry, Strings, TrackProps } from './types';
+import type {
+  EntryPlacement,
+  MapConfig,
+  SeriesDoc,
+  SeriesEntry,
+  Strings,
+  TrackProps,
+  Trail,
+  TrailsDoc,
+} from './types';
 
 const GLYPHS = ['motocross', 'trail_area', 'riding_park', 'ebike_park', 'other'] as const;
 const CATEGORY_TO_GLYPH: Record<string, string> = {
@@ -40,6 +49,7 @@ function palette(dark: boolean) {
         pinStroke: '#0d0c09',
         label: '#d8d4cd',
         labelHalo: '#0d0c09',
+        trail: '#4fb3a5',
       }
     : {
         breadth: '#aea291',
@@ -49,6 +59,7 @@ function palette(dark: boolean) {
         pinStroke: '#faf8f4',
         label: '#3c3b3a',
         labelHalo: '#faf8f4',
+        trail: '#1a7d71',
       };
 }
 
@@ -67,15 +78,19 @@ const EMPTY: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: 
     rest of each layer's surface (DOM markers, the HUD) is toggled alongside them. */
 const LAYERS = {
   tracks: ['tracks-halo', 'tracks-dot', 'tracks-glyph', 'tracks-seal', 'tracks-label'],
+  trails: ['trails-line', 'trails-cap'],
   ride: ['journey-line'],
 } as const;
 type LayerId = keyof typeof LAYERS;
 const LAYER_IDS = Object.keys(LAYERS) as LayerId[];
 const LAYER_STORE = 'dbx-map-layers';
 
-/** URL wins (shareable), then the visitor's last choice, then everything on. */
+/** Trails start off: their data is fetched on first enable, not at boot. */
+const LAYER_DEFAULTS: Record<LayerId, boolean> = { tracks: true, trails: false, ride: true };
+
+/** URL wins (shareable), then the visitor's last choice, then the defaults. */
 function initialLayers(): Record<LayerId, boolean> {
-  const on = Object.fromEntries(LAYER_IDS.map((id) => [id, true])) as Record<LayerId, boolean>;
+  const on = { ...LAYER_DEFAULTS };
   const fromUrl = new URLSearchParams(location.search).get('layers');
   const raw = fromUrl ?? (() => {
     try {
@@ -234,6 +249,7 @@ class WorldMap {
   private ordered: SeriesEntry[] = [];
   private episodeMarkers: HTMLElement[] = [];
   private visible = initialLayers();
+  private trails: Trail[] | null = null;
   private current: SeriesEntry | null = null;
   private tracksBySlug = new Map<string, TrackProps>();
   private opening: SeriesEntry | null = null;
@@ -297,6 +313,7 @@ class WorldMap {
     this.renderVisible();
     this.addEpisodeMarkers();
     this.applyLayers();
+    if (this.visible.trails) void this.loadTrails();
     this.wireInteractions();
     this.watchTheme();
     this.root.classList.add('is-live');
@@ -477,6 +494,8 @@ class WorldMap {
           .filter((c): c is [number, number] => !!c),
       },
     };
+    this.addTrailLayers();
+
     map.addSource('journey', { type: 'geojson', data: line });
     map.addLayer({
       id: 'journey-line',
@@ -490,6 +509,64 @@ class WorldMap {
         'line-dasharray': [2, 2.5],
       },
     });
+  }
+
+  /** Trails are few and small, so they draw whole — no viewport culling. */
+  private addTrailLayers() {
+    const map = this.map;
+    const trails = this.trails ?? [];
+    if (!trails.length || map.getSource('trails')) return;
+    const c = palette(this.dark);
+
+    map.addSource('trails', {
+      type: 'geojson',
+      promoteId: 'id',
+      data: {
+        type: 'FeatureCollection',
+        features: trails.map((trail) => ({
+          type: 'Feature' as const,
+          properties: { id: trail.id },
+          geometry: { type: 'MultiLineString' as const, coordinates: trail.lines },
+        })),
+      },
+    });
+
+    // A wide transparent line under the visible one: a 2 px trace is not a tap target.
+    map.addLayer({
+      id: 'trails-cap',
+      type: 'line',
+      source: 'trails',
+      layout: { 'line-cap': 'round', 'line-join': 'round' },
+      paint: { 'line-color': c.trail, 'line-width': 14, 'line-opacity': 0.01 },
+    });
+    map.addLayer({
+      id: 'trails-line',
+      type: 'line',
+      source: 'trails',
+      layout: { 'line-cap': 'round', 'line-join': 'round' },
+      paint: {
+        'line-color': c.trail,
+        'line-width': ['interpolate', ['linear'], ['zoom'], 6, 1.2, 11, 2.6, 14, 4] as never,
+        'line-opacity': 0.85,
+      },
+    });
+  }
+
+  /** Fetched on first enable, not at boot — the layer is off for most visits. */
+  private async loadTrails(): Promise<boolean> {
+    if (this.trails) return true;
+    try {
+      const doc = (await fetchJson(this.cfg.trailsUrl).catch(() =>
+        fetchJson('/map/trails.seed.json'),
+      )) as TrailsDoc;
+      this.trails = Array.isArray(doc?.trails) ? doc.trails.filter((t) => t.lines?.length) : [];
+    } catch (err) {
+      console.warn('worldmap trails', err);
+      return false;
+    }
+    this.addTrailLayers();
+    this.applyLayers();
+    return this.trails.length > 0;
   }
 
   /**
@@ -592,10 +669,15 @@ class WorldMap {
 
   private wireInteractions() {
     const map = this.map;
-    const hit = ['tracks-dot'];
+    /** Only layers that exist and are on — querying a missing layer throws. */
+    const hit = () =>
+      ['tracks-dot', 'trails-cap'].filter((id) => {
+        const owner = LAYER_IDS.find((l) => (LAYERS[l] as readonly string[]).includes(id));
+        return map.getLayer(id) && (!owner || this.visible[owner]);
+      });
 
     map.on('mousemove', (e) => {
-      const features = map.queryRenderedFeatures(e.point, { layers: hit });
+      const features = map.queryRenderedFeatures(e.point, { layers: hit() });
       map.getCanvas().style.cursor = features.length ? 'pointer' : '';
     });
 
@@ -603,10 +685,15 @@ class WorldMap {
     map.on('moveend', () => this.renderVisible());
 
     map.on('click', (e) => {
-      const features = map.queryRenderedFeatures(e.point, { layers: hit });
-      const props = features[0]?.properties as TrackProps | undefined;
-      if (props?.slug) {
-        this.selectTrack(props.slug, { fly: true });
+      const feature = map.queryRenderedFeatures(e.point, { layers: hit() })[0];
+      const trail = feature?.layer.id === 'trails-cap'
+        ? this.trails?.find((t) => t.id === feature.properties?.id)
+        : null;
+      if (trail) {
+        this.clearSelection();
+        this.panel.showTrail(trail);
+      } else if ((feature?.properties as TrackProps | undefined)?.slug) {
+        this.selectTrack((feature!.properties as TrackProps).slug, { fly: true });
       } else {
         this.clearSelection();
       }
@@ -638,8 +725,9 @@ class WorldMap {
     this.root.classList.toggle('is-tracks-off', !this.visible.tracks);
   }
 
-  setLayer(id: LayerId, on: boolean) {
+  async setLayer(id: LayerId, on: boolean): Promise<void> {
     if (this.visible[id] === on) return;
+    if (id === 'trails' && on && !(await this.loadTrails())) return;
     this.visible[id] = on;
     // A hidden layer must not keep a sheet open about one of its features.
     // Episodes ride on catalog pins, so "is this an episode?" is a slug lookup.
@@ -835,8 +923,10 @@ function wireRail(root: HTMLElement, world: WorldMap) {
     const sync = () => button.setAttribute('aria-pressed', String(world.layerState(id)));
     sync();
     let hint: ReturnType<typeof setTimeout>;
-    button.addEventListener('click', () => {
-      world.setLayer(id, !world.layerState(id));
+    button.addEventListener('click', async () => {
+      button.disabled = true;
+      await world.setLayer(id, !world.layerState(id));
+      button.disabled = false;
       sync();
       // Touch has no hover, so flash the label as confirmation of what moved.
       button.dataset.hint = '';

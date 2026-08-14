@@ -231,5 +231,9 @@
   "map.panel.recommended": "แนะนำ",
   "map.layer.tracks": "สนาม",
   "map.layer.ride": "ชาเลนจ์ 100 สนาม",
+  "map.layer.trails": "เส้นทางของนักขี่",
+  "map.trail.rider": "นักขี่",
+  "map.trail.thread": "กระทู้ในฟอรัม",
+  "map.trail.studio": "เปิดใน gpx.studio",
   "map.layer.title": "เลเยอร์"
 }

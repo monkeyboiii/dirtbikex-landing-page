@@ -231,5 +231,9 @@
   "map.panel.recommended": "Recomendado",
   "map.layer.tracks": "Circuitos",
   "map.layer.ride": "El reto de los 100",
+  "map.layer.trails": "Rutas de riders",
+  "map.trail.rider": "Rider",
+  "map.trail.thread": "Hilo del foro",
+  "map.trail.studio": "Abrir en gpx.studio",
   "map.layer.title": "Capas"
 }

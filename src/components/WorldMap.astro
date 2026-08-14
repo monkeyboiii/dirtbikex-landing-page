@@ -37,6 +37,10 @@ const DEFAULTS: Record<string, string> = {
   'map.layer.title': 'Layers',
   'map.layer.tracks': 'Tracks',
   'map.layer.ride': 'The 100 challenge',
+  'map.layer.trails': 'Rider trails',
+  'map.trail.rider': 'Rider',
+  'map.trail.thread': 'Forum thread',
+  'map.trail.studio': 'Open in gpx.studio',
   'map.panel.watchOn': 'Watch on',
   'map.panel.recommended': 'Recommended',
   'map.panel.prev': 'Previous episode',
@@ -78,6 +82,7 @@ const config = {
   styleLightUrl: '/map/style-light.json',
   tracksUrl: '/map/tracks.json',
   seriesUrl: '/api/map/series.json',
+  trailsUrl: '/api/map/trails.json',
   markersBase: '/map/markers/',
   // Episode links win; these profiles are the fallback, /contact the last resort.
   socials: { facebook: SOCIALS.facebook, instagram: SOCIALS.instagram },
@@ -110,6 +115,15 @@ const config = {
         <circle cx="18" cy="7.5" r="2.25" fill="currentColor" stroke="none" />
       </svg>
       <span class="wm-rail__label">{s('map.layer.tracks')}</span>
+    </button>
+    <button type="button" class="wm-rail__btn" data-layer="trails" aria-pressed="false">
+      <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M4 19c0-3.4 3.2-3.8 6.4-4.7S17 12.4 17 8.6" />
+        <circle cx="4" cy="19" r="1.9" fill="currentColor" stroke="none" />
+        <circle cx="17" cy="5.6" r="2.1" />
+      </svg>
+      <span class="wm-rail__label">{s('map.layer.trails')}</span>
     </button>
     <button type="button" class="wm-rail__btn" data-layer="ride" aria-pressed="true">
       <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2"

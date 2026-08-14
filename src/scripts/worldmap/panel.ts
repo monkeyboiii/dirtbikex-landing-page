@@ -1,4 +1,4 @@
-import type { SeriesEntry, Strings, TrackProps } from './types';
+import type { SeriesEntry, Strings, TrackProps, Trail } from './types';
 
 /** Brand marks in their own colours. `uid` keeps gradient ids unique per render. */
 const TIKTOK_NOTE =
@@ -24,6 +24,18 @@ const PLATFORM_ICONS: Record<string, (uid: string) => string> = {
     `<rect x="2.6" y="2.6" width="18.8" height="18.8" rx="5.4" fill="none" stroke="url(#ig-${uid})" stroke-width="2"/>` +
     `<circle cx="12" cy="12" r="4.2" fill="none" stroke="url(#ig-${uid})" stroke-width="2"/>` +
     `<circle cx="17.3" cy="6.7" r="1.25" fill="url(#ig-${uid})"/>`,
+};
+
+/** Trail marks live in the same row as the platform marks, drawn in the panel's ink. */
+const TRAIL_ICONS: Record<string, string> = {
+  rider:
+    '<circle cx="12" cy="8" r="3.6" fill="none" stroke="currentColor" stroke-width="1.8"/>' +
+    '<path d="M4.8 20.2a7.2 7.2 0 0 1 14.4 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
+  thread:
+    '<path d="M20.4 13.2a6.6 6.6 0 0 1-6.6 6.6H8.2L3.6 22.2l1.1-3.6a6.6 6.6 0 0 1-1.1-3.6V9.6A6.6 6.6 0 0 1 10.2 3h3.6a6.6 6.6 0 0 1 6.6 6.6Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>',
+  route:
+    '<path d="M6 20c0-3.2 3-3.6 6-4.4S18 13.2 18 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>' +
+    '<circle cx="6" cy="20" r="2.2" fill="currentColor"/><circle cx="18" cy="6.6" r="2.4" fill="none" stroke="currentColor" stroke-width="1.8"/>',
 };
 
 const PLATFORM_LABELS: Record<string, string> = {
@@ -66,7 +78,8 @@ function el(tag: string, className?: string, text?: string): HTMLElement {
 }
 
 function markSvg(platform: string, uid: string, size = 20): string {
-  return `<svg viewBox="0 0 24 24" width="${size}" height="${size}" aria-hidden="true">${PLATFORM_ICONS[platform]?.(uid) ?? ''}</svg>`;
+  const body = PLATFORM_ICONS[platform]?.(uid) ?? TRAIL_ICONS[platform] ?? '';
+  return `<svg viewBox="0 0 24 24" width="${size}" height="${size}" aria-hidden="true">${body}</svg>`;
 }
 
 export function createPanel(deps: PanelDeps) {
@@ -362,6 +375,44 @@ export function createPanel(deps: PanelDeps) {
   return {
     close,
     isOpen: () => !root.hidden,
+
+    /** A ride somebody recorded: the trace, who rode it, and where to open it. */
+    showTrail(trail: Trail) {
+      open((host) => {
+        host.appendChild(el('h2', 'wm-panel__title', localized(trail.title, lang) ?? trail.id));
+
+        const meta = [
+          trail.distance_km ? `${trail.distance_km} km` : null,
+          `@${trail.author_username}`,
+        ]
+          .filter(Boolean)
+          .join(' · ');
+        host.appendChild(el('p', 'wm-panel__meta', meta));
+
+        const row = el('div', 'wm-panel__socials');
+        const mark = (icon: string, href: string, label: string) => {
+          const a = el('a', 'wm-social') as HTMLAnchorElement;
+          a.href = href;
+          a.title = label;
+          a.setAttribute('aria-label', label);
+          if (/^https?:/.test(href)) {
+            a.target = '_blank';
+            a.rel = 'noopener';
+          }
+          a.innerHTML = markSvg(icon, `trail-${generation}`);
+          row.appendChild(a);
+        };
+
+        mark('rider', `/s/u/${encodeURIComponent(trail.author_username)}`,
+          `${strings['map.trail.rider'] ?? 'Rider'} · @${trail.author_username}`);
+        if (trail.post_url) mark('thread', trail.post_url, strings['map.trail.thread'] ?? 'Forum thread');
+        if (trail.gpx_url) {
+          const files = encodeURIComponent(JSON.stringify([trail.gpx_url]));
+          mark('route', `https://gpx.studio/app?files=${files}`, strings['map.trail.studio'] ?? 'Open in gpx.studio');
+        }
+        host.appendChild(row);
+      });
+    },
 
     showTrack(track: TrackProps) {
       open((host) => {

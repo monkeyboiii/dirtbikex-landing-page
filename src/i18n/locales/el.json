@@ -231,5 +231,9 @@
   "map.panel.recommended": "Προτεινόμενο",
   "map.layer.tracks": "Πίστες",
   "map.layer.ride": "Η πρόκληση των 100",
+  "map.layer.trails": "Διαδρομές αναβατών",
+  "map.trail.rider": "Αναβάτης",
+  "map.trail.thread": "Νήμα φόρουμ",
+  "map.trail.studio": "Άνοιγμα στο gpx.studio",
   "map.layer.title": "Επίπεδα"
 }

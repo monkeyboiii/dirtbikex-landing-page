@@ -233,5 +233,9 @@
   "map.panel.recommended": "Rekommenderas",
   "map.layer.tracks": "Banor",
   "map.layer.ride": "100-utmaningen",
+  "map.layer.trails": "Förarnas leder",
+  "map.trail.rider": "Förare",
+  "map.trail.thread": "Forumtråd",
+  "map.trail.studio": "Öppna i gpx.studio",
   "map.layer.title": "Lager"
 }

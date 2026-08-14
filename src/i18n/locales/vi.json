@@ -231,5 +231,9 @@
   "map.panel.recommended": "Được đề xuất",
   "map.layer.tracks": "Đường đua",
   "map.layer.ride": "Thử thách 100",
+  "map.layer.trails": "Đường chạy của tay lái",
+  "map.trail.rider": "Tay lái",
+  "map.trail.thread": "Chủ đề diễn đàn",
+  "map.trail.studio": "Mở trong gpx.studio",
   "map.layer.title": "Lớp"
 }

@@ -234,5 +234,9 @@
   "map.panel.recommended": "推荐",
   "map.layer.tracks": "赛道",
   "map.layer.ride": "百场挑战",
+  "map.layer.trails": "车友路线",
+  "map.trail.rider": "车友",
+  "map.trail.thread": "论坛帖子",
+  "map.trail.studio": "在 gpx.studio 中打开",
   "map.layer.title": "图层"
 }

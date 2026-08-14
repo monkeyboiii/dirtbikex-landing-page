@@ -231,5 +231,9 @@
   "map.panel.recommended": "Recommandé",
   "map.layer.tracks": "Circuits",
   "map.layer.ride": "Le défi des 100",
+  "map.layer.trails": "Traces des pilotes",
+  "map.trail.rider": "Pilote",
+  "map.trail.thread": "Fil du forum",
+  "map.trail.studio": "Ouvrir dans gpx.studio",
   "map.layer.title": "Calques"
 }

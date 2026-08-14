@@ -234,5 +234,9 @@
   "map.panel.recommended": "おすすめ",
   "map.layer.tracks": "コース",
   "map.layer.ride": "100か所チャレンジ",
+  "map.layer.trails": "ライダーのトレイル",
+  "map.trail.rider": "ライダー",
+  "map.trail.thread": "フォーラムの投稿",
+  "map.trail.studio": "gpx.studio で開く",
   "map.layer.title": "レイヤー"
 }
