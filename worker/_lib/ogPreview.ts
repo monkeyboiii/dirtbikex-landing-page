@@ -242,24 +242,23 @@ async function tiktokOembed(url: URL): Promise<{ title?: string; thumbnail_url?:
     the forum's native-embed component reaches through /api/resolve/shortlink. */
 const DOUYIN_HOST = /(^|\.)(douyin|iesdouyin)\.com$/;
 
-async function previewOne(start: URL): Promise<Preview | null> {
-  let target = start;
-  if (DOUYIN_HOST.test(start.hostname)) {
-    const canonical = await resolveCanonical(start).catch(() => null);
-    const checked = canonical ? permitted(canonical, ALLOWED_HOSTS) : null;
-    if (checked) target = checked;
-  }
-
+async function previewOne(target: URL, trace: string[]): Promise<Preview | null> {
   const douyin = DOUYIN_HOST.test(target.hostname);
   const hit = await fetchChecked(target, ALLOWED_HOSTS, {
     'User-Agent': douyin ? MOBILE_UA : CRAWLER_UA,
     Accept: 'text/html,application/xhtml+xml',
     'Accept-Language': douyin ? 'zh-CN,zh;q=0.9' : 'en,zh;q=0.8',
   });
-  if (!hit) return null;
+  if (!hit) {
+    trace.push(`${target.hostname}=unreachable`);
+    return null;
+  }
 
   const bytes = await readCapped(hit.resp, MAX_HTML_BYTES, true).catch(() => null);
-  if (!bytes) return null;
+  if (!bytes) {
+    trace.push(`${hit.url.hostname}=unreadable`);
+    return null;
+  }
   const html = new TextDecoder().decode(bytes);
   const tags = collectMeta(html);
   const pick = (...keys: string[]) => keys.map((k) => tags.get(k)).find((v) => !!v) ?? null;
@@ -288,6 +287,7 @@ async function previewOne(start: URL): Promise<Preview | null> {
     if (!title) title = html.match(/<title[^>]{0,200}>([^<]{1,300})<\/title>/i)?.[1]?.trim() ?? null;
   }
 
+  trace.push(`${hit.url.hostname}=${bytes.length}b${title ? '+t' : ''}${image ? '+i' : ''}`);
   if (!title && !image) return null;
 
   return {
@@ -310,20 +310,33 @@ export async function handleOgPreview(request: Request, _env: PagesEnv, ctx: Wai
     .map((u) => permitted(u, ALLOWED_HOSTS))
     .filter((u): u is URL => !!u);
 
+  const trace: string[] = [];
   let preview: Preview | null = null;
-  let reason: Reason = candidates.length ? 'no_tags' : 'no_candidates';
+
   for (const candidate of candidates) {
-    try {
-      preview = await previewOne(candidate);
-    } catch (err) {
-      console.error('ogPreview:threw', { err: String(err), host: candidate.hostname });
-      reason = 'fetch_failed';
-      preview = null;
+    // A Douyin share link renders server-side; its canonical /video/{id} form is a
+    // JS shell. Try the share page first, then the canonical from the shared
+    // resolver (the one /api/resolve/shortlink exposes to native-embed).
+    const targets: URL[] = [candidate];
+    if (DOUYIN_HOST.test(candidate.hostname)) {
+      const canonical = await resolveCanonical(candidate).catch(() => null);
+      const checked = canonical ? permitted(canonical, ALLOWED_HOSTS) : null;
+      if (checked && checked.href !== candidate.href) targets.push(checked);
+    }
+    for (const target of targets) {
+      try {
+        preview = await previewOne(target, trace);
+      } catch (err) {
+        console.error('ogPreview:threw', { err: String(err), host: target.hostname });
+        trace.push(`${target.hostname}=threw`);
+        preview = null;
+      }
+      if (preview) break;
     }
     if (preview) break;
   }
 
-  const body = preview ?? { ok: false, reason };
+  const body = preview ?? { ok: false, reason: (candidates.length ? 'no_tags' : 'no_candidates') as Reason, trace };
   const response = new Response(JSON.stringify(body), {
     // Negative results are cached too, briefly — a walled platform stays walled.
     headers: {
