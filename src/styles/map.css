@@ -433,27 +433,49 @@ body.is-map-page .site-header__inner {
 
 /* ---------- episode markers ---------- */
 
+/* The 100 challenge is an annotation ON a place, not a replacement for it. The marker
+   is a ring wide enough to sit around the venue's own blip, with the episode number as
+   a small badge on the rim — so you can still see what kind of place you are visiting. */
 .wm-ep {
-  display: grid;
-  place-items: center;
-  width: 30px;
-  height: 30px;
+  /* No `position` here: MapLibre's own .maplibregl-marker sets position:absolute at
+     equal specificity, and this sheet loads after it — declaring relative drops the
+     marker into normal flow and it lands ~85px off its own coordinates. The marker is
+     already a positioning context, which is all the rim badge needs. */
+  display: block;
+  width: 44px;
+  height: 44px;
   padding: 0;
   border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, 0.9);
-  background: var(--wm-accent);
+  border: 2.5px solid var(--wm-accent);
+  background: transparent;
   color: #fff;
   cursor: pointer;
   appearance: none;
-  box-shadow: 0 4px 14px -2px rgba(0, 0, 0, 0.7), 0 0 0 0 rgba(237, 107, 0, 0.5);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.35),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.35),
+    0 0 14px -2px rgba(237, 107, 0, 0.55);
   transition: transform 160ms var(--ease-spring, ease);
 }
 .wm-ep__num {
+  position: absolute;
+  top: -7px;
+  right: -9px;
+  min-width: 19px;
+  height: 19px;
+  padding: 0 4px;
+  display: grid;
+  place-items: center;
+  border-radius: 9.5px;
+  border: 1.5px solid rgba(255, 255, 255, 0.92);
+  background: var(--wm-accent);
+  color: #fff;
   font-family: var(--font-mono, 'Geist Mono', monospace);
   font-weight: 700;
-  font-size: 0.72rem;
+  font-size: 0.66rem;
   line-height: 1;
   font-variant-numeric: tabular-nums;
+  box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.8);
 }
 .wm-ep:hover,
 .wm-ep:focus-visible {
@@ -461,21 +483,28 @@ body.is-map-page .site-header__inner {
   outline: none;
 }
 .wm-ep.is-visited {
+  border-color: rgba(231, 224, 210, 0.65);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), inset 0 0 0 1px rgba(0, 0, 0, 0.35);
+}
+.wm-ep.is-visited .wm-ep__num {
   background: #3c3b3a;
-  border-color: rgba(255, 255, 255, 0.6);
 }
 .wm-ep.is-live::after {
   content: '';
   position: absolute;
-  inset: -6px;
+  inset: -7px;
   border-radius: 50%;
   border: 1.5px solid rgba(237, 107, 0, 0.55);
   animation: wm-ring 2.6s var(--ease-out, ease) infinite;
 }
 .wm-ep--side {
-  width: 22px;
-  height: 22px;
-  border-radius: 5px;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+}
+.wm-ep--side .wm-ep__num {
+  top: -8px;
+  right: -10px;
 }
 @keyframes wm-ring {
   0% {
