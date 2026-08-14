@@ -9,8 +9,14 @@
       "kind": "episode",
       "video_id": "DBX-APP-S03E000",
       "track_slug": null,
-      "coords": null,
-      "venue": null,
+      "coords": {
+        "lat": 30.2374,
+        "lng": 120.15
+      },
+      "venue": {
+        "en": "West Lake, Hangzhou",
+        "zh-CN": "杭州 西湖"
+      },
       "title": {
         "en": "Track zero",
         "zh-CN": "第零站"
@@ -37,14 +43,11 @@
       "label": "01",
       "kind": "episode",
       "video_id": "DBX-APP-S03E001",
-      "track_slug": null,
-      "coords": {
-        "lat": 30.8703,
-        "lng": 120.0933
-      },
+      "track_slug": "cn-hu-zhou-yue-ye-shan-ye-ying-di",
+      "coords": null,
       "venue": {
-        "en": "Huzhou",
-        "zh-CN": "湖州"
+        "en": "Huzhou, Zhejiang",
+        "zh-CN": "湖州越野杉野营地"
       },
       "title": {
         "en": "Day one, track one down",
@@ -72,14 +75,11 @@
       "label": "02",
       "kind": "episode",
       "video_id": "DBX-APP-S03E002",
-      "track_slug": null,
-      "coords": {
-        "lat": 30.2374,
-        "lng": 120.15
-      },
+      "track_slug": "cn-qiu-long-ke-ji-hang-zhou-yue-ye-ji-di",
+      "coords": null,
       "venue": {
-        "en": "Liulang Wenying, Hangzhou",
-        "zh-CN": "杭州 柳浪闻莺"
+        "en": "Qiulong, Hangzhou",
+        "zh-CN": "虬龙科技杭州越野基地"
       },
       "title": {
         "en": "E-bike park, day two",

@@ -3,6 +3,8 @@ export type Tier = 'verified' | 'breadth';
 /** Properties baked into public/map/tracks.json — see CONCRETE_MAP_PLAN.md §6.1. */
 export interface TrackProps {
   slug: string;
+  /** Entity kind; absent means `track`. Render budgets are applied per kind. */
+  kind?: string;
   name: string;
   name_local: string | null;
   country_code: string;

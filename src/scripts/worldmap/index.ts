@@ -53,6 +53,15 @@ function palette(dark: boolean) {
 }
 
 const DIM = 0.22;
+/** Pins of one kind drawn at once. A dense region has to stay readable, and this
+    also bounds the work MapLibre redoes on every pan. Scales with the viewport. */
+const RENDER_CELL_PX = 90;
+function renderBudget(map: MapLibreMap): number {
+  const c = map.getCanvas();
+  return Math.max(50, Math.min(150, Math.round((c.clientWidth * c.clientHeight) / 9000)));
+}
+
+const EMPTY: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: [] };
 const WORLD_VIEW = { center: [14, 34] as [number, number], zoom: 2.1 };
 /** The journey opens at city level — "show me Hangzhou", not "show me Asia". */
 const CITY_ZOOM = 10.4;
@@ -256,6 +265,7 @@ class WorldMap {
 
     this.applyProjection();
     await this.addLayers();
+    this.renderVisible();
     this.addEpisodeMarkers();
     this.wireInteractions();
     this.watchTheme();
@@ -292,6 +302,7 @@ class WorldMap {
     // put the interaction state back the way the visitor left it.
     this.applyProjection();
     await this.addLayers();
+    this.renderVisible();
     this.setHalo(this.selected);
     this.setDimmed(this.seriesMode || !!this.selected);
     this.map.setPaintProperty('journey-line', 'line-opacity', this.seriesMode ? 0.55 : 0);
@@ -316,7 +327,8 @@ class WorldMap {
   private async addLayers() {
     const map = this.map;
     const c = palette(this.dark);
-    map.addSource('tracks', { type: 'geojson', data: this.tracks });
+    // Starts empty; renderVisible() fills it from what's actually on screen.
+    map.addSource('tracks', { type: 'geojson', data: EMPTY, promoteId: 'slug' });
 
     await Promise.all([
       ...GLYPHS.flatMap((name) => [
@@ -449,6 +461,80 @@ class WorldMap {
     });
   }
 
+  /**
+   * Draws only what is in view, capped per kind and spread over a grid so a dense
+   * country doesn't collapse into a blob. Runs on every settled move, so panning
+   * fills in incrementally rather than shipping the whole world at once.
+   *
+   * The selected pin and every episode venue are always kept — culling the one the
+   * panel is describing would strand the halo and the sheet.
+   */
+  private renderVisible() {
+    if (!this.map.getSource('tracks')) return;
+    const map = this.map;
+    const bounds = map.getBounds();
+    const budget = renderBudget(map);
+    const canvas = map.getCanvas();
+    const cols = Math.max(1, Math.ceil(canvas.clientWidth / RENDER_CELL_PX));
+    const rows = Math.max(1, Math.ceil(canvas.clientHeight / RENDER_CELL_PX));
+
+    const pinned = new Set<string>();
+    if (this.selected) pinned.add(this.selected);
+    for (const entry of this.series.entries) if (entry.track_slug) pinned.add(entry.track_slug);
+
+    const rank = (p: TrackProps) => (p.claimed ? 3 : p.tier === 'verified' ? 2 : 1);
+    const kept: GeoJSON.Feature[] = [];
+    const candidates = new Map<string, { feature: GeoJSON.Feature; cell: number; rank: number }[]>();
+
+    for (const feature of this.tracks.features) {
+      const props = feature.properties as TrackProps | null;
+      if (!props?.slug) continue;
+      if (pinned.has(props.slug)) {
+        kept.push(feature);
+        continue;
+      }
+      if (feature.geometry.type !== 'Point') continue;
+      const [lng, lat] = feature.geometry.coordinates as [number, number];
+      if (!bounds.contains([lng, lat])) continue;
+      const at = map.project([lng, lat]);
+      const cx = Math.min(cols - 1, Math.max(0, Math.floor(at.x / RENDER_CELL_PX)));
+      const cy = Math.min(rows - 1, Math.max(0, Math.floor(at.y / RENDER_CELL_PX)));
+      const kind = props.kind ?? 'track';
+      const bucket = candidates.get(kind) ?? [];
+      bucket.push({ feature, cell: cy * cols + cx, rank: rank(props) });
+      if (bucket.length === 1) candidates.set(kind, bucket);
+    }
+
+    for (const bucket of candidates.values()) {
+      // Best pin per grid cell first — that is what spreads them — then fill any
+      // remaining budget with the next best wherever they fall.
+      bucket.sort((a, b) => b.rank - a.rank);
+      const taken = new Set<number>();
+      const leftovers: GeoJSON.Feature[] = [];
+      let used = 0;
+      for (const c of bucket) {
+        if (used >= budget) break;
+        if (taken.has(c.cell)) {
+          leftovers.push(c.feature);
+          continue;
+        }
+        taken.add(c.cell);
+        kept.push(c.feature);
+        used++;
+      }
+      for (const feature of leftovers) {
+        if (used >= budget) break;
+        kept.push(feature);
+        used++;
+      }
+    }
+
+    (map.getSource('tracks') as { setData(d: GeoJSON.FeatureCollection): void }).setData({
+      type: 'FeatureCollection',
+      features: kept,
+    });
+  }
+
   private addEpisodeMarkers() {
     for (const [entry, placement] of this.placements) {
       if (!placement.lngLat) continue;
@@ -479,6 +565,9 @@ class WorldMap {
       const features = map.queryRenderedFeatures(e.point, { layers: hit });
       map.getCanvas().style.cursor = features.length ? 'pointer' : '';
     });
+
+    // Settled move only — mid-gesture re-renders would fight the pan.
+    map.on('moveend', () => this.renderVisible());
 
     map.on('click', (e) => {
       const features = map.queryRenderedFeatures(e.point, { layers: hit });
@@ -517,6 +606,7 @@ class WorldMap {
       .sort(entryOrder)
       .pop();
     this.selected = slug;
+    this.renderVisible();
     this.setHalo(slug);
     this.setDimmed(true);
     this.hud.highlight(entry ?? null);
@@ -540,6 +630,7 @@ class WorldMap {
   selectEntry(entry: SeriesEntry, opts: { fly?: boolean } = {}) {
     const track = entry.track_slug ? this.tracksBySlug.get(entry.track_slug) ?? null : null;
     this.selected = entry.track_slug ?? entry.label;
+    this.renderVisible();
     this.setHalo(entry.track_slug ?? null);
     this.setDimmed(true);
     this.hud.highlight(entry);
