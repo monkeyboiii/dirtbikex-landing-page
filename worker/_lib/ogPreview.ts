@@ -40,6 +40,10 @@ const ALLOWED_IMAGE_HOSTS: RegExp[] = [
 const SAFE_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif']);
 
 const CRAWLER_UA = 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)';
+/** Douyin serves the crawler UA a wall; it answers a mobile browser, which is the
+ *  UA the shortlink resolver already uses successfully. */
+const MOBILE_UA =
+  'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1';
 const MAX_HTML_BYTES = 300_000;
 const MAX_IMAGE_BYTES = 250_000;
 const MAX_HOPS = 4;
@@ -53,6 +57,8 @@ declare const caches: {
 export interface WaitUntil {
   waitUntil(promise: Promise<unknown>): void;
 }
+
+type Reason = 'no_candidates' | 'fetch_failed' | 'no_tags';
 
 interface Preview {
   ok: true;
@@ -244,16 +250,18 @@ async function previewOne(start: URL): Promise<Preview | null> {
     if (checked) target = checked;
   }
 
+  const douyin = DOUYIN_HOST.test(target.hostname);
   const hit = await fetchChecked(target, ALLOWED_HOSTS, {
-    'User-Agent': CRAWLER_UA,
+    'User-Agent': douyin ? MOBILE_UA : CRAWLER_UA,
     Accept: 'text/html,application/xhtml+xml',
-    'Accept-Language': 'en,zh;q=0.8',
+    'Accept-Language': douyin ? 'zh-CN,zh;q=0.9' : 'en,zh;q=0.8',
   });
   if (!hit) return null;
 
   const bytes = await readCapped(hit.resp, MAX_HTML_BYTES, true).catch(() => null);
   if (!bytes) return null;
-  const tags = collectMeta(new TextDecoder().decode(bytes));
+  const html = new TextDecoder().decode(bytes);
+  const tags = collectMeta(html);
   const pick = (...keys: string[]) => keys.map((k) => tags.get(k)).find((v) => !!v) ?? null;
 
   let title = pick('og:title', 'twitter:title');
@@ -268,6 +276,16 @@ async function previewOne(start: URL): Promise<Preview | null> {
       title = oembed.title;
     }
     if (!image && oembed?.thumbnail_url) image = oembed.thumbnail_url;
+  }
+
+  if (douyin) {
+    // The canonical page is a JS shell with no OG tags; its cover still appears as
+    // a CDN URL in the server-rendered payload. Bounded patterns only.
+    if (!image) {
+      const cover = html.match(/https:(?:\\?\/){2}[^"'\\\s]{0,200}?(?:douyinpic|byteimg)\.com\/[^"'\\\s]{0,300}/);
+      if (cover) image = cover[0].replace(/\\\//g, '/');
+    }
+    if (!title) title = html.match(/<title[^>]{0,200}>([^<]{1,300})<\/title>/i)?.[1]?.trim() ?? null;
   }
 
   if (!title && !image) return null;
@@ -293,17 +311,19 @@ export async function handleOgPreview(request: Request, _env: PagesEnv, ctx: Wai
     .filter((u): u is URL => !!u);
 
   let preview: Preview | null = null;
+  let reason: Reason = candidates.length ? 'no_tags' : 'no_candidates';
   for (const candidate of candidates) {
     try {
       preview = await previewOne(candidate);
     } catch (err) {
       console.error('ogPreview:threw', { err: String(err), host: candidate.hostname });
+      reason = 'fetch_failed';
       preview = null;
     }
     if (preview) break;
   }
 
-  const body = preview ?? { ok: false };
+  const body = preview ?? { ok: false, reason };
   const response = new Response(JSON.stringify(body), {
     // Negative results are cached too, briefly — a walled platform stays walled.
     headers: {
