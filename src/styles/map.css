@@ -446,15 +446,11 @@ body.is-map-page .site-header__inner {
   height: 44px;
   padding: 0;
   border-radius: 50%;
-  border: 2.5px solid var(--wm-accent);
-  background: transparent;
+  border: 0;
+  background: radial-gradient(closest-side, rgba(237, 107, 0, 0.4), rgba(237, 107, 0, 0) 72%);
   color: #fff;
   cursor: pointer;
   appearance: none;
-  box-shadow:
-    0 0 0 1px rgba(0, 0, 0, 0.35),
-    inset 0 0 0 1px rgba(0, 0, 0, 0.35),
-    0 0 14px -2px rgba(237, 107, 0, 0.55);
   transition: transform 160ms var(--ease-spring, ease);
 }
 .wm-ep__num {
@@ -483,8 +479,7 @@ body.is-map-page .site-header__inner {
   outline: none;
 }
 .wm-ep.is-visited {
-  border-color: rgba(231, 224, 210, 0.65);
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), inset 0 0 0 1px rgba(0, 0, 0, 0.35);
+  background: radial-gradient(closest-side, rgba(231, 224, 210, 0.22), rgba(231, 224, 210, 0) 72%);
 }
 .wm-ep.is-visited .wm-ep__num {
   background: #3c3b3a;
@@ -492,9 +487,9 @@ body.is-map-page .site-header__inner {
 .wm-ep.is-live::after {
   content: '';
   position: absolute;
-  inset: -7px;
+  inset: 6px;
   border-radius: 50%;
-  border: 1.5px solid rgba(237, 107, 0, 0.55);
+  border: 1.5px solid rgba(237, 107, 0, 0.5);
   animation: wm-ring 2.6s var(--ease-out, ease) infinite;
 }
 .wm-ep--side {
@@ -1104,17 +1099,20 @@ body.is-map-page .site-header__inner {
   color: var(--wm-text-faint);
   background: rgba(var(--wm-veil), 0.5);
 }
-/* A struck-through glyph reads as "layer off" without a colour cue. */
-.wm-rail__btn[aria-pressed='false']::after {
-  content: '';
-  position: absolute;
-  left: 9px;
-  right: 9px;
-  top: 50%;
-  height: 1.5px;
-  background: currentColor;
-  border-radius: 1px;
-  transform: rotate(-45deg);
+/* On/off is carried by the artwork itself, so only one of the pair is ever drawn. */
+.wm-rail__on,
+.wm-rail__off {
+  display: grid;
+  place-items: center;
+  line-height: 0;
+}
+.wm-rail__btn[aria-pressed='true'] .wm-rail__off,
+.wm-rail__btn[aria-pressed='false'] .wm-rail__on {
+  display: none;
+}
+.wm-rail__btn svg {
+  width: 21px;
+  height: 21px;
 }
 /* The HUD is the 100-challenge surface — it goes with the layer. */
 .wm.is-ride-off .wm-hud,

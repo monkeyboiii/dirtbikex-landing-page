@@ -74,6 +74,21 @@ try {
   trackCount = 0;
 }
 
+/** The rail's pressed state is a real icon swap, not a struck-through hack. */
+const railIcon = (file: string) => {
+  try {
+    return readFileSync(join(process.cwd(), `public/map/markers/${file}.svg`), 'utf8');
+  } catch {
+    return '';
+  }
+};
+const RAIL = [
+  { layer: 'tracks', on: railIcon('track'), off: railIcon('track-off'), label: s('map.layer.tracks'), pressed: true },
+  { layer: 'trails', on: railIcon('trails'), off: railIcon('trails-off'), label: s('map.layer.trails'), pressed: false },
+  { layer: 'shops', on: railIcon('shop'), off: railIcon('shop-off'), label: s('map.layer.shops'), pressed: true },
+  { layer: 'ride', on: railIcon('flag'), off: railIcon('flag-off'), label: s('map.layer.ride'), pressed: true },
+];
+
 const joinUrl = localizedPath(lang, '/join');
 // Reuse the footer's existing label rather than minting a 21-locale key for it.
 const forumLabel =
@@ -118,35 +133,18 @@ const config = {
   </div>
 
   <nav class="wm-rail" data-rail aria-label={s('map.layer.title')}>
-    <button type="button" class="wm-rail__btn" data-layer="tracks" aria-pressed="true">
-      <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2"
-        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <circle cx="12" cy="12" r="8.4" /><circle cx="12" cy="12" r="3.3" />
-      </svg>
-      <span class="wm-rail__label">{s('map.layer.tracks')}</span>
-    </button>
-    <button type="button" class="wm-rail__btn" data-layer="shops" aria-pressed="true">
-      <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2"
-        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M3.5 11 12 4l8.5 7" /><path d="M5.6 12.4V20h12.8v-7.6" />
-      </svg>
-      <span class="wm-rail__label">{s('map.layer.shops')}</span>
-    </button>
-    <button type="button" class="wm-rail__btn" data-layer="trails" aria-pressed="false">
-      <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2"
-        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M3.5 18.5 9 11.5l4.6 4L20 5.5" />
-        <circle cx="20" cy="5.5" r="1.8" fill="currentColor" stroke="none" />
-      </svg>
-      <span class="wm-rail__label">{s('map.layer.trails')}</span>
-    </button>
-    <button type="button" class="wm-rail__btn" data-layer="ride" aria-pressed="true">
-      <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2"
-        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M5 21V4.5" /><path d="M5 4.5c4-2 8 2 12 0v8c-4 2-8-2-12 0" />
-      </svg>
-      <span class="wm-rail__label">{s('map.layer.ride')}</span>
-    </button>
+    {RAIL.map((item) => (
+      <button
+        type="button"
+        class="wm-rail__btn"
+        data-layer={item.layer}
+        aria-pressed={String(item.pressed)}
+      >
+        <span class="wm-rail__on" set:html={item.on} />
+        <span class="wm-rail__off" set:html={item.off} />
+        <span class="wm-rail__label">{item.label}</span>
+      </button>
+    ))}
   </nav>
 
   <section class="wm-hud" data-hud aria-label={s('map.hud.series')}>

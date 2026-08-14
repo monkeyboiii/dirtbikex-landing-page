@@ -186,9 +186,26 @@ function openingEntry(series: SeriesDoc): SeriesEntry | null {
 }
 
 /** Recolors a currentColor glyph and registers it with the map at 2× for crisp text-size icons. */
-async function addGlyph(map: MapLibreMap, id: string, url: string, color: string, px = 48) {
+async function addGlyph(
+  map: MapLibreMap,
+  id: string,
+  url: string,
+  color: string,
+  px = 48,
+  halo?: string,
+) {
   const source = await fetch(url).then((r) => (r.ok ? r.text() : Promise.reject(new Error(url))));
-  const painted = source
+  // A 2px line icon disappears over cased roads and label text. Repeating the artwork
+  // underneath at a wider stroke gives it a contour without a background plate.
+  const withHalo = halo
+    ? source.replace(
+        /(<svg[^>]*>)/,
+        `$1<g stroke="${halo}" stroke-width="5" stroke-opacity="0.5" stroke-linecap="round" stroke-linejoin="round">${
+          source.replace(/^[\s\S]*?<svg[^>]*>/, '').replace(/<\/svg>[\s\S]*$/, '')
+        }</g>`,
+      )
+    : source;
+  const painted = withHalo
     .replace(/currentColor/g, color)
     .replace(/\swidth="[^"]*"/, ` width="${px}"`)
     .replace(/\sheight="[^"]*"/, ` height="${px}"`);
@@ -438,9 +455,9 @@ class WorldMap {
         addGlyph(map, `cat-${name}-on`, `${this.cfg.markersBase}${name}.svg`, c.glyphOnClaimed),
       ]),
       addGlyph(map, 'claim-seal', `${this.cfg.markersBase}seal.svg`, ACCENT),
-      addGlyph(map, 'blip-track', `${this.cfg.markersBase}blip-track.svg`, c.track, BLIP_PX),
-      addGlyph(map, 'blip-trail', `${this.cfg.markersBase}blip-trail.svg`, c.trail, BLIP_PX),
-      addGlyph(map, 'blip-shop', `${this.cfg.markersBase}blip-shop.svg`, c.shop, BLIP_PX),
+      addGlyph(map, 'blip-track', `${this.cfg.markersBase}track.svg`, c.track, BLIP_PX, c.labelHalo),
+      addGlyph(map, 'blip-trail', `${this.cfg.markersBase}trails.svg`, c.trail, BLIP_PX, c.labelHalo),
+      addGlyph(map, 'blip-shop', `${this.cfg.markersBase}shop.svg`, c.shop, BLIP_PX, c.labelHalo),
     ]).catch((err) => console.warn('worldmap glyphs', err));
 
     map.addLayer({
@@ -515,7 +532,7 @@ class WorldMap {
         'icon-image': 'blip-track',
         // 48 layout px at 2x; 0.44-0.78 puts it between 21 and 37 CSS px, against the
         // 8.2 CSS px the old category glyph actually rendered at.
-        'icon-size': ['interpolate', ['linear'], ['zoom'], 8.4, 0.44, 10, 0.64, 14, 0.78] as never,
+        'icon-size': ['interpolate', ['linear'], ['zoom'], 8.4, 0.5, 10, 0.72, 14, 0.9] as never,
         'icon-allow-overlap': true,
         'icon-ignore-placement': true,
       },
@@ -593,7 +610,7 @@ class WorldMap {
       filter: shopFilter,
       layout: {
         'icon-image': 'blip-shop',
-        'icon-size': ['interpolate', ['linear'], ['zoom'], 8.4, 0.44, 10, 0.64, 14, 0.78] as never,
+        'icon-size': ['interpolate', ['linear'], ['zoom'], 8.4, 0.5, 10, 0.72, 14, 0.9] as never,
         'icon-allow-overlap': true,
         'icon-ignore-placement': true,
       },
