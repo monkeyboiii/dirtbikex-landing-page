@@ -111,6 +111,10 @@ const LAYER_IDS = Object.keys(LAYERS) as LayerId[];
 const LAYER_STORE = 'dbx-map-layers';
 /** Catalog kinds drawn from the shared `tracks` source, one per toggle. */
 const KIND_OF: Partial<Record<LayerId, string>> = { tracks: 'track', shops: 'shop', trails: 'trail' };
+/** Baked catalog rows carry no `kind` at all, so this coalesces rather than compares.
+    Written positively on purpose: negating each new kind in turn is what let shops,
+    and then trails, leak into the track layers. */
+const IS_TRACK = ['==', ['coalesce', ['get', 'kind'], 'track'], 'track'] as never;
 
 /** Trails start off: their data is fetched on first enable, not at boot. */
 const LAYER_DEFAULTS: Record<LayerId, boolean> = { tracks: true, shops: true, trails: false, ride: true };
@@ -330,6 +334,10 @@ class WorldMap {
       ever drawn, which is what bounds this as the catalog grows. */
   private trailGeometry = new Map<string, [number, number][][]>();
   private trailFetch: AbortController | null = null;
+  private trailFetchId: string | null = null;
+  /** Memoised as a promise, not a result: two concurrent callers would otherwise both
+      push a full copy of every trail into the shared source. */
+  private trailsLoad: Promise<boolean> | null = null;
   private current: SeriesEntry | null = null;
   private tracksBySlug = new Map<string, TrackProps>();
   private opening: SeriesEntry | null = null;
@@ -484,7 +492,7 @@ class WorldMap {
         // A ring in brand orange sat behind every selection regardless of kind, so a
         // blue shop read as an orange target. Soft bloom, coloured by kind, no ring.
         'circle-radius': ['case', ['==', ['get', 'precision'], 'centroid'], 32, 24] as never,
-        'circle-color': ['match', ['get', 'kind'], 'shop', c.shop, c.track] as never,
+        'circle-color': ['match', ['get', 'kind'], 'shop', c.shop, 'trail', c.trail, c.track] as never,
         'circle-blur': 0.7,
         'circle-opacity': 0.4,
       },
@@ -498,7 +506,7 @@ class WorldMap {
       type: 'circle',
       source: 'tracks',
       minzoom: 8,
-      filter: ['all', ['!=', ['get', 'tier'], 'breadth'], ['!=', ['get', 'kind'], 'shop']],
+      filter: ['all', ['!=', ['get', 'tier'], 'breadth'], IS_TRACK] as never,
       paint: {
         'circle-color': c.track,
         'circle-blur': 0.85,
@@ -511,7 +519,7 @@ class WorldMap {
       id: 'tracks-dot',
       type: 'circle',
       source: 'tracks',
-      filter: ['!=', ['get', 'kind'], 'shop'],
+      filter: IS_TRACK,
       paint: {
         'circle-radius': radiusExpr() as never,
         'circle-color': [
@@ -542,7 +550,7 @@ class WorldMap {
       type: 'symbol',
       source: 'tracks',
       minzoom: 8,
-      filter: ['all', ['!=', ['get', 'tier'], 'breadth'], ['!=', ['get', 'kind'], 'shop']],
+      filter: ['all', ['!=', ['get', 'tier'], 'breadth'], IS_TRACK] as never,
       layout: {
         'icon-image': 'blip-track',
         // 48 layout px at 2x; 0.44-0.78 puts it between 21 and 37 CSS px, against the
@@ -574,7 +582,7 @@ class WorldMap {
       type: 'symbol',
       source: 'tracks',
       minzoom: 9,
-      filter: ['all', ['!=', ['get', 'tier'], 'breadth'], ['!=', ['get', 'kind'], 'shop']],
+      filter: ['all', ['!=', ['get', 'tier'], 'breadth'], IS_TRACK] as never,
       layout: {
         'text-field': ['coalesce', ['get', 'name'], ''] as never,
         'text-font': styleFont(map),
@@ -792,26 +800,31 @@ class WorldMap {
     this.renderVisible();
     this.panel.showTrail(trail);
 
-    if (!this.trailGeometry.has(id) && trail.gpx_url) {
+    if (!this.trailGeometry.has(id) && trail.gpx_url && this.trailFetchId !== id) {
       this.trailFetch?.abort();
       const run = new AbortController();
       this.trailFetch = run;
+      this.trailFetchId = id;
       this.root.classList.add('is-tracing');
       try {
         const gpx = await fetchGpx(trail.gpx_url, run.signal);
-        const lines = parseGpx(gpx);
-        if (lines.length) this.trailGeometry.set(id, lines);
+        this.trailGeometry.set(id, parseGpx(gpx));
       } catch (err) {
-        if ((err as Error)?.name !== 'AbortError') console.warn('worldmap gpx', err);
+        if ((err as Error)?.name === 'AbortError') return;
+        console.warn('worldmap gpx', err);
+        // Remember the failure too, so a second tap does not re-download a file that
+        // is broken or gone. An empty entry means "known to have no trace".
+        this.trailGeometry.set(id, []);
       } finally {
         if (this.trailFetch === run) {
           this.trailFetch = null;
+          this.trailFetchId = null;
           this.root.classList.remove('is-tracing');
         }
       }
     }
     // The visitor may have moved on while the file was in flight.
-    if (this.selectedTrail === id) {
+    if (this.selectedTrail === id && this.selected === id) {
       this.drawTrail(id);
       const lines = this.trailGeometry.get(id);
       if (lines?.length) this.fitTrail(lines);
@@ -831,8 +844,12 @@ class WorldMap {
   }
 
   /** Fetched on first enable, not at boot — the layer is off for most visits. */
-  private async loadTrails(): Promise<boolean> {
-    if (this.trails) return this.trails.length > 0;
+  private loadTrails(): Promise<boolean> {
+    this.trailsLoad ??= this.fetchTrails();
+    return this.trailsLoad;
+  }
+
+  private async fetchTrails(): Promise<boolean> {
     try {
       const doc = (await fetchJson(this.cfg.trailsUrl).catch(() =>
         fetchJson('/map/trails.seed.json'),
@@ -986,13 +1003,17 @@ class WorldMap {
         [pt.x + HIT_PAD, pt.y + HIT_PAD],
       ] as [[number, number], [number, number]];
       const found = map.queryRenderedFeatures(box as never, { layers: hit() });
-      return (
-        found.find((f) => f.layer.id !== 'tracks-dot') ?? found[0]
-      );
+      // Explicit order: a blip beats the line it belongs to, and a small pin beats a
+      // large one drawn over it, so nothing becomes unselectable by being underneath.
+      for (const id of ['trails-blip', 'shops-blip', 'tracks-dot', 'trails-line']) {
+        const found_ = found.find((f) => f.layer.id === id);
+        if (found_) return found_;
+      }
+      return found[0];
     };
     /** Only layers that exist and are on — querying a missing layer throws. */
     const hit = () =>
-      ['tracks-dot', 'shops-blip', 'trails-blip'].filter((id) => {
+      ['trails-blip', 'shops-blip', 'tracks-dot', 'trails-line'].filter((id) => {
         const owner = LAYER_IDS.find((l) => (LAYERS[l] as readonly string[]).includes(id));
         return map.getLayer(id) && (!owner || this.visible[owner]);
       });
@@ -1010,7 +1031,10 @@ class WorldMap {
     map.on('click', (e) => {
       const feature = pick(e.point);
       const props = feature?.properties as TrackProps | undefined;
-      if (props?.kind === 'trail' && props.slug) {
+      if (feature?.layer.id === 'trails-line') {
+        const id = (feature.properties as { id?: string } | undefined)?.id;
+        if (id) void this.openTrail(id);
+      } else if (props?.kind === 'trail' && props.slug) {
         void this.openTrail(props.slug);
       } else if (props?.slug) {
         this.selectTrack(props.slug, { fly: true });
@@ -1053,7 +1077,7 @@ class WorldMap {
     // A hidden layer must not keep a sheet open about one of its features.
     if (!on && id === 'trails' && this.selectedTrail) this.clearSelection();
     // Episodes ride on catalog pins, so "is this an episode?" is a slug lookup.
-    if (!on && this.selected) {
+    if (!on && this.selected && !this.selectedTrail) {
       const isEpisode = [...this.placements.keys()].some((e) => e.track_slug === this.selected);
       if (id === 'tracks' ? !isEpisode || !this.visible.ride : isEpisode) this.clearSelection();
     }
@@ -1123,6 +1147,12 @@ class WorldMap {
   selectTrack(slug: string, opts: { fly?: boolean } = {}) {
     const track = this.tracksBySlug.get(slug);
     if (!track) return;
+    // Trails share the slug keyspace; they get their own card, never a track one.
+    if (track.kind === 'trail') {
+      void this.openTrail(slug);
+      return;
+    }
+    this.clearTrail();
     const entry = [...this.placements.keys()]
       .filter((e) => e.track_slug === slug)
       .sort(entryOrder)
@@ -1150,6 +1180,7 @@ class WorldMap {
 
   /** Panel-opening selection of a journey entry (marker tap). */
   selectEntry(entry: SeriesEntry, opts: { fly?: boolean } = {}) {
+    this.clearTrail();
     const track = entry.track_slug ? this.tracksBySlug.get(entry.track_slug) ?? null : null;
     this.selected = entry.track_slug ?? entry.label;
     this.renderVisible();
@@ -1215,14 +1246,22 @@ class WorldMap {
     this.map.easeTo({ center: at, zoom: cityZoom(), duration: reducedMotion() ? 0 : 1100 });
   }
 
+  /** Everything the open trail owns: the fetch, the drawn trace and the loading cue.
+      Selecting a track or an episode has to run this too, or the trace is orphaned and
+      a late-arriving download flies the camera away from what the visitor is reading. */
+  private clearTrail() {
+    if (!this.selectedTrail && !this.trailFetch) return;
+    this.selectedTrail = null;
+    this.trailFetchId = null;
+    this.trailFetch?.abort();
+    this.trailFetch = null;
+    this.root.classList.remove('is-tracing');
+    this.drawTrail(null);
+  }
+
   clearSelection() {
     this.selected = null;
-    if (this.selectedTrail) {
-      this.selectedTrail = null;
-      this.trailFetch?.abort();
-      this.root.classList.remove('is-tracing');
-      this.drawTrail(null);
-    }
+    this.clearTrail();
     this.current = null;
     this.setHalo(null);
     this.setDimmed(this.seriesMode);
@@ -1258,6 +1297,14 @@ class WorldMap {
     const params = new URLSearchParams(location.search);
     const slug = params.get('t');
     const ep = params.get('ep');
+    // A trail link is only resolvable once its catalog has loaded, which the rail
+    // otherwise defers until the layer is switched on.
+    if (slug && !this.tracksBySlug.has(slug) && this.visible.trails) {
+      void this.loadTrails().then(() => {
+        if (this.tracksBySlug.has(slug)) this.selectTrack(slug, { fly: true });
+      });
+      return;
+    }
     if (slug && this.tracksBySlug.has(slug)) {
       this.selectTrack(slug, { fly: true });
       return;

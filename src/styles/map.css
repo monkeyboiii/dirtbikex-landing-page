@@ -455,17 +455,6 @@ body.is-map-page .site-header__inner {
   border-radius: 50%;
   border: 0;
   background: radial-gradient(closest-side, rgba(237, 107, 0, 0.4), rgba(237, 107, 0, 0) 72%);
-}
-/* Anchored on a venue: the bloom takes that entity's colour so the icon underneath
-   is not washed orange. Solo markers keep the accent — there they ARE the subject. */
-.wm-ep[data-venue='track'] {
-  background: radial-gradient(closest-side, rgba(var(--wm-kind-track), 0.42), rgba(var(--wm-kind-track), 0) 72%);
-}
-.wm-ep[data-venue='trail'] {
-  background: radial-gradient(closest-side, rgba(var(--wm-kind-trail), 0.42), rgba(var(--wm-kind-trail), 0) 72%);
-}
-.wm-ep[data-venue='shop'] {
-  background: radial-gradient(closest-side, rgba(var(--wm-kind-shop), 0.42), rgba(var(--wm-kind-shop), 0) 72%);
   color: #fff;
   cursor: pointer;
   appearance: none;
@@ -517,6 +506,19 @@ body.is-map-page .site-header__inner {
 }
 .wm-ep.is-visited {
   background: radial-gradient(closest-side, rgba(231, 224, 210, 0.22), rgba(231, 224, 210, 0) 72%);
+}
+/* Anchored on a venue: the bloom takes that entity's colour so the icon underneath is
+   not washed orange. Doubled class so it outranks .wm-ep.is-visited — otherwise the
+   fix stops applying the moment an episode is marked visited. Solo markers keep the
+   accent, because with nothing underneath the challenge IS the subject. */
+.wm-ep.wm-ep[data-venue='track'] {
+  background: radial-gradient(closest-side, rgba(var(--wm-kind-track), 0.42), rgba(var(--wm-kind-track), 0) 72%);
+}
+.wm-ep.wm-ep[data-venue='trail'] {
+  background: radial-gradient(closest-side, rgba(var(--wm-kind-trail), 0.42), rgba(var(--wm-kind-trail), 0) 72%);
+}
+.wm-ep.wm-ep[data-venue='shop'] {
+  background: radial-gradient(closest-side, rgba(var(--wm-kind-shop), 0.42), rgba(var(--wm-kind-shop), 0) 72%);
 }
 .wm-ep.is-visited .wm-ep__num {
   background: #3c3b3a;

@@ -52,16 +52,29 @@ if (name === 'series') {
   count = doc.shops.length;
 } else {
   if (!Array.isArray(doc.trails)) bail('missing `trails`');
+  // The upload host follows the environment; a staging URL served to prod visitors
+  // would 404 every trace.
+  const cdn = env === 'prod' ? 'https://uploads-cdn.dirtbikex.com' : 'https://uploads-cdn.dirtbikechina.com';
+  const seen = new Set();
   for (const trail of doc.trails) {
     if (!trail.id || !trail.author_username || !Number.isInteger(trail.author_user_id)) {
       bail(`every trail needs an id and a forum author: ${JSON.stringify(trail.id ?? trail)}`);
     }
     // Metadata-only: the map needs a point to place the blip and a URL to fetch on tap.
-    if (!Array.isArray(trail.stats?.centre) || trail.stats.centre.length !== 2) {
-      bail(`${trail.id} has no stats.centre — re-run import-gpx-trail.mjs`);
+    const centre = trail.stats?.centre;
+    if (!Array.isArray(centre) || centre.length !== 2 || !centre.every(Number.isFinite)) {
+      bail(`${trail.id} has no numeric stats.centre — re-run import-gpx-trail.mjs`);
     }
-    if (!trail.gpx_url || !/^https:\/\/uploads-cdn\./.test(trail.gpx_url)) {
-      bail(`${trail.id} must carry an uploads-cdn gpx_url; got ${trail.gpx_url ?? 'nothing'}`);
+    // [lng, lat], and in range. Hand-editing the seed is the documented workflow and
+    // the series doc uses {lat, lng}, so a swapped pair is the likely mistake — and it
+    // throws inside MapLibre's bounds check, which would take the whole catalog down.
+    if (Math.abs(centre[0]) > 180 || Math.abs(centre[1]) > 90) {
+      bail(`${trail.id} centre must be [lng, lat] in range; got ${JSON.stringify(centre)}`);
+    }
+    if (seen.has(trail.id)) bail(`duplicate trail id ${trail.id}`);
+    seen.add(trail.id);
+    if (trail.gpx_url !== `${cdn}/original/1X/${trail.gpx_url?.split('/').pop() ?? ''}`) {
+      bail(`${trail.id} gpx_url must live on ${cdn} for --env ${env}; got ${trail.gpx_url ?? 'nothing'}`);
     }
   }
   count = doc.trails.length;
