@@ -285,6 +285,13 @@ async function previewOne(target: URL, trace: string[]): Promise<Preview | null>
       if (cover) image = cover[0].replace(/\\\//g, '/');
     }
     if (!title) title = html.match(/<title[^>]{0,200}>([^<]{1,300})<\/title>/i)?.[1]?.trim() ?? null;
+    // Outside China the worker only gets a shell: site boilerplate for a title and
+    // no cover. A card saying "record beautiful life on Douyin" is worse than none,
+    // so fall through and let the slide show the brand mark instead.
+    if (!image && (!title || /抖音\s*$|^在抖音记录美好生活/.test(title))) {
+      trace.push(`${hit.url.hostname}=shell`);
+      return null;
+    }
   }
 
   trace.push(`${hit.url.hostname}=${bytes.length}b${title ? '+t' : ''}${image ? '+i' : ''}`);
