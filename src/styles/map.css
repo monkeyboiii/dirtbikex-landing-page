@@ -962,7 +962,9 @@ body.is-map-page .site-header__inner {
 
 .wm .maplibregl-ctrl-bottom-right {
   bottom: calc(46px + env(safe-area-inset-bottom));
-  z-index: 10;
+  /* Above the HUD (12): the rail is a wide scroll box and would otherwise
+     swallow taps aimed at the controls beneath it. */
+  z-index: 13;
 }
 .wm .maplibregl-ctrl-attrib {
   background: rgba(var(--wm-veil), 0.78);
@@ -990,7 +992,8 @@ body.is-map-page .site-header__inner {
 
 @media (max-width: 767px) {
   .wm-hud {
-    width: calc(100vw - 24px);
+    /* Narrow enough that the module's right edge clears the map controls. */
+    width: min(260px, calc(100vw - 120px));
     bottom: calc(78px + env(safe-area-inset-bottom));
   }
   .wm-hud__counter {

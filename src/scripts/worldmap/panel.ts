@@ -121,6 +121,15 @@ export function createPanel(deps: PanelDeps) {
       slide.rel = 'noopener';
       slide.dataset.platform = platform;
       slide.dataset.preview = previewHref;
+      if (
+        (SHORT_VIDEO as readonly string[]).includes(platform) &&
+        SHORT_VIDEO.every((pf) => !!entry.links?.[pf])
+      ) {
+        slide.addEventListener('click', (ev) => {
+          ev.preventDefault();
+          openChooser(entry);
+        });
+      }
       slide.setAttribute(
         'aria-label',
         `${strings['map.panel.watch'] ?? 'Watch'} · ${PLATFORM_LABELS[platform] ?? platform}`,

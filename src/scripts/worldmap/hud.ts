@@ -3,6 +3,8 @@ import type { EntryPlacement, SeriesDoc, SeriesEntry, Strings } from './types';
 /** Stops drawn ahead of the journey. Deliberately short — the rail is a position
     indicator, not the whole route; the remainder is summed into a muted "+N". */
 const RUNWAY = 6;
+/** Phones get a shorter runway — the module has to stay clear of the map controls. */
+const RUNWAY_NARROW = 2;
 /** Longest label we'll put under the active stop before trimming. */
 const LABEL_MAX = 18;
 /** Idle time after a scroll before the centred stop is actually opened. */
@@ -115,7 +117,8 @@ export function createHud(deps: HudDeps, series: SeriesDoc, placements: Map<Seri
 
     // Upcoming stops are inert by design — there is no committed target list to reveal.
     const remaining = Math.max(0, series.target - done);
-    const drawn = Math.min(RUNWAY, remaining);
+    const narrow = window.matchMedia('(max-width: 767px)').matches;
+    const drawn = Math.min(narrow ? RUNWAY_NARROW : RUNWAY, remaining);
     for (let i = 0; i < drawn; i++) {
       const ball = document.createElement('span');
       ball.className = 'wm-ball wm-ball--empty';
