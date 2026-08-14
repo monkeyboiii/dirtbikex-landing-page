@@ -49,7 +49,11 @@ function palette(dark: boolean) {
         pinStroke: '#0d0c09',
         label: '#d8d4cd',
         labelHalo: '#0d0c09',
-        trail: '#4fb3a5',
+        // One saturated hue per entity kind, NFSU2-style. Orange stays reserved for
+        // the journey and for claimed pins, so a claimed track still reads as special.
+        track: '#8b5cf6',
+        trail: '#22c55e',
+        shop: '#3b82f6',
       }
     : {
         breadth: '#aea291',
@@ -59,17 +63,24 @@ function palette(dark: boolean) {
         pinStroke: '#faf8f4',
         label: '#3c3b3a',
         labelHalo: '#faf8f4',
-        trail: '#1a7d71',
+        track: '#6d28d9',
+        trail: '#15803d',
+        shop: '#1d4ed8',
       };
 }
 
 const DIM = 0.22;
 /** Pins of one kind drawn at once. A dense region has to stay readable, and this
     also bounds the work MapLibre redoes on every pan. Scales with the viewport. */
-const RENDER_CELL_PX = 90;
+const RENDER_CELL_PX = 116;
+/** Desktop and phone get their own ceilings. One shared area formula floored the phone
+    at 50 pins in a quarter of the area — roughly 4x desktop's density — which is the
+    surface least able to carry the bigger blips. */
 function renderBudget(map: MapLibreMap): number {
   const c = map.getCanvas();
-  return Math.max(50, Math.min(150, Math.round((c.clientWidth * c.clientHeight) / 9000)));
+  const cells = (c.clientWidth * c.clientHeight) / (RENDER_CELL_PX * RENDER_CELL_PX);
+  const [floor, ceil] = isNarrow() ? [14, 30] : [40, 120];
+  return Math.max(floor, Math.min(ceil, Math.round(cells * 0.55)));
 }
 
 const EMPTY: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: [] };
@@ -77,7 +88,7 @@ const EMPTY: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: 
 /** Toggleable map layers. `styleLayers` are MapLibre ids rebuilt by addLayers(); the
     rest of each layer's surface (DOM markers, the HUD) is toggled alongside them. */
 const LAYERS = {
-  tracks: ['tracks-halo', 'tracks-dot', 'tracks-glyph', 'tracks-seal', 'tracks-label'],
+  tracks: ['tracks-halo', 'tracks-glow', 'tracks-dot', 'tracks-glyph', 'tracks-seal', 'tracks-label'],
   trails: ['trails-line', 'trails-cap'],
   ride: ['journey-line'],
 } as const;
@@ -159,17 +170,21 @@ function openingEntry(series: SeriesDoc): SeriesEntry | null {
 }
 
 /** Recolors a currentColor glyph and registers it with the map at 2× for crisp text-size icons. */
-async function addGlyph(map: MapLibreMap, id: string, url: string, color: string) {
+async function addGlyph(map: MapLibreMap, id: string, url: string, color: string, px = 48) {
   const source = await fetch(url).then((r) => (r.ok ? r.text() : Promise.reject(new Error(url))));
   const painted = source
     .replace(/currentColor/g, color)
-    .replace(/\swidth="[^"]*"/, ' width="48"')
-    .replace(/\sheight="[^"]*"/, ' height="48"');
-  const img = new Image(48, 48);
+    .replace(/\swidth="[^"]*"/, ` width="${px}"`)
+    .replace(/\sheight="[^"]*"/, ` height="${px}"`);
+  const img = new Image(px, px);
   img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(painted)}`;
   await img.decode();
   if (!map.hasImage(id)) map.addImage(id, img, { pixelRatio: 2 });
 }
+
+/** Blips are rasterised at 2x their largest drawn size so they stay crisp on a
+    retina phone; 48px upscaled to 35 CSS px is what made the old glyphs mushy. */
+const BLIP_PX = 96;
 
 /** Reuses a font stack the loaded style already ships glyphs for. */
 function styleFont(map: MapLibreMap): string[] {
@@ -203,13 +218,21 @@ function radiusExpr(): unknown {
 }
 
 function opacityExpr(factor: number): unknown {
+  // A verified row is a dot until its blip fades in, then hands over completely —
+  // drawing both is what made the old glyph look like grit on top of a dot. Breadth
+  // rows stay dots at every zoom, which is what keeps a dense country readable.
+  const tier = (verified: number, breadth: number) => [
+    'case',
+    ['==', ['get', 'tier'], 'verified'],
+    verified * factor,
+    breadth * factor,
+  ];
   return [
-    'interpolate',
-    ['linear'],
-    ['zoom'],
-    1, ['case', ['==', ['get', 'tier'], 'verified'], 0.78 * factor, 0.48 * factor],
-    5, ['case', ['==', ['get', 'tier'], 'verified'], 0.9 * factor, 0.62 * factor],
-    9, ['case', ['==', ['get', 'tier'], 'verified'], 1 * factor, 0.75 * factor],
+    'interpolate', ['linear'], ['zoom'],
+    1, tier(0.78, 0.48),
+    5, tier(0.9, 0.62),
+    8.4, tier(0.9, 0.7),
+    9.4, tier(0, 0.75),
   ];
 }
 
@@ -394,6 +417,9 @@ class WorldMap {
         addGlyph(map, `cat-${name}-on`, `${this.cfg.markersBase}${name}.svg`, c.glyphOnClaimed),
       ]),
       addGlyph(map, 'claim-seal', `${this.cfg.markersBase}seal.svg`, ACCENT),
+      addGlyph(map, 'blip-track', `${this.cfg.markersBase}blip-track.svg`, c.track, BLIP_PX),
+      addGlyph(map, 'blip-trail', `${this.cfg.markersBase}blip-trail.svg`, c.trail, BLIP_PX),
+      addGlyph(map, 'blip-shop', `${this.cfg.markersBase}blip-shop.svg`, c.shop, BLIP_PX),
     ]).catch((err) => console.warn('worldmap glyphs', err));
 
     map.addLayer({
@@ -408,6 +434,23 @@ class WorldMap {
         'circle-stroke-color': ACCENT,
         'circle-stroke-width': 1,
         'circle-stroke-opacity': 0.5,
+      },
+    });
+
+    // Soft coloured bloom under each blip. A circle layer with circle-blur is the only
+    // glow MapLibre draws cheaply — icon-halo-* is SDF-only, and an SDF icon cannot
+    // carry a white glyph on a coloured disc at the same time.
+    map.addLayer({
+      id: 'tracks-glow',
+      type: 'circle',
+      source: 'tracks',
+      minzoom: 8,
+      filter: ['!=', ['get', 'tier'], 'breadth'],
+      paint: {
+        'circle-color': c.track,
+        'circle-blur': 0.85,
+        'circle-radius': ['interpolate', ['linear'], ['zoom'], 8.4, 12, 10, 21, 14, 27] as never,
+        'circle-opacity': ['interpolate', ['linear'], ['zoom'], 8.4, 0, 9.6, 0.32] as never,
       },
     });
 
@@ -444,15 +487,17 @@ class WorldMap {
       id: 'tracks-glyph',
       type: 'symbol',
       source: 'tracks',
-      minzoom: 7.5,
+      minzoom: 8,
       filter: ['!=', ['get', 'tier'], 'breadth'],
       layout: {
-        'icon-image': ['concat', 'cat-', glyphFor, ['case', ['==', ['get', 'claimed'], true], '-on', '-off']] as never,
-        'icon-size': 0.34,
+        'icon-image': 'blip-track',
+        // 48 layout px at 2x; 0.44-0.78 puts it between 21 and 37 CSS px, against the
+        // 8.2 CSS px the old category glyph actually rendered at.
+        'icon-size': ['interpolate', ['linear'], ['zoom'], 8.4, 0.44, 10, 0.64, 14, 0.78] as never,
         'icon-allow-overlap': true,
         'icon-ignore-placement': true,
       },
-      paint: { 'icon-opacity': ['interpolate', ['linear'], ['zoom'], 7.5, 0, 8.5, 1] as never },
+      paint: { 'icon-opacity': ['interpolate', ['linear'], ['zoom'], 8.4, 0, 9.4, 1] as never },
     });
 
     map.addLayer({
@@ -679,6 +724,17 @@ class WorldMap {
 
   private wireInteractions() {
     const map = this.map;
+    /** A pin is a few pixels wide; a finger is not. Query a padded box, and let a pin
+        beat a passing trace so a nearby line can't steal a deliberate tap on a place. */
+    const HIT_PAD = 14;
+    const pick = (pt: { x: number; y: number }) => {
+      const box = [
+        [pt.x - HIT_PAD, pt.y - HIT_PAD],
+        [pt.x + HIT_PAD, pt.y + HIT_PAD],
+      ] as [[number, number], [number, number]];
+      const found = map.queryRenderedFeatures(box as never, { layers: hit() });
+      return found.find((f) => f.layer.id === 'tracks-dot') ?? found[0];
+    };
     /** Only layers that exist and are on — querying a missing layer throws. */
     const hit = () =>
       ['tracks-dot', 'trails-cap'].filter((id) => {
@@ -687,15 +743,14 @@ class WorldMap {
       });
 
     map.on('mousemove', (e) => {
-      const features = map.queryRenderedFeatures(e.point, { layers: hit() });
-      map.getCanvas().style.cursor = features.length ? 'pointer' : '';
+      map.getCanvas().style.cursor = pick(e.point) ? 'pointer' : '';
     });
 
     // Settled move only — mid-gesture re-renders would fight the pan.
     map.on('moveend', () => this.renderVisible());
 
     map.on('click', (e) => {
-      const feature = map.queryRenderedFeatures(e.point, { layers: hit() })[0];
+      const feature = pick(e.point);
       const trail = feature?.layer.id === 'trails-cap'
         ? this.trails?.find((t) => t.id === feature.properties?.id)
         : null;
@@ -769,6 +824,7 @@ class WorldMap {
     const factor = on ? DIM : 1;
     this.map.setPaintProperty('tracks-dot', 'circle-opacity', opacityExpr(factor) as never);
     this.map.setPaintProperty('tracks-glyph', 'icon-opacity', on ? DIM : 1);
+    this.map.setPaintProperty('tracks-glow', 'circle-opacity', on ? 0.06 : 0.32);
     this.map.setPaintProperty('tracks-label', 'text-opacity', on ? 0 : 1);
     this.root.classList.toggle('is-dimmed', on);
   }
