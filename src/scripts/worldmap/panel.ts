@@ -1,3 +1,4 @@
+import { wgsToGcj } from './geo';
 import type { SeriesEntry, Strings, TrackProps, Trail } from './types';
 
 /** Brand marks in their own colours. `uid` keeps gradient ids unique per render. */
@@ -25,6 +26,12 @@ const PLATFORM_ICONS: Record<string, (uid: string) => string> = {
     `<circle cx="12" cy="12" r="4.2" fill="none" stroke="url(#ig-${uid})" stroke-width="2"/>` +
     `<circle cx="17.3" cy="6.7" r="1.25" fill="url(#ig-${uid})"/>`,
 };
+
+const CHEVRON = (dir: 'prev' | 'next') =>
+  `<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2"` +
+  ` stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${
+    dir === 'prev' ? 'M14.5 5.5 8 12l6.5 6.5' : 'M9.5 5.5 16 12l-6.5 6.5'
+  }"/></svg>`;
 
 /** Trail marks live in the same row as the platform marks, drawn in the panel's ink. */
 const TRAIL_ICONS: Record<string, string> = {
@@ -163,6 +170,35 @@ export function createPanel(deps: PanelDeps) {
     host.appendChild(wrap);
     if (slides.length < 2) dots.remove();
 
+    // Swiping is not discoverable on a desktop pointer, and the dots are a jump target
+    // rather than a step. Chevrons step one platform at a time.
+    if (slides.length > 1) {
+      const step = (delta: number) => {
+        const width = track.clientWidth || 1;
+        track.scrollBy({ left: delta * width, behavior: 'smooth' });
+      };
+      for (const dir of ['prev', 'next'] as const) {
+        const nav = el('button', `wm-carousel__nav wm-carousel__nav--${dir}`) as HTMLButtonElement;
+        nav.type = 'button';
+        const label = strings[dir === 'prev' ? 'map.panel.prev' : 'map.panel.next'] ?? dir;
+        nav.title = label;
+        nav.setAttribute('aria-label', label);
+        nav.innerHTML = CHEVRON(dir);
+        nav.addEventListener('click', () => step(dir === 'prev' ? -1 : 1));
+        wrap.appendChild(nav);
+      }
+      const syncNav = () => {
+        const atStart = track.scrollLeft < 8;
+        const atEnd = track.scrollLeft + track.clientWidth >= track.scrollWidth - 8;
+        wrap.querySelector('.wm-carousel__nav--prev')?.toggleAttribute('disabled', atStart);
+        wrap.querySelector('.wm-carousel__nav--next')?.toggleAttribute('disabled', atEnd);
+      };
+      track.addEventListener('scroll', syncNav, { passive: true });
+      // The first sync would otherwise run before layout and latch both chevrons off;
+      // the lazily-loaded OG images change the scroll width again afterwards.
+      new ResizeObserver(syncNav).observe(track);
+    }
+
     const syncDots = () => {
       const mid = track.scrollLeft + track.clientWidth / 2;
       let active = 0;
@@ -262,6 +298,77 @@ export function createPanel(deps: PanelDeps) {
   }
 
   /**
+   * Hands the place off to whichever map app the visitor actually has. Confirmed
+   * through an overlay rather than jumping straight out, because a surprise app
+   * switch from a map is disorienting.
+   *
+   * Mainland rows are converted WGS-84 -> GCJ-02 first: Apple, Google and Amap all
+   * take GCJ display coordinates inside China, so passing our stored coordinates
+   * would land the rider about 500 m away.
+   */
+  function openDirections(track: TrackProps) {
+    const host = root.closest('.wm') ?? document.body;
+    host.querySelector('.wm-chooser')?.remove();
+
+    const cn = track.country_code === 'CN';
+    const [lat, lng] = cn ? wgsToGcj(track.lat!, track.lng!) : [track.lat!, track.lng!];
+    const at = `${lat.toFixed(6)},${lng.toFixed(6)}`;
+    const name = encodeURIComponent(track.name_local || track.name);
+    const apple = /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent);
+
+    const apps = [
+      cn ? { id: 'amap', name: '高德地图', href: `https://uri.amap.com/navigation?to=${lng.toFixed(6)},${lat.toFixed(6)},${name}&mode=car&src=dirtbikex` } : null,
+      { id: 'apple', name: 'Apple Maps', href: `https://maps.apple.com/?daddr=${at}&dirflg=d` },
+      { id: 'google', name: 'Google Maps', href: `https://www.google.com/maps/dir/?api=1&destination=${at}` },
+      // Android hands geo: to whatever the visitor installed; it is inert on desktop.
+      !apple && navigator.maxTouchPoints > 0
+        ? { id: 'system', name: strings['map.panel.systemMaps'] ?? 'Default map app', href: `geo:${at}?q=${at}(${name})` }
+        : null,
+    ].filter(Boolean) as { id: string; name: string; href: string }[];
+
+    const preferred = cn ? 'amap' : apple ? 'apple' : 'google';
+    apps.sort((a, b) => (a.id === preferred ? -1 : b.id === preferred ? 1 : 0));
+
+    const wrap = el('div', 'wm-chooser');
+    wrap.setAttribute('role', 'dialog');
+    wrap.setAttribute('aria-modal', 'true');
+    const backdrop = el('div', 'wm-chooser__backdrop');
+    const card = el('div', 'wm-chooser__card');
+    card.appendChild(el('p', 'wm-chooser__title', strings['map.panel.openIn'] ?? 'Open in'));
+
+    const dismiss = () => {
+      wrap.remove();
+      document.removeEventListener('keydown', onKey);
+    };
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        e.stopPropagation();
+        dismiss();
+      }
+    }
+
+    for (const app of apps) {
+      const opt = el('a', `wm-chooser__opt${app.id === preferred ? ' is-recommended' : ''}`) as HTMLAnchorElement;
+      opt.href = app.href;
+      if (/^https?:/.test(app.href)) {
+        opt.target = '_blank';
+        opt.rel = 'noopener';
+      }
+      opt.appendChild(el('span', 'wm-chooser__name', app.name));
+      if (app.id === preferred) {
+        opt.appendChild(el('span', 'wm-chooser__chip', strings['map.panel.recommended'] ?? 'Recommended'));
+      }
+      opt.addEventListener('click', dismiss);
+      card.appendChild(opt);
+    }
+
+    backdrop.addEventListener('click', dismiss);
+    document.addEventListener('keydown', onKey);
+    wrap.append(backdrop, card);
+    host.appendChild(wrap);
+  }
+
+  /**
    * TikTok and Douyin host the same clip, so the short-video button asks which one
    * rather than guessing; the locale's platform is recommended and listed first.
    */
@@ -334,7 +441,23 @@ export function createPanel(deps: PanelDeps) {
   }
 
   function trackInfo(host: HTMLElement, track: TrackProps) {
-    host.appendChild(el('h3', 'wm-panel__section', strings['map.panel.trackInfo'] ?? 'Track info'));
+    const head = el('div', 'wm-panel__sectionrow');
+    head.appendChild(el('h3', 'wm-panel__section', strings['map.panel.trackInfo'] ?? 'Track info'));
+    if (Number.isFinite(track.lng) && Number.isFinite(track.lat)) {
+      const go = el('button', 'wm-panel__go') as HTMLButtonElement;
+      go.type = 'button';
+      const label = strings['map.panel.directions'] ?? 'Directions';
+      go.title = label;
+      go.setAttribute('aria-label', label);
+      go.innerHTML =
+        '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"' +
+        ' stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+        '<path d="M12 21s7-6.4 7-11.4A7 7 0 0 0 5 9.6C5 14.6 12 21 12 21Z"/>' +
+        '<circle cx="12" cy="9.6" r="2.6"/></svg>';
+      go.addEventListener('click', () => openDirections(track));
+      head.appendChild(go);
+    }
+    host.appendChild(head);
 
     const meta = el('p', 'wm-panel__meta');
     const bits = [track.locality, track.country_code].filter(Boolean) as string[];

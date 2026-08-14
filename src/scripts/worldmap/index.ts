@@ -174,6 +174,7 @@ function entryOrder(a: SeriesEntry, b: SeriesEntry) {
     not where the journey has got to. Falls back to visited, then to any stop at all. */
 function openingEntry(series: SeriesDoc): SeriesEntry | null {
   const ranked = [...series.entries].sort(entryOrder).reverse();
+  // `upcoming` is announced, not reached — it shows on the rail but never takes the camera.
   const whole = (e: SeriesEntry) => e.kind === 'episode' && e.sub === 0;
   return (
     ranked.find((e) => whole(e) && e.status === 'live') ??
@@ -318,6 +319,11 @@ class WorldMap {
       const props = feature.properties as TrackProps | null;
       if (!props?.slug) continue;
       if (this.cfg.claimed.includes(props.slug)) props.claimed = true;
+      if (feature.geometry.type === 'Point') {
+        const [lng, lat] = feature.geometry.coordinates as [number, number];
+        props.lng = lng;
+        props.lat = lat;
+      }
       this.tracksBySlug.set(props.slug, props);
     }
     this.resolvePlacements();
@@ -460,7 +466,7 @@ class WorldMap {
       type: 'circle',
       source: 'tracks',
       minzoom: 8,
-      filter: ['!=', ['get', 'tier'], 'breadth'],
+      filter: ['all', ['!=', ['get', 'tier'], 'breadth'], ['!=', ['get', 'kind'], 'shop']],
       paint: {
         'circle-color': c.track,
         'circle-blur': 0.85,
@@ -504,7 +510,7 @@ class WorldMap {
       type: 'symbol',
       source: 'tracks',
       minzoom: 8,
-      filter: ['!=', ['get', 'tier'], 'breadth'],
+      filter: ['all', ['!=', ['get', 'tier'], 'breadth'], ['!=', ['get', 'kind'], 'shop']],
       layout: {
         'icon-image': 'blip-track',
         // 48 layout px at 2x; 0.44-0.78 puts it between 21 and 37 CSS px, against the
@@ -876,7 +882,9 @@ class WorldMap {
     }
     if (id === 'ride' && !on && this.seriesMode) this.setSeriesMode(false);
     this.applyLayers();
-    if (KIND_OF[id] && on) this.renderVisible();
+    // Both directions: hiding a kind has to leave the source too, or it lingers until
+    // the next settled move.
+    if (KIND_OF[id]) this.renderVisible();
     const enabled = LAYER_IDS.filter((l) => this.visible[l]);
     try {
       localStorage.setItem(LAYER_STORE, enabled.join(','));

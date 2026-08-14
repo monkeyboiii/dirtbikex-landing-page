@@ -14,6 +14,9 @@ export interface TrackProps {
   website: string | null;
   precision: 'exact' | 'centroid';
   claimed?: boolean;
+  /** Stamped from the feature geometry at boot so the sheet can hand off to a map app. */
+  lng?: number;
+  lat?: number;
 }
 
 /** One activity on the journey — episode or side entry. CONCRETE_MAP_PLAN.md §6.2. */
@@ -29,7 +32,9 @@ export interface SeriesEntry {
   venue?: Record<string, string> | null;
   title?: Record<string, string> | null;
   tagline?: Record<string, string> | null;
-  status: 'visited' | 'live';
+  /** `upcoming` is announced but unreached: it draws on the rail and can be scrubbed
+   *  to, but it never wins the opening camera. */
+  status: 'visited' | 'live' | 'upcoming';
   /** Operator-set dot colour on the journey rail: "success" | "partial" (green
    *  shades) — anything else, or absent, uses the brand accent. */
   tone?: string | null;

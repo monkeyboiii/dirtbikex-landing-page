@@ -38,7 +38,9 @@ if (name === 'series') {
     if (typeof entry.main !== 'number' || typeof entry.sub !== 'number' || !entry.label) {
       bail(`every entry needs numeric main/sub and a label: ${JSON.stringify(entry)}`);
     }
-    if (!['visited', 'live'].includes(entry.status)) bail(`unknown status "${entry.status}" on ${entry.label}`);
+    if (!['visited', 'live', 'upcoming'].includes(entry.status)) {
+      bail(`unknown status "${entry.status}" on ${entry.label}`);
+    }
   }
   count = doc.entries.length;
 } else if (name === 'shops') {

@@ -105,6 +105,7 @@ export function createHud(deps: HudDeps, series: SeriesDoc, placements: Map<Seri
         'is-done',
         entry.kind === 'side' ? 'wm-ball--side' : '',
         entry.status === 'live' ? 'is-live' : '',
+        entry.status === 'upcoming' ? 'is-upcoming' : '',
       ]
         .filter(Boolean)
         .join(' ');

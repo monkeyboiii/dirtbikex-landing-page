@@ -15,6 +15,8 @@
   --wm-accent-soft: rgba(237, 107, 0, 0.12);
   --wm-tone-success: #1f7a39;
   --wm-tone-partial: #5f8f4a;
+  --wm-tone-upcoming: #b08900;
+  --wm-tone-upcoming-rgb: 176, 137, 0;
   --wm-chip-verified: #1f7a39;
   --wm-chip-claimed: #a34d00;
   --wm-ball-glow: 0 0 10px rgba(var(--wm-veil), 0.8);
@@ -46,6 +48,8 @@
   --wm-raise-line: rgba(255, 255, 255, 0.34);
   --wm-tone-success: #2fa84f;
   --wm-tone-partial: #8fbf7a;
+  --wm-tone-upcoming: #d8bc57;
+  --wm-tone-upcoming-rgb: 216, 188, 87;
   --wm-chip-verified: #7fd08f;
   --wm-chip-claimed: #ffb469;
 }
@@ -223,20 +227,28 @@ body.is-map-page .site-header__inner {
 .wm-hud::before {
   content: '';
   position: absolute;
-  inset: -16px -22px -14px;
+  inset: -6px -10px -6px;
   z-index: -1;
-  border-radius: 30px;
+  border-radius: 24px;
   pointer-events: none;
   background: radial-gradient(
-    118% 100% at 50% 54%,
-    rgba(var(--wm-veil), 0.74) 0%,
-    rgba(var(--wm-veil), 0.52) 44%,
-    rgba(var(--wm-veil), 0) 78%
+    96% 96% at 50% 52%,
+    rgba(var(--wm-veil), 0.66) 0%,
+    rgba(var(--wm-veil), 0.34) 46%,
+    rgba(var(--wm-veil), 0) 76%
   );
-  backdrop-filter: blur(7px) saturate(125%);
-  -webkit-backdrop-filter: blur(7px) saturate(125%);
-  -webkit-mask-image: radial-gradient(112% 100% at 50% 54%, #000 0%, #000 50%, transparent 80%);
-  mask-image: radial-gradient(112% 100% at 50% 54%, #000 0%, #000 50%, transparent 80%);
+  backdrop-filter: blur(6px) saturate(120%);
+  -webkit-backdrop-filter: blur(6px) saturate(120%);
+  /* Multi-stop so the pane thins out steadily on the approach to every edge rather
+     than holding full strength and then stopping. */
+  -webkit-mask-image: radial-gradient(
+    94% 96% at 50% 52%,
+    #000 0%, rgba(0, 0, 0, 0.86) 30%, rgba(0, 0, 0, 0.5) 56%, rgba(0, 0, 0, 0.18) 72%, transparent 86%
+  );
+  mask-image: radial-gradient(
+    94% 96% at 50% 52%,
+    #000 0%, rgba(0, 0, 0, 0.86) 30%, rgba(0, 0, 0, 0.5) 56%, rgba(0, 0, 0, 0.18) 72%, transparent 86%
+  );
 }
 .wm-hud__counter {
   appearance: none;
@@ -386,6 +398,16 @@ body.is-map-page .site-header__inner {
   transform: rotate(45deg);
 }
 
+/* Announced but unreached: present on the rail, visibly not yet ridden. */
+.wm-ball.is-upcoming {
+  background: var(--wm-tone-upcoming);
+  box-shadow: 0 0 0 3px rgba(var(--wm-tone-upcoming-rgb), 0.2), var(--wm-ball-glow);
+  opacity: 0.85;
+}
+.wm-ball.is-upcoming.is-active {
+  opacity: 1;
+  box-shadow: 0 0 0 4px rgba(var(--wm-tone-upcoming-rgb), 0.3), var(--wm-ball-glow);
+}
 .wm-ball--empty {
   cursor: default;
   opacity: 0.55;
@@ -608,6 +630,9 @@ body.is-map-page .site-header__inner {
 /* Swipeable platform previews. Each slide fetches its own Open Graph card only
    once it is scrolled into view (worker/_lib/ogPreview.ts). */
 .wm-carousel {
+  /* The step chevrons are absolutely positioned against this box; without it they
+     resolve against .wm-panel and land mid-sheet behind the body content. */
+  position: relative;
   margin-top: 4px;
   display: grid;
   gap: 7px;
@@ -1156,4 +1181,61 @@ body.is-map-page .site-header__inner {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* ---------- section header actions ---------- */
+
+.wm-panel__sectionrow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.wm-panel__go {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--wm-line);
+  border-radius: 50%;
+  background: rgba(var(--wm-veil), 0.32);
+  color: var(--wm-text-dim);
+  cursor: pointer;
+  transition: color 160ms ease, border-color 160ms ease;
+}
+.wm-panel__go:hover,
+.wm-panel__go:focus-visible {
+  color: var(--wm-text);
+  border-color: var(--wm-line-strong);
+}
+
+/* Chevrons step the platform carousel; swiping is invisible to a desktop pointer. */
+.wm-carousel__nav {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  transform: translateY(-50%);
+  border: 1px solid var(--wm-line);
+  border-radius: 50%;
+  background: rgba(var(--wm-veil), 0.72);
+  backdrop-filter: var(--wm-blur);
+  -webkit-backdrop-filter: var(--wm-blur);
+  color: var(--wm-text);
+  cursor: pointer;
+  opacity: 0.9;
+  transition: opacity 160ms ease, border-color 160ms ease;
+}
+.wm-carousel__nav--prev { left: 8px; }
+.wm-carousel__nav--next { right: 8px; }
+.wm-carousel__nav:hover { opacity: 1; border-color: var(--wm-line-strong); }
+.wm-carousel__nav[disabled] {
+  opacity: 0;
+  pointer-events: none;
 }
