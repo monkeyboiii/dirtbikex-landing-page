@@ -5,10 +5,11 @@
 //     --title-en "West Lake loop" --title-zh "西湖环线" \
 //     --author-id 1 --author-username calvin [--post <topic url>] [--tolerance 12]
 //
-// The line is simplified and embedded in the seed file: the map draws it without
-// fetching anything third-party, which is the site-wide no-external-assets rule.
-// The GPX URL is kept only so the sheet can hand the file to gpx.studio, so it must
-// be a URL that serves ACAO * (the raw OCI object, not the forum short-url).
+// The doc is METADATA ONLY — a point, a bbox and the ride's numbers. Geometry is
+// fetched from `gpx_url` when a visitor taps the trail, so the payload stays flat as
+// the catalog grows. That URL must be the forum's own uploads CDN
+// (uploads-cdn.<apex>), which serves ACAO * and is already inside the site's
+// allowlist; never the /uploads/short-url/ form, which 302s to the raw bucket host.
 // Publish with `push-map-data.mjs --doc trails`. See MAP_LAYERS_PLAN.md §3b.
 
 import { readFileSync, writeFileSync } from 'node:fs';
@@ -27,7 +28,7 @@ const gpx = arg('gpx');
 const authorId = Number(arg('author-id'));
 const authorUsername = arg('author-username');
 if (!id || !gpx || !Number.isInteger(authorId) || !authorUsername) {
-  console.error('usage: import-gpx-trail.mjs --gpx <url|path> --id <slug> --author-id <n> --author-username <name> [--title-en …] [--title-zh …] [--post <url>] [--tolerance <m>]');
+  console.error('usage: import-gpx-trail.mjs --gpx <url|path> --id <slug> --author-id <n> --author-username <name> [--title-en …] [--title-zh …]  [--post <url>] [--forum <base>]');
   process.exit(1);
 }
 
@@ -93,44 +94,6 @@ const metres = (a, b) => {
   return Math.hypot(x, y) * R;
 };
 
-function simplify(pts, tolerance) {
-  if (pts.length < 3) return pts;
-  const keep = new Uint8Array(pts.length);
-  keep[0] = keep[pts.length - 1] = 1;
-  const stack = [[0, pts.length - 1]];
-  while (stack.length) {
-    const [first, last] = stack.pop();
-    let index = -1;
-    let far = tolerance;
-    for (let i = first + 1; i < last; i++) {
-      const d = perpendicular(pts[i], pts[first], pts[last]);
-      if (d > far) {
-        far = d;
-        index = i;
-      }
-    }
-    if (index === -1) continue;
-    keep[index] = 1;
-    stack.push([first, index], [index, last]);
-  }
-  return pts.filter((_, i) => keep[i]);
-}
-
-function perpendicular(p, a, b) {
-  const ab = metres(a, b);
-  if (ab === 0) return metres(p, a);
-  const ap = metres(a, p);
-  const bp = metres(b, p);
-  // Heron's formula: twice the triangle area over the base is the height.
-  const s = (ab + ap + bp) / 2;
-  const area = Math.sqrt(Math.max(0, s * (s - ab) * (s - ap) * (s - bp)));
-  return (2 * area) / ab;
-}
-
-const tolerance = Number(arg('tolerance') ?? 12);
-const lines = segments.map((seg) =>
-  simplify(seg, tolerance).map(([lng, lat]) => [Number(lng.toFixed(5)), Number(lat.toFixed(5))]),
-);
 const metresTotal = segments.reduce(
   (total, seg) => total + seg.reduce((sum, p, i) => (i ? sum + metres(seg[i - 1], p) : 0), 0),
   0,
@@ -248,7 +211,6 @@ const entry = {
     time: timeStats,
     gpx_bytes: source.length,
   },
-  lines,
 };
 if (!entry.gpx_url) delete entry.gpx_url;
 
@@ -258,5 +220,7 @@ else doc.trails[at] = entry;
 
 writeFileSync(SEED, `${JSON.stringify(doc, null, 2)}\n`);
 const before = segments.reduce((n, s) => n + s.length, 0);
-const after = lines.reduce((n, s) => n + s.length, 0);
-console.log(`${id}: ${before} → ${after} points in ${lines.length} segment(s), ${distanceKm} km, ${doc.trails.length} trail(s) in seed`);
+console.log(
+  `${id}: ${before} points in ${segments.length} segment(s), ${distanceKm} km — metadata only, ` +
+    `geometry stays at ${entry.gpx_url ?? 'the source file'} (${doc.trails.length} trail(s) in seed)`,
+);

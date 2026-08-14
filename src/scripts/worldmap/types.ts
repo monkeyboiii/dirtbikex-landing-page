@@ -82,8 +82,8 @@ export interface Trail {
   summary?: Record<string, string> | null;
   distance_km?: number | null;
   stats?: TrailStats | null;
-  /** One entry per GPX track segment: [lng, lat] pairs. */
-  lines: [number, number][][];
+  /** Legacy baked geometry. Metadata-only docs omit it: the GPX is fetched on tap. */
+  lines?: [number, number][][];
 }
 
 export interface TrailsDoc {

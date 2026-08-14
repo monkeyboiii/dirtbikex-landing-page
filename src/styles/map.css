@@ -17,6 +17,10 @@
   --wm-tone-partial: #5f8f4a;
   --wm-tone-upcoming: #b08900;
   --wm-tone-upcoming-rgb: 176, 137, 0;
+  /* Mirrors palette() in the island; keep the two in step. */
+  --wm-kind-track: 109, 40, 217;
+  --wm-kind-trail: 21, 128, 61;
+  --wm-kind-shop: 29, 78, 216;
   --wm-chip-verified: #1f7a39;
   --wm-chip-claimed: #a34d00;
   --wm-ball-glow: 0 0 10px rgba(var(--wm-veil), 0.8);
@@ -50,6 +54,9 @@
   --wm-tone-partial: #8fbf7a;
   --wm-tone-upcoming: #d8bc57;
   --wm-tone-upcoming-rgb: 216, 188, 87;
+  --wm-kind-track: 139, 92, 246;
+  --wm-kind-trail: 34, 197, 94;
+  --wm-kind-shop: 59, 130, 246;
   --wm-chip-verified: #7fd08f;
   --wm-chip-claimed: #ffb469;
 }
@@ -448,6 +455,17 @@ body.is-map-page .site-header__inner {
   border-radius: 50%;
   border: 0;
   background: radial-gradient(closest-side, rgba(237, 107, 0, 0.4), rgba(237, 107, 0, 0) 72%);
+}
+/* Anchored on a venue: the bloom takes that entity's colour so the icon underneath
+   is not washed orange. Solo markers keep the accent — there they ARE the subject. */
+.wm-ep[data-venue='track'] {
+  background: radial-gradient(closest-side, rgba(var(--wm-kind-track), 0.42), rgba(var(--wm-kind-track), 0) 72%);
+}
+.wm-ep[data-venue='trail'] {
+  background: radial-gradient(closest-side, rgba(var(--wm-kind-trail), 0.42), rgba(var(--wm-kind-trail), 0) 72%);
+}
+.wm-ep[data-venue='shop'] {
+  background: radial-gradient(closest-side, rgba(var(--wm-kind-shop), 0.42), rgba(var(--wm-kind-shop), 0) 72%);
   color: #fff;
   cursor: pointer;
   appearance: none;
@@ -1388,3 +1406,8 @@ body.is-map-page .site-header__inner {
 }
 .wm-by:hover .wm-by__name { text-decoration: underline; }
 .wm-by:hover .wm-by__avatar { border-color: var(--wm-text-faint); }
+
+/* Waiting on a GPX: the cursor says the tap landed while the file is in flight. */
+.wm.is-tracing .wm__canvas {
+  cursor: progress;
+}

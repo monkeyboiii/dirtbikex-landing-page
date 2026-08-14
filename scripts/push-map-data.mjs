@@ -56,8 +56,12 @@ if (name === 'series') {
     if (!trail.id || !trail.author_username || !Number.isInteger(trail.author_user_id)) {
       bail(`every trail needs an id and a forum author: ${JSON.stringify(trail.id ?? trail)}`);
     }
-    if (!Array.isArray(trail.lines) || trail.lines.some((seg) => !Array.isArray(seg) || seg.length < 2)) {
-      bail(`${trail.id} has no drawable segments — re-run import-gpx-trail.mjs`);
+    // Metadata-only: the map needs a point to place the blip and a URL to fetch on tap.
+    if (!Array.isArray(trail.stats?.centre) || trail.stats.centre.length !== 2) {
+      bail(`${trail.id} has no stats.centre — re-run import-gpx-trail.mjs`);
+    }
+    if (!trail.gpx_url || !/^https:\/\/uploads-cdn\./.test(trail.gpx_url)) {
+      bail(`${trail.id} must carry an uploads-cdn gpx_url; got ${trail.gpx_url ?? 'nothing'}`);
     }
   }
   count = doc.trails.length;

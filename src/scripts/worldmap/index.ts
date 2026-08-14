@@ -13,6 +13,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 // `?worker&url` makes Vite bundle it (it pulls in a shared chunk) and hand back
 // the hashed, same-origin URL.
 import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
+import { fetchGpx, parseGpx } from './gpx';
 import { createPanel, type Panel } from './panel';
 import { createHud, type Hud } from './hud';
 import type {
@@ -102,14 +103,14 @@ interface ShopDoc {
 const LAYERS = {
   tracks: ['tracks-halo', 'tracks-glow', 'tracks-dot', 'tracks-glyph', 'tracks-seal', 'tracks-label'],
   shops: ['shops-glow', 'shops-blip', 'shops-label'],
-  trails: ['trails-line', 'trails-cap'],
+  trails: ['trails-line', 'trails-glow', 'trails-blip', 'trails-label'],
   ride: ['journey-line'],
 } as const;
 type LayerId = keyof typeof LAYERS;
 const LAYER_IDS = Object.keys(LAYERS) as LayerId[];
 const LAYER_STORE = 'dbx-map-layers';
 /** Catalog kinds drawn from the shared `tracks` source, one per toggle. */
-const KIND_OF: Partial<Record<LayerId, string>> = { tracks: 'track', shops: 'shop' };
+const KIND_OF: Partial<Record<LayerId, string>> = { tracks: 'track', shops: 'shop', trails: 'trail' };
 
 /** Trails start off: their data is fetched on first enable, not at boot. */
 const LAYER_DEFAULTS: Record<LayerId, boolean> = { tracks: true, shops: true, trails: false, ride: true };
@@ -165,6 +166,12 @@ const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)'
 const isNarrow = () => window.matchMedia('(max-width: 767px)').matches;
 const isDarkTheme = () => document.documentElement.classList.contains('dark');
 const cityZoom = () => (isNarrow() ? CITY_ZOOM_NARROW : CITY_ZOOM);
+
+/** Picks the best available translation from an operator-authored block. */
+function localizedName(block: Record<string, string> | null | undefined, lang: string): string | null {
+  if (!block) return null;
+  return block[lang] ?? block[lang.split('-')[0]!] ?? block.en ?? null;
+}
 
 function entryOrder(a: SeriesEntry, b: SeriesEntry) {
   return a.main - b.main || a.sub - b.sub;
@@ -318,6 +325,11 @@ class WorldMap {
   private episodeMarkers: { el: HTMLElement; entry: SeriesEntry }[] = [];
   private visible = initialLayers();
   private trails: Trail[] | null = null;
+  private trailsById = new Map<string, Trail>();
+  /** Parsed geometry, kept so re-opening a trail is instant. Only the open trail is
+      ever drawn, which is what bounds this as the catalog grows. */
+  private trailGeometry = new Map<string, [number, number][][]>();
+  private trailFetch: AbortController | null = null;
   private current: SeriesEntry | null = null;
   private tracksBySlug = new Map<string, TrackProps>();
   private opening: SeriesEntry | null = null;
@@ -659,61 +671,206 @@ class WorldMap {
     });
   }
 
-  /** Trails are few and small, so they draw whole — no viewport culling. */
+  /**
+   * Trails are catalog entities like tracks: a blip you can see, and geometry that is
+   * only fetched when you ask for it. The line lives in its own source so it can be
+   * inserted beneath the pins, and it holds one trail at a time.
+   */
   private addTrailLayers() {
     const map = this.map;
-    const trails = this.trails ?? [];
-    if (!trails.length || map.getSource('trails')) return;
+    if (map.getSource('trail-lines')) return;
     const c = palette(this.dark);
 
-    map.addSource('trails', {
-      type: 'geojson',
-      promoteId: 'id',
-      data: {
-        type: 'FeatureCollection',
-        features: trails.map((trail) => ({
-          type: 'Feature' as const,
-          properties: { id: trail.id },
-          geometry: { type: 'MultiLineString' as const, coordinates: trail.lines },
-        })),
+    map.addSource('trail-lines', { type: 'geojson', data: EMPTY });
+    map.addLayer(
+      {
+        id: 'trails-line',
+        type: 'line',
+        source: 'trail-lines',
+        layout: { 'line-cap': 'round', 'line-join': 'round' },
+        paint: {
+          'line-color': c.trail,
+          'line-width': ['interpolate', ['linear'], ['zoom'], 6, 1.6, 11, 3.2, 14, 5] as never,
+          'line-opacity': 0.9,
+        },
+      },
+      // Under the pins: a drawn trace is ground truth, not something to obscure them.
+      map.getLayer('tracks-halo') ? 'tracks-halo' : undefined,
+    );
+
+    const trailFilter = ['==', ['get', 'kind'], 'trail'] as never;
+    map.addLayer({
+      id: 'trails-glow',
+      type: 'circle',
+      source: 'tracks',
+      minzoom: 8,
+      filter: trailFilter,
+      paint: {
+        'circle-color': c.trail,
+        'circle-blur': 0.85,
+        'circle-radius': ['interpolate', ['linear'], ['zoom'], 8.4, 12, 10, 21, 14, 27] as never,
+        'circle-opacity': ['interpolate', ['linear'], ['zoom'], 8.4, 0, 9.6, 0.32] as never,
+      },
+    });
+    map.addLayer({
+      id: 'trails-blip',
+      type: 'symbol',
+      source: 'tracks',
+      minzoom: 8,
+      filter: trailFilter,
+      layout: {
+        'icon-image': 'blip-trail',
+        'icon-size': ['interpolate', ['linear'], ['zoom'], 8.4, 0.5, 10, 0.72, 14, 0.9] as never,
+        'icon-allow-overlap': true,
+        'icon-ignore-placement': true,
+      },
+      paint: { 'icon-opacity': ['interpolate', ['linear'], ['zoom'], 8.4, 0, 9.4, 1] as never },
+    });
+    map.addLayer({
+      id: 'trails-label',
+      type: 'symbol',
+      source: 'tracks',
+      minzoom: 9.6,
+      filter: trailFilter,
+      layout: {
+        'text-field': ['coalesce', ['get', 'name'], ''] as never,
+        'text-font': styleFont(map),
+        'text-size': 11,
+        'text-anchor': 'top',
+        'text-offset': [0, 1.5],
+        'text-optional': true,
+        'text-max-width': 9,
+      },
+      paint: {
+        'text-color': c.label,
+        'text-halo-color': c.labelHalo,
+        'text-halo-width': 1.3,
+        'text-opacity': ['interpolate', ['linear'], ['zoom'], 9.6, 0, 10.4, 1] as never,
       },
     });
 
-    // A wide transparent line under the visible one: a 2 px trace is not a tap target.
-    map.addLayer({
-      id: 'trails-cap',
-      type: 'line',
-      source: 'trails',
-      layout: { 'line-cap': 'round', 'line-join': 'round' },
-      paint: { 'line-color': c.trail, 'line-width': 14, 'line-opacity': 0.01 },
-    });
-    map.addLayer({
-      id: 'trails-line',
-      type: 'line',
-      source: 'trails',
-      layout: { 'line-cap': 'round', 'line-join': 'round' },
-      paint: {
-        'line-color': c.trail,
-        'line-width': ['interpolate', ['linear'], ['zoom'], 6, 1.2, 11, 2.6, 14, 4] as never,
-        'line-opacity': 0.85,
-      },
+    // setStyle drops sources, so the open trail is redrawn from the JS-side cache.
+    this.drawTrail(this.selectedTrail);
+  }
+
+  /** Puts one trail's geometry on the map, or clears it. */
+  private drawTrail(id: string | null) {
+    const source = this.map.getSource('trail-lines') as
+      | { setData(d: GeoJSON.FeatureCollection): void }
+      | undefined;
+    if (!source) return;
+    const lines = id ? this.trailGeometry.get(id) : null;
+    source.setData(
+      lines?.length
+        ? {
+            type: 'FeatureCollection',
+            features: [
+              {
+                type: 'Feature',
+                properties: { id },
+                geometry: { type: 'MultiLineString', coordinates: lines },
+              },
+            ],
+          }
+        : EMPTY,
+    );
+  }
+
+  /**
+   * Tap-to-draw. The blip is metadata only; the GPX is fetched from the forum's own
+   * uploads CDN the first time a visitor opens that trail, then cached. One trail is
+   * in flight at a time — opening another aborts the previous fetch.
+   */
+  private async openTrail(id: string) {
+    const trail = this.trailsById.get(id);
+    if (!trail) return;
+    this.clearSelection();
+    this.selected = id;
+    this.selectedTrail = id;
+    this.setHalo(id);
+    this.setDimmed(true);
+    this.renderVisible();
+    this.panel.showTrail(trail);
+
+    if (!this.trailGeometry.has(id) && trail.gpx_url) {
+      this.trailFetch?.abort();
+      const run = new AbortController();
+      this.trailFetch = run;
+      this.root.classList.add('is-tracing');
+      try {
+        const gpx = await fetchGpx(trail.gpx_url, run.signal);
+        const lines = parseGpx(gpx);
+        if (lines.length) this.trailGeometry.set(id, lines);
+      } catch (err) {
+        if ((err as Error)?.name !== 'AbortError') console.warn('worldmap gpx', err);
+      } finally {
+        if (this.trailFetch === run) {
+          this.trailFetch = null;
+          this.root.classList.remove('is-tracing');
+        }
+      }
+    }
+    // The visitor may have moved on while the file was in flight.
+    if (this.selectedTrail === id) {
+      this.drawTrail(id);
+      const lines = this.trailGeometry.get(id);
+      if (lines?.length) this.fitTrail(lines);
+    }
+  }
+
+  /** Frames the whole trace once it arrives, so a tap reveals the shape of the ride. */
+  private fitTrail(lines: [number, number][][]) {
+    const bounds = new LngLatBounds();
+    for (const seg of lines) for (const point of seg) bounds.extend(point);
+    if (bounds.isEmpty()) return;
+    this.map.fitBounds(bounds, {
+      padding: { top: 90, bottom: 120, left: 60, right: isNarrow() ? 60 : 440 },
+      maxZoom: 15,
+      duration: reducedMotion() ? 0 : 900,
     });
   }
 
   /** Fetched on first enable, not at boot — the layer is off for most visits. */
   private async loadTrails(): Promise<boolean> {
-    if (this.trails) return true;
+    if (this.trails) return this.trails.length > 0;
     try {
       const doc = (await fetchJson(this.cfg.trailsUrl).catch(() =>
         fetchJson('/map/trails.seed.json'),
       )) as TrailsDoc;
-      this.trails = Array.isArray(doc?.trails) ? doc.trails.filter((t) => t.lines?.length) : [];
+      this.trails = Array.isArray(doc?.trails) ? doc.trails.filter((t) => t.stats?.centre) : [];
     } catch (err) {
       console.warn('worldmap trails', err);
       return false;
     }
+    // Trails join the catalog as points, so the viewport cull and the per-kind budget
+    // apply to them exactly as they do to tracks and shops.
+    for (const trail of this.trails) {
+      this.trailsById.set(trail.id, trail);
+      const [lng, lat] = trail.stats!.centre;
+      const props: TrackProps = {
+        slug: trail.id,
+        kind: 'trail',
+        name: localizedName(trail.title, this.cfg.lang) ?? trail.id,
+        name_local: null,
+        country_code: '',
+        locality: null,
+        category: 'trail',
+        tier: 'verified',
+        website: null,
+        precision: 'exact',
+        lng,
+        lat,
+      };
+      this.tracksBySlug.set(trail.id, props);
+      this.tracks.features.push({
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: [lng, lat] },
+        properties: props,
+      });
+    }
     this.addTrailLayers();
     this.applyLayers();
+    this.renderVisible();
     return this.trails.length > 0;
   }
 
@@ -830,12 +987,12 @@ class WorldMap {
       ] as [[number, number], [number, number]];
       const found = map.queryRenderedFeatures(box as never, { layers: hit() });
       return (
-        found.find((f) => f.layer.id === 'tracks-dot' || f.layer.id === 'shops-blip') ?? found[0]
+        found.find((f) => f.layer.id !== 'tracks-dot') ?? found[0]
       );
     };
     /** Only layers that exist and are on — querying a missing layer throws. */
     const hit = () =>
-      ['tracks-dot', 'shops-blip', 'trails-cap'].filter((id) => {
+      ['tracks-dot', 'shops-blip', 'trails-blip'].filter((id) => {
         const owner = LAYER_IDS.find((l) => (LAYERS[l] as readonly string[]).includes(id));
         return map.getLayer(id) && (!owner || this.visible[owner]);
       });
@@ -852,15 +1009,11 @@ class WorldMap {
 
     map.on('click', (e) => {
       const feature = pick(e.point);
-      const trail = feature?.layer.id === 'trails-cap'
-        ? this.trails?.find((t) => t.id === feature.properties?.id)
-        : null;
-      if (trail) {
-        this.clearSelection();
-        this.selectedTrail = trail.id;
-        this.panel.showTrail(trail);
-      } else if ((feature?.properties as TrackProps | undefined)?.slug) {
-        this.selectTrack((feature!.properties as TrackProps).slug, { fly: true });
+      const props = feature?.properties as TrackProps | undefined;
+      if (props?.kind === 'trail' && props.slug) {
+        void this.openTrail(props.slug);
+      } else if (props?.slug) {
+        this.selectTrack(props.slug, { fly: true });
       } else {
         this.clearSelection();
       }
@@ -938,6 +1091,10 @@ class WorldMap {
       const owner = venue?.kind === 'shop' ? 'shops' : 'tracks';
       const anchored = !!venue && this.visible[owner] && zoomed;
       el.classList.toggle('is-solo', !anchored);
+      // The bloom belongs to the venue underneath, not to the challenge — an orange
+      // wash behind a purple track or a green trail reads as the wrong entity.
+      if (anchored) el.dataset.venue = venue!.kind ?? 'track';
+      else delete el.dataset.venue;
     }
   }
 
@@ -946,6 +1103,15 @@ class WorldMap {
     this.map.setPaintProperty('tracks-dot', 'circle-opacity', opacityExpr(factor) as never);
     this.map.setPaintProperty('tracks-glyph', 'icon-opacity', on ? DIM : 1);
     this.map.setPaintProperty('tracks-glow', 'circle-opacity', on ? 0.06 : 0.32);
+    for (const id of ['shops-glow', 'trails-glow'] as const) {
+      if (this.map.getLayer(id)) this.map.setPaintProperty(id, 'circle-opacity', on ? 0.06 : 0.32);
+    }
+    for (const id of ['shops-blip', 'trails-blip'] as const) {
+      if (this.map.getLayer(id)) this.map.setPaintProperty(id, 'icon-opacity', on ? DIM : 1);
+    }
+    for (const id of ['shops-label', 'trails-label'] as const) {
+      if (this.map.getLayer(id)) this.map.setPaintProperty(id, 'text-opacity', on ? 0 : 1);
+    }
     this.map.setPaintProperty('tracks-label', 'text-opacity', on ? 0 : 1);
     this.root.classList.toggle('is-dimmed', on);
   }
@@ -1051,7 +1217,12 @@ class WorldMap {
 
   clearSelection() {
     this.selected = null;
-    this.selectedTrail = null;
+    if (this.selectedTrail) {
+      this.selectedTrail = null;
+      this.trailFetch?.abort();
+      this.root.classList.remove('is-tracing');
+      this.drawTrail(null);
+    }
     this.current = null;
     this.setHalo(null);
     this.setDimmed(this.seriesMode);
