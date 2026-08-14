@@ -47,10 +47,35 @@
   color: var(--fg);
 }
 .dark .site-getapp:hover { background: rgba(255, 255, 255, 0.18); }
-.site-getapp__mark { display: none; flex-shrink: 0; }
+/* The icon alternates between the Apple mark and a download glyph, so an
+   icon-only button still reads as "download the app". */
+.site-getapp__icon {
+  display: none;
+  position: relative;
+  flex-shrink: 0;
+  width: 17px;
+  height: 17px;
+}
+.site-getapp__icon svg { position: absolute; inset: 0; }
+.site-getapp__mark { animation: dbx-getapp-mark 7s ease-in-out infinite; }
+.site-getapp__dl { opacity: 0; animation: dbx-getapp-dl 7s ease-in-out infinite; }
+@keyframes dbx-getapp-mark {
+  0%, 44% { opacity: 1; }
+  50%, 94% { opacity: 0; }
+  100% { opacity: 1; }
+}
+@keyframes dbx-getapp-dl {
+  0%, 44% { opacity: 0; }
+  50%, 94% { opacity: 1; }
+  100% { opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .site-getapp__mark { animation: none; opacity: 1; }
+  .site-getapp__dl { animation: none; opacity: 0; }
+}
 @media (max-width: 767px) {
   .site-getapp { padding-left: 12px; padding-right: 12px; }
-  .site-getapp__mark { display: block; }
+  .site-getapp__icon { display: block; }
   .site-getapp__label { display: none; }
 }
 

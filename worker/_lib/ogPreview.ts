@@ -1,4 +1,5 @@
 import type { PagesEnv } from './types';
+import { resolveCanonical } from './shortlink';
 
 /**
  * Link previews for episode sheets — the iMessage/Slack treatment.
@@ -230,8 +231,20 @@ async function tiktokOembed(url: URL): Promise<{ title?: string; thumbnail_url?:
   }
 }
 
+/** Douyin share/redirector pages carry no Open Graph tags; the canonical
+    `www.douyin.com/video/{id}` is the page worth crawling. Uses the same resolver
+    the forum's native-embed component reaches through /api/resolve/shortlink. */
+const DOUYIN_HOST = /(^|\.)(douyin|iesdouyin)\.com$/;
+
 async function previewOne(start: URL): Promise<Preview | null> {
-  const hit = await fetchChecked(start, ALLOWED_HOSTS, {
+  let target = start;
+  if (DOUYIN_HOST.test(start.hostname)) {
+    const canonical = await resolveCanonical(start).catch(() => null);
+    const checked = canonical ? permitted(canonical, ALLOWED_HOSTS) : null;
+    if (checked) target = checked;
+  }
+
+  const hit = await fetchChecked(target, ALLOWED_HOSTS, {
     'User-Agent': CRAWLER_UA,
     Accept: 'text/html,application/xhtml+xml',
     'Accept-Language': 'en,zh;q=0.8',

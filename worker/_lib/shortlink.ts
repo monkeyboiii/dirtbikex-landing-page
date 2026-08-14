@@ -58,10 +58,22 @@ export async function handleShortlinkResolve(request: Request, env: PagesEnv): P
     return json(400, { error: 'host_not_allowed' }, 'no-store');
   }
 
+  const found = await resolveCanonical(target);
+  return found
+    ? json(200, { url: found }, 'public, max-age=86400')
+    : json(404, { error: 'unresolved' }, 'no-store');
+}
+
+/**
+ * Chases a short/share link to its canonical `.../video/{id}` form, hop by hop,
+ * refusing to leave `FOLLOW_HOSTS`. Shared with the OG preview route, whose
+ * Douyin candidates are share links that carry no Open Graph tags of their own.
+ */
+export async function resolveCanonical(target: URL): Promise<string | null> {
   let current = target.href;
   for (let hop = 0; hop < 5; hop++) {
     const found = extractCanonical(current);
-    if (found) return json(200, { url: found }, 'public, max-age=86400');
+    if (found) return found;
 
     let resp: Response;
     try {
@@ -71,7 +83,7 @@ export async function handleShortlinkResolve(request: Request, env: PagesEnv): P
         headers: { 'User-Agent': UA, Accept: 'text/html' },
       });
     } catch {
-      return json(502, { error: 'fetch_failed' }, 'no-store');
+      return null;
     }
 
     if (resp.status < 300 || resp.status >= 400) break;
@@ -85,10 +97,10 @@ export async function handleShortlinkResolve(request: Request, env: PagesEnv): P
       break;
     }
     const fromLoc = extractCanonical(next.href);
-    if (fromLoc) return json(200, { url: fromLoc }, 'public, max-age=86400');
+    if (fromLoc) return fromLoc;
     if (!FOLLOW_HOSTS.has(next.hostname.toLowerCase())) break;
     current = next.href;
   }
 
-  return json(404, { error: 'unresolved' }, 'no-store');
+  return null;
 }
