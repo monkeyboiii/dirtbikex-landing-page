@@ -11,6 +11,9 @@ const LABEL_MAX = 18;
 const SETTLE_MS = 170;
 /** Our own smooth-scrolls must not be read back as the visitor scrolling. */
 const SELF_SCROLL_MS = 480;
+/** Quiet time after the last scroll event before the rail springs back. Short enough
+    to feel like release, long enough not to fight a slow drag. */
+const SNAP_IDLE_MS = 150;
 
 /** Android fires; iOS Safari has no web haptics, so this is a no-op there. */
 function buzz() {
@@ -144,6 +147,7 @@ export function createHud(deps: HudDeps, series: SeriesDoc, placements: Map<Seri
   let activeLabel: string | null = null;
   let selfScrollUntil = 0;
   let settle: ReturnType<typeof setTimeout> | undefined;
+  let idle: ReturnType<typeof setTimeout> | undefined;
 
   function setActive(entry: SeriesEntry | null, smooth = true, scroll = true) {
     clearTimeout(settle);
@@ -177,6 +181,25 @@ export function createHud(deps: HudDeps, series: SeriesDoc, placements: Map<Seri
     return best;
   }
 
+  /**
+   * The runway ahead is real scrollable content, so the journey can be dragged into
+   * the stops that do not exist yet — but it is not a destination. When scrolling
+   * stops, the nearest stop that DOES exist springs back to centre. This also tidies
+   * up a proximity snap that came to rest between two stops.
+   */
+  function springBack() {
+    // Never fight our own smooth scroll; wait it out instead.
+    if (Date.now() < selfScrollUntil) {
+      idle = setTimeout(springBack, SNAP_IDLE_MS);
+      return;
+    }
+    const entry = centred();
+    if (!entry) return;
+    const changed = entry.label !== activeLabel;
+    setActive(entry);
+    if (changed) deps.onFocus(placements.get(entry) ?? { entry, lngLat: null });
+  }
+
   // Scrolling the rail selects whatever lands in the middle: the label and dot
   // follow immediately (with a tick of haptics), the sheet once scrolling settles.
   bar.addEventListener('scrollend', () => {
@@ -186,6 +209,10 @@ export function createHud(deps: HudDeps, series: SeriesDoc, placements: Map<Seri
   bar.addEventListener(
     'scroll',
     () => {
+      // Armed before the early returns: dragging over the empty runway never changes
+      // the centred entry, so this is the only thing that would fire there.
+      clearTimeout(idle);
+      idle = setTimeout(springBack, SNAP_IDLE_MS);
       if (Date.now() < selfScrollUntil) return;
       const entry = centred();
       if (!entry || entry.label === activeLabel) return;

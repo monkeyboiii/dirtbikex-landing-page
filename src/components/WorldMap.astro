@@ -100,7 +100,7 @@ const config = {
       <img src="/brand/logo-mark.svg" alt="" class="wm__gate-mark" />
       <p class="wm__gate-title">{s('map.hud.series')}</p>
       <p class="wm__gate-sub">
-        {trackCount > 0 ? s('map.legend.tracks').replace('{count}', trackCount.toLocaleString('en-US')) : ''}
+        {trackCount > 0 ? s('map.legend.tracks').replace('{count}', trackCount.toLocaleString(lang)) : ''}
       </p>
       <div class="wm__gate-spinner" role="status" aria-label={s('map.boot.loading')}></div>
       <p class="wm__gate-error">{s('map.err.unavailable')}</p>
@@ -160,7 +160,7 @@ const config = {
     <button type="button" class="wm__drawer-handle" data-drawer-toggle aria-expanded="false">
       <span class="wm__stats" data-stats>
         {trackCount > 0 && (
-          <span data-stat-static><b>{trackCount.toLocaleString('en-US')}</b> tracks</span>
+          <span data-stat-static><b>{trackCount.toLocaleString(lang)}</b> tracks</span>
         )}
         <span><b data-stat="users_count">—</b> riders</span>
         <span><b data-stat="topics_count">—</b> threads</span>

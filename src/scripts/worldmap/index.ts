@@ -252,6 +252,8 @@ class WorldMap {
   private hud!: Hud;
   private seriesMode = false;
   private selected: string | null = null;
+  /** A trail sheet is a selection too — Escape and the layer toggle must see it. */
+  private selectedTrail: string | null = null;
   private dark = isDarkTheme();
   private placements = new Map<SeriesEntry, EntryPlacement>();
   private ordered: SeriesEntry[] = [];
@@ -699,6 +701,7 @@ class WorldMap {
         : null;
       if (trail) {
         this.clearSelection();
+        this.selectedTrail = trail.id;
         this.panel.showTrail(trail);
       } else if ((feature?.properties as TrackProps | undefined)?.slug) {
         this.selectTrack((feature!.properties as TrackProps).slug, { fly: true });
@@ -709,7 +712,7 @@ class WorldMap {
 
     document.addEventListener('keydown', (e) => {
       if (e.key !== 'Escape') return;
-      if (this.selected) this.clearSelection();
+      if (this.selected || this.selectedTrail) this.clearSelection();
       else if (this.seriesMode) this.setSeriesMode(false);
     });
   }
@@ -738,6 +741,7 @@ class WorldMap {
     if (id === 'trails' && on && !(await this.loadTrails())) return;
     this.visible[id] = on;
     // A hidden layer must not keep a sheet open about one of its features.
+    if (!on && id === 'trails' && this.selectedTrail) this.clearSelection();
     // Episodes ride on catalog pins, so "is this an episode?" is a slug lookup.
     if (!on && this.selected) {
       const isEpisode = [...this.placements.keys()].some((e) => e.track_slug === this.selected);
@@ -870,6 +874,7 @@ class WorldMap {
 
   clearSelection() {
     this.selected = null;
+    this.selectedTrail = null;
     this.current = null;
     this.setHalo(null);
     this.setDimmed(this.seriesMode);
