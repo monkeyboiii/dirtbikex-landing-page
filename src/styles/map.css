@@ -227,27 +227,27 @@ body.is-map-page .site-header__inner {
 .wm-hud::before {
   content: '';
   position: absolute;
-  inset: -6px -10px -6px;
+  inset: -4px -34px -4px;
   z-index: -1;
   border-radius: 24px;
   pointer-events: none;
   background: radial-gradient(
-    96% 96% at 50% 52%,
-    rgba(var(--wm-veil), 0.66) 0%,
-    rgba(var(--wm-veil), 0.34) 46%,
-    rgba(var(--wm-veil), 0) 76%
+    58% 96% at 50% 52%,
+    rgba(var(--wm-veil), 0.62) 0%,
+    rgba(var(--wm-veil), 0.3) 48%,
+    rgba(var(--wm-veil), 0) 78%
   );
   backdrop-filter: blur(6px) saturate(120%);
   -webkit-backdrop-filter: blur(6px) saturate(120%);
   /* Multi-stop so the pane thins out steadily on the approach to every edge rather
      than holding full strength and then stopping. */
   -webkit-mask-image: radial-gradient(
-    94% 96% at 50% 52%,
-    #000 0%, rgba(0, 0, 0, 0.86) 30%, rgba(0, 0, 0, 0.5) 56%, rgba(0, 0, 0, 0.18) 72%, transparent 86%
+    56% 96% at 50% 52%,
+    #000 0%, rgba(0, 0, 0, 0.86) 32%, rgba(0, 0, 0, 0.48) 58%, rgba(0, 0, 0, 0.16) 74%, transparent 88%
   );
   mask-image: radial-gradient(
-    94% 96% at 50% 52%,
-    #000 0%, rgba(0, 0, 0, 0.86) 30%, rgba(0, 0, 0, 0.5) 56%, rgba(0, 0, 0, 0.18) 72%, transparent 86%
+    56% 96% at 50% 52%,
+    #000 0%, rgba(0, 0, 0, 0.86) 32%, rgba(0, 0, 0, 0.48) 58%, rgba(0, 0, 0, 0.16) 74%, transparent 88%
   );
 }
 .wm-hud__counter {
@@ -287,8 +287,10 @@ body.is-map-page .site-header__inner {
   overscroll-behavior-x: contain;
   scroll-snap-type: x proximity;
   scrollbar-width: none;
-  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 16%, #000 84%, transparent 100%);
-  mask-image: linear-gradient(to right, transparent 0, #000 16%, #000 84%, transparent 100%);
+  /* Dim from roughly the width of the counter above, so the rail reads as a focused
+     window on the journey rather than a full-width strip. */
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 32%, #000 68%, transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0, #000 32%, #000 68%, transparent 100%);
 }
 .wm-hud__bar::-webkit-scrollbar {
   display: none;

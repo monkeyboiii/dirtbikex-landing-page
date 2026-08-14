@@ -143,7 +143,7 @@ export function createPanel(deps: PanelDeps) {
       slide.dataset.preview = previewHref;
       if (
         (SHORT_VIDEO as readonly string[]).includes(platform) &&
-        SHORT_VIDEO.every((pf) => !!entry.links?.[pf])
+        SHORT_VIDEO.every((pf) => !!(entry.links?.[pf] || socials[pf]))
       ) {
         slide.addEventListener('click', (ev) => {
           ev.preventDefault();
@@ -174,8 +174,14 @@ export function createPanel(deps: PanelDeps) {
     // rather than a step. Chevrons step one platform at a time.
     if (slides.length > 1) {
       const step = (delta: number) => {
-        const width = track.clientWidth || 1;
-        track.scrollBy({ left: delta * width, behavior: 'smooth' });
+        const cells = [...track.children] as HTMLElement[];
+        const mid = track.scrollLeft + track.clientWidth / 2;
+        const current = Math.max(
+          0,
+          cells.findIndex((cell) => cell.offsetLeft + cell.offsetWidth > mid),
+        );
+        const next = cells[Math.min(cells.length - 1, Math.max(0, current + delta))];
+        if (next) track.scrollTo({ left: next.offsetLeft, behavior: 'smooth' });
       };
       for (const dir of ['prev', 'next'] as const) {
         const nav = el('button', `wm-carousel__nav wm-carousel__nav--${dir}`) as HTMLButtonElement;
@@ -269,7 +275,7 @@ export function createPanel(deps: PanelDeps) {
       const mark = markSvg(platform, `${platform}-row-${generation}`);
       const bothShortVideo =
         (SHORT_VIDEO as readonly string[]).includes(platform) &&
-        SHORT_VIDEO.every((p) => !!entry.links?.[p]);
+        SHORT_VIDEO.every((p) => !!(entry.links?.[p] || socials[p]));
 
       if (bothShortVideo) {
         const button = el('button', 'wm-social') as HTMLButtonElement;
@@ -317,7 +323,13 @@ export function createPanel(deps: PanelDeps) {
     const apple = /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent);
 
     const apps = [
-      cn ? { id: 'amap', name: '高德地图', href: `https://uri.amap.com/navigation?to=${lng.toFixed(6)},${lat.toFixed(6)},${name}&mode=car&src=dirtbikex` } : null,
+      cn
+        ? {
+            id: 'amap',
+            name: '高德地图',
+            href: `https://uri.amap.com/marker?position=${lng.toFixed(6)},${lat.toFixed(6)}&name=${name}&src=dirtbikex&coordinate=gaode&callnative=1`,
+          }
+        : null,
       { id: 'apple', name: 'Apple Maps', href: `https://maps.apple.com/?daddr=${at}&dirflg=d` },
       { id: 'google', name: 'Google Maps', href: `https://www.google.com/maps/dir/?api=1&destination=${at}` },
       // Android hands geo: to whatever the visitor installed; it is inert on desktop.

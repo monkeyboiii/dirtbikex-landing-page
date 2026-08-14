@@ -90,7 +90,12 @@ const config = {
   shopsUrl: '/api/map/shops.json',
   markersBase: '/map/markers/',
   // Episode links win; these profiles are the fallback, /contact the last resort.
-  socials: { facebook: SOCIALS.facebook, instagram: SOCIALS.instagram },
+  socials: {
+    facebook: SOCIALS.facebook,
+    instagram: SOCIALS.instagram,
+    tiktok: SOCIALS.tiktok,
+    douyin: SOCIALS.douyin,
+  },
   contactUrl: localizedPath(lang, '/contact'),
   claimed: [] as string[],
 };
