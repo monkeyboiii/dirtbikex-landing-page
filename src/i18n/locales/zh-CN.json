@@ -229,5 +229,7 @@
   "map.a11y.map": "越野赛道互动世界地图",
   "map.legend.tracks": "地图上共有 {count} 条赛道",
   "map.err.unavailable": "地图在这里无法加载。可在下方了解 DirtBikeX。",
-  "map.control.recenter": "回到最新一集"
+  "map.control.recenter": "回到最新一集",
+  "map.panel.watchOn": "观看平台",
+  "map.panel.recommended": "推荐"
 }

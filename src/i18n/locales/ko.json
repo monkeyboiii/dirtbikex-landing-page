@@ -226,5 +226,7 @@
   "map.a11y.map": "더트바이크 트랙 인터랙티브 세계 지도",
   "map.legend.tracks": "지도에 트랙 {count}곳",
   "map.err.unavailable": "여기서는 지도를 불러올 수 없었습니다. 아래에서 DirtBikeX를 둘러보세요.",
-  "map.control.recenter": "최신 에피소드로 돌아가기"
+  "map.control.recenter": "최신 에피소드로 돌아가기",
+  "map.panel.watchOn": "시청하기",
+  "map.panel.recommended": "추천"
 }

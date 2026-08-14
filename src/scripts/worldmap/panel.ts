@@ -37,6 +37,10 @@ const PLATFORM_LABELS: Record<string, string> = {
 const platformsFor = (lang: string) =>
   lang === 'zh-CN' ? ['douyin', 'instagram', 'facebook'] : ['tiktok', 'instagram', 'facebook'];
 
+/** The two short-video platforms carry the same clip, so they're offered together. */
+const SHORT_VIDEO = ['tiktok', 'douyin'] as const;
+const recommendedShortVideo = (lang: string) => (lang === 'zh-CN' ? 'douyin' : 'tiktok');
+
 export interface PanelDeps {
   root: HTMLElement;
   strings: Strings;
@@ -108,11 +112,15 @@ export function createPanel(deps: PanelDeps) {
     const dots = el('div', 'wm-carousel__dots');
 
     slides.forEach(({ platform, href }, index) => {
+      // Douyin gives a worker outside China only a shell, so its slide previews
+      // the same clip's TikTok card.
+      const previewHref = platform === 'douyin' ? entry.links?.tiktok || href : href;
       const slide = el('a', 'wm-slide is-pending') as HTMLAnchorElement;
       slide.href = href;
       slide.target = '_blank';
       slide.rel = 'noopener';
       slide.dataset.platform = platform;
+      slide.dataset.preview = previewHref;
       slide.setAttribute(
         'aria-label',
         `${strings['map.panel.watch'] ?? 'Watch'} · ${PLATFORM_LABELS[platform] ?? platform}`,
@@ -148,7 +156,7 @@ export function createPanel(deps: PanelDeps) {
     const load = (slide: HTMLElement) => {
       if (slide.dataset.loaded) return;
       slide.dataset.loaded = '1';
-      const href = (slide as HTMLAnchorElement).href;
+      const href = slide.dataset.preview || (slide as HTMLAnchorElement).href;
       fetch(`/api/map/og?u=${encodeURIComponent(href)}`)
         .then((r) => (r.ok ? r.json() : Promise.reject(new Error('og'))))
         .then((og: { ok?: boolean; title?: string; image?: string }) => {
@@ -199,20 +207,91 @@ export function createPanel(deps: PanelDeps) {
   function platformRow(entry: SeriesEntry): HTMLElement {
     const row = el('div', 'wm-panel__socials');
     for (const platform of platformsFor(lang)) {
+      const label = PLATFORM_LABELS[platform] ?? platform;
+      const mark = markSvg(platform, `${platform}-row-${generation}`);
+      const bothShortVideo =
+        (SHORT_VIDEO as readonly string[]).includes(platform) &&
+        SHORT_VIDEO.every((p) => !!entry.links?.[p]);
+
+      if (bothShortVideo) {
+        const button = el('button', 'wm-social') as HTMLButtonElement;
+        button.type = 'button';
+        button.title = `${strings['map.panel.watchOn'] ?? 'Watch on'} ${label}`;
+        button.setAttribute('aria-label', strings['map.panel.watchOn'] ?? 'Watch on');
+        button.innerHTML = mark;
+        button.addEventListener('click', () => openChooser(entry));
+        row.appendChild(button);
+        continue;
+      }
+
       const href = entry.links?.[platform] || socials[platform] || contactUrl;
-      const external = /^https?:/.test(href);
       const a = el('a', 'wm-social') as HTMLAnchorElement;
       a.href = href;
-      a.title = PLATFORM_LABELS[platform] ?? platform;
-      a.setAttribute('aria-label', `${strings['map.panel.watch'] ?? 'Watch'} · ${PLATFORM_LABELS[platform] ?? platform}`);
-      if (external) {
+      a.title = label;
+      a.setAttribute('aria-label', `${strings['map.panel.watch'] ?? 'Watch'} · ${label}`);
+      if (/^https?:/.test(href)) {
         a.target = '_blank';
         a.rel = 'noopener';
       }
-      a.innerHTML = markSvg(platform, `${platform}-row-${generation}`);
+      a.innerHTML = mark;
       row.appendChild(a);
     }
     return row;
+  }
+
+  /**
+   * TikTok and Douyin host the same clip, so the short-video button asks which one
+   * rather than guessing; the locale's platform is recommended and listed first.
+   */
+  function openChooser(entry: SeriesEntry) {
+    const host = root.closest('.wm') ?? document.body;
+    host.querySelector('.wm-chooser')?.remove();
+
+    const recommended = recommendedShortVideo(lang);
+    const options = [...SHORT_VIDEO]
+      .sort((a, b) => (a === recommended ? -1 : b === recommended ? 1 : 0))
+      .map((platform) => ({ platform, href: entry.links?.[platform] || socials[platform] || contactUrl }));
+
+    const wrap = el('div', 'wm-chooser');
+    wrap.setAttribute('role', 'dialog');
+    wrap.setAttribute('aria-modal', 'true');
+    const backdrop = el('div', 'wm-chooser__backdrop');
+    const card = el('div', 'wm-chooser__card');
+    card.appendChild(el('p', 'wm-chooser__title', strings['map.panel.watchOn'] ?? 'Watch on'));
+
+    for (const { platform, href } of options) {
+      const opt = el('a', `wm-chooser__opt${platform === recommended ? ' is-recommended' : ''}`) as HTMLAnchorElement;
+      opt.href = href;
+      if (/^https?:/.test(href)) {
+        opt.target = '_blank';
+        opt.rel = 'noopener';
+      }
+      opt.innerHTML =
+        `<span class="wm-chooser__mark">${markSvg(platform, `${platform}-pick-${generation}`, 22)}</span>` +
+        `<span class="wm-chooser__name">${PLATFORM_LABELS[platform] ?? platform}</span>` +
+        (platform === recommended
+          ? `<span class="wm-chooser__chip">${strings['map.panel.recommended'] ?? 'Recommended'}</span>`
+          : '');
+      opt.addEventListener('click', () => close());
+      card.appendChild(opt);
+    }
+
+    const dismiss = () => {
+      wrap.remove();
+      document.removeEventListener('keydown', onKey);
+    };
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        e.stopPropagation();
+        dismiss();
+      }
+    }
+    backdrop.addEventListener('click', dismiss);
+    document.addEventListener('keydown', onKey);
+
+    wrap.append(backdrop, card);
+    host.appendChild(wrap);
+    card.querySelector<HTMLElement>('.wm-chooser__opt')?.focus();
   }
 
   function stepper(canPrev: boolean, canNext: boolean): HTMLElement {

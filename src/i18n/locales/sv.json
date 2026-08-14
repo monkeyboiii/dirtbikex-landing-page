@@ -228,5 +228,7 @@
   "map.a11y.map": "Interaktiv världskarta över dirtbike-banor",
   "map.legend.tracks": "{count} banor på kartan",
   "map.err.unavailable": "Kartan kunde inte laddas här. Utforska DirtBikeX nedanför.",
-  "map.control.recenter": "Tillbaka till senaste avsnittet"
+  "map.control.recenter": "Tillbaka till senaste avsnittet",
+  "map.panel.watchOn": "Se på",
+  "map.panel.recommended": "Rekommenderas"
 }

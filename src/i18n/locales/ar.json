@@ -226,5 +226,7 @@
   "map.a11y.map": "خريطة عالميّة تفاعليّة لمضامير الدراجات الترابيّة",
   "map.legend.tracks": "{count} مضمار على الخريطة",
   "map.err.unavailable": "تعذّر تحميل الخريطة هنا. استكشف DirtBikeX في الأسفل.",
-  "map.control.recenter": "العودة إلى أحدث حلقة"
+  "map.control.recenter": "العودة إلى أحدث حلقة",
+  "map.panel.watchOn": "شاهد على",
+  "map.panel.recommended": "موصى به"
 }

@@ -226,5 +226,7 @@
   "map.a11y.map": "Carte du monde interactive des terrains de dirt bike",
   "map.legend.tracks": "{count} terrains sur la carte",
   "map.err.unavailable": "La carte n’a pas pu se charger ici. Découvre DirtBikeX plus bas.",
-  "map.control.recenter": "Retour au dernier épisode"
+  "map.control.recenter": "Retour au dernier épisode",
+  "map.panel.watchOn": "Regarder sur",
+  "map.panel.recommended": "Recommandé"
 }

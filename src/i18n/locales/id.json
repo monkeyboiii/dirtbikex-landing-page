@@ -226,5 +226,7 @@
   "map.a11y.map": "Peta dunia interaktif trek dirt bike",
   "map.legend.tracks": "{count} trek di peta",
   "map.err.unavailable": "Peta tidak bisa dimuat di sini. Jelajahi DirtBikeX di bawah.",
-  "map.control.recenter": "Kembali ke episode terbaru"
+  "map.control.recenter": "Kembali ke episode terbaru",
+  "map.panel.watchOn": "Tonton di",
+  "map.panel.recommended": "Direkomendasikan"
 }

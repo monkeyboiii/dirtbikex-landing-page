@@ -700,6 +700,76 @@ body.is-map-page .site-header__inner {
   background: var(--wm-text-dim);
 }
 
+/* Short-video chooser: TikTok and Douyin carry the same clip, so the button asks. */
+.wm-chooser {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: var(--space-5, 20px);
+}
+.wm-chooser__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(var(--wm-veil), 0.62);
+  backdrop-filter: blur(3px);
+}
+.wm-chooser__card {
+  position: relative;
+  width: min(300px, 100%);
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+  border-radius: var(--radius-lg, 14px);
+  border: 1px solid var(--wm-line);
+  background: var(--wm-surface-solid);
+  box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.8);
+}
+.wm-chooser__title {
+  margin: 0 0 2px;
+  font-family: var(--font-mono, 'Geist Mono', monospace);
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--wm-text-faint);
+}
+.wm-chooser__opt {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 11px 13px;
+  border-radius: var(--radius-md, 10px);
+  border: 1px solid var(--wm-line);
+  color: var(--wm-text);
+  text-decoration: none;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+.wm-chooser__opt:hover,
+.wm-chooser__opt:focus-visible {
+  border-color: var(--wm-text-faint);
+  background: var(--wm-raise);
+}
+.wm-chooser__opt.is-recommended {
+  border-color: var(--wm-raise-line);
+  background: var(--wm-raise);
+}
+.wm-chooser__mark {
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+.wm-chooser__name { flex: 1; }
+.wm-chooser__chip {
+  font-family: var(--font-mono, 'Geist Mono', monospace);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--wm-text-faint);
+  white-space: nowrap;
+}
+
 /* Episode stepper — trailing end of the platform row. */
 .wm-panel__nav {
   display: flex;

@@ -226,5 +226,7 @@
   "map.a11y.map": "Interaktiivinen maailmankartta dirtbike-radoista",
   "map.legend.tracks": "{count} rataa kartalla",
   "map.err.unavailable": "Kartta ei latautunut täällä. Tutustu DirtBikeXiin alta.",
-  "map.control.recenter": "Takaisin uusimpaan jaksoon"
+  "map.control.recenter": "Takaisin uusimpaan jaksoon",
+  "map.panel.watchOn": "Katso palvelussa",
+  "map.panel.recommended": "Suositeltu"
 }

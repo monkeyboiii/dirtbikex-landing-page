@@ -226,5 +226,7 @@
   "map.a11y.map": "Bản đồ thế giới tương tác về các đường đua dirt bike",
   "map.legend.tracks": "{count} đường đua trên bản đồ",
   "map.err.unavailable": "Bản đồ không tải được ở đây. Khám phá DirtBikeX bên dưới.",
-  "map.control.recenter": "Về lại tập mới nhất"
+  "map.control.recenter": "Về lại tập mới nhất",
+  "map.panel.watchOn": "Xem trên",
+  "map.panel.recommended": "Được đề xuất"
 }

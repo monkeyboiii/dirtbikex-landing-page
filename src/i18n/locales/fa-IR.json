@@ -226,5 +226,7 @@
   "map.a11y.map": "نقشهٔ جهانی تعاملی پیست‌های ترائیل",
   "map.legend.tracks": "{count} پیست روی نقشه",
   "map.err.unavailable": "نقشه اینجا بارگذاری نشد. DirtBikeX را در ادامه ببینید.",
-  "map.control.recenter": "بازگشت به آخرین قسمت"
+  "map.control.recenter": "بازگشت به آخرین قسمت",
+  "map.panel.watchOn": "تماشا در",
+  "map.panel.recommended": "پیشنهادی"
 }

@@ -232,5 +232,7 @@
   "map.a11y.map": "Interactive world map of dirt bike tracks",
   "map.legend.tracks": "{count} tracks on the map",
   "map.err.unavailable": "The map couldn't load here. Explore DirtBikeX below.",
-  "map.control.recenter": "Back to the latest episode"
+  "map.control.recenter": "Back to the latest episode",
+  "map.panel.watchOn": "Watch on",
+  "map.panel.recommended": "Recommended"
 }

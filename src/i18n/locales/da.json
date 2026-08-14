@@ -226,5 +226,7 @@
   "map.a11y.map": "Interaktivt verdenskort over dirtbike-baner",
   "map.legend.tracks": "{count} baner på kortet",
   "map.err.unavailable": "Kortet kunne ikke indlæses her. Udforsk DirtBikeX nedenfor.",
-  "map.control.recenter": "Tilbage til seneste afsnit"
+  "map.control.recenter": "Tilbage til seneste afsnit",
+  "map.panel.watchOn": "Se på",
+  "map.panel.recommended": "Anbefalet"
 }

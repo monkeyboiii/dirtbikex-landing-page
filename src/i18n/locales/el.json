@@ -226,5 +226,7 @@
   "map.a11y.map": "Διαδραστικός παγκόσμιος χάρτης με πίστες dirt bike",
   "map.legend.tracks": "{count} πίστες στον χάρτη",
   "map.err.unavailable": "Ο χάρτης δεν φόρτωσε εδώ. Εξερεύνησε το DirtBikeX παρακάτω.",
-  "map.control.recenter": "Πίσω στο τελευταίο επεισόδιο"
+  "map.control.recenter": "Πίσω στο τελευταίο επεισόδιο",
+  "map.panel.watchOn": "Παρακολούθηση σε",
+  "map.panel.recommended": "Προτεινόμενο"
 }

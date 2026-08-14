@@ -226,5 +226,7 @@
   "map.a11y.map": "Dirt bike parkurlarının etkileşimli dünya haritası",
   "map.legend.tracks": "Haritada {count} parkur",
   "map.err.unavailable": "Harita burada yüklenemedi. DirtBikeX'i aşağıda keşfet.",
-  "map.control.recenter": "Son bölüme dön"
+  "map.control.recenter": "Son bölüme dön",
+  "map.panel.watchOn": "Şurada izle",
+  "map.panel.recommended": "Önerilen"
 }

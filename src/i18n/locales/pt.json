@@ -226,5 +226,7 @@
   "map.a11y.map": "Mapa-múndi interativo de pistas de dirt bike",
   "map.legend.tracks": "{count} pistas no mapa",
   "map.err.unavailable": "O mapa não carregou aqui. Explore o DirtBikeX abaixo.",
-  "map.control.recenter": "Voltar para o último episódio"
+  "map.control.recenter": "Voltar para o último episódio",
+  "map.panel.watchOn": "Assistir no",
+  "map.panel.recommended": "Recomendado"
 }
