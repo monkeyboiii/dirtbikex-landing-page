@@ -49,6 +49,15 @@ const DEFAULTS: Record<string, string> = {
   'map.panel.directions': 'Directions',
   'map.panel.openIn': 'Open in',
   'map.panel.systemMaps': 'Default map app',
+  'map.trail.kicker': 'Rider trail',
+  'map.trail.distance': 'Distance',
+  'map.trail.rideTime': 'Ride time',
+  'map.trail.climb': 'Climb',
+  'map.trail.recordedOn': 'Recorded {date}',
+  'map.trail.plotted': 'Plotted route',
+  'map.trail.loop': 'Loop',
+  'map.trail.pointToPoint': 'Point to point',
+  'map.trail.sections': '{n} sections',
   'map.boot.loading': 'Loading the world',
   'map.a11y.map': 'Interactive world map of dirt bike tracks',
   'map.legend.tracks': '{count} tracks on the map',
@@ -103,6 +112,7 @@ const config = {
   seriesUrl: '/api/map/series.json',
   trailsUrl: '/api/map/trails.json',
   shopsUrl: '/api/map/shops.json',
+  forumBase: FORUM_BASE,
   markersBase: '/map/markers/',
   // Episode links win; these profiles are the fallback, /contact the last resort.
   socials: {

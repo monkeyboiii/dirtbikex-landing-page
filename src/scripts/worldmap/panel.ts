@@ -511,19 +511,135 @@ export function createPanel(deps: PanelDeps) {
     close,
     isOpen: () => !root.hidden,
 
-    /** A ride somebody recorded: the trace, who rode it, and where to open it. */
+    /**
+     * A ride somebody recorded. The trace is the subject: its numbers sit under the
+     * title, the file's provenance reads as chips, and the rider is a byline — an
+     * avatar at attribution scale, not a profile header.
+     */
     showTrail(trail: Trail) {
       open((host) => {
+        const st = trail.stats ?? null;
+        host.appendChild(el('span', 'wm-panel__kicker', strings['map.trail.kicker'] ?? 'Rider trail'));
         host.appendChild(el('h2', 'wm-panel__title', localized(trail.title, lang) ?? trail.id));
 
-        const meta = [
-          trail.distance_km ? `${trail.distance_km} km` : null,
-          `@${trail.author_username}`,
-        ]
-          .filter(Boolean)
-          .join(' · ');
-        host.appendChild(el('p', 'wm-panel__meta', meta));
+        const summary = localized(trail.summary, lang);
+        if (summary) host.appendChild(el('p', 'wm-panel__meta', summary));
 
+        // style:'unit' also places the unit correctly in RTL, unlike a " km" suffix.
+        const unit = (v: number, u: string, extra: Intl.NumberFormatOptions = {}) =>
+          new Intl.NumberFormat(lang, { style: 'unit', unit: u, unitDisplay: 'short', ...extra }).format(v);
+
+        // Fixed order; a missing stat is dropped rather than dashed.
+        const slots: [string, string][] = [];
+        if (trail.distance_km) {
+          slots.push([
+            strings['map.trail.distance'] ?? 'Distance',
+            unit(trail.distance_km, 'kilometer', { maximumFractionDigits: trail.distance_km >= 100 ? 0 : 1 }),
+          ]);
+        }
+        const moving = st?.time?.moving_s ?? 0;
+        if (moving >= 60) {
+          const mins = Math.round(moving / 60);
+          // Two unit strings, not Intl.DurationFormat: that mixes Latin unit letters
+          // into non-Latin digits.
+          const value =
+            mins < 60
+              ? unit(mins, 'minute', { maximumFractionDigits: 0 })
+              : [
+                  unit(Math.floor(mins / 60), 'hour', { maximumFractionDigits: 0 }),
+                  mins % 60 ? unit(mins % 60, 'minute', { maximumFractionDigits: 0 }) : null,
+                ]
+                  .filter(Boolean)
+                  .join(' ');
+          slots.push([strings['map.trail.rideTime'] ?? 'Ride time', value]);
+        }
+        const climb = st?.ele?.ascent_m;
+        if (climb != null && climb >= 1) {
+          slots.push([
+            strings['map.trail.climb'] ?? 'Climb',
+            unit(climb, 'meter', { maximumFractionDigits: 0, signDisplay: 'always' }),
+          ]);
+        }
+        if (slots.length) {
+          const dl = el('dl', 'wm-stats');
+          for (const [label, value] of slots) {
+            const cell = el('div', 'wm-stat');
+            cell.append(el('dt', 'wm-stat__label', label), el('dd', 'wm-stat__value', value));
+            dl.appendChild(cell);
+          }
+          host.appendChild(dl);
+        }
+
+        const chips = el('div', 'wm-panel__chips');
+        // Provenance leads: it explains why the ride-time slot may be missing.
+        if (st?.time?.source === 'trkpt' && st.time.recorded_at) {
+          const when = new Date(st.time.recorded_at);
+          if (!Number.isNaN(when.valueOf())) {
+            chips.appendChild(
+              el(
+                'span',
+                'wm-chip',
+                (strings['map.trail.recordedOn'] ?? 'Recorded {date}').replace(
+                  '{date}',
+                  when.toLocaleDateString(lang, { year: 'numeric', month: 'short', day: 'numeric' }),
+                ),
+              ),
+            );
+          }
+        } else if (st) {
+          chips.appendChild(el('span', 'wm-chip', strings['map.trail.plotted'] ?? 'Plotted route'));
+        }
+        if (st?.shape === 'loop') {
+          chips.appendChild(el('span', 'wm-chip', strings['map.trail.loop'] ?? 'Loop'));
+        } else if (st?.shape === 'point_to_point') {
+          chips.appendChild(el('span', 'wm-chip', strings['map.trail.pointToPoint'] ?? 'Point to point'));
+        }
+        if ((st?.segments ?? 1) > 1) {
+          chips.appendChild(
+            el(
+              'span',
+              'wm-chip',
+              (strings['map.trail.sections'] ?? '{n} sections').replace(
+                '{n}',
+                new Intl.NumberFormat(lang).format(st!.segments),
+              ),
+            ),
+          );
+        }
+        if (chips.childElementCount) host.appendChild(chips);
+
+        // Attribution: the /s/u/ identity block quoted at byline scale.
+        const named = trail.author_name?.trim() || null;
+        const riderLabel = strings['map.trail.rider'] ?? 'Rider';
+        const by = el('a', 'wm-by') as HTMLAnchorElement;
+        by.href = `/s/u/${encodeURIComponent(trail.author_username)}`;
+        // The initial sits under the image, so a failed avatar reveals a letter
+        // rather than a broken-image glyph.
+        const face = el(
+          'span',
+          'wm-by__avatar',
+          (Array.from((named ?? trail.author_username).trim())[0] ?? '?').toUpperCase(),
+        );
+        if (trail.author_avatar) {
+          const img = document.createElement('img');
+          img.src = deps.forumBase + trail.author_avatar.replace('{size}', '72');
+          img.alt = '';
+          img.width = 36;
+          img.height = 36;
+          img.loading = 'lazy';
+          img.decoding = 'async';
+          img.addEventListener('error', () => img.remove(), { once: true });
+          face.appendChild(img);
+        }
+        const idBlock = el('span', 'wm-by__id');
+        idBlock.append(
+          el('span', 'wm-by__name', named ?? `@${trail.author_username}`),
+          el('span', 'wm-by__meta', named ? `${riderLabel} · @${trail.author_username}` : riderLabel),
+        );
+        by.append(face, idBlock);
+        host.appendChild(by);
+
+        // Plain links only — no gpx.studio preview card in this round.
         const row = el('div', 'wm-panel__socials');
         const mark = (icon: string, href: string, label: string) => {
           const a = el('a', 'wm-social') as HTMLAnchorElement;
@@ -534,20 +650,18 @@ export function createPanel(deps: PanelDeps) {
             a.target = '_blank';
             a.rel = 'noopener';
           }
-          a.innerHTML = markSvg(icon, `trail-${generation}`);
+          a.innerHTML = markSvg(icon, `trail-${icon}-${generation}`);
           row.appendChild(a);
         };
-
-        mark('rider', `/s/u/${encodeURIComponent(trail.author_username)}`,
-          `${strings['map.trail.rider'] ?? 'Rider'} · @${trail.author_username}`);
         if (trail.post_url) mark('thread', trail.post_url, strings['map.trail.thread'] ?? 'Forum thread');
         if (trail.gpx_url) {
           const files = encodeURIComponent(JSON.stringify([trail.gpx_url]));
           mark('route', `https://gpx.studio/app?files=${files}`, strings['map.trail.studio'] ?? 'Open in gpx.studio');
         }
-        host.appendChild(row);
+        if (row.childElementCount) host.appendChild(row);
       });
     },
+
 
     showTrack(track: TrackProps) {
       open((host) => {

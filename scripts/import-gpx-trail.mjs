@@ -38,17 +38,49 @@ const source = /^https?:/.test(gpx) ? await fetch(gpx).then((r) => {
 
 /** Track points only — route points crash gpx.studio's stats and are not a ridden line.
     Segments stay separate: joining them would draw a stroke through every pause. */
-const segments = source
+/** Attribute order is not significant in XML, so read lat and lon independently
+    rather than requiring lat to come first. */
+const point = (tag, body) => {
+  const lat = Number(/\blat="([-\d.]+)"/.exec(tag)?.[1]);
+  const lng = Number(/\blon="([-\d.]+)"/.exec(tag)?.[1]);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  const ele = Number(/<ele>([-\d.]+)<\/ele>/.exec(body ?? '')?.[1]);
+  const time = /<time>([^<]+)<\/time>/.exec(body ?? '')?.[1];
+  const at = time ? Date.parse(time) : NaN;
+  return { lng, lat, ele: Number.isFinite(ele) ? ele : null, at: Number.isFinite(at) ? at : null };
+};
+
+const readPoints = (chunk) =>
+  [...chunk.matchAll(/<trkpt([^>]*?)(?:\/>|>([\s\S]*?)<\/trkpt>)/g)]
+    .map((m) => point(m[1], m[2]))
+    .filter(Boolean);
+
+const rich = source
   .split(/<trkseg\b[^>]*>/)
   .slice(1)
-  .map((chunk) =>
-    [...chunk.split('</trkseg>')[0].matchAll(/<trkpt[^>]*\blat="([-\d.]+)"[^>]*\blon="([-\d.]+)"/g)]
-      .map((m) => [Number(m[2]), Number(m[1])])
-      .filter(([lng, lat]) => Number.isFinite(lng) && Number.isFinite(lat)),
-  )
+  .map((chunk) => readPoints(chunk.split('</trkseg>')[0]))
   .filter((seg) => seg.length >= 2);
+
+// Route-only exports are legal and carry real geometry; take it, but never claim a
+// duration from route points.
+const routeOnly = !rich.length;
+const fromRoutes = routeOnly
+  ? source
+      .split(/<rte\b[^>]*>/)
+      .slice(1)
+      .map((chunk) =>
+        [...chunk.split('</rte>')[0].matchAll(/<rtept([^>]*?)(?:\/>|>([\s\S]*?)<\/rtept>)/g)]
+          .map((m) => point(m[1], m[2]))
+          .filter(Boolean)
+          .map((pt) => ({ ...pt, at: null })),
+      )
+      .filter((seg) => seg.length >= 2)
+  : [];
+
+const richSegments = routeOnly ? fromRoutes : rich;
+const segments = richSegments.map((seg) => seg.map((pt) => [pt.lng, pt.lat]));
 if (!segments.length) {
-  console.error(`no <trkseg> with <trkpt> pairs in ${gpx}`);
+  console.error(`no usable <trkpt> or <rtept> geometry in ${gpx}`);
   process.exit(1);
 }
 
@@ -105,6 +137,89 @@ const metresTotal = segments.reduce(
 );
 const distanceKm = Number((metresTotal / 1000).toFixed(1));
 
+/** Consumer GPS wanders vertically at rest, so a naive sum invents climb that was
+    never ridden — on the West Lake doodle it reports +21 m across a flat lake. Only
+    count sustained gain, and keep "flat" distinguishable from "unknown". */
+function ascent(segs) {
+  const range = (() => {
+    const all = segs.flat().map((p) => p.ele).filter((e) => e != null);
+    return all.length ? Math.max(...all) - Math.min(...all) : 0;
+  })();
+  if (range < 20) return null;
+  let total = 0;
+  for (const seg of segs) {
+    let anchor = null;
+    for (const pt of seg) {
+      if (pt.ele == null) continue;
+      if (anchor == null) { anchor = pt.ele; continue; }
+      if (pt.ele - anchor >= 3) { total += pt.ele - anchor; anchor = pt.ele; }
+      else if (anchor - pt.ele >= 3) anchor = pt.ele;
+    }
+  }
+  return total > 0 ? Math.round(total) : null;
+}
+
+/** Moving time only, and never across a segment boundary — the gap between segments
+    is a pen lift, not a pause in the ride. */
+function moving(segs) {
+  let seconds = 0;
+  for (const seg of segs) {
+    for (let i = 1; i < seg.length; i++) {
+      const a = seg[i - 1];
+      const b = seg[i];
+      if (a.at == null || b.at == null) continue;
+      const dt = (b.at - a.at) / 1000;
+      if (dt <= 0 || dt > 600) continue;
+      const dm = metres([a.lng, a.lat], [b.lng, b.lat]);
+      if (dm / dt >= 0.5) seconds += dt;
+    }
+  }
+  return Math.round(seconds);
+}
+
+const stamps = richSegments.flat().map((p) => p.at).filter((t) => t != null);
+const metaTime = /<metadata>[\s\S]*?<time>([^<]+)<\/time>/.exec(source)?.[1];
+const timeStats = stamps.length
+  ? {
+      recorded_at: new Date(Math.min(...stamps)).toISOString(),
+      moving_s: moving(richSegments),
+      elapsed_s: Math.round((Math.max(...stamps) - Math.min(...stamps)) / 1000),
+      source: 'trkpt',
+    }
+  : { recorded_at: metaTime ?? null, moving_s: null, elapsed_s: null, source: metaTime ? 'metadata' : null };
+
+const flat = segments.flat();
+const bbox = [
+  Math.min(...flat.map((c) => c[0])),
+  Math.min(...flat.map((c) => c[1])),
+  Math.max(...flat.map((c) => c[0])),
+  Math.max(...flat.map((c) => c[1])),
+].map((n) => Number(n.toFixed(5)));
+
+/** A loop claim is refused on a multi-segment trace: the return leg can hide in a gap. */
+const closure = metres(segments[0][0], segments.at(-1).at(-1));
+const shape =
+  closure > 0.15 * metresTotal
+    ? 'point_to_point'
+    : closure < 250 && closure < 0.05 * metresTotal && segments.length === 1
+      ? 'loop'
+      : null;
+
+/** The forum is the source of truth for who a rider is; the cached copy only keeps
+    the profile link working between imports. */
+let authorName = arg('author-name') ?? null;
+let authorAvatar = arg('author-avatar') ?? null;
+if (arg('forum') && (!authorName || !authorAvatar)) {
+  try {
+    const who = await fetch(`${arg('forum')}/u/${encodeURIComponent(authorUsername)}.json`)
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))));
+    authorName = authorName ?? who.user?.name ?? null;
+    authorAvatar = authorAvatar ?? who.user?.avatar_template ?? null;
+  } catch (err) {
+    console.warn(`could not resolve ${authorUsername} on the forum: ${err.message}`);
+  }
+}
+
 const doc = (() => {
   try {
     return JSON.parse(readFileSync(SEED, 'utf8'));
@@ -120,7 +235,19 @@ const entry = {
   author_username: authorUsername,
   ...(arg('post') ? { post_url: arg('post') } : {}),
   gpx_url: /^https?:/.test(gpx) ? gpx : undefined,
+  author_name: authorName,
+  author_avatar: authorAvatar,
   distance_km: distanceKm,
+  stats: {
+    segments: segments.length,
+    points: flat.length,
+    bbox,
+    centre: [Number(((bbox[0] + bbox[2]) / 2).toFixed(5)), Number(((bbox[1] + bbox[3]) / 2).toFixed(5))],
+    shape,
+    ele: { ascent_m: ascent(richSegments) },
+    time: timeStats,
+    gpx_bytes: source.length,
+  },
   lines,
 };
 if (!entry.gpx_url) delete entry.gpx_url;

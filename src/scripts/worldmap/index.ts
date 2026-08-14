@@ -218,6 +218,8 @@ async function addGlyph(
 /** Blips are rasterised at 2x their largest drawn size so they stay crisp on a
     retina phone; 48px upscaled to 35 CSS px is what made the old glyphs mushy. */
 const BLIP_PX = 96;
+/** Zoom at which venue icons have fully faded in; below it a pin is only a dot. */
+const BLIP_IN = 9.4;
 
 /** Reuses a font stack the loaded style already ships glyphs for. */
 function styleFont(map: MapLibreMap): string[] {
@@ -313,7 +315,7 @@ class WorldMap {
   private dark = isDarkTheme();
   private placements = new Map<SeriesEntry, EntryPlacement>();
   private ordered: SeriesEntry[] = [];
-  private episodeMarkers: HTMLElement[] = [];
+  private episodeMarkers: { el: HTMLElement; entry: SeriesEntry }[] = [];
   private visible = initialLayers();
   private trails: Trail[] | null = null;
   private current: SeriesEntry | null = null;
@@ -384,6 +386,7 @@ class WorldMap {
     this.renderVisible();
     this.addEpisodeMarkers();
     this.applyLayers();
+    this.syncEpisodeChrome();
     if (this.visible.trails) void this.loadTrails();
     this.wireInteractions();
     this.watchTheme();
@@ -466,12 +469,12 @@ class WorldMap {
       source: 'tracks',
       filter: ['==', ['get', 'slug'], ''],
       paint: {
-        'circle-radius': ['case', ['==', ['get', 'precision'], 'centroid'], 26, 16],
-        'circle-color': ACCENT,
-        'circle-opacity': 0.12,
-        'circle-stroke-color': ACCENT,
-        'circle-stroke-width': 1,
-        'circle-stroke-opacity': 0.5,
+        // A ring in brand orange sat behind every selection regardless of kind, so a
+        // blue shop read as an orange target. Soft bloom, coloured by kind, no ring.
+        'circle-radius': ['case', ['==', ['get', 'precision'], 'centroid'], 32, 24] as never,
+        'circle-color': ['match', ['get', 'kind'], 'shop', c.shop, c.track] as never,
+        'circle-blur': 0.7,
+        'circle-opacity': 0.4,
       },
     });
 
@@ -811,7 +814,7 @@ class WorldMap {
         this.selectEntry(entry, { fly: true });
       });
       new Marker({ element: el, anchor: 'center' }).setLngLat(placement.lngLat).addTo(this.map);
-      this.episodeMarkers.push(el);
+      this.episodeMarkers.push({ el, entry });
     }
   }
 
@@ -842,7 +845,10 @@ class WorldMap {
     });
 
     // Settled move only — mid-gesture re-renders would fight the pan.
-    map.on('moveend', () => this.renderVisible());
+    map.on('moveend', () => {
+      this.renderVisible();
+      this.syncEpisodeChrome();
+    });
 
     map.on('click', (e) => {
       const feature = pick(e.point);
@@ -881,7 +887,8 @@ class WorldMap {
         }
       }
     }
-    for (const el of this.episodeMarkers) el.style.display = this.visible.ride ? '' : 'none';
+    for (const { el } of this.episodeMarkers) el.style.display = this.visible.ride ? '' : 'none';
+    this.syncEpisodeChrome();
     this.root.classList.toggle('is-ride-off', !this.visible.ride);
     this.root.classList.toggle('is-tracks-off', !this.visible.tracks);
   }
@@ -915,6 +922,23 @@ class WorldMap {
 
   layerState(id: LayerId) {
     return this.visible[id];
+  }
+
+  /**
+   * A challenge badge is an annotation on a venue, so it only makes sense pinned to
+   * the rim of one. When nothing is drawn underneath — the episode has no catalog
+   * venue, its venue's layer is switched off, or the camera is zoomed out past the
+   * point where venue icons appear — the badge becomes the marker instead of floating
+   * over empty map.
+   */
+  private syncEpisodeChrome() {
+    const zoomed = this.map.getZoom() >= BLIP_IN;
+    for (const { el, entry } of this.episodeMarkers) {
+      const venue = entry.track_slug ? this.tracksBySlug.get(entry.track_slug) : null;
+      const owner = venue?.kind === 'shop' ? 'shops' : 'tracks';
+      const anchored = !!venue && this.visible[owner] && zoomed;
+      el.classList.toggle('is-solo', !anchored);
+    }
   }
 
   private setDimmed(on: boolean) {
@@ -1198,6 +1222,7 @@ export async function bootWorldMap() {
       lang: cfg.lang,
       socials: cfg.socials,
       contactUrl: cfg.contactUrl,
+      forumBase: cfg.forumBase,
       onClose: () => world.clearSelection(),
       onStep: (delta) => world.stepEntry(delta),
     });

@@ -53,6 +53,22 @@ export interface SeriesDoc {
 /** A GPX ride promoted from the forum — MAP_LAYERS_PLAN.md §3b.
  *  The author is stored as the numeric forum id (usernames can be renamed);
  *  `author_username` is the cached resolution the profile link uses. */
+export interface TrailStats {
+  segments: number;
+  points: number;
+  bbox: [number, number, number, number];
+  centre: [number, number];
+  shape?: 'loop' | 'point_to_point' | null;
+  ele?: { ascent_m?: number | null } | null;
+  time?: {
+    recorded_at?: string | null;
+    moving_s?: number | null;
+    elapsed_s?: number | null;
+    source?: 'trkpt' | 'metadata' | null;
+  } | null;
+  gpx_bytes?: number;
+}
+
 export interface Trail {
   id: string;
   title?: Record<string, string> | null;
@@ -60,7 +76,12 @@ export interface Trail {
   author_username: string;
   post_url?: string | null;
   gpx_url?: string | null;
+  /** Cached from the forum so the profile link keeps working between imports. */
+  author_name?: string | null;
+  author_avatar?: string | null;
+  summary?: Record<string, string> | null;
   distance_km?: number | null;
+  stats?: TrailStats | null;
   /** One entry per GPX track segment: [lng, lat] pairs. */
   lines: [number, number][][];
 }
@@ -79,6 +100,8 @@ export interface MapConfig {
   seriesUrl: string;
   trailsUrl: string;
   shopsUrl: string;
+  /** Origin the rider avatar is fetched from. */
+  forumBase: string;
   markersBase: string;
   /** DirtBikeX profile per platform — the fallback when an episode has no link yet. */
   socials: Partial<Record<string, string>>;
