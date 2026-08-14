@@ -18,8 +18,8 @@ const BUCKET = 'dbx-map';
 const args = process.argv.slice(2);
 const env = args[args.indexOf('--env') + 1];
 const name = args.includes('--doc') ? args[args.indexOf('--doc') + 1] : 'series';
-if (!['preview', 'prod'].includes(env ?? '') || !['series', 'trails'].includes(name ?? '')) {
-  console.error('usage: push-map-data.mjs --env <preview|prod> [--doc <series|trails>]');
+if (!['preview', 'prod'].includes(env ?? '') || !['series', 'trails', 'shops'].includes(name ?? '')) {
+  console.error('usage: push-map-data.mjs --env <preview|prod> [--doc <series|trails|shops>]');
   process.exit(1);
 }
 
@@ -41,6 +41,13 @@ if (name === 'series') {
     if (!['visited', 'live'].includes(entry.status)) bail(`unknown status "${entry.status}" on ${entry.label}`);
   }
   count = doc.entries.length;
+} else if (name === 'shops') {
+  if (!Array.isArray(doc.shops)) bail('missing `shops`');
+  for (const shop of doc.shops) {
+    if (!shop.slug || !shop.name) bail(`every shop needs a slug and a name: ${JSON.stringify(shop.slug ?? shop)}`);
+    if (!Number.isFinite(shop.lng) || !Number.isFinite(shop.lat)) bail(`${shop.slug} has no coordinates`);
+  }
+  count = doc.shops.length;
 } else {
   if (!Array.isArray(doc.trails)) bail('missing `trails`');
   for (const trail of doc.trails) {

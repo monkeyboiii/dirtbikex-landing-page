@@ -85,19 +85,34 @@ function renderBudget(map: MapLibreMap): number {
 
 const EMPTY: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: [] };
 
+/** A row in the operator-published shops doc — see MAP_LAYERS_PLAN.md §4. */
+interface ShopDoc {
+  slug: string;
+  name: string;
+  name_local?: string | null;
+  country_code?: string;
+  locality?: string | null;
+  website?: string | null;
+  lng: number;
+  lat: number;
+}
+
 /** Toggleable map layers. `styleLayers` are MapLibre ids rebuilt by addLayers(); the
     rest of each layer's surface (DOM markers, the HUD) is toggled alongside them. */
 const LAYERS = {
   tracks: ['tracks-halo', 'tracks-glow', 'tracks-dot', 'tracks-glyph', 'tracks-seal', 'tracks-label'],
+  shops: ['shops-glow', 'shops-blip', 'shops-label'],
   trails: ['trails-line', 'trails-cap'],
   ride: ['journey-line'],
 } as const;
 type LayerId = keyof typeof LAYERS;
 const LAYER_IDS = Object.keys(LAYERS) as LayerId[];
 const LAYER_STORE = 'dbx-map-layers';
+/** Catalog kinds drawn from the shared `tracks` source, one per toggle. */
+const KIND_OF: Partial<Record<LayerId, string>> = { tracks: 'track', shops: 'shop' };
 
 /** Trails start off: their data is fetched on first enable, not at boot. */
-const LAYER_DEFAULTS: Record<LayerId, boolean> = { tracks: true, trails: false, ride: true };
+const LAYER_DEFAULTS: Record<LayerId, boolean> = { tracks: true, shops: true, trails: false, ride: true };
 
 /** URL wins (shareable), then the visitor's last choice, then the defaults. */
 function initialLayers(): Record<LayerId, boolean> {
@@ -458,6 +473,7 @@ class WorldMap {
       id: 'tracks-dot',
       type: 'circle',
       source: 'tracks',
+      filter: ['!=', ['get', 'kind'], 'shop'],
       paint: {
         'circle-radius': radiusExpr() as never,
         'circle-color': [
@@ -520,7 +536,7 @@ class WorldMap {
       type: 'symbol',
       source: 'tracks',
       minzoom: 9,
-      filter: ['!=', ['get', 'tier'], 'breadth'],
+      filter: ['all', ['!=', ['get', 'tier'], 'breadth'], ['!=', ['get', 'kind'], 'shop']],
       layout: {
         'text-field': ['coalesce', ['get', 'name'], ''] as never,
         'text-font': styleFont(map),
@@ -549,6 +565,57 @@ class WorldMap {
           .filter((c): c is [number, number] => !!c),
       },
     };
+    const shopFilter = ['==', ['get', 'kind'], 'shop'] as never;
+    map.addLayer({
+      id: 'shops-glow',
+      type: 'circle',
+      source: 'tracks',
+      minzoom: 8,
+      filter: shopFilter,
+      paint: {
+        'circle-color': c.shop,
+        'circle-blur': 0.85,
+        'circle-radius': ['interpolate', ['linear'], ['zoom'], 8.4, 12, 10, 21, 14, 27] as never,
+        'circle-opacity': ['interpolate', ['linear'], ['zoom'], 8.4, 0, 9.6, 0.32] as never,
+      },
+    });
+    map.addLayer({
+      id: 'shops-blip',
+      type: 'symbol',
+      source: 'tracks',
+      minzoom: 8,
+      filter: shopFilter,
+      layout: {
+        'icon-image': 'blip-shop',
+        'icon-size': ['interpolate', ['linear'], ['zoom'], 8.4, 0.44, 10, 0.64, 14, 0.78] as never,
+        'icon-allow-overlap': true,
+        'icon-ignore-placement': true,
+      },
+      paint: { 'icon-opacity': ['interpolate', ['linear'], ['zoom'], 8.4, 0, 9.4, 1] as never },
+    });
+    map.addLayer({
+      id: 'shops-label',
+      type: 'symbol',
+      source: 'tracks',
+      minzoom: 9.6,
+      filter: shopFilter,
+      layout: {
+        'text-field': ['coalesce', ['get', 'name'], ''] as never,
+        'text-font': styleFont(map),
+        'text-size': 11,
+        'text-anchor': 'top',
+        'text-offset': [0, 1.5],
+        'text-optional': true,
+        'text-max-width': 9,
+      },
+      paint: {
+        'text-color': c.label,
+        'text-halo-color': c.labelHalo,
+        'text-halo-width': 1.3,
+        'text-opacity': ['interpolate', ['linear'], ['zoom'], 9.6, 0, 10.4, 1] as never,
+      },
+    });
+
     this.addTrailLayers();
 
     map.addSource('journey', { type: 'geojson', data: line });
@@ -633,7 +700,7 @@ class WorldMap {
    * panel is describing would strand the halo and the sheet.
    */
   private renderVisible() {
-    if (!this.map.getSource('tracks') || !this.visible.tracks) return;
+    if (!this.map.getSource('tracks')) return;
     const map = this.map;
     const bounds = map.getBounds();
     const budget = renderBudget(map);
@@ -663,6 +730,9 @@ class WorldMap {
       const cx = Math.min(cols - 1, Math.max(0, Math.floor(at.x / RENDER_CELL_PX)));
       const cy = Math.min(rows - 1, Math.max(0, Math.floor(at.y / RENDER_CELL_PX)));
       const kind = props.kind ?? 'track';
+      // Each toggle owns one kind: turning tracks off must not also blank the shops.
+      const owner = LAYER_IDS.find((l) => KIND_OF[l] === kind);
+      if (owner && !this.visible[owner]) continue;
       const bucket = candidates.get(kind) ?? [];
       bucket.push({ feature, cell: cy * cols + cx, rank: rank(props) });
       if (bucket.length === 1) candidates.set(kind, bucket);
@@ -733,11 +803,13 @@ class WorldMap {
         [pt.x + HIT_PAD, pt.y + HIT_PAD],
       ] as [[number, number], [number, number]];
       const found = map.queryRenderedFeatures(box as never, { layers: hit() });
-      return found.find((f) => f.layer.id === 'tracks-dot') ?? found[0];
+      return (
+        found.find((f) => f.layer.id === 'tracks-dot' || f.layer.id === 'shops-blip') ?? found[0]
+      );
     };
     /** Only layers that exist and are on — querying a missing layer throws. */
     const hit = () =>
-      ['tracks-dot', 'trails-cap'].filter((id) => {
+      ['tracks-dot', 'shops-blip', 'trails-cap'].filter((id) => {
         const owner = LAYER_IDS.find((l) => (LAYERS[l] as readonly string[]).includes(id));
         return map.getLayer(id) && (!owner || this.visible[owner]);
       });
@@ -804,7 +876,7 @@ class WorldMap {
     }
     if (id === 'ride' && !on && this.seriesMode) this.setSeriesMode(false);
     this.applyLayers();
-    if (id === 'tracks' && on) this.renderVisible();
+    if (KIND_OF[id] && on) this.renderVisible();
     const enabled = LAYER_IDS.filter((l) => this.visible[l]);
     try {
       localStorage.setItem(LAYER_STORE, enabled.join(','));
@@ -1059,14 +1131,42 @@ export async function bootWorldMap() {
 
   gate.dataset.state = 'loading';
   try {
-    const [series, tracks] = await Promise.all([
+    const [series, tracks, shops] = await Promise.all([
       // The worker route is the live projection; the committed seed keeps `astro dev`
       // (no worker) and any R2 outage on a working page.
       fetchJson(cfg.seriesUrl).catch(() => fetchJson('/map/series.seed.json')),
       fetchJson(cfg.tracksUrl),
+      // Shops are operator-published like the series, so they arrive without a rebuild.
+      // A missing doc must never cost us the map, so this one degrades to nothing.
+      fetchJson(cfg.shopsUrl)
+        .catch(() => fetchJson('/map/shops.seed.json'))
+        .catch(() => ({ shops: [] })),
     ]);
 
-    const world = new WorldMap(root, cfg, series as SeriesDoc, tracks as GeoJSON.FeatureCollection);
+    // A shop is a catalog entity with a different kind, so it rides the same source,
+    // the same viewport cull and the same per-kind budget as a track.
+    const catalog = tracks as GeoJSON.FeatureCollection;
+    for (const shop of ((shops as { shops?: ShopDoc[] }).shops ?? [])) {
+      if (!shop?.slug || !Number.isFinite(shop.lng) || !Number.isFinite(shop.lat)) continue;
+      catalog.features.push({
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: [shop.lng, shop.lat] },
+        properties: {
+          slug: shop.slug,
+          kind: 'shop',
+          name: shop.name,
+          name_local: shop.name_local ?? null,
+          country_code: shop.country_code ?? '',
+          locality: shop.locality ?? null,
+          category: 'shop',
+          tier: 'verified',
+          website: shop.website ?? null,
+          precision: 'exact',
+        } satisfies TrackProps,
+      });
+    }
+
+    const world = new WorldMap(root, cfg, series as SeriesDoc, catalog);
     const panel = createPanel({
       root: root.querySelector<HTMLElement>('[data-panel]')!,
       strings,

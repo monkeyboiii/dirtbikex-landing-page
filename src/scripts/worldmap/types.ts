@@ -73,6 +73,7 @@ export interface MapConfig {
   tracksUrl: string;
   seriesUrl: string;
   trailsUrl: string;
+  shopsUrl: string;
   markersBase: string;
   /** DirtBikeX profile per platform — the fallback when an episode has no link yet. */
   socials: Partial<Record<string, string>>;

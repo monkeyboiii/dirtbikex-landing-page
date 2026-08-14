@@ -643,6 +643,7 @@ export default {
       // World map story data — R2 projection with the committed seed as fallback.
       if (url.pathname === '/api/map/series.json') return handleMapDoc(request, env, ctx, 'series');
       if (url.pathname === '/api/map/trails.json') return handleMapDoc(request, env, ctx, 'trails');
+      if (url.pathname === '/api/map/shops.json') return handleMapDoc(request, env, ctx, 'shops');
       if (url.pathname === '/api/map/og') return handleOgPreview(request, env, ctx);
       if (url.pathname === '/api/proxy/sponsors') return fetchSponsors(env);
       const lb = url.pathname.match(/^\/api\/proxy\/leaderboard\/([a-z_]+)\.json$/);
