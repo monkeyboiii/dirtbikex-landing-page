@@ -95,21 +95,47 @@ export function createPanel(deps: PanelDeps) {
   let generation = 0;
   const body = root.querySelector<HTMLElement>('[data-panel-body]')!;
   const closeBtn = root.querySelector<HTMLButtonElement>('[data-panel-close]')!;
+  const backBtn = root.querySelector<HTMLButtonElement>('[data-panel-back]')!;
+  /** A navigation stack, so an episode can lead to the place it was filmed at and still
+      come back — the same push/pop a native app would give you. Sheets are stored as
+      their build functions, so going back re-renders rather than caching stale DOM. */
+  const views: Array<(host: HTMLElement) => void> = [];
+  /** Set by the push* entry points; consumed by the next open() call. */
+  let pushNext = false;
 
   closeBtn.setAttribute('aria-label', strings['map.panel.close'] ?? 'Close');
   closeBtn.addEventListener('click', () => deps.onClose());
+  backBtn.setAttribute('aria-label', strings['map.panel.back'] ?? 'Back');
+  backBtn.addEventListener('click', () => {
+    if (views.length < 2) return;
+    views.pop();
+    paint();
+  });
 
-  function open(build: (host: HTMLElement) => void) {
+  function paint() {
+    const build = views[views.length - 1];
+    if (!build) return;
     generation++;
     body.replaceChildren();
     build(body);
+    backBtn.hidden = views.length < 2;
     root.hidden = false;
     root.classList.add('is-open');
     body.scrollTop = 0;
   }
 
+  function open(build: (host: HTMLElement) => void) {
+    if (pushNext) pushNext = false;
+    else views.length = 0;
+    views.push(build);
+    paint();
+  }
+
   function close() {
     generation++;
+    views.length = 0;
+    pushNext = false;
+    backBtn.hidden = true;
     root.classList.remove('is-open');
     root.hidden = true;
     body.replaceChildren();
@@ -695,6 +721,16 @@ export function createPanel(deps: PanelDeps) {
     },
 
 
+    pushTrack(track: TrackProps) {
+      pushNext = true;
+      this.showTrack(track);
+    },
+
+    pushTrail(trail: Trail) {
+      pushNext = true;
+      this.showTrail(trail);
+    },
+
     showTrack(track: TrackProps) {
       open((host) => {
         host.appendChild(el('h2', 'wm-panel__title', track.name));
@@ -714,8 +750,25 @@ export function createPanel(deps: PanelDeps) {
         host.appendChild(el('span', 'wm-panel__counter', counter));
         host.appendChild(el('h2', 'wm-panel__title', localized(entry.title, lang) ?? track?.name ?? entry.label));
 
+        // An episode is filmed AT somewhere. Rather than bury that place's details at the
+        // bottom of this sheet, the venue line is the way in to its own sheet, and back
+        // returns here.
         const venue = localized(entry.venue, lang) ?? track?.name ?? null;
-        if (venue) host.appendChild(el('p', 'wm-panel__meta', venue));
+        if (venue && track && deps.onVenue) {
+          const row = el('button', 'wm-panel__venue') as HTMLButtonElement;
+          row.type = 'button';
+          row.setAttribute('aria-label', `${strings['map.panel.venue'] ?? 'About this place'} · ${venue}`);
+          const go = el('span', 'wm-panel__venue-go');
+          go.innerHTML =
+            '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor"' +
+            ' stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+            '<path d="M9.5 5.5 16 12l-6.5 6.5"/></svg>';
+          row.append(el('span', 'wm-panel__venue-name', venue), go);
+          row.addEventListener('click', () => deps.onVenue!(track));
+          host.appendChild(row);
+        } else if (venue) {
+          host.appendChild(el('p', 'wm-panel__meta', venue));
+        }
 
         carousel(entry, host);
 
@@ -732,7 +785,6 @@ export function createPanel(deps: PanelDeps) {
         actions.append(platformRow(entry), stepper(steps.prev, steps.next));
         host.appendChild(actions);
 
-        if (track) trackInfo(host, track);
       });
     },
   };

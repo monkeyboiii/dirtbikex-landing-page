@@ -407,14 +407,15 @@ class WorldMap {
     this.addEpisodeMarkers();
     this.applyLayers();
     this.syncEpisodeChrome();
-    // Metadata-only, ~1 KB: cheap enough to always load, and an episode bound to a
-    // trail cannot be placed until it has. Rendering still waits for the toggle.
-    void this.loadTrails().then(() => {
-      this.resolvePlacements();
-      this.addEpisodeMarkers();
-      this.applyLayers();
-      this.syncEpisodeChrome();
-    });
+    // Metadata-only, ~1 KB: cheap enough to always load, and awaited rather than fired
+    // off because an episode bound to a trail has no coordinates until it lands — a
+    // deep link applied before this resolves silently falls back to the opening stop.
+    // Rendering still waits for the layer toggle.
+    await this.loadTrails();
+    this.resolvePlacements();
+    this.addEpisodeMarkers();
+    this.applyLayers();
+    this.syncEpisodeChrome();
     this.wireInteractions();
     this.watchTheme();
     this.root.classList.add('is-live');
@@ -807,6 +808,19 @@ class WorldMap {
     this.renderVisible();
     this.panel.showTrail(trail);
 
+    await this.traceTrail(trail);
+    // The visitor may have moved on while the file was in flight.
+    if (this.selectedTrail === id && this.selected === id) {
+      this.drawTrail(id);
+      const lines = this.trailGeometry.get(id);
+      if (lines?.length) this.fitTrail(lines);
+    }
+  }
+
+  /** Fetches and caches one trail's geometry, at most one download at a time. */
+  private async traceTrail(trail: Trail): Promise<void> {
+    const id = trail.id;
+    this.selectedTrail = id;
     if (!this.trailGeometry.has(id) && trail.gpx_url && this.trailFetchId !== id) {
       this.trailFetch?.abort();
       const run = new AbortController();
@@ -830,12 +844,22 @@ class WorldMap {
         }
       }
     }
-    // The visitor may have moved on while the file was in flight.
-    if (this.selectedTrail === id && this.selected === id) {
-      this.drawTrail(id);
-      const lines = this.trailGeometry.get(id);
-      if (lines?.length) this.fitTrail(lines);
+  }
+
+  /**
+   * Pushes the place behind an episode onto the sheet stack. A trail venue also draws
+   * its trace, which is the only way to see it while the challenge overlay owns the pin.
+   */
+  async openVenue(track: TrackProps) {
+    if (track.kind !== 'trail') {
+      this.panel.pushTrack(track);
+      return;
     }
+    const trail = this.trailsById.get(track.slug);
+    if (!trail) return;
+    this.panel.pushTrail(trail);
+    await this.traceTrail(trail);
+    if (this.selectedTrail === trail.id) this.drawTrail(trail.id);
   }
 
   /** Frames the whole trace once it arrives, so a tap reveals the shape of the ride. */
@@ -1452,6 +1476,7 @@ export async function bootWorldMap() {
       contactUrl: cfg.contactUrl,
       forumBase: cfg.forumBase,
       onClose: () => world.clearSelection(),
+      onVenue: (track) => world.openVenue(track),
       onStep: (delta) => world.stepEntry(delta),
     });
     await world.start(canvas, strings);

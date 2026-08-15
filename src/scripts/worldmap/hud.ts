@@ -194,11 +194,12 @@ export function createHud(deps: HudDeps, series: SeriesDoc, placements: Map<Seri
       idle = setTimeout(springBack, SNAP_IDLE_MS);
       return;
     }
-    const entry = centred();
-    if (!entry) return;
-    const changed = entry.label !== activeLabel;
-    setActive(entry);
-    if (changed) deps.onFocus(placements.get(entry) ?? { entry, lngLat: null });
+    // Re-centre the stop that is ALREADY active — never adopt a different one. The
+    // scroll handler above owns changing the selection, on its own settle timer. When
+    // this also adopted whatever happened to be nearest, a deep link's own smooth
+    // scroll could be sampled mid-animation and silently swap the open episode.
+    const entry = shown.find((e) => e.label === activeLabel) ?? centred();
+    if (entry) setActive(entry);
   }
 
   // Scrolling the rail selects whatever lands in the middle: the label and dot

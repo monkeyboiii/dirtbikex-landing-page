@@ -46,6 +46,8 @@ const DEFAULTS: Record<string, string> = {
   'map.panel.recommended': 'Recommended',
   'map.panel.prev': 'Previous episode',
   'map.panel.next': 'Next episode',
+  'map.panel.back': 'Back',
+  'map.panel.venue': 'About this place',
   'map.panel.directions': 'Directions',
   'map.panel.openIn': 'Open in',
   'map.panel.systemMaps': 'Default map app',
@@ -172,6 +174,10 @@ const config = {
   </section>
 
   <aside class="wm-panel" data-panel hidden aria-live="polite">
+    <button type="button" class="wm-panel__back" data-panel-back hidden aria-label={s('map.panel.back')}>
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 5.5 8 12l6.5 6.5" /></svg>
+    </button>
     <button type="button" class="wm-panel__close" data-panel-close aria-label={s('map.panel.close')}>
       <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"
         ><path d="M2 2l10 10M12 2L2 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg

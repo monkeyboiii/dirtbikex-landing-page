@@ -1416,3 +1416,67 @@ body.is-map-page .site-header__inner {
 .wm.is-tracing .wm__canvas {
   cursor: progress;
 }
+
+/* ---------- sheet navigation ---------- */
+
+.wm-panel__back {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 2;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--wm-line);
+  border-radius: 50%;
+  background: rgba(var(--wm-veil), 0.6);
+  color: var(--wm-text-dim);
+  cursor: pointer;
+  transition: color 160ms ease, border-color 160ms ease;
+}
+.wm-panel__back:hover,
+.wm-panel__back:focus-visible {
+  color: var(--wm-text);
+  border-color: var(--wm-line-strong);
+}
+/* The body clears the close button already; a visible back button needs the left too. */
+.wm-panel:has(.wm-panel__back:not([hidden])) .wm-panel__title,
+.wm-panel:has(.wm-panel__back:not([hidden])) .wm-panel__kicker {
+  padding-left: 34px;
+}
+
+/* The venue line is a disclosure into that place's own sheet. */
+.wm-panel__venue {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--wm-text-dim);
+  font: inherit;
+  font-size: 0.86rem;
+  text-align: start;
+  cursor: pointer;
+}
+.wm-panel__venue-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-decoration: underline;
+  text-decoration-color: var(--wm-line-strong);
+  text-underline-offset: 3px;
+}
+.wm-panel__venue-go {
+  flex: none;
+  display: grid;
+  place-items: center;
+  color: var(--wm-text-faint);
+}
+.wm-panel__venue:hover { color: var(--wm-text); }
+.wm-panel__venue:hover .wm-panel__venue-go { color: var(--wm-text-dim); }
