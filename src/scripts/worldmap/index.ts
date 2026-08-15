@@ -338,6 +338,8 @@ class WorldMap {
   /** Memoised as a promise, not a result: two concurrent callers would otherwise both
       push a full copy of every trail into the shared source. */
   private trailsLoad: Promise<boolean> | null = null;
+  /** A deep-linked episode whose venue had not loaded yet when the link was applied. */
+  private pendingEntry: SeriesEntry | null = null;
   private current: SeriesEntry | null = null;
   private tracksBySlug = new Map<string, TrackProps>();
   private opening: SeriesEntry | null = null;
@@ -353,7 +355,7 @@ class WorldMap {
     return this.dark ? this.cfg.styleDarkUrl : this.cfg.styleLightUrl;
   }
 
-  async start(canvas: HTMLElement, strings: Strings) {
+  async start(canvas: HTMLElement, strings: Strings, onReveal?: () => void) {
     for (const feature of this.tracks.features) {
       const props = feature.properties as TrackProps | null;
       if (!props?.slug) continue;
@@ -402,20 +404,33 @@ class WorldMap {
     await new Promise<void>((resolve) => this.map.on('load', () => resolve()));
 
     this.applyProjection();
+    // Reveal here. 'load' fires once the first tile ring is actually painted, and
+    // everything after this point — glyph decodes, pins, markers — was measured at
+    // 42-54% of the wait behind a gate that was already covering a finished basemap.
+    onReveal?.();
+
     await this.addLayers();
     this.renderVisible();
     this.addEpisodeMarkers();
     this.applyLayers();
     this.syncEpisodeChrome();
-    // Metadata-only, ~1 KB: cheap enough to always load, and awaited rather than fired
-    // off because an episode bound to a trail has no coordinates until it lands — a
-    // deep link applied before this resolves silently falls back to the opening stop.
-    // Rendering still waits for the layer toggle.
-    await this.loadTrails();
-    this.resolvePlacements();
-    this.addEpisodeMarkers();
-    this.applyLayers();
-    this.syncEpisodeChrome();
+    // NOT awaited. Measured: the gate flipped within 0-8 ms of this 1 KB document
+    // resolving in 8 of 8 runs, costing ~1.0 s on desktop and ~2.0 s on a phone,
+    // because /api/map/trails.json is a worker route and a cold visitor takes the
+    // cache MISS. All it settles is one non-opening stop on the rail, so it lands
+    // when it lands and re-places the markers then.
+    void this.loadTrails().then(() => {
+      this.resolvePlacements();
+      this.addEpisodeMarkers();
+      this.applyLayers();
+      this.syncEpisodeChrome();
+      // A deep link whose venue lived in this catalog was parked; run it now.
+      const parked = this.pendingEntry;
+      if (parked) {
+        this.pendingEntry = null;
+        this.selectEntry(parked, { fly: true });
+      }
+    });
     this.wireInteractions();
     this.watchTheme();
     this.root.classList.add('is-live');
@@ -1345,7 +1360,11 @@ class WorldMap {
     }
     if (ep) {
       const entry = [...this.placements.keys()].find((e) => e.label === ep);
-      if (entry) this.selectEntry(entry, { fly: true });
+      if (!entry) return;
+      // An episode bound to a trail has no coordinates until that catalog lands, and
+      // selecting it early silently falls back to the opening stop. Park it instead.
+      if (this.placements.get(entry)?.lngLat) this.selectEntry(entry, { fly: true });
+      else this.pendingEntry = entry;
     }
   }
 
@@ -1479,7 +1498,9 @@ export async function bootWorldMap() {
       onVenue: (track) => world.openVenue(track),
       onStep: (delta) => world.stepEntry(delta),
     });
-    await world.start(canvas, strings);
+    await world.start(canvas, strings, () => {
+      gate.dataset.state = 'done';
+    });
     const hud = createHud(
       {
         root: root.querySelector<HTMLElement>('[data-hud]')!,
@@ -1496,7 +1517,6 @@ export async function bootWorldMap() {
     world.attach(panel, hud);
     wireRail(root, world);
     world.applyDeepLink();
-    gate.dataset.state = 'done';
   } catch (err) {
     console.warn('worldmap boot', err);
     root.classList.add('is-unavailable');
