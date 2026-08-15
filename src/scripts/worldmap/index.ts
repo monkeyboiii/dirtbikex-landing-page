@@ -16,6 +16,7 @@ import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&ur
 import { fetchGpx, parseGpx } from './gpx';
 import { createPanel, type Panel } from './panel';
 import { createHud, type Hud } from './hud';
+import { LAYER_DEFAULTS, LAYER_IDS, type LayerId } from './types';
 import type {
   EntryPlacement,
   MapConfig,
@@ -100,14 +101,12 @@ interface ShopDoc {
 
 /** Toggleable map layers. `styleLayers` are MapLibre ids rebuilt by addLayers(); the
     rest of each layer's surface (DOM markers, the HUD) is toggled alongside them. */
-const LAYERS = {
+const LAYERS: Record<LayerId, readonly string[]> = {
   tracks: ['tracks-halo', 'tracks-glow', 'tracks-dot', 'tracks-glyph', 'tracks-seal', 'tracks-label'],
   shops: ['shops-glow', 'shops-blip', 'shops-label'],
   trails: ['trails-line', 'trails-glow', 'trails-blip', 'trails-label'],
   ride: ['journey-line'],
-} as const;
-type LayerId = keyof typeof LAYERS;
-const LAYER_IDS = Object.keys(LAYERS) as LayerId[];
+};
 const LAYER_STORE = 'dbx-map-layers';
 /** Catalog kinds drawn from the shared `tracks` source, one per toggle. */
 const KIND_OF: Partial<Record<LayerId, string>> = { tracks: 'track', shops: 'shop', trails: 'trail' };
@@ -115,9 +114,6 @@ const KIND_OF: Partial<Record<LayerId, string>> = { tracks: 'track', shops: 'sho
     Written positively on purpose: negating each new kind in turn is what let shops,
     and then trails, leak into the track layers. */
 const IS_TRACK = ['==', ['coalesce', ['get', 'kind'], 'track'], 'track'] as never;
-
-/** Trails start off: their data is fetched on first enable, not at boot. */
-const LAYER_DEFAULTS: Record<LayerId, boolean> = { tracks: true, shops: true, trails: false, ride: true };
 
 /** URL wins (shareable), then the visitor's last choice, then the defaults. */
 function initialLayers(): Record<LayerId, boolean> {
@@ -420,6 +416,8 @@ class WorldMap {
     private cfg: MapConfig,
     private series: SeriesDoc,
     private tracks: GeoJSON.FeatureCollection,
+    /** In flight since boot, so the ingest below normally costs no wait at all. */
+    private trailsDoc: Promise<unknown>,
   ) {}
 
   private get styleUrl() {
@@ -495,11 +493,12 @@ class WorldMap {
     this.addEpisodeMarkers();
     this.applyLayers();
     this.syncEpisodeChrome();
-    // NOT awaited. Measured: the gate flipped within 0-8 ms of this 1 KB document
-    // resolving in 8 of 8 runs, costing ~1.0 s on desktop and ~2.0 s on a phone,
-    // because /api/map/trails.json is a worker route and a cold visitor takes the
-    // cache MISS. All it settles is one non-opening stop on the rail, so it lands
-    // when it lands and re-places the markers then.
+    // Still NOT awaited — blocking the reveal on this 1 KB document cost ~1.0 s desktop
+    // and ~2.0 s phone, because /api/map/trails.json is a worker route and a cold visitor
+    // takes the cache MISS. But the request now leaves with the catalog at boot rather
+    // than after the map loads, so by here it has almost always landed and this resolves
+    // on the same tick: the blips are present at first paint instead of popping in. On a
+    // slow link it degrades to arriving late, which is the old behaviour, never a block.
     void this.loadTrails().then(() => {
       this.resolvePlacements();
       this.addEpisodeMarkers();
@@ -970,7 +969,7 @@ class WorldMap {
     });
   }
 
-  /** Fetched on first enable, not at boot — the layer is off for most visits. */
+  /** Memoised: the boot path and the rail toggle share one fetch and one ingest. */
   private loadTrails(): Promise<boolean> {
     this.trailsLoad ??= this.fetchTrails();
     return this.trailsLoad;
@@ -1463,6 +1462,20 @@ class WorldMap {
   }
 }
 
+/**
+ * Writes the pressed state onto the rail. The markup ships with LAYER_DEFAULTS baked in
+ * because the page is static and the server cannot see localStorage, so a returning
+ * visitor's own choices have to be painted on as soon as the island evaluates — not
+ * after the map finishes booting, which left the rail advertising layers that were
+ * about to switch off.
+ */
+function paintRail(root: HTMLElement, state: Record<LayerId, boolean>) {
+  for (const button of root.querySelectorAll<HTMLButtonElement>('[data-layer]')) {
+    const id = button.dataset.layer as LayerId;
+    if (id in state) button.setAttribute('aria-pressed', String(state[id]));
+  }
+}
+
 function wireRail(root: HTMLElement, world: WorldMap) {
   for (const button of root.querySelectorAll<HTMLButtonElement>('[data-layer]')) {
     const id = button.dataset.layer as LayerId;
@@ -1534,6 +1547,14 @@ export async function bootWorldMap() {
   try {
     const progress = bootProgress(root);
     progress.at('boot');
+    // Cheap and pure — resolves URL then localStorage then defaults. Done first so the
+    // rail is truthful from the island's first tick rather than from the map's last.
+    paintRail(root, initialLayers());
+    // Deliberately outside the Promise.all: it must not gate the map, but there is no
+    // reason for it to wait for the map either.
+    const trailsDoc = fetchJson(cfg.trailsUrl)
+      .catch(() => fetchJson('/map/trails.seed.json'))
+      .catch(() => ({ trails: [] }));
     const [series, tracks, shops] = await Promise.all([
       // The worker route is the live projection; the committed seed keeps `astro dev`
       // (no worker) and any R2 outage on a working page.
@@ -1569,7 +1590,7 @@ export async function bootWorldMap() {
       });
     }
 
-    const world = new WorldMap(root, cfg, series as SeriesDoc, catalog);
+    const world = new WorldMap(root, cfg, series as SeriesDoc, catalog, trailsDoc);
     const panel = createPanel({
       root: root.querySelector<HTMLElement>('[data-panel]')!,
       strings,

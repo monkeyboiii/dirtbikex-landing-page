@@ -6,6 +6,7 @@ import Footer from './Footer.astro';
 import { getLangFromUrl, localizedPath } from '../i18n/utils';
 import { ui, defaultLang } from '../i18n/ui';
 import { SOCIALS, FORUM_BASE } from '../config';
+import { LAYER_DEFAULTS, LAYER_IDS } from '../scripts/worldmap/types';
 
 /** English source of every map string; per-locale overrides come from src/i18n/locales. */
 const DEFAULTS: Record<string, string> = {
@@ -93,12 +94,21 @@ const railIcon = (file: string) => {
     return '';
   }
 };
-const RAIL = [
-  { layer: 'tracks', on: railIcon('track'), off: railIcon('track-off'), label: s('map.layer.tracks'), pressed: true },
-  { layer: 'trails', on: railIcon('trails'), off: railIcon('trails-off'), label: s('map.layer.trails'), pressed: false },
-  { layer: 'shops', on: railIcon('shop'), off: railIcon('shop-off'), label: s('map.layer.shops'), pressed: true },
-  { layer: 'ride', on: railIcon('flag'), off: railIcon('flag-off'), label: s('map.layer.ride'), pressed: true },
-];
+// `pressed` comes from the island's own defaults, never a second hardcoded list —
+// otherwise the server-rendered rail can disagree with the map it controls.
+const RAIL_ICONS: Record<string, string> = {
+  tracks: 'track',
+  trails: 'trails',
+  shops: 'shop',
+  ride: 'flag',
+};
+const RAIL = LAYER_IDS.map((layer) => ({
+  layer,
+  on: railIcon(RAIL_ICONS[layer]!),
+  off: railIcon(`${RAIL_ICONS[layer]!}-off`),
+  label: s(`map.layer.${layer}`),
+  pressed: LAYER_DEFAULTS[layer],
+}));
 
 const joinUrl = localizedPath(lang, '/join');
 // Reuse the footer's existing label rather than minting a 21-locale key for it.

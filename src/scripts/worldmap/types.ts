@@ -1,5 +1,20 @@
 export type Tier = 'verified' | 'breadth';
 
+/** The map's toggleable layers, in rail order. Declared here because BOTH the island
+ *  and the server-rendered rail markup need them, and a second hardcoded copy is how
+ *  the rail came to render a stale pressed state on first paint. This module imports
+ *  nothing, so it is safe to pull into Astro frontmatter. */
+export const LAYER_IDS = ['tracks', 'trails', 'shops', 'ride'] as const;
+export type LayerId = (typeof LAYER_IDS)[number];
+
+/** What a first-time visitor sees. A returning visitor's stored set replaces it whole. */
+export const LAYER_DEFAULTS: Record<LayerId, boolean> = {
+  tracks: true,
+  trails: true,
+  shops: true,
+  ride: true,
+};
+
 /** Properties baked into public/map/tracks.json — see CONCRETE_MAP_PLAN.md §6.1. */
 export interface TrackProps {
   slug: string;
