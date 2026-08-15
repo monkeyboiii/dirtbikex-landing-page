@@ -14,7 +14,9 @@
   --wm-accent: #ed6b00;
   --wm-accent-soft: rgba(237, 107, 0, 0.12);
   --wm-tone-success: #1f7a39;
+  --wm-tone-success-rgb: 31, 122, 57;
   --wm-tone-partial: #5f8f4a;
+  --wm-tone-partial-rgb: 95, 143, 74;
   --wm-tone-upcoming: #b08900;
   --wm-tone-upcoming-rgb: 176, 137, 0;
   /* Mirrors palette() in the island; keep the two in step. */
@@ -51,7 +53,9 @@
   --wm-raise: rgba(255, 255, 255, 0.1);
   --wm-raise-line: rgba(255, 255, 255, 0.34);
   --wm-tone-success: #2fa84f;
+  --wm-tone-success-rgb: 47, 168, 79;
   --wm-tone-partial: #8fbf7a;
+  --wm-tone-partial-rgb: 143, 191, 122;
   --wm-tone-upcoming: #d8bc57;
   --wm-tone-upcoming-rgb: 216, 188, 87;
   --wm-kind-track: 139, 92, 246;
@@ -476,9 +480,6 @@ body.is-map-page .site-header__inner {
   font-size: 0.72rem;
   box-shadow: 0 4px 14px -2px rgba(0, 0, 0, 0.7);
 }
-.wm-ep.is-solo.is-live::after {
-  inset: -6px;
-}
 .wm-ep__num {
   position: absolute;
   top: -7px;
@@ -507,26 +508,28 @@ body.is-map-page .site-header__inner {
 .wm-ep.is-visited {
   background: radial-gradient(closest-side, rgba(231, 224, 210, 0.22), rgba(231, 224, 210, 0) 72%);
 }
-/* Anchored on a venue: the bloom takes that entity's colour so the icon underneath is
-   not washed orange. Doubled class so it outranks .wm-ep.is-visited — otherwise the
-   fix stops applying the moment an episode is marked visited. Solo markers keep the
-   accent, because with nothing underneath the challenge IS the subject. */
-.wm-ep.wm-ep[data-venue='track'] {
-  background: radial-gradient(closest-side, rgba(var(--wm-kind-track), 0.42), rgba(var(--wm-kind-track), 0) 72%);
+/* The bloom belongs to the challenge, so it carries the episode's own tone — the same
+   green the rail shows for that stop. The venue keeps its kind colour in its icon, so
+   the two never fight. Doubled class so it outranks .wm-ep.is-visited. */
+.wm-ep.wm-ep[data-tone='success'] {
+  background: radial-gradient(closest-side, rgba(var(--wm-tone-success-rgb), 0.46), rgba(var(--wm-tone-success-rgb), 0) 72%);
 }
-.wm-ep.wm-ep[data-venue='trail'] {
-  background: radial-gradient(closest-side, rgba(var(--wm-kind-trail), 0.42), rgba(var(--wm-kind-trail), 0) 72%);
+.wm-ep.wm-ep[data-tone='partial'] {
+  background: radial-gradient(closest-side, rgba(var(--wm-tone-partial-rgb), 0.46), rgba(var(--wm-tone-partial-rgb), 0) 72%);
 }
-.wm-ep.wm-ep[data-venue='shop'] {
-  background: radial-gradient(closest-side, rgba(var(--wm-kind-shop), 0.42), rgba(var(--wm-kind-shop), 0) 72%);
+.wm-ep.wm-ep[data-tone='upcoming'] {
+  background: radial-gradient(closest-side, rgba(var(--wm-tone-upcoming-rgb), 0.46), rgba(var(--wm-tone-upcoming-rgb), 0) 72%);
 }
 .wm-ep.is-visited .wm-ep__num {
   background: #3c3b3a;
 }
-.wm-ep.is-live::after {
+/* Only the solo marker rings. In badge mode there is a venue icon inside the ring's
+   radius and the ring reads as a second, wrong outline around it. Sits outside the
+   30px disc, which is why the inset is negative. */
+.wm-ep.is-solo.is-live::after {
   content: '';
   position: absolute;
-  inset: 6px;
+  inset: -6px;
   border-radius: 50%;
   border: 1.5px solid rgba(237, 107, 0, 0.5);
   animation: wm-ring 2.6s var(--ease-out, ease) infinite;

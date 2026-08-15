@@ -407,7 +407,14 @@ class WorldMap {
     this.addEpisodeMarkers();
     this.applyLayers();
     this.syncEpisodeChrome();
-    if (this.visible.trails) void this.loadTrails();
+    // Metadata-only, ~1 KB: cheap enough to always load, and an episode bound to a
+    // trail cannot be placed until it has. Rendering still waits for the toggle.
+    void this.loadTrails().then(() => {
+      this.resolvePlacements();
+      this.addEpisodeMarkers();
+      this.applyLayers();
+      this.syncEpisodeChrome();
+    });
     this.wireInteractions();
     this.watchTheme();
     this.root.classList.add('is-live');
@@ -969,6 +976,7 @@ class WorldMap {
   }
 
   private addEpisodeMarkers() {
+    for (const { el } of this.episodeMarkers) el.remove();
     this.episodeMarkers = [];
     for (const [entry, placement] of this.placements) {
       if (!placement.lngLat) continue;
@@ -983,6 +991,10 @@ class WorldMap {
         .join(' ');
       el.innerHTML = `<span class="wm-ep__num">${entry.label}</span>`;
       el.setAttribute('aria-label', entry.label);
+      // The bloom is the challenge's, so it carries the episode's tone rather than the
+      // venue's kind colour — the venue already states its own colour through its icon.
+      if (entry.tone) el.dataset.tone = entry.tone;
+      else if (entry.status === 'upcoming') el.dataset.tone = 'upcoming';
       el.addEventListener('click', (ev) => {
         ev.stopPropagation();
         this.selectEntry(entry, { fly: true });
@@ -1115,8 +1127,6 @@ class WorldMap {
       const owner = venue?.kind === 'shop' ? 'shops' : 'tracks';
       const anchored = !!venue && this.visible[owner] && zoomed;
       el.classList.toggle('is-solo', !anchored);
-      // The bloom belongs to the venue underneath, not to the challenge — an orange
-      // wash behind a purple track or a green trail reads as the wrong entity.
       if (anchored) el.dataset.venue = venue!.kind ?? 'track';
       else delete el.dataset.venue;
     }

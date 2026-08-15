@@ -8,11 +8,7 @@
       "label": "00",
       "kind": "episode",
       "video_id": "DBX-APP-S03E000",
-      "track_slug": null,
-      "coords": {
-        "lat": 30.2374,
-        "lng": 120.15
-      },
+      "track_slug": "xihu-easter-egg",
       "venue": {
         "en": "West Lake, Hangzhou",
         "zh-CN": "杭州 西湖"

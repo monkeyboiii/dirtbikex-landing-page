@@ -321,6 +321,27 @@ export function createPanel(deps: PanelDeps) {
     const at = `${lat.toFixed(6)},${lng.toFixed(6)}`;
     const name = encodeURIComponent(track.name_local || track.name);
     const apple = /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent);
+    const ios = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const touch = navigator.maxTouchPoints > 0;
+
+    // On a phone the web URI is a detour: try the installed app's own scheme first and
+    // fall back to the web page only if nothing took the navigation. `pagehide` firing
+    // means the app opened, so the fallback is cancelled.
+    const openVia = (scheme: string | null, web: string) => (ev: MouseEvent) => {
+      dismiss();
+      if (!scheme || !touch) return;
+      ev.preventDefault();
+      let left = false;
+      const gone = () => { left = true; };
+      addEventListener('pagehide', gone, { once: true });
+      addEventListener('blur', gone, { once: true });
+      location.href = scheme;
+      setTimeout(() => {
+        removeEventListener('pagehide', gone);
+        removeEventListener('blur', gone);
+        if (!left && !document.hidden) window.open(web, '_blank', 'noopener');
+      }, 1400);
+    };
 
     const apps = [
       cn
@@ -328,15 +349,26 @@ export function createPanel(deps: PanelDeps) {
             id: 'amap',
             name: '高德地图',
             href: `https://uri.amap.com/marker?position=${lng.toFixed(6)},${lat.toFixed(6)}&name=${name}&src=dirtbikex&coordinate=gaode&callnative=1`,
+            scheme: `${ios ? 'iosamap' : 'androidamap'}://viewMap?sourceApplication=DirtBikeX&poiname=${name}&lat=${lat.toFixed(6)}&lon=${lng.toFixed(6)}&dev=0`,
           }
         : null,
-      { id: 'apple', name: 'Apple Maps', href: `https://maps.apple.com/?daddr=${at}&dirflg=d` },
-      { id: 'google', name: 'Google Maps', href: `https://www.google.com/maps/dir/?api=1&destination=${at}` },
+      {
+        id: 'apple',
+        name: 'Apple Maps',
+        href: `https://maps.apple.com/?daddr=${at}&dirflg=d`,
+        scheme: ios ? `maps://?daddr=${at}&dirflg=d` : null,
+      },
+      {
+        id: 'google',
+        name: 'Google Maps',
+        href: `https://www.google.com/maps/dir/?api=1&destination=${at}`,
+        scheme: `comgooglemaps://?daddr=${at}&directionsmode=driving`,
+      },
       // Android hands geo: to whatever the visitor installed; it is inert on desktop.
       !apple && navigator.maxTouchPoints > 0
         ? { id: 'system', name: strings['map.panel.systemMaps'] ?? 'Default map app', href: `geo:${at}?q=${at}(${name})` }
         : null,
-    ].filter(Boolean) as { id: string; name: string; href: string }[];
+    ].filter(Boolean) as { id: string; name: string; href: string; scheme?: string | null }[];
 
     const preferred = cn ? 'amap' : apple ? 'apple' : 'google';
     apps.sort((a, b) => (a.id === preferred ? -1 : b.id === preferred ? 1 : 0));
@@ -370,7 +402,7 @@ export function createPanel(deps: PanelDeps) {
       if (app.id === preferred) {
         opt.appendChild(el('span', 'wm-chooser__chip', strings['map.panel.recommended'] ?? 'Recommended'));
       }
-      opt.addEventListener('click', dismiss);
+      opt.addEventListener('click', openVia(app.scheme ?? null, app.href));
       card.appendChild(opt);
     }
 
