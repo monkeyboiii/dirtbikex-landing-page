@@ -139,7 +139,17 @@ const config = {
       <p class="wm__gate-sub">
         {trackCount > 0 ? s('map.legend.tracks').replace('{count}', trackCount.toLocaleString(lang)) : ''}
       </p>
-      <div class="wm__gate-spinner" role="status" aria-label={s('map.boot.loading')}></div>
+      <div
+        class="wm__gate-bar"
+        data-gate-bar
+        role="progressbar"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        aria-valuenow="0"
+        aria-label={s('map.boot.loading')}
+      >
+        <span class="wm__gate-fill" data-gate-fill></span>
+      </div>
       <p class="wm__gate-error">{s('map.err.unavailable')}</p>
     </div>
   </div>

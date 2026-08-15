@@ -158,6 +158,77 @@ async function fetchJson(url: string): Promise<unknown> {
   return resp.json();
 }
 
+/**
+ * Same as fetchJson, but reports real byte progress. Used only for the catalog,
+ * which is the one boot phase that yields a smooth signal — everything else
+ * (tiles, glyph decodes) was measured landing as a single step at the end of its
+ * band, so the bar treats those as checkpoints rather than progress sources.
+ */
+async function fetchJsonProgress(url: string, onBytes: (frac: number) => void): Promise<unknown> {
+  const resp = await fetch(url, { headers: { accept: 'application/json' } });
+  if (!resp.ok) throw new Error(`${url} → ${resp.status}`);
+  const total = Number(resp.headers.get('content-length'));
+  if (!resp.body || !Number.isFinite(total) || total <= 0) return resp.json();
+
+  const reader = resp.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let seen = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    chunks.push(value);
+    seen += value.byteLength;
+    onBytes(Math.min(1, seen / total));
+  }
+  return JSON.parse(new TextDecoder().decode(await new Blob(chunks).arrayBuffer()));
+}
+
+/**
+ * Boot progress. Weights come from measured cold loads: the catalog download and
+ * the basemap's first tile ring dominate, and the basemap band is both the longest
+ * and the least observable — so it creeps on a decaying curve toward its own ceiling
+ * and only completes on a real event. Nothing can park at 90%: every band has a
+ * ceiling below its successor's floor, and the reveal sets 100 unconditionally.
+ */
+function bootProgress(root: HTMLElement) {
+  const bar = root.querySelector<HTMLElement>('[data-gate-bar]');
+  const fill = root.querySelector<HTMLElement>('[data-gate-fill]');
+  const BANDS = { boot: [0, 8], catalog: [8, 42], style: [42, 52], basemap: [52, 97] } as const;
+  let shown = 0;
+  let creep: ReturnType<typeof setInterval> | undefined;
+
+  const paint = (value: number) => {
+    // Monotonic: a late-arriving signal must never walk the bar backwards.
+    shown = Math.max(shown, Math.min(100, value));
+    if (fill) fill.style.width = `${shown}%`;
+    bar?.setAttribute('aria-valuenow', String(Math.round(shown)));
+  };
+
+  const at = (band: keyof typeof BANDS, frac = 1) => {
+    const [from, to] = BANDS[band];
+    paint(from + (to - from) * Math.min(1, Math.max(0, frac)));
+  };
+
+  return {
+    at,
+    /** Eases toward the band's ceiling without ever reaching it, so a long
+        unobservable phase keeps moving instead of freezing mid-bar. */
+    creepTo(band: keyof typeof BANDS, seconds: number) {
+      clearInterval(creep);
+      const [from, to] = BANDS[band];
+      const started = performance.now();
+      creep = setInterval(() => {
+        const t = (performance.now() - started) / (seconds * 1000);
+        paint(from + (to - from) * (1 - Math.exp(-t * 1.9)));
+      }, 90);
+    },
+    done() {
+      clearInterval(creep);
+      paint(100);
+    },
+  };
+}
+
 function hasWebGL2(): boolean {
   try {
     return !!document.createElement('canvas').getContext('webgl2');
@@ -355,7 +426,11 @@ class WorldMap {
     return this.dark ? this.cfg.styleDarkUrl : this.cfg.styleLightUrl;
   }
 
-  async start(canvas: HTMLElement, strings: Strings, onReveal?: () => void) {
+  async start(
+    canvas: HTMLElement,
+    strings: Strings,
+    hooks: { onStyle?: () => void; onBasemap?: (seconds: number) => void; onReveal?: () => void } = {},
+  ) {
     for (const feature of this.tracks.features) {
       const props = feature.properties as TrackProps | null;
       if (!props?.slug) continue;
@@ -401,13 +476,19 @@ class WorldMap {
 
     this.map.on('error', (e) => console.warn('worldmap', e?.error?.message ?? e));
 
+    // The basemap band is the long one and it reports nothing until the whole first
+    // ring lands at once, so the bar creeps across it on a measured time constant:
+    // about 3s desktop, and slower on a narrow viewport, which is a decent proxy for
+    // a phone on a phone network.
+    this.map.once('styledata', () => hooks.onStyle?.());
+    hooks.onBasemap?.(isNarrow() ? 7 : 3);
     await new Promise<void>((resolve) => this.map.on('load', () => resolve()));
 
     this.applyProjection();
     // Reveal here. 'load' fires once the first tile ring is actually painted, and
     // everything after this point — glyph decodes, pins, markers — was measured at
     // 42-54% of the wait behind a gate that was already covering a finished basemap.
-    onReveal?.();
+    hooks.onReveal?.();
 
     await this.addLayers();
     this.renderVisible();
@@ -1451,11 +1532,13 @@ export async function bootWorldMap() {
 
   gate.dataset.state = 'loading';
   try {
+    const progress = bootProgress(root);
+    progress.at('boot');
     const [series, tracks, shops] = await Promise.all([
       // The worker route is the live projection; the committed seed keeps `astro dev`
       // (no worker) and any R2 outage on a working page.
       fetchJson(cfg.seriesUrl).catch(() => fetchJson('/map/series.seed.json')),
-      fetchJson(cfg.tracksUrl),
+      fetchJsonProgress(cfg.tracksUrl, (frac) => progress.at('catalog', frac)),
       // Shops are operator-published like the series, so they arrive without a rebuild.
       // A missing doc must never cost us the map, so this one degrades to nothing.
       fetchJson(cfg.shopsUrl)
@@ -1498,8 +1581,14 @@ export async function bootWorldMap() {
       onVenue: (track) => world.openVenue(track),
       onStep: (delta) => world.stepEntry(delta),
     });
-    await world.start(canvas, strings, () => {
-      gate.dataset.state = 'done';
+    progress.at('catalog');
+    await world.start(canvas, strings, {
+      onStyle: () => progress.at('style'),
+      onBasemap: (seconds) => progress.creepTo('basemap', seconds),
+      onReveal: () => {
+        progress.done();
+        gate.dataset.state = 'done';
+      },
     });
     const hud = createHud(
       {
