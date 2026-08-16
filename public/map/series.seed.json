@@ -102,7 +102,7 @@
       "sub": 0,
       "label": "03",
       "kind": "episode",
-      "status": "upcoming",
+      "status": "live",
       "venue": {
         "en": "Tonglu, Hangzhou",
         "zh-CN": "杭州桐庐"
@@ -112,7 +112,13 @@
         "zh-CN": "桐庐73号越野主题乐园"
       },
       "track_slug": "cn-tong-lu-73-hao-yue-ye-zhu-ti-le-yuan",
-      "links": null
+      "links": {
+        "tiktok": "https://www.tiktok.com/t/ZTDjXnV3y/",
+        "douyin": "https://v.douyin.com/80ahZEi9YPY/",
+        "instagram": "https://www.instagram.com/reel/DcGjNkAFjzm/?igsi=MXAwbjBxenltZXVpeg==",
+        "facebook": "https://www.facebook.com/share/r/1BeuDmP8P2/?mibextid=wwXIfr"
+      },
+      "tone": "success"
     }
   ]
 }

@@ -9,12 +9,30 @@ const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
 const year = new Date().getFullYear();
 const home = localizedPath(lang, '/');
+/** TikTok and Douyin host the same clips; one mark, and the locale's platform leads. */
+const preferDouyin = lang === 'zh-CN' || lang === 'zh-TW';
+const shortVideoLabel = preferDouyin ? '抖音 / TikTok' : 'TikTok / 抖音';
+const shortVideoChoices = (
+  preferDouyin
+    ? [
+        { platform: 'douyin' as const, url: SOCIALS.douyin, label: '抖音' },
+        { platform: 'tiktok' as const, url: SOCIALS.tiktok, label: 'TikTok' },
+      ]
+    : [
+        { platform: 'tiktok' as const, url: SOCIALS.tiktok, label: 'TikTok' },
+        { platform: 'douyin' as const, url: SOCIALS.douyin, label: '抖音' },
+      ]
+);
+
 const footerSocials = [
   { platform: 'facebook' as const, url: SOCIALS.facebook, label: t('contact.social.facebook') },
   { platform: 'instagram' as const, url: SOCIALS.instagram, label: t('contact.social.instagram') },
   { platform: 'x' as const, url: SOCIALS.x, label: t('contact.social.x') },
-  { platform: 'tiktok' as const, url: SOCIALS.tiktok, label: 'TikTok' },
-  { platform: 'douyin' as const, url: SOCIALS.douyin, label: '抖音' },
+  {
+    platform: 'tiktok' as const,
+    label: shortVideoLabel,
+    choices: shortVideoChoices,
+  },
   { platform: 'email' as const, url: `mailto:${SUPPORT_EMAIL}`, label: t('contact.social.email') },
 ];
 ---

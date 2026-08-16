@@ -3,8 +3,11 @@ import SocialIcon, { type SocialPlatform } from './SocialIcon.astro';
 
 export interface SocialLink {
   platform: SocialPlatform;
-  url: string;
+  url?: string;
   label: string;
+  /** Two destinations behind one mark — TikTok and Douyin carry the same clips, so
+   *  they share an icon and the visitor picks. Ordered with the locale's first. */
+  choices?: { platform: SocialPlatform; url: string; label: string }[];
 }
 interface Props {
   links: SocialLink[];
@@ -15,21 +18,86 @@ const { links, class: className = '' } = Astro.props;
 <ul class:list={['social-links', className]}>
   {links.map((l) => (
     <li>
-      <a
-        href={l.url}
-        target={l.url.startsWith('http') ? '_blank' : undefined}
-        rel={l.url.startsWith('http') ? 'noopener' : undefined}
-        class="social-link"
-        aria-label={l.label}
-        title={l.label}
-      >
-        <SocialIcon platform={l.platform} />
-      </a>
+      {l.choices ? (
+        <details class="social-choice" data-social-choice>
+          <summary class="social-link" aria-label={l.label} title={l.label}>
+            <SocialIcon platform={l.platform} />
+          </summary>
+          <ul class="social-choice__menu" role="menu">
+            {l.choices.map((c) => (
+              <li role="none">
+                <a role="menuitem" href={c.url} target="_blank" rel="noopener" class="social-choice__item">
+                  <SocialIcon platform={c.platform} />
+                  <span>{c.label}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </details>
+      ) : (
+        <a
+          href={l.url}
+          target={l.url!.startsWith('http') ? '_blank' : undefined}
+          rel={l.url!.startsWith('http') ? 'noopener' : undefined}
+          class="social-link"
+          aria-label={l.label}
+          title={l.label}
+        >
+          <SocialIcon platform={l.platform} />
+        </a>
+      )}
     </li>
   ))}
 </ul>
 
+<script is:inline>
+  // Same dismissal behaviour as the language picker: click outside to close.
+  document.addEventListener('click', (e) => {
+    document.querySelectorAll('details[data-social-choice][open]').forEach((d) => {
+      if (!d.contains(e.target)) d.removeAttribute('open');
+    });
+  });
+</script>
+
 <style>
+  .social-choice {
+    position: relative;
+  }
+  .social-choice > summary {
+    list-style: none;
+    cursor: pointer;
+  }
+  .social-choice > summary::-webkit-details-marker {
+    display: none;
+  }
+  .social-choice__menu {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 0;
+    z-index: 20;
+    min-width: 150px;
+    margin: 0;
+    padding: 6px;
+    list-style: none;
+    border-radius: 10px;
+    border: 1px solid var(--border, rgba(255, 255, 255, 0.14));
+    background: var(--surface, #16140f);
+    box-shadow: 0 18px 40px -16px rgba(0, 0, 0, 0.8);
+  }
+  .social-choice__item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 7px;
+    color: inherit;
+    text-decoration: none;
+    font-size: 0.88rem;
+    white-space: nowrap;
+  }
+  .social-choice__item:hover {
+    background: rgba(127, 127, 127, 0.14);
+  }
   .social-links {
     display: flex;
     gap: 8px;
