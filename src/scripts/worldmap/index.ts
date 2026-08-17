@@ -1005,8 +1005,17 @@ class WorldMap {
       el.className = 'wm-rider';
       el.href = `/lineage/${rider.username ? '@' + rider.username : rider.slug}`;
       el.setAttribute('aria-label', rider.name ?? rider.slug);
-      el.innerHTML = rider.avatar_template
-        ? `<img class="wm-rider__avatar" src="${rider.avatar_template.replace('{size}', '48')}" alt="" loading="lazy">`
+      // Discourse hands back a root-relative avatar path, so it needs the forum
+      // origin the way the trail byline does — otherwise it resolves against
+      // the marketing host and renders as a broken image.
+      const avatarSrc = rider.avatar_template
+        ? (rider.avatar_template.startsWith('http')
+            ? rider.avatar_template
+            : this.cfg.forumBase + rider.avatar_template
+          ).replace('{size}', '48')
+        : null;
+      el.innerHTML = avatarSrc
+        ? `<img class="wm-rider__avatar" src="${avatarSrc}" alt="" loading="lazy">`
         : `<span class="wm-rider__avatar wm-rider__avatar--letter">${(rider.name ?? '\u00b7').slice(0, 1)}</span>`;
       el.style.display = this.visible.riders ? '' : 'none';
       new Marker({ element: el, anchor: 'center' }).setLngLat([rider.lon, rider.lat]).addTo(this.map);
