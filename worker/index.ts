@@ -11,7 +11,7 @@ import { handleJoinSubmit, handleJoinConfirm, handleUnsubscribe, handleCodePrech
 import { handleShortlinkResolve } from './_lib/shortlink';
 import { handleMapDoc } from './_lib/mapData';
 import { handleOgPreview } from './_lib/ogPreview';
-import { lookupResume, lookupClaimPreview, lookupTrackContributors, lineagePath } from './_lib/lineageLookup';
+import { lookupResume, lookupClaimPreview, lookupTrackContributors, lookupRiderPins } from './_lib/lineageLookup';
 import { renderResume, renderClaim, renderLineageNotFound, getFacetLabels } from './_lib/lineageRender';
 import type { Lang, PagesEnv, ShareLandingProps } from './_lib/types';
 
@@ -674,6 +674,15 @@ async function handleLineageTrackJSON(request: Request, env: Env): Promise<Respo
   return new Response(JSON.stringify(result.data), { headers: JSON_HEADERS });
 }
 
+/** The riders map layer; gated server-side, so a 404 here just means "no layer". */
+async function handleLineageRidersJSON(env: Env): Promise<Response> {
+  const result = await lookupRiderPins(env);
+  if (result.status !== 'valid') {
+    return new Response('{"riders":[]}', { headers: JSON_HEADERS });
+  }
+  return new Response(JSON.stringify(result.data), { headers: JSON_HEADERS });
+}
+
 const JSON_HEADERS = {
   'Content-Type': 'application/json; charset=utf-8',
   'Cache-Control': 'public, max-age=60, s-maxage=300',
@@ -712,6 +721,7 @@ export default {
     if (request.method === 'GET') {
       if (url.pathname === '/api/lineage/rider.json') return handleLineageJSON(request, env);
       if (url.pathname === '/api/lineage/track.json') return handleLineageTrackJSON(request, env);
+      if (url.pathname === '/api/lineage/riders.json') return handleLineageRidersJSON(env);
       if (url.pathname === '/api/forum/metrics.json') return handleForumMetrics(env);
       if (url.pathname === '/api/forum/featured.json') return handleForumFeatured(env);
       // World map story data — R2 projection with the committed seed as fallback.

@@ -121,3 +121,18 @@ export function lookupTrackContributors(env: PagesEnv, slug: string) {
     `/dirtbikex/lineage/tracks/${encodeURIComponent(slug)}.json`
   );
 }
+
+export interface RiderPin {
+  slug: string;
+  name: string | null;
+  username: string | null;
+  avatar_template: string | null;
+  region: string | null;
+  lat: number;
+  lon: number;
+  students: number;
+}
+
+export function lookupRiderPins(env: PagesEnv) {
+  return getJSON<{ riders: RiderPin[] }>(env, '/dirtbikex/lineage/riders/geo.json');
+}

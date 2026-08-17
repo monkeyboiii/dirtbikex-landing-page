@@ -237,6 +237,7 @@
   "map.layer.ride": "O desafio dos 100",
   "map.layer.trails": "Trilhas dos pilotos",
   "map.layer.shops": "Lojas",
+  "map.layer.riders": "Pilotos",
   "map.trail.rider": "Piloto",
   "map.trail.kicker": "Trilha do piloto",
   "map.trail.distance": "Distância",
@@ -249,5 +250,7 @@
   "map.trail.sections": "{n} seções",
   "map.trail.thread": "Tópico do fórum",
   "map.trail.studio": "Abrir no gpx.studio",
-  "map.layer.title": "Camadas"
+  "map.layer.title": "Camadas",
+  "map.track.builtBy": "Construído por",
+  "map.track.unclaimedRider": "Piloto não reivindicado"
 }

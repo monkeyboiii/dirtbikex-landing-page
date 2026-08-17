@@ -237,6 +237,7 @@
   "map.layer.ride": "Tantangan 100",
   "map.layer.trails": "Jalur rider",
   "map.layer.shops": "Toko",
+  "map.layer.riders": "Pengendara",
   "map.trail.rider": "Rider",
   "map.trail.kicker": "Jalur rider",
   "map.trail.distance": "Jarak",
@@ -249,5 +250,7 @@
   "map.trail.sections": "{n} bagian",
   "map.trail.thread": "Utas forum",
   "map.trail.studio": "Buka di gpx.studio",
-  "map.layer.title": "Lapisan"
+  "map.layer.title": "Lapisan",
+  "map.track.builtBy": "Dibangun oleh",
+  "map.track.unclaimedRider": "Pengendara belum diklaim"
 }

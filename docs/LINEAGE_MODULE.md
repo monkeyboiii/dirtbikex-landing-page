@@ -70,3 +70,25 @@ the rendered page has zero `<script>` tags, one inline `<style>`, no external
 stylesheet or font, no `<img>` from a third-party host, and exactly two outbound
 *links* (the forum thread cited as evidence, and the App Store CTA) — neither of
 which is a loaded asset.
+
+## On the map
+
+Two touches, both small on purpose:
+
+- **"Built by" on a track sheet.** `panel.ts` appends the byline *after* the
+  sheet is already open, so a slow or absent lineage endpoint never delays the
+  venue card. Contributors come from the same anonymous projection as the
+  résumé; an unclaimed one stays a placeholder here too, and the ○/✓ glyph is
+  the same honesty contract.
+- **A `riders` rail toggle**, off by default and hidden entirely when nobody is
+  on it. It is drawn with **DOM markers, not style layers** — a `Marker`
+  survives `setStyle`, so this layer never joins the hard-coded `addLayers()`
+  block, the hit-test list or the click-dispatch chain that
+  MAP_LAYERS_PLAN §7 wants refactored before another style layer lands. Each
+  marker is a plain anchor to that rider's résumé: no sheet, nothing to keep in
+  sync, nothing to clear when the layer is switched off.
+
+Positions are coarsened to ~1 km on the server and only for riders the operator
+approved (or who cleared the confirmed-edge bar) — see LINEAGE_PLAN L8. The
+worker proxy returns an empty list rather than an error when the layer is off,
+which the island treats the same as "nobody is on the map".

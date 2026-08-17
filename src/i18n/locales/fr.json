@@ -237,6 +237,7 @@
   "map.layer.ride": "Le défi des 100",
   "map.layer.trails": "Traces des pilotes",
   "map.layer.shops": "Boutiques",
+  "map.layer.riders": "Pilotes",
   "map.trail.rider": "Pilote",
   "map.trail.kicker": "Trace de pilote",
   "map.trail.distance": "Distance",
@@ -249,5 +250,7 @@
   "map.trail.sections": "{n} sections",
   "map.trail.thread": "Fil du forum",
   "map.trail.studio": "Ouvrir dans gpx.studio",
-  "map.layer.title": "Calques"
+  "map.layer.title": "Calques",
+  "map.track.builtBy": "Construit par",
+  "map.track.unclaimedRider": "Pilote non revendiqué"
 }

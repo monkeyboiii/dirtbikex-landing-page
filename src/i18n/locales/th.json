@@ -237,6 +237,7 @@
   "map.layer.ride": "ชาเลนจ์ 100 สนาม",
   "map.layer.trails": "เส้นทางของนักขี่",
   "map.layer.shops": "ร้านค้า",
+  "map.layer.riders": "นักขี่",
   "map.trail.rider": "นักขี่",
   "map.trail.kicker": "เส้นทางนักขี่",
   "map.trail.distance": "ระยะทาง",
@@ -249,5 +250,7 @@
   "map.trail.sections": "{n} ช่วง",
   "map.trail.thread": "กระทู้ในฟอรัม",
   "map.trail.studio": "เปิดใน gpx.studio",
-  "map.layer.title": "เลเยอร์"
+  "map.layer.title": "เลเยอร์",
+  "map.track.builtBy": "สร้างโดย",
+  "map.track.unclaimedRider": "นักขี่ที่ยังไม่ยืนยัน"
 }

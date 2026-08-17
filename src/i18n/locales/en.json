@@ -243,6 +243,7 @@
   "map.layer.ride": "The 100 challenge",
   "map.layer.trails": "Rider trails",
   "map.layer.shops": "Shops",
+  "map.layer.riders": "Riders",
   "map.trail.rider": "Rider",
   "map.trail.kicker": "Rider trail",
   "map.trail.distance": "Distance",
@@ -255,5 +256,7 @@
   "map.trail.sections": "{n} sections",
   "map.trail.thread": "Forum thread",
   "map.trail.studio": "Open in gpx.studio",
-  "map.layer.title": "Layers"
+  "map.layer.title": "Layers",
+  "map.track.builtBy": "Built by",
+  "map.track.unclaimedRider": "Unclaimed rider"
 }

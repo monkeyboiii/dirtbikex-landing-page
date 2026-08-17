@@ -237,6 +237,7 @@
   "map.layer.ride": "چالش ۱۰۰",
   "map.layer.trails": "مسیرهای موتورسواران",
   "map.layer.shops": "فروشگاه‌ها",
+  "map.layer.riders": "موتورسواران",
   "map.trail.rider": "موتورسوار",
   "map.trail.kicker": "مسیر موتورسوار",
   "map.trail.distance": "مسافت",
@@ -249,5 +250,7 @@
   "map.trail.sections": "{n} بخش",
   "map.trail.thread": "موضوع انجمن",
   "map.trail.studio": "باز کردن در gpx.studio",
-  "map.layer.title": "لایه‌ها"
+  "map.layer.title": "لایه‌ها",
+  "map.track.builtBy": "ساخته شده توسط",
+  "map.track.unclaimedRider": "موتورسوار بدون ادعا"
 }

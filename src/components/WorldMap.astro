@@ -101,6 +101,7 @@ const RAIL_ICONS: Record<string, string> = {
   trails: 'trails',
   shops: 'shop',
   ride: 'flag',
+  riders: 'rider',
 };
 const RAIL = LAYER_IDS.map((layer) => ({
   layer,
@@ -123,6 +124,7 @@ const config = {
   tracksUrl: '/map/tracks.json',
   seriesUrl: '/api/map/series.json',
   trailsUrl: '/api/map/trails.json',
+  ridersUrl: '/api/lineage/riders.json',
   shopsUrl: '/api/map/shops.json',
   forumBase: FORUM_BASE,
   markersBase: '/map/markers/',

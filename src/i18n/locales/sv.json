@@ -239,6 +239,7 @@
   "map.layer.ride": "100-utmaningen",
   "map.layer.trails": "Förarnas leder",
   "map.layer.shops": "Butiker",
+  "map.layer.riders": "Förare",
   "map.trail.rider": "Förare",
   "map.trail.kicker": "Förarled",
   "map.trail.distance": "Distans",
@@ -251,5 +252,7 @@
   "map.trail.sections": "{n} sektioner",
   "map.trail.thread": "Forumtråd",
   "map.trail.studio": "Öppna i gpx.studio",
-  "map.layer.title": "Lager"
+  "map.layer.title": "Lager",
+  "map.track.builtBy": "Byggd av",
+  "map.track.unclaimedRider": "Ej hävdad förare"
 }

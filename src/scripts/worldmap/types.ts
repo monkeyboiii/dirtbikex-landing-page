@@ -4,7 +4,7 @@ export type Tier = 'verified' | 'breadth';
  *  and the server-rendered rail markup need them, and a second hardcoded copy is how
  *  the rail came to render a stale pressed state on first paint. This module imports
  *  nothing, so it is safe to pull into Astro frontmatter. */
-export const LAYER_IDS = ['tracks', 'trails', 'shops', 'ride'] as const;
+export const LAYER_IDS = ['tracks', 'trails', 'shops', 'ride', 'riders'] as const;
 export type LayerId = (typeof LAYER_IDS)[number];
 
 /** What a first-time visitor sees. A returning visitor's stored set replaces it whole. */
@@ -13,6 +13,10 @@ export const LAYER_DEFAULTS: Record<LayerId, boolean> = {
   trails: true,
   shops: true,
   ride: true,
+  // Off by default, and the rail hides it entirely when nobody is on it: riders
+  // are people, and appearing on a public map is opt-in twice over — the rider
+  // sets a location, and the operator (or the confirmed-edge bar) allows it.
+  riders: false,
 };
 
 /** Properties baked into public/map/tracks.json — see CONCRETE_MAP_PLAN.md §6.1. */
@@ -114,6 +118,7 @@ export interface MapConfig {
   tracksUrl: string;
   seriesUrl: string;
   trailsUrl: string;
+  ridersUrl: string;
   shopsUrl: string;
   /** Origin the rider avatar is fetched from. */
   forumBase: string;
@@ -132,4 +137,35 @@ export type Strings = Record<string, string>;
 export interface EntryPlacement {
   entry: SeriesEntry;
   lngLat: [number, number] | null;
+}
+
+/** A rider on the map: coarsened position + the numbers worth a pin label. */
+export interface RiderPin {
+  slug: string;
+  name: string | null;
+  username: string | null;
+  avatar_template: string | null;
+  region: string | null;
+  lat: number;
+  lon: number;
+  students: number;
+}
+
+export interface RidersDoc {
+  riders: RiderPin[];
+}
+
+/** One row of the track sheet's "built by" byline. */
+export interface LineageContributor {
+  id: number;
+  provenance: string;
+  facets: string[];
+  start_year: number | null;
+  rider: {
+    slug: string;
+    username: string | null;
+    name: string | null;
+    name_local: string | null;
+    placeholder: boolean;
+  } | null;
 }

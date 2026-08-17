@@ -237,6 +237,7 @@
   "map.layer.ride": "100 radan haaste",
   "map.layer.trails": "Kuljettajien reitit",
   "map.layer.shops": "Liikkeet",
+  "map.layer.riders": "Riders",
   "map.trail.rider": "Kuljettaja",
   "map.trail.kicker": "Kuljettajan reitti",
   "map.trail.distance": "Matka",
@@ -249,5 +250,7 @@
   "map.trail.sections": "{n} osuutta",
   "map.trail.thread": "Foorumiketju",
   "map.trail.studio": "Avaa gpx.studiossa",
-  "map.layer.title": "Tasot"
+  "map.layer.title": "Tasot",
+  "map.track.builtBy": "Built by",
+  "map.track.unclaimedRider": "Unclaimed rider"
 }

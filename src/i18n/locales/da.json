@@ -237,6 +237,7 @@
   "map.layer.ride": "100-udfordringen",
   "map.layer.trails": "Køreres spor",
   "map.layer.shops": "Butikker",
+  "map.layer.riders": "Kørere",
   "map.trail.rider": "Kører",
   "map.trail.kicker": "Kørerspor",
   "map.trail.distance": "Distance",
@@ -249,5 +250,7 @@
   "map.trail.sections": "{n} sektioner",
   "map.trail.thread": "Forumtråd",
   "map.trail.studio": "Åbn i gpx.studio",
-  "map.layer.title": "Lag"
+  "map.layer.title": "Lag",
+  "map.track.builtBy": "Bygget af",
+  "map.track.unclaimedRider": "Ikke-krævet kører"
 }

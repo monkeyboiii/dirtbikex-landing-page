@@ -237,6 +237,7 @@
   "map.layer.ride": "100곳 챌린지",
   "map.layer.trails": "라이더 트레일",
   "map.layer.shops": "매장",
+  "map.layer.riders": "라이더",
   "map.trail.rider": "라이더",
   "map.trail.kicker": "라이더 트레일",
   "map.trail.distance": "거리",
@@ -249,5 +250,7 @@
   "map.trail.sections": "{n}개 구간",
   "map.trail.thread": "포럼 스레드",
   "map.trail.studio": "gpx.studio에서 열기",
-  "map.layer.title": "레이어"
+  "map.layer.title": "레이어",
+  "map.track.builtBy": "건설자",
+  "map.track.unclaimedRider": "미확인 라이더"
 }

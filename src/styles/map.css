@@ -1490,3 +1490,53 @@ body.is-map-page .site-header__inner {
 }
 .wm-panel__venue:hover { color: var(--wm-text); }
 .wm-panel__venue:hover .wm-panel__venue-go { color: var(--wm-text-dim); }
+
+/* Riders layer — a face on the map, not a pin: these are people, and the
+   position behind them is already coarsened to ~1 km server-side. */
+.wm-rider {
+  display: block;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid var(--wm-marker-ring, rgba(255, 255, 255, 0.85));
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.35);
+  background: var(--clay-300, #cfc6bd);
+  cursor: pointer;
+}
+.wm-rider__avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  font-weight: 700;
+  color: #fff;
+}
+.wm-rider__avatar--letter {
+  background: var(--dbx-orange, #d64000);
+}
+
+/* "Built by" on a track sheet — a byline, not a section: the people who made
+   the place, at the same scale as a trail's author. */
+.wm-built {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 0.6rem;
+  margin-top: 0.6rem;
+}
+.wm-built__label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.65;
+}
+.wm-built__rider {
+  font-size: 0.9rem;
+}
+a.wm-built__rider {
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+}

@@ -237,6 +237,7 @@
   "map.layer.ride": "De 100-uitdaging",
   "map.layer.trails": "Trails van rijders",
   "map.layer.shops": "Winkels",
+  "map.layer.riders": "Rijders",
   "map.trail.rider": "Rijder",
   "map.trail.kicker": "Trail van rijder",
   "map.trail.distance": "Afstand",
@@ -249,5 +250,7 @@
   "map.trail.sections": "{n} secties",
   "map.trail.thread": "Forumtopic",
   "map.trail.studio": "Openen in gpx.studio",
-  "map.layer.title": "Lagen"
+  "map.layer.title": "Lagen",
+  "map.track.builtBy": "Gebouwd door",
+  "map.track.unclaimedRider": "Niet-geclaimde rijder"
 }

@@ -237,6 +237,7 @@
   "map.layer.ride": "Thử thách 100",
   "map.layer.trails": "Đường chạy của tay lái",
   "map.layer.shops": "Cửa hàng",
+  "map.layer.riders": "Tay lái",
   "map.trail.rider": "Tay lái",
   "map.trail.kicker": "Đường chạy",
   "map.trail.distance": "Quãng đường",
@@ -249,5 +250,7 @@
   "map.trail.sections": "{n} đoạn",
   "map.trail.thread": "Chủ đề diễn đàn",
   "map.trail.studio": "Mở trong gpx.studio",
-  "map.layer.title": "Lớp"
+  "map.layer.title": "Lớp",
+  "map.track.builtBy": "Xây bởi",
+  "map.track.unclaimedRider": "Tay lái chưa nhận"
 }

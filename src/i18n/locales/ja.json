@@ -240,6 +240,7 @@
   "map.layer.ride": "100か所チャレンジ",
   "map.layer.trails": "ライダーのトレイル",
   "map.layer.shops": "ショップ",
+  "map.layer.riders": "ライダー",
   "map.trail.rider": "ライダー",
   "map.trail.kicker": "ライダーのトレイル",
   "map.trail.distance": "距離",
@@ -252,5 +253,7 @@
   "map.trail.sections": "{n} セクション",
   "map.trail.thread": "フォーラムの投稿",
   "map.trail.studio": "gpx.studio で開く",
-  "map.layer.title": "レイヤー"
+  "map.layer.title": "レイヤー",
+  "map.track.builtBy": "建設者",
+  "map.track.unclaimedRider": "未申請のライダー"
 }

@@ -237,6 +237,7 @@
   "map.layer.ride": "100 parkur mücadelesi",
   "map.layer.trails": "Sürücü rotaları",
   "map.layer.shops": "Dükkanlar",
+  "map.layer.riders": "Riders",
   "map.trail.rider": "Sürücü",
   "map.trail.kicker": "Sürücü rotası",
   "map.trail.distance": "Mesafe",
@@ -249,5 +250,7 @@
   "map.trail.sections": "{n} bölüm",
   "map.trail.thread": "Forum konusu",
   "map.trail.studio": "gpx.studio'da aç",
-  "map.layer.title": "Katmanlar"
+  "map.layer.title": "Katmanlar",
+  "map.track.builtBy": "Built by",
+  "map.track.unclaimedRider": "Unclaimed rider"
 }

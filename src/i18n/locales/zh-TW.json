@@ -240,6 +240,7 @@
   "map.layer.ride": "百場挑戰",
   "map.layer.trails": "車友路線",
   "map.layer.shops": "店鋪",
+  "map.layer.riders": "車手",
   "map.trail.rider": "車友",
   "map.trail.kicker": "車友路線",
   "map.trail.distance": "距離",
@@ -252,5 +253,7 @@
   "map.trail.sections": "{n} 段",
   "map.trail.thread": "論壇貼文",
   "map.trail.studio": "在 gpx.studio 中開啟",
-  "map.layer.title": "圖層"
+  "map.layer.title": "圖層",
+  "map.track.builtBy": "修建者",
+  "map.track.unclaimedRider": "待認領車手"
 }

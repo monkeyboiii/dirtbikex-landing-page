@@ -237,6 +237,7 @@
   "map.layer.ride": "تحدي المئة",
   "map.layer.trails": "مسارات الدرّاجين",
   "map.layer.shops": "المتاجر",
+  "map.layer.riders": "الدراجون",
   "map.trail.rider": "الدرّاج",
   "map.trail.kicker": "مسار الدرّاج",
   "map.trail.distance": "المسافة",
@@ -249,5 +250,7 @@
   "map.trail.sections": "{n} أقسام",
   "map.trail.thread": "موضوع المنتدى",
   "map.trail.studio": "افتح في gpx.studio",
-  "map.layer.title": "الطبقات"
+  "map.layer.title": "الطبقات",
+  "map.track.builtBy": "بناه",
+  "map.track.unclaimedRider": "دراج غير مُطالب به"
 }

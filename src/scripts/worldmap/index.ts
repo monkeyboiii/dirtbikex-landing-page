@@ -26,6 +26,8 @@ import type {
   TrackProps,
   Trail,
   TrailsDoc,
+  RiderPin,
+  RidersDoc,
 } from './types';
 
 const GLYPHS = ['motocross', 'trail_area', 'riding_park', 'ebike_park', 'other'] as const;
@@ -106,6 +108,9 @@ const LAYERS: Record<LayerId, readonly string[]> = {
   shops: ['shops-glow', 'shops-blip', 'shops-label'],
   trails: ['trails-line', 'trails-glow', 'trails-blip', 'trails-label'],
   ride: ['journey-line'],
+  // DOM markers, not style layers: a Marker survives setStyle, so this layer
+  // never has to be replayed through addLayers() the way the others are.
+  riders: [],
 };
 const LAYER_STORE = 'dbx-map-layers';
 /** Catalog kinds drawn from the shared `tracks` source, one per toggle. */
@@ -394,6 +399,9 @@ class WorldMap {
   private placements = new Map<SeriesEntry, EntryPlacement>();
   private ordered: SeriesEntry[] = [];
   private episodeMarkers: { el: HTMLElement; entry: SeriesEntry }[] = [];
+  private riderMarkers: { el: HTMLElement }[] = [];
+  private riders: RiderPin[] | null = null;
+  private ridersLoad: Promise<boolean> | null = null;
   private visible = initialLayers();
   private trails: Trail[] | null = null;
   private trailsById = new Map<string, Trail>();
@@ -969,6 +977,43 @@ class WorldMap {
     });
   }
 
+  private loadRiders(): Promise<boolean> {
+    this.ridersLoad ??= this.fetchRiders();
+    return this.ridersLoad;
+  }
+
+  /** The endpoint is gated server-side and 404s when the layer is off, which is
+      indistinguishable here from "nobody is on the map" — both mean no layer. */
+  private async fetchRiders(): Promise<boolean> {
+    try {
+      const doc = (await fetchJson(this.cfg.ridersUrl)) as RidersDoc | null;
+      this.riders = Array.isArray(doc?.riders) ? doc.riders : [];
+    } catch {
+      this.riders = [];
+    }
+    this.addRiderMarkers();
+    return this.riders.length > 0;
+  }
+
+  private addRiderMarkers() {
+    for (const { el } of this.riderMarkers) el.remove();
+    this.riderMarkers = [];
+    for (const rider of this.riders ?? []) {
+      // An anchor, not a click handler: the destination IS the résumé page, so
+      // there is no sheet to keep in sync and nothing to clear on toggle-off.
+      const el = document.createElement('a');
+      el.className = 'wm-rider';
+      el.href = `/lineage/${rider.username ? '@' + rider.username : rider.slug}`;
+      el.setAttribute('aria-label', rider.name ?? rider.slug);
+      el.innerHTML = rider.avatar_template
+        ? `<img class="wm-rider__avatar" src="${rider.avatar_template.replace('{size}', '48')}" alt="" loading="lazy">`
+        : `<span class="wm-rider__avatar wm-rider__avatar--letter">${(rider.name ?? '\u00b7').slice(0, 1)}</span>`;
+      el.style.display = this.visible.riders ? '' : 'none';
+      new Marker({ element: el, anchor: 'center' }).setLngLat([rider.lon, rider.lat]).addTo(this.map);
+      this.riderMarkers.push({ el });
+    }
+  }
+
   /** Memoised: the boot path and the rail toggle share one fetch and one ingest. */
   private loadTrails(): Promise<boolean> {
     this.trailsLoad ??= this.fetchTrails();
@@ -1196,6 +1241,7 @@ class WorldMap {
       }
     }
     for (const { el } of this.episodeMarkers) el.style.display = this.visible.ride ? '' : 'none';
+    for (const { el } of this.riderMarkers) el.style.display = this.visible.riders ? '' : 'none';
     this.syncEpisodeChrome();
     this.root.classList.toggle('is-ride-off', !this.visible.ride);
     this.root.classList.toggle('is-tracks-off', !this.visible.tracks);
@@ -1204,6 +1250,7 @@ class WorldMap {
   async setLayer(id: LayerId, on: boolean): Promise<void> {
     if (this.visible[id] === on) return;
     if (id === 'trails' && on && !(await this.loadTrails())) return;
+    if (id === 'riders' && on && !(await this.loadRiders())) return;
     this.visible[id] = on;
     // A hidden layer must not keep a sheet open about one of its features.
     if (!on && id === 'trails' && this.selectedTrail) this.clearSelection();

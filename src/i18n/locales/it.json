@@ -237,6 +237,7 @@
   "map.layer.ride": "La sfida dei 100",
   "map.layer.trails": "Percorsi dei rider",
   "map.layer.shops": "Negozi",
+  "map.layer.riders": "Piloti",
   "map.trail.rider": "Rider",
   "map.trail.kicker": "Percorso rider",
   "map.trail.distance": "Distanza",
@@ -249,5 +250,7 @@
   "map.trail.sections": "{n} sezioni",
   "map.trail.thread": "Discussione nel forum",
   "map.trail.studio": "Apri in gpx.studio",
-  "map.layer.title": "Livelli"
+  "map.layer.title": "Livelli",
+  "map.track.builtBy": "Costruito da",
+  "map.track.unclaimedRider": "Pilota non rivendicato"
 }

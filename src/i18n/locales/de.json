@@ -237,6 +237,7 @@
   "map.layer.ride": "Die 100er-Challenge",
   "map.layer.trails": "Fahrer-Trails",
   "map.layer.shops": "Shops",
+  "map.layer.riders": "Fahrer",
   "map.trail.rider": "Fahrer",
   "map.trail.kicker": "Fahrer-Trail",
   "map.trail.distance": "Distanz",
@@ -249,5 +250,7 @@
   "map.trail.sections": "{n} Abschnitte",
   "map.trail.thread": "Forenbeitrag",
   "map.trail.studio": "In gpx.studio öffnen",
-  "map.layer.title": "Ebenen"
+  "map.layer.title": "Ebenen",
+  "map.track.builtBy": "Gebaut von",
+  "map.track.unclaimedRider": "Nicht beanspruchter Fahrer"
 }
