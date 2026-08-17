@@ -38,7 +38,9 @@
 			"/api/join/code",
 			"/api/unsubscribe",
 			"/join/confirm",
-			"/api/outreach/*"
+			"/api/outreach/*",
+			"/api/lineage/*",
+			"/lineage/*"
 		]
 	},
 	"triggers": {
@@ -148,7 +150,9 @@
 					"/api/join/code",
 					"/api/unsubscribe",
 					"/join/confirm",
-					"/api/outreach/*"
+					"/api/outreach/*",
+					"/api/lineage/*",
+					"/lineage/*"
 				]
 			},
 			"triggers": {

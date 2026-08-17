@@ -1,0 +1,123 @@
+import type { PagesEnv } from './types';
+
+/**
+ * Reads the forum's lineage graph. Every endpoint here is anonymous by design —
+ * the plugin serves the same JSON to the app, the forum and this worker, so the
+ * landing page needs no key, no CORS and no per-environment Data Explorer query
+ * (the trade MAP_LAYERS_PLAN §3b already settled once).
+ */
+
+export interface LineageRiderCard {
+  slug: string;
+  claimed: boolean;
+  placeholder: boolean;
+  username: string | null;
+  name: string | null;
+  name_local: string | null;
+  avatar_template: string | null;
+}
+
+export interface LineageStats {
+  mentors: number;
+  students: number;
+  downstream: number;
+  generations: number;
+  tracks: number;
+}
+
+export interface LineageEdge {
+  id: number;
+  relation: string;
+  provenance: string;
+  documented: boolean;
+  facets: string[];
+  honorific: string | null;
+  honorific_proposed?: string | null;
+  intensity: string | null;
+  start_year: number | null;
+  end_year: number | null;
+  year_precision: string;
+  notes: string | null;
+  evidence_url: string | null;
+  rider?: LineageRiderCard | null;
+  track?: { slug: string; name: string; name_local: string | null; locality?: string | null } | null;
+}
+
+export interface LineageResume {
+  rider: LineageRiderCard & {
+    region: string | null;
+    country_code: string | null;
+    riding_since_year: number | null;
+    known_for: string[];
+    state: string;
+  };
+  stats: LineageStats;
+  sections: { learned_from: LineageEdge[]; taught: LineageEdge[]; contributed_to: LineageEdge[] };
+  timeline: { year: number | null; year_precision: string; kind: string; entry: LineageEdge | null }[];
+}
+
+export interface LineageClaimPreview {
+  rider: { slug: string; name: string; name_local: string | null; region: string | null; country_code: string | null };
+  reported_by: LineageEdge[];
+}
+
+export type LineageResult<T> =
+  | { status: 'valid'; data: T }
+  | { status: 'not_found' }
+  | { status: 'unreachable' };
+
+async function getJSON<T>(env: PagesEnv, path: string): Promise<LineageResult<T>> {
+  if (!env.FORUM_BASE) {
+    console.error('lineage:missing_env');
+    return { status: 'unreachable' };
+  }
+
+  let resp: Response;
+  try {
+    resp = await fetch(`${env.FORUM_BASE}${path}`, {
+      headers: { Accept: 'application/json' },
+      // Same 5min edge cache as the profile lookup; the plugin also sets
+      // s-maxage=300 on anonymous reads.
+      ...({ cf: { cacheTtl: 300, cacheEverything: true } } as RequestInit),
+    });
+  } catch (err) {
+    console.error('lineage:fetch_failed', { path, err: String(err) });
+    return { status: 'unreachable' };
+  }
+
+  if (resp.status === 404) return { status: 'not_found' };
+  if (!resp.ok) {
+    console.error('lineage:bad_status', { path, status: resp.status });
+    return { status: 'unreachable' };
+  }
+
+  try {
+    return { status: 'valid', data: (await resp.json()) as T };
+  } catch (err) {
+    console.error('lineage:bad_json', { path, err: String(err) });
+    return { status: 'unreachable' };
+  }
+}
+
+/** `@name` addresses a claimed rider by forum username; anything else is a slug. */
+export function lineagePath(ref: string): string {
+  const trimmed = ref.trim();
+  return trimmed.startsWith('@')
+    ? `/dirtbikex/lineage/u/${encodeURIComponent(trimmed.slice(1))}.json`
+    : `/dirtbikex/lineage/riders/${encodeURIComponent(trimmed)}.json`;
+}
+
+export function lookupResume(env: PagesEnv, ref: string) {
+  return getJSON<LineageResume>(env, lineagePath(ref));
+}
+
+export function lookupClaimPreview(env: PagesEnv, token: string) {
+  return getJSON<LineageClaimPreview>(env, `/dirtbikex/lineage/claims/${encodeURIComponent(token)}/preview.json`);
+}
+
+export function lookupTrackContributors(env: PagesEnv, slug: string) {
+  return getJSON<{ track: unknown; contributors: LineageEdge[] }>(
+    env,
+    `/dirtbikex/lineage/tracks/${encodeURIComponent(slug)}.json`
+  );
+}

@@ -33,6 +33,13 @@ interface DiscourseUser {
   website_name?: string | null;
   geo_location?: { state?: string | null; country?: string | null; address?: string | null } | null;
   status?: { emoji?: string | null; description?: string | null } | null;
+  dbx_lineage_counts?: {
+    mentors?: number | null;
+    students?: number | null;
+    downstream?: number | null;
+    generations?: number | null;
+    tracks?: number | null;
+  } | null;
 }
 
 /** Short location, mirroring iOS `ProfileHeaderView.locationShortText`. */
@@ -43,6 +50,17 @@ function shortLocation(geo: DiscourseUser['geo_location']): string | null {
     return t ? t : null;
   };
   return pick(geo.state) ?? pick(geo.country) ?? pick(geo.address);
+}
+
+/** Only the numbers worth a line on the card; absent when they have no node. */
+function lineageCounts(counts: DiscourseUser['dbx_lineage_counts']): UserRow['lineage'] {
+  if (!counts) return null;
+  const students = counts.students ?? 0;
+  const downstream = counts.downstream ?? 0;
+  const generations = counts.generations ?? 0;
+  const tracks = counts.tracks ?? 0;
+  if (students + downstream + tracks === 0) return null;
+  return { students, downstream, generations, tracks };
 }
 
 export async function lookupUser(env: PagesEnv, username: string): Promise<UserLookupResult> {
@@ -107,6 +125,7 @@ export async function lookupUser(env: PagesEnv, username: string): Promise<UserL
     website_name: hidden ? null : (u.website_name ?? null),
     status,
     hidden,
+    lineage: hidden ? null : lineageCounts(u.dbx_lineage_counts),
   };
   return { status: 'valid', user };
 }

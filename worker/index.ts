@@ -11,6 +11,8 @@ import { handleJoinSubmit, handleJoinConfirm, handleUnsubscribe, handleCodePrech
 import { handleShortlinkResolve } from './_lib/shortlink';
 import { handleMapDoc } from './_lib/mapData';
 import { handleOgPreview } from './_lib/ogPreview';
+import { lookupResume, lookupClaimPreview, lookupTrackContributors, lineagePath } from './_lib/lineageLookup';
+import { renderResume, renderClaim, renderLineageNotFound, getFacetLabels } from './_lib/lineageRender';
 import type { Lang, PagesEnv, ShareLandingProps } from './_lib/types';
 
 interface Env extends PagesEnv {
@@ -618,6 +620,65 @@ async function handleForumFeatured(env: Env): Promise<Response> {
   });
 }
 
+/** Locale + canonical URL, shared by both lineage pages. */
+function lineageContext(request: Request, env: Env) {
+  const url = new URL(request.url);
+  const locale = pickLocale(url, request.headers.get('accept-language'));
+  return {
+    locale,
+    url: url.origin + url.pathname,
+    forumBase: env.FORUM_BASE ?? '',
+    facetLabels: getFacetLabels(locale),
+  };
+}
+
+async function handleLineagePage(request: Request, env: Env, ref: string): Promise<Response> {
+  const ctx = lineageContext(request, env);
+  const result = await lookupResume(env, ref);
+  if (result.status !== 'valid') {
+    return renderLineageNotFound(ctx.locale, ctx.url);
+  }
+  return renderResume(result.data, { ...ctx, appStoreURL: APP_STORE_URL });
+}
+
+async function handleLineageClaim(request: Request, env: Env): Promise<Response> {
+  const ctx = lineageContext(request, env);
+  const token = new URL(request.url).searchParams.get('t') ?? '';
+  if (!token) return renderLineageNotFound(ctx.locale, ctx.url);
+
+  const result = await lookupClaimPreview(env, token);
+  if (result.status !== 'valid') {
+    return renderLineageNotFound(ctx.locale, ctx.url);
+  }
+  return renderClaim(result.data, { ...ctx, token });
+}
+
+/** JSON passthrough for the map/app; same anonymous projection the page renders. */
+async function handleLineageJSON(request: Request, env: Env): Promise<Response> {
+  const ref = new URL(request.url).searchParams.get('r') ?? '';
+  if (!ref) return new Response('{"error":"missing r"}', { status: 400, headers: JSON_HEADERS });
+
+  const result = await lookupResume(env, ref);
+  if (result.status === 'not_found') return new Response('{"error":"not_found"}', { status: 404, headers: JSON_HEADERS });
+  if (result.status === 'unreachable') return new Response('{"error":"unreachable"}', { status: 502, headers: JSON_HEADERS });
+  return new Response(JSON.stringify(result.data), { headers: JSON_HEADERS });
+}
+
+async function handleLineageTrackJSON(request: Request, env: Env): Promise<Response> {
+  const slug = new URL(request.url).searchParams.get('slug') ?? '';
+  if (!slug) return new Response('{"error":"missing slug"}', { status: 400, headers: JSON_HEADERS });
+
+  const result = await lookupTrackContributors(env, slug);
+  if (result.status === 'not_found') return new Response('{"error":"not_found"}', { status: 404, headers: JSON_HEADERS });
+  if (result.status === 'unreachable') return new Response('{"error":"unreachable"}', { status: 502, headers: JSON_HEADERS });
+  return new Response(JSON.stringify(result.data), { headers: JSON_HEADERS });
+}
+
+const JSON_HEADERS = {
+  'Content-Type': 'application/json; charset=utf-8',
+  'Cache-Control': 'public, max-age=60, s-maxage=300',
+};
+
 export default {
   async fetch(
     request: Request,
@@ -637,7 +698,20 @@ export default {
     if (se && request.method === 'GET') {
       return handleEvent(request, env, decodeURIComponent(se[1]));
     }
+    // Rider lineage — the public read surface (LINEAGE_PLAN.md §4.2). Reads are
+    // anonymous plugin endpoints, so no key and no CORS is involved; every write
+    // stays in the forum, which is the only place a visitor has a session.
+    const lineagePage = url.pathname.match(/^\/lineage\/(@?[A-Za-z0-9._\-]+)\/?$/);
+    if (lineagePage && request.method === 'GET' && lineagePage[1] !== 'claim') {
+      return handleLineagePage(request, env, decodeURIComponent(lineagePage[1]!));
+    }
+    if (url.pathname === '/lineage/claim' && request.method === 'GET') {
+      return handleLineageClaim(request, env);
+    }
+
     if (request.method === 'GET') {
+      if (url.pathname === '/api/lineage/rider.json') return handleLineageJSON(request, env);
+      if (url.pathname === '/api/lineage/track.json') return handleLineageTrackJSON(request, env);
       if (url.pathname === '/api/forum/metrics.json') return handleForumMetrics(env);
       if (url.pathname === '/api/forum/featured.json') return handleForumFeatured(env);
       // World map story data — R2 projection with the committed seed as fallback.

@@ -221,6 +221,8 @@ export interface UserRow {
   /** Status emoji is a Discourse shortcode → `/emojis/<emoji>.png` (bundled). */
   status: { emoji: string; description: string } | null;
   hidden: boolean;
+  /** Lineage counters from the DirtBikeX plugin; null when they have no node. */
+  lineage: { students: number; downstream: number; generations: number; tracks: number } | null;
 }
 
 /**

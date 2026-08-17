@@ -362,6 +362,13 @@ interface UserCopy {
   /** Wraps the platform-localized short duration, e.g. "10mo on DirtBikeX". */
   tenureChip: (short: string) => string;
   privateProfile: string;
+  /**
+   * Lineage strip. Optional on purpose: only the locales that matter for the
+   * first campaign are translated, and any gap falls back to `en` per key
+   * rather than forcing 22 edits for a two-line addition.
+   */
+  lineageStudents?: (n: number) => string;
+  lineageDownstream?: (n: number) => string;
 }
 
 // All 21 supported locales. `getUserCopy()` falls back to `en` for any gap.
@@ -372,8 +379,12 @@ const USER_COPY: Partial<Record<Lang, UserCopy>> = {
     cheers: (n) => `${n} Cheers`,
     tenureChip: (s) => `${s} on DirtBikeX`,
     privateProfile: 'This profile is private',
+    lineageStudents: (n) => `${n} ${n === 1 ? 'Student' : 'Students'}`,
+    lineageDownstream: (n) => `${n} Downstream`,
   },
   'zh-CN': {
+    lineageStudents: (n) => `${n} 位徒弟`,
+    lineageDownstream: (n) => `${n} 位下游车手`,
     followers: (n) => `${n} 粉丝`,
     following: (n) => `${n} 关注`,
     cheers: (n) => `${n} Cheers`,
@@ -591,6 +602,14 @@ function userCardBody(user: UserRow, props: ShareLandingProps, locale: Lang): st
   if (user.total_followers != null) stats.push(`<span>${boldLead(copy.followers(user.total_followers))}</span>`);
   if (user.total_following != null) stats.push(`<span>${boldLead(copy.following(user.total_following))}</span>`);
   if (user.gamification_score != null) stats.push(`<span>${boldLead(copy.cheers(user.gamification_score))}</span>`);
+  if (user.lineage) {
+    const l = user.lineage;
+    const fallback = USER_COPY.en as UserCopy;
+    const studentsCopy = copy.lineageStudents ?? fallback.lineageStudents!;
+    const downstreamCopy = copy.lineageDownstream ?? fallback.lineageDownstream!;
+    if (l.students > 0) stats.push(`<span>${boldLead(studentsCopy(l.students))}</span>`);
+    if (l.downstream > 0) stats.push(`<span>${boldLead(downstreamCopy(l.downstream))}</span>`);
+  }
   const statsHTML = stats.length > 0
     ? `<div class="stats">${stats.join('<span class="dot">·</span>')}</div>`
     : '';
@@ -895,7 +914,7 @@ function canonicalURL(requestURL: string): string {
   }
 }
 
-function esc(s: string): string {
+export function esc(s: string): string {
   return s
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')

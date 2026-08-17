@@ -32,6 +32,12 @@ interface RouteSpec {
   exerciseMap?: boolean;
 }
 
+/**
+ * A seeded rider on the target environment. Overridable so the check can follow
+ * whatever the current seed is without editing the spec.
+ */
+const LINEAGE_RESUME_PATH = process.env.LINEAGE_TEST_PATH ?? '/lineage/@calvin';
+
 const ROUTES: RouteSpec[] = [
   { path: '/', allow: MAP_TILES_ALLOWED, exerciseMap: true },
   { path: '/zh-CN/', allow: MAP_TILES_ALLOWED, exerciseMap: true },
@@ -42,6 +48,9 @@ const ROUTES: RouteSpec[] = [
   { path: '/cookies' },
   { path: '/founders' },
   { path: '/contact' },
+  // Lineage pages are worker-rendered and read by people who never sign in —
+  // the China invariant has to extend to them (LINEAGE_PLAN.md §4.2).
+  { path: LINEAGE_RESUME_PATH },
 ];
 
 // Belt-and-suspenders: even if an allowlist is widened by accident,
