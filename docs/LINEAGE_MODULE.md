@@ -51,3 +51,22 @@ locales, and this table.
 The profile card gained a lineage line (students · downstream). It costs no
 extra request: `dbx_lineage_counts` already rides the `/u/<name>.json` payload
 `lookupUser` fetches. It disappears on its own when the plugin setting is off.
+
+## Verifying the asset invariant
+
+The lineage route is in `tests/no-external-assets.spec.ts` (`LINEAGE_TEST_PATH`
+overrides the seeded rider), and `playwright.config.ts` now takes
+`PLAYWRIGHT_BASE_URL` — worker-served routes do not exist under `astro preview`,
+so the check has to be able to point at a deployed environment:
+
+```shell
+PLAYWRIGHT_BASE_URL=https://www.dirtbikechina.com \
+  ./node_modules/.bin/playwright test tests/no-external-assets.spec.ts --project=chromium --workers=1
+```
+
+**The staging box has no Playwright browser installed** (`playwright install
+chromium`, ~180 MB), so 2026-08-17 the invariant was verified statically instead:
+the rendered page has zero `<script>` tags, one inline `<style>`, no external
+stylesheet or font, no `<img>` from a third-party host, and exactly two outbound
+*links* (the forum thread cited as evidence, and the App Store CTA) — neither of
+which is a loaded asset.

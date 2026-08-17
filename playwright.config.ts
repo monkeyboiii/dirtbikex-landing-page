@@ -25,7 +25,9 @@ export default defineConfig({
   reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
-    baseURL: 'http://localhost:4321',
+    // Worker-served routes (share cards, /lineage/*) only exist on a deployed
+    // environment, so the asset check has to be able to point at one.
+    baseURL: process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:4321',
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
