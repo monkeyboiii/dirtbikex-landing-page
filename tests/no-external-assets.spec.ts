@@ -39,7 +39,10 @@ interface RouteSpec {
 const LINEAGE_RESUME_PATH = process.env.LINEAGE_TEST_PATH ?? '/lineage/@calvin';
 
 /** The share spelling of the same résumé — a bare segment is a forum username. */
-const LINEAGE_SHARE_PATH = process.env.LINEAGE_TEST_SHARE_PATH ?? '/s/l/calvin';
+const LINEAGE_SHARE_PATH = process.env.LINEAGE_TEST_SHARE_PATH ?? '/s/lineage/calvin';
+
+/** A seeded map entity; overridable for the same reason as the rider above. */
+const ENTITY_SHARE_PATH = process.env.ENTITY_TEST_PATH ?? '/s/route/chongqing-shapingba-164';
 
 const ROUTES: RouteSpec[] = [
   { path: '/', allow: MAP_TILES_ALLOWED, exerciseMap: true },
@@ -57,6 +60,10 @@ const ROUTES: RouteSpec[] = [
   { path: LINEAGE_SHARE_PATH },
   // `?debug=true` renders an extra panel; it must stay as asset-free as the page.
   { path: `${LINEAGE_SHARE_PATH}?debug=true` },
+  // Map-entity cards. `?stay=1` disarms the redirect countdown — without it the
+  // page forwards to the map mid-test and the run would assert the map's hosts
+  // (which have their own deliberate tile allowance) instead of the card's.
+  { path: `${ENTITY_SHARE_PATH}?stay=1` },
 ];
 
 // Belt-and-suspenders: even if an allowlist is widened by accident,

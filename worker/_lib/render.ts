@@ -217,6 +217,25 @@ function getHeroCopy(locale: Lang): HeroCopy {
    HTML
    ============================================================ */
 
+/**
+ * The only script on any share card, and it only ships when the card is armed.
+ * Bails on reduced-motion and on a metered or 2g connection: 3 KB of card versus
+ * ~570 KB of map and third-party tiles is exactly the visitor who should be
+ * asked rather than moved.
+ */
+const JUMP_JS = `(function(){var a=document.querySelector('[data-jump]');if(!a)return;
+var s=document.querySelector('[data-stay]'),c=navigator.connection||{},t;
+if(c.saveData===true||/(^|-)2g$/.test(c.effectiveType||'')||matchMedia('(prefers-reduced-motion: reduce)').matches){if(s)s.remove();return;}
+a.classList.add('is-counting');t=setTimeout(function(){location.replace(a.href);},3000);
+function stop(){clearTimeout(t);a.classList.remove('is-counting');if(s)s.remove();}
+if(s)s.addEventListener('click',stop);addEventListener('pagehide',stop);})();`;
+
+/** lucide `info`. Inline because the card may not fetch anything (China invariant). */
+const INFO_SVG =
+  '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"' +
+  ' stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+  '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>';
+
 function buildHTML(props: ShareLandingProps, requestURL: string): string {
   const { locale } = props;
   // Strip `?lang=` (the iOS link carries `lang=auto`) so crawlers canonicalize
@@ -238,7 +257,7 @@ ${ogImage ? `<meta property="og:image" content="${esc(ogImage)}">
 <meta property="og:image:height" content="288">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="${esc(ogImage)}">` : ''}
-<style>${CSS}</style>`;
+<style>${CSS}</style>${props.autoJump ? `<script>${JUMP_JS}</script>` : ''}`;
 
   const body = props.invite
     ? heroCardBody(props.invite, props, locale)
@@ -376,7 +395,8 @@ interface UserCopy {
    */
   lineageStudents?: (n: number) => string;
   lineageDownstream?: (n: number) => string;
-
+  /** Accessible name for the glyph that opens the résumé. */
+  lineageMore?: string;
 }
 
 // All 21 supported locales. `getUserCopy()` falls back to `en` for any gap.
@@ -389,10 +409,12 @@ const USER_COPY: Partial<Record<Lang, UserCopy>> = {
     privateProfile: 'This profile is private',
     lineageStudents: (n) => `${n} ${n === 1 ? 'Student' : 'Students'}`,
     lineageDownstream: (n) => `${n} Downstream`,
+    lineageMore: "See this rider's lineage",
   },
   'zh-CN': {
     lineageStudents: (n) => `${n} 位徒弟`,
     lineageDownstream: (n) => `${n} 位下游车手`,
+    lineageMore: '查看这位车手的传承',
     followers: (n) => `${n} 粉丝`,
     following: (n) => `${n} 关注`,
     cheers: (n) => `${n} Cheers`,
@@ -615,12 +637,18 @@ function userCardBody(user: UserRow, props: ShareLandingProps, locale: Lang): st
     const fallback = USER_COPY.en as UserCopy;
     const studentsCopy = copy.lineageStudents ?? fallback.lineageStudents!;
     const downstreamCopy = copy.lineageDownstream ?? fallback.lineageDownstream!;
-    // The numbers are the way in. A separate "see the full lineage" button was one
-    // more thing competing with the content for a page that is already a card.
-    const href = `/s/lineage/${encodeURIComponent(user.username)}`;
-    const link = (text: string) => `<a class="stat-link" href="${esc(href)}">${boldLead(text)}</a>`;
-    if (l.students > 0) stats.push(link(studentsCopy(l.students)));
-    if (l.downstream > 0) stats.push(link(downstreamCopy(l.downstream)));
+    // Underlining the numbers made them look like a typo, not a destination — two
+    // stats in a row of four, arbitrarily linked. An explicit info glyph after
+    // them says "there is more behind these" without touching the numbers.
+    if (l.students > 0) stats.push(`<span>${boldLead(studentsCopy(l.students))}</span>`);
+    if (l.downstream > 0) stats.push(`<span>${boldLead(downstreamCopy(l.downstream))}</span>`);
+    if (l.students > 0 || l.downstream > 0) {
+      const label = copy.lineageMore ?? (USER_COPY.en as UserCopy).lineageMore!;
+      stats.push(
+        `<a class="stat-info" href="/s/lineage/${esc(encodeURIComponent(user.username))}"` +
+          ` title="${esc(label)}" aria-label="${esc(label)}">${INFO_SVG}</a>`,
+      );
+    }
   }
   const statsHTML = stats.length > 0
     ? `<div class="stats">${stats.join('<span class="dot">·</span>')}</div>`
@@ -665,6 +693,8 @@ interface EntityCopy {
   openWebsite: string;
   gone: string;
   goneBody: string;
+  /** Cancels the auto-jump. Present so the timer is escapable, not a hijack. */
+  stay: string;
 }
 
 const ENTITY_COPY: Partial<Record<Lang, EntityCopy>> = {
@@ -676,6 +706,7 @@ const ENTITY_COPY: Partial<Record<Lang, EntityCopy>> = {
     openWebsite: 'Visit the website',
     gone: 'This link has nothing behind it',
     goneBody: 'It may have been removed, or the link was mistyped.',
+    stay: 'Stay here',
   },
   'zh-CN': {
     shares: (n) => `${n} 分享给你`,
@@ -685,6 +716,7 @@ const ENTITY_COPY: Partial<Record<Lang, EntityCopy>> = {
     openWebsite: '访问网站',
     gone: '这个链接没有对应的内容',
     goneBody: '内容可能已被移除,或链接输入有误。',
+    stay: '留在此页',
   },
   'zh-TW': {
     shares: (n) => `${n} 分享給你`,
@@ -694,6 +726,7 @@ const ENTITY_COPY: Partial<Record<Lang, EntityCopy>> = {
     openWebsite: '造訪網站',
     gone: '這個連結沒有對應的內容',
     goneBody: '內容可能已被移除,或連結輸入有誤。',
+    stay: '留在此頁',
   },
   ja: {
     shares: (n) => `${n}さんがシェアしました`,
@@ -703,6 +736,7 @@ const ENTITY_COPY: Partial<Record<Lang, EntityCopy>> = {
     openWebsite: 'ウェブサイトへ',
     gone: 'このリンクの先には何もありません',
     goneBody: '削除されたか、リンクが間違っている可能性があります。',
+    stay: 'このまま',
   },
   ko: {
     shares: (n) => `${n}님이 공유했습니다`,
@@ -712,6 +746,7 @@ const ENTITY_COPY: Partial<Record<Lang, EntityCopy>> = {
     openWebsite: '웹사이트 방문',
     gone: '이 링크에 해당하는 내용이 없습니다',
     goneBody: '삭제되었거나 링크가 잘못되었을 수 있습니다.',
+    stay: '여기 있기',
   },
   de: {
     shares: (n) => `${n} hat das mit dir geteilt`,
@@ -721,6 +756,7 @@ const ENTITY_COPY: Partial<Record<Lang, EntityCopy>> = {
     openWebsite: 'Website besuchen',
     gone: 'Hinter diesem Link steht nichts',
     goneBody: 'Es wurde vielleicht entfernt, oder der Link ist falsch.',
+    stay: 'Hier bleiben',
   },
   it: {
     shares: (n) => `${n} ha condiviso questo con te`,
@@ -730,6 +766,7 @@ const ENTITY_COPY: Partial<Record<Lang, EntityCopy>> = {
     openWebsite: 'Visita il sito',
     gone: 'Questo link non porta a nulla',
     goneBody: 'Potrebbe essere stato rimosso, o il link è errato.',
+    stay: 'Resta qui',
   },
   fr: {
     shares: (n) => `${n} a partagé ceci avec toi`,
@@ -739,6 +776,7 @@ const ENTITY_COPY: Partial<Record<Lang, EntityCopy>> = {
     openWebsite: 'Visiter le site',
     gone: 'Ce lien ne mène à rien',
     goneBody: 'Cela a peut-être été supprimé, ou le lien est erroné.',
+    stay: 'Rester ici',
   },
   es: {
     shares: (n) => `${n} ha compartido esto contigo`,
@@ -748,6 +786,7 @@ const ENTITY_COPY: Partial<Record<Lang, EntityCopy>> = {
     openWebsite: 'Visitar la web',
     gone: 'Este enlace no lleva a ninguna parte',
     goneBody: 'Puede haberse eliminado, o el enlace es incorrecto.',
+    stay: 'Quedarme aquí',
   },
   ar: {
     shares: (n) => `شارك ${n} هذا معك`,
@@ -757,6 +796,7 @@ const ENTITY_COPY: Partial<Record<Lang, EntityCopy>> = {
     openWebsite: 'زيارة الموقع',
     gone: 'لا يوجد شيء خلف هذا الرابط',
     goneBody: 'ربما أُزيل، أو أن الرابط غير صحيح.',
+    stay: 'البقاء هنا',
   },
   da: {
     shares: (n) => `${n} delte dette med dig`,
@@ -766,6 +806,7 @@ const ENTITY_COPY: Partial<Record<Lang, EntityCopy>> = {
     openWebsite: 'Besøg hjemmesiden',
     gone: 'Der er intet bag dette link',
     goneBody: 'Det er måske fjernet, eller linket er skrevet forkert.',
+    stay: 'Bliv her',
   },
   el: {
     shares: (n) => `Ο/Η ${n} το μοιράστηκε μαζί σου`,
@@ -775,6 +816,7 @@ const ENTITY_COPY: Partial<Record<Lang, EntityCopy>> = {
     openWebsite: 'Επίσκεψη ιστότοπου',
     gone: 'Αυτός ο σύνδεσμος δεν οδηγεί πουθενά',
     goneBody: 'Μπορεί να αφαιρέθηκε ή ο σύνδεσμος είναι λάθος.',
+    stay: 'Μείνε εδώ',
   },
   'fa-IR': {
     shares: (n) => `${n} این را با شما به اشتراک گذاشت`,
@@ -784,6 +826,7 @@ const ENTITY_COPY: Partial<Record<Lang, EntityCopy>> = {
     openWebsite: 'بازدید از وب‌سایت',
     gone: 'پشت این پیوند چیزی نیست',
     goneBody: 'ممکن است حذف شده باشد یا پیوند اشتباه باشد.',
+    stay: 'همین‌جا بمان',
   },
   fi: {
     shares: (n) => `${n} jakoi tämän kanssasi`,
@@ -793,6 +836,7 @@ const ENTITY_COPY: Partial<Record<Lang, EntityCopy>> = {
     openWebsite: 'Käy sivustolla',
     gone: 'Tämän linkin takana ei ole mitään',
     goneBody: 'Se on ehkä poistettu, tai linkki on kirjoitettu väärin.',
+    stay: 'Jää tähän',
   },
   id: {
     shares: (n) => `${n} membagikan ini denganmu`,
@@ -802,6 +846,7 @@ const ENTITY_COPY: Partial<Record<Lang, EntityCopy>> = {
     openWebsite: 'Kunjungi situs',
     gone: 'Tautan ini tidak menuju ke mana pun',
     goneBody: 'Mungkin sudah dihapus, atau tautannya salah.',
+    stay: 'Tetap di sini',
   },
   nl: {
     shares: (n) => `${n} heeft dit met je gedeeld`,
@@ -811,6 +856,7 @@ const ENTITY_COPY: Partial<Record<Lang, EntityCopy>> = {
     openWebsite: 'Bezoek de website',
     gone: 'Achter deze link zit niets',
     goneBody: 'Het is mogelijk verwijderd, of de link klopt niet.',
+    stay: 'Hier blijven',
   },
   pt: {
     shares: (n) => `${n} partilhou isto contigo`,
@@ -820,6 +866,7 @@ const ENTITY_COPY: Partial<Record<Lang, EntityCopy>> = {
     openWebsite: 'Visitar o site',
     gone: 'Este link não leva a lado nenhum',
     goneBody: 'Pode ter sido removido, ou o link está errado.',
+    stay: 'Ficar aqui',
   },
   'tr-TR': {
     shares: (n) => `${n} bunu seninle paylaştı`,
@@ -829,6 +876,7 @@ const ENTITY_COPY: Partial<Record<Lang, EntityCopy>> = {
     openWebsite: 'Siteyi ziyaret et',
     gone: 'Bu bağlantının arkasında bir şey yok',
     goneBody: 'Kaldırılmış olabilir ya da bağlantı yanlış.',
+    stay: 'Burada kal',
   },
   th: {
     shares: (n) => `${n} แชร์สิ่งนี้กับคุณ`,
@@ -838,6 +886,7 @@ const ENTITY_COPY: Partial<Record<Lang, EntityCopy>> = {
     openWebsite: 'เข้าเว็บไซต์',
     gone: 'ลิงก์นี้ไม่มีเนื้อหา',
     goneBody: 'อาจถูกลบไปแล้ว หรือลิงก์ผิด',
+    stay: 'อยู่หน้านี้',
   },
   vi: {
     shares: (n) => `${n} đã chia sẻ điều này với bạn`,
@@ -847,6 +896,7 @@ const ENTITY_COPY: Partial<Record<Lang, EntityCopy>> = {
     openWebsite: 'Vào website',
     gone: 'Liên kết này không dẫn tới đâu cả',
     goneBody: 'Có thể đã bị gỡ, hoặc liên kết bị sai.',
+    stay: 'Ở lại đây',
   },
   sv: {
     shares: (n) => `${n} delade det här med dig`,
@@ -856,6 +906,7 @@ const ENTITY_COPY: Partial<Record<Lang, EntityCopy>> = {
     openWebsite: 'Besök webbplatsen',
     gone: 'Den här länken leder ingenstans',
     goneBody: 'Det kan ha tagits bort, eller så är länken felskriven.',
+    stay: 'Stanna kvar',
   },
 };
 
@@ -905,27 +956,23 @@ function entityCardBody(entity: EntityCard, props: ShareLandingProps, locale: La
         .join('<span class="dot">·</span>')}</p>`
     : '';
 
-  // One button, and at most one quiet link under it.
+  // One button. The forum thread and the website live on the map sheet, one tap
+  // further in, so the card does not carry a second link that competes with the
+  // only action worth taking.
   //
-  // The App Store CTA is gone from these cards entirely. It was the orange
-  // primary on every one of them, which inverted the whole point: nobody opens a
-  // track link because they wanted to install a social network. And there is
-  // nothing to open in the app anyway — AASA no longer claims these paths,
-  // because the app has no native destination for a route, a shop or an episode.
-  // When it does, the path is added to AASA and the OS opens the app *instead of*
-  // this page — which is the merge, done by iOS, with no second button.
+  // That button is also a timer. The sheet this card previews is a strict
+  // superset of it — Directions, the verified and claimed chips, the built-by
+  // byline, and the actual location — so detaining anyone here buys them nothing.
+  // The fill is the countdown, clicking goes immediately, and "stay here"
+  // cancels: the escape hatch is what makes a timed redirect legitimate rather
+  // than a hijack (WCAG 2.2.1).
   //
-  // Challenge deliberately has no second action: the episode's platform links
-  // live on the map sheet one tap away, and four buttons over an empty card was
-  // the complaint that started this.
-  const secondary =
-    entity.kind === 'challenge' || !entity.sourceURL
-      ? ''
-      : `<a class="card-link" href="${esc(entity.sourceURL)}" rel="nofollow noopener">${esc(
-          entity.kind === 'route' ? copy.openThread : copy.openWebsite,
-        )}</a>`;
-
-  const ctas = `<a class="cta" href="${esc(entity.mapURL)}">${esc(copy.seeOnMap)}</a>${secondary}`;
+  // `location.replace` and not `href`: a history entry would put the card behind
+  // the map, so Back would land here and immediately bounce forward again.
+  const ctas =
+    `<a class="cta cta-jump" href="${esc(entity.mapURL)}"${props.autoJump ? ' data-jump' : ''}>` +
+    `<span class="cta-fill"></span><span class="cta-text">${esc(copy.seeOnMap)}</span></a>` +
+    (props.autoJump ? `<button type="button" class="card-link" data-stay>${esc(copy.stay)}</button>` : '');
 
   return `
 <main class="card entity-card">
@@ -1513,7 +1560,18 @@ a.meta-item:hover, a.meta-item:active { background: var(--clay-200); }
 /* One button per card. Anything else is a link, so it reads as an aside. */
 .card-link{display:inline-block;margin-top:.75rem;font-size:.9rem;opacity:.7;text-decoration:underline;text-underline-offset:3px}
 .card-link:hover,.card-link:focus-visible{opacity:1}
-.stat-link{text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px}
 
 .entity-facts{margin:.5rem 0 0;font-size:.95rem;opacity:.75}
+
+.cta-jump{position:relative;overflow:hidden;isolation:isolate}
+.cta-fill{position:absolute;inset:0;width:0;background:rgba(0,0,0,.22);z-index:-1}
+.cta-jump.is-counting .cta-fill{animation:cta-count 3s linear forwards}
+.cta-text{position:relative}
+@keyframes cta-count{from{width:0}to{width:100%}}
+button.card-link{background:none;border:0;cursor:pointer;font:inherit;color:inherit}
+/* A timed redirect must be escapable; without motion it simply does not run. */
+@media (prefers-reduced-motion: reduce){.cta-jump.is-counting .cta-fill{animation:none}}
+
+.stat-info{display:inline-flex;align-items:center;color:#fff;opacity:.75;vertical-align:-3px}
+.stat-info:hover,.stat-info:focus-visible{opacity:1}
 `;

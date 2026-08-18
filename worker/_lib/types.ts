@@ -156,6 +156,9 @@ export interface ShareLandingProps {
   entity?: import('./shareEntity').EntityCard;
   /** Who sent the link (`?from=`), resolved for the "wants to share this with you" line. */
   sharedBy?: { name: string; avatarURL: string | null } | null;
+  /** Arm the map card's redirect countdown. Off for `?stay=1`, which the asset
+   *  test relies on to keep these routes under the no-third-party-hosts rule. */
+  autoJump?: boolean;
 }
 
 /**

@@ -659,7 +659,12 @@ async function handleEntity(request: Request, env: Env, kindCode: string, key: s
   // No app CTA: AASA does not claim these paths, and the app has no destination
   // for most of them. When it gains one, the path joins AASA and the OS opens the
   // app *instead of* this page — the merge, without a second button.
-  return renderShareLanding({ ...base, entity, sharedBy: sender }, request.url);
+  //
+  // `?stay=1` disarms the countdown. It is how you inspect a card, and how the
+  // asset test keeps these routes under the no-third-party-hosts rule instead of
+  // following them into the map's tile host.
+  const autoJump = url.searchParams.get('stay') !== '1';
+  return renderShareLanding({ ...base, entity, sharedBy: sender, autoJump }, request.url);
 }
 
 /** The sharer's name and face, from the same anonymous profile read `/s/u` uses. */
