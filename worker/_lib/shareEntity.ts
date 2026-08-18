@@ -65,6 +65,12 @@ export interface EntityCard {
 
 const num = (n: unknown): number | null => (typeof n === 'number' && Number.isFinite(n) ? n : null);
 
+/** `ebike_park` -> `Ebike park`. Enum values are for the database, not the reader. */
+const humanize = (code: string): string => {
+  const words = code.replace(/_/g, ' ');
+  return words.charAt(0).toUpperCase() + words.slice(1);
+};
+
 /** `{en, zh-CN}` blobs appear in trails and series; take the viewer's, else English. */
 function pickText(value: unknown, locale: string): string | null {
   if (typeof value === 'string') return value.trim() || null;
@@ -153,7 +159,9 @@ async function loadShop(request: Request, env: PagesEnv, slug: string): Promise<
     kicker: null,
     title: (typeof shop.name_local === 'string' && shop.name_local) || String(shop.name ?? slug),
     subtitle: locality,
-    facts: locality ? [{ key: 'where', value: locality }] : [],
+    // The subtitle already says where. Repeating it as a fact was the card
+    // printing the same column twice.
+    facts: [],
     mapURL: `/?layers=tracks,shops&t=${encodeURIComponent(slug)}`,
     sourceURL: typeof shop.website === 'string' ? shop.website : null,
     author: null,
@@ -209,9 +217,12 @@ async function loadTrack(env: PagesEnv, slug: string): Promise<EntityCard | null
   if (!track) return null;
 
   const locality = typeof track.locality === 'string' ? track.locality : null;
-  const facts: EntityFact[] = [];
-  if (locality) facts.push({ key: 'where', value: locality });
-  if (typeof track.category === 'string' && track.category) facts.push({ key: null, value: track.category });
+  // Locality is the subtitle; the category is the only other thing worth saying,
+  // and `ebike_park` is a database value, not a word anyone writes.
+  const facts: EntityFact[] =
+    typeof track.category === 'string' && track.category
+      ? [{ key: null, value: humanize(track.category) }]
+      : [];
 
   return {
     kind: 'track',
