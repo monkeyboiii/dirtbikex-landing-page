@@ -35,6 +35,18 @@ and the `.lineage` arm in `PushNotificationService.navigateToDestination` are
 what stop it dead-ending on a blank screen. Do not add an `/s/<kind>/` route
 here without the matching `ShareKind` case in the app.
 
+## The two states of a résumé
+
+A username that resolves to a real, visible account **always renders**, even with nothing recorded:
+zeros in the stat strip and a "connect with riders" CTA into the forum's add form. Answering "no
+such page" to the profile tab of exactly the people the feature is trying to reach was the old
+behaviour and the wrong one — the plugin's `blank_resume` is shaped like a normal résumé so no
+consumer needs a second code path (`slug` is null, `empty: true`).
+
+A 404 still means what it always meant: no such user, or one the viewer may not see. That page now
+carries **Join DirtBikeX** and **Explore the map**, because it is a landing page for a stranger who
+followed someone's link, not only a dead end.
+
 ## `?debug=true`
 
 Any of the three HTML routes above takes `?debug=true` and appends an operator
