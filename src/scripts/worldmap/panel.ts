@@ -674,6 +674,77 @@ export function createPanel(deps: PanelDeps) {
    * come from the same anonymous projection the résumé page renders, and an
    * unclaimed one stays a placeholder here too.
    */
+  /**
+   * The `/s/u/` identity block quoted at byline scale. One builder, so a trail's
+   * rider and a track's owner cannot drift into two different-looking people.
+   * The initial sits under the image, so a failed avatar reveals a letter rather
+   * than a broken-image glyph.
+   */
+  function personBlock(username: string, name: string, avatar: string | null, role?: string): HTMLElement {
+    const by = el('a', 'wm-by') as HTMLAnchorElement;
+    by.href = `/s/u/${encodeURIComponent(username)}`;
+    const named = name.trim() || null;
+    const face = el('span', 'wm-by__avatar', (Array.from((named ?? username).trim())[0] ?? '?').toUpperCase());
+    if (avatar) {
+      const img = document.createElement('img');
+      img.src = deps.forumBase + avatar.replace('{size}', '72');
+      img.alt = '';
+      img.width = 36;
+      img.height = 36;
+      img.loading = 'lazy';
+      img.decoding = 'async';
+      img.addEventListener('error', () => img.remove(), { once: true });
+      face.appendChild(img);
+    }
+    const idBlock = el('span', 'wm-by__id');
+    const meta = role ? (named ? `${role} · @${username}` : role) : `@${username}`;
+    idBlock.append(el('span', 'wm-by__name', named ?? `@${username}`), el('span', 'wm-by__meta', meta));
+    by.append(face, idBlock);
+    return by;
+  }
+
+  /**
+   * A track's owner and its write-up, when it has them. Both are optional on the
+   * catalog row and most rows have neither, so this renders nothing rather than
+   * an empty byline — and it runs AFTER the sheet is open, like builtBy, because
+   * the baked catalog cannot know who claimed a track this morning.
+   */
+  async function trackOwner(host: HTMLElement, track: TrackProps) {
+    let row: { owner?: { username?: string; name?: string; avatar_template?: string }; topic_id?: number } | null;
+    try {
+      row = (await fetch(`/api/map/track.json?slug=${encodeURIComponent(track.slug)}`).then((r) =>
+        r.ok ? r.json() : null,
+      ).then((d) => (d as { track?: unknown } | null)?.track ?? null)) as typeof row;
+    } catch {
+      return;
+    }
+    const owner = row?.owner;
+    const topicId = row?.topic_id;
+    if ((!owner?.username && !topicId) || !host.isConnected) return;
+
+    const byline = el('div', 'wm-panel__byline');
+    if (owner?.username) {
+      host.appendChild(el('h3', 'wm-panel__section', strings['map.track.owner'] ?? 'Owner'));
+      byline.appendChild(
+        personBlock(owner.username, owner.name || owner.username, owner.avatar_template ?? null),
+      );
+    }
+    if (topicId && deps.forumBase) {
+      const links = el('div', 'wm-panel__socials');
+      const a = el('a', 'wm-social') as HTMLAnchorElement;
+      a.href = `${deps.forumBase}/t/${topicId}`;
+      const label = strings['map.trail.thread'] ?? 'Forum thread';
+      a.title = label;
+      a.setAttribute('aria-label', label);
+      a.target = '_blank';
+      a.rel = 'noopener';
+      a.innerHTML = THREAD_SVG;
+      links.appendChild(a);
+      byline.appendChild(links);
+    }
+    host.appendChild(byline);
+  }
+
   async function builtBy(host: HTMLElement, track: TrackProps) {
     let contributors: LineageContributor[] = [];
     try {
@@ -809,35 +880,12 @@ export function createPanel(deps: PanelDeps) {
         }
         if (chips.childElementCount) host.appendChild(chips);
 
-        // Attribution: the /s/u/ identity block quoted at byline scale.
-        const named = trail.author_name?.trim() || null;
-        const riderLabel = strings['map.trail.rider'] ?? 'Rider';
-        const by = el('a', 'wm-by') as HTMLAnchorElement;
-        by.href = `/s/u/${encodeURIComponent(trail.author_username)}`;
-        // The initial sits under the image, so a failed avatar reveals a letter
-        // rather than a broken-image glyph.
-        const face = el(
-          'span',
-          'wm-by__avatar',
-          (Array.from((named ?? trail.author_username).trim())[0] ?? '?').toUpperCase(),
+        const by = personBlock(
+          trail.author_username,
+          trail.author_name ?? '',
+          trail.author_avatar ?? null,
+          strings['map.trail.rider'] ?? 'Rider',
         );
-        if (trail.author_avatar) {
-          const img = document.createElement('img');
-          img.src = deps.forumBase + trail.author_avatar.replace('{size}', '72');
-          img.alt = '';
-          img.width = 36;
-          img.height = 36;
-          img.loading = 'lazy';
-          img.decoding = 'async';
-          img.addEventListener('error', () => img.remove(), { once: true });
-          face.appendChild(img);
-        }
-        const idBlock = el('span', 'wm-by__id');
-        idBlock.append(
-          el('span', 'wm-by__name', named ?? `@${trail.author_username}`),
-          el('span', 'wm-by__meta', named ? `${riderLabel} · @${trail.author_username}` : riderLabel),
-        );
-        by.append(face, idBlock);
         // A face and a name with nothing said about them read as the subject of the
         // sheet. The label is what makes them the author of it.
         host.appendChild(el('h3', 'wm-panel__section', strings['map.trail.uploadedBy'] ?? 'Uploaded by'));
@@ -895,6 +943,7 @@ export function createPanel(deps: PanelDeps) {
         kicker(strings['map.panel.trackInfo'] ?? 'Track info');
         titleRow(host, track.name, { kind: track.kind === 'shop' ? 'shop' : 'track', key: track.slug }, strings);
         trackInfo(host, track);
+        void trackOwner(host, track);
         void builtBy(host, track);
       });
     },

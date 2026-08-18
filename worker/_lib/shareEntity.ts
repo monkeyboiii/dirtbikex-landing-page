@@ -225,6 +225,11 @@ async function loadTrack(env: PagesEnv, slug: string): Promise<EntityCard | null
       ? [{ key: null, value: humanize(track.category) }]
       : [];
 
+  // Owner and topic are optional on the catalog row; a track that has neither
+  // simply renders without them rather than with an empty byline.
+  const owner = track.owner as { username?: string; name?: string; avatar_template?: string } | undefined;
+  const topicId = num(track.topic_id);
+
   return {
     kind: 'track',
     key: slug,
@@ -233,8 +238,18 @@ async function loadTrack(env: PagesEnv, slug: string): Promise<EntityCard | null
     subtitle: locality,
     facts,
     mapURL: `/?layers=tracks&t=${encodeURIComponent(slug)}`,
-    sourceURL: typeof track.website === 'string' ? track.website : null,
-    author: null,
+    sourceURL: topicId
+      ? `${env.FORUM_BASE}/t/${topicId}`
+      : typeof track.website === 'string'
+        ? track.website
+        : null,
+    author: owner?.username
+      ? {
+          username: owner.username,
+          name: owner.name || owner.username,
+          avatarPath: owner.avatar_template ?? null,
+        }
+      : null,
     ogImage: null,
   };
 }

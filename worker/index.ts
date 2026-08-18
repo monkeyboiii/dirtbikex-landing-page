@@ -827,6 +827,24 @@ async function handleLineageTrackJSON(request: Request, env: Env): Promise<Respo
   return new Response(JSON.stringify(result.data), { headers: JSON_HEADERS });
 }
 
+/**
+ * One track by slug, for the sheet's owner byline. The map's baked catalog is a
+ * deploy-cadence artefact and cannot carry who claimed a track this morning, so
+ * the sheet asks for that separately and only once it is already open.
+ */
+async function handleTrackJSON(request: Request, env: Env): Promise<Response> {
+  const slug = new URL(request.url).searchParams.get('slug') ?? '';
+  if (!slug || !env.FORUM_BASE) return new Response('{"error":"missing slug"}', { status: 400, headers: JSON_HEADERS });
+
+  const resp = await fetch(`${env.FORUM_BASE}/dirtbikex/tracks/${encodeURIComponent(slug)}.json`, {
+    headers: { Accept: 'application/json' },
+    ...({ cf: { cacheTtl: 300, cacheEverything: true } } as RequestInit),
+  }).catch(() => null);
+  if (!resp?.ok) return new Response('{"error":"not_found"}', { status: 404, headers: JSON_HEADERS });
+
+  return new Response(await resp.text(), { headers: JSON_HEADERS });
+}
+
 /** The riders map layer; gated server-side, so a 404 here just means "no layer". */
 async function handleLineageRidersJSON(env: Env): Promise<Response> {
   const result = await lookupRiderPins(env);
@@ -914,6 +932,7 @@ export default {
       if (url.pathname === '/api/map/series.json') return handleMapDoc(request, env, ctx, 'series');
       if (url.pathname === '/api/map/trails.json') return handleMapDoc(request, env, ctx, 'trails');
       if (url.pathname === '/api/map/shops.json') return handleMapDoc(request, env, ctx, 'shops');
+      if (url.pathname === '/api/map/track.json') return handleTrackJSON(request, env);
       if (url.pathname === '/api/map/og') return handleOgPreview(request, env, ctx);
       if (url.pathname === '/api/proxy/sponsors') return fetchSponsors(env);
       const lb = url.pathname.match(/^\/api\/proxy\/leaderboard\/([a-z_]+)\.json$/);

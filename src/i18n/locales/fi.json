@@ -252,6 +252,7 @@
   "map.trail.sections": "{n} osuutta",
   "map.trail.thread": "Foorumiketju",
   "map.trail.uploadedBy": "Lataaja",
+  "map.track.owner": "Omistaja",
   "map.trail.studio": "Avaa gpx.studiossa",
   "map.layer.title": "Tasot",
   "map.track.builtBy": "Built by",
