@@ -179,6 +179,12 @@ const config = {
         <span class="wm-rail__label">{item.label}</span>
       </button>
     ))}
+    {/* Not a layer, but it belongs with them: everything in this rail changes what
+        you are looking at. It used to sit in the zoom stack, which is chrome. */}
+    <button type="button" class="wm-rail__btn wm-rail__btn--action" data-recenter title={s('map.control.recenter')} aria-label={s('map.control.recenter')}>
+      <span class="wm-rail__on" set:html={`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="4.5" fill="currentColor"/><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.6"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>`} />
+      <span class="wm-rail__label">{s('map.control.recenter')}</span>
+    </button>
   </nav>
 
   <section class="wm-hud" data-hud aria-label={s('map.hud.series')}>
@@ -196,15 +202,21 @@ const config = {
   </section>
 
   <aside class="wm-panel" data-panel hidden aria-live="polite">
-    <button type="button" class="wm-panel__back" data-panel-back hidden aria-label={s('map.panel.back')}>
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
-        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 5.5 8 12l6.5 6.5" /></svg>
-    </button>
-    <button type="button" class="wm-panel__close" data-panel-close aria-label={s('map.panel.close')}>
-      <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"
-        ><path d="M2 2l10 10M12 2L2 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg
-      >
-    </button>
+    {/* A real control line, not two absolutely-positioned buttons the title had to
+        dodge: back left, what-this-is centred, close right. The title then starts
+        on its own line and is free to wrap. */}
+    <div class="wm-panel__controls">
+      <button type="button" class="wm-panel__back" data-panel-back hidden aria-label={s('map.panel.back')}>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 5.5 8 12l6.5 6.5" /></svg>
+      </button>
+      <span class="wm-panel__slot" data-panel-slot></span>
+      <button type="button" class="wm-panel__close" data-panel-close aria-label={s('map.panel.close')}>
+        <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"
+          ><path d="M2 2l10 10M12 2L2 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg
+        >
+      </button>
+    </div>
     <div class="wm-panel__body" data-panel-body></div>
   </aside>
 

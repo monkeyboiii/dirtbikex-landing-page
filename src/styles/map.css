@@ -597,10 +597,45 @@ body.is-map-page .site-header__inner {
   transform: none;
   opacity: 1;
 }
+/* Back | what-this-is | close. A real row, so the title below it is free to wrap
+   instead of dodging two absolutely-positioned buttons. */
+.wm-panel__controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 10px 0;
+}
+
+.wm-panel__slot {
+  flex: 1 1 auto;
+  min-width: 0;
+  text-align: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--wm-text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* The episode counter is the series' motif; it gets the accent and the digits. */
+.wm-panel__slot.is-counter {
+  font-family: var(--font-mono, 'Geist Mono', monospace);
+  color: var(--wm-accent);
+  letter-spacing: 0.1em;
+}
+
+/* Back is hidden on a root sheet, but its space is not: without it the centred
+   slot would shift sideways every time you pushed or popped a view. */
+.wm-panel__back[hidden] {
+  display: block;
+  visibility: hidden;
+}
+
 .wm-panel__close {
-  position: absolute;
-  top: 10px;
-  right: 10px;
+  position: relative;
   width: 30px;
   height: 30px;
   display: grid;
@@ -610,14 +645,14 @@ body.is-map-page .site-header__inner {
   background: rgba(var(--wm-veil), 0.6);
   color: var(--wm-text-dim);
   cursor: pointer;
-  z-index: 2;
+  flex: none;
 }
 .wm-panel__close:hover {
   color: var(--wm-text);
   border-color: var(--wm-line-strong);
 }
 .wm-panel__body {
-  padding: 20px 20px 22px;
+  padding: 10px 20px 22px;
   overflow-y: auto;
   display: grid;
   gap: 10px;
@@ -634,9 +669,6 @@ body.is-map-page .site-header__inner {
   display: flex;
   align-items: flex-start;
   gap: 0.5rem;
-  /* The close control sits top-right of the sheet; the row keeps clear of it and
-     the share button takes the reserved space instead of the title's padding. */
-  padding-right: 28px;
 }
 
 .wm-panel__title {
@@ -1189,6 +1221,26 @@ body.is-map-page .site-header__inner {
   color: var(--wm-text-faint);
   background: rgba(var(--wm-veil), 0.5);
 }
+/* Recenter acts, it does not toggle: no aria-pressed, so it never takes the
+   dimmed off-state, and a hairline separates it from the layers above it. */
+.wm-rail__btn--action {
+  margin-top: 6px;
+  color: var(--wm-text-dim);
+}
+.wm-rail__btn--action::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: 8px;
+  right: 8px;
+  height: 1px;
+  background: var(--wm-line);
+}
+.wm-rail__btn--action:hover,
+.wm-rail__btn--action:focus-visible {
+  color: var(--wm-text);
+}
+
 /* On/off is carried by the artwork itself, so only one of the pair is ever drawn. */
 .wm-rail__on,
 .wm-rail__off {
@@ -1468,10 +1520,8 @@ body.is-map-page .site-header__inner {
 /* ---------- sheet navigation ---------- */
 
 .wm-panel__back {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  z-index: 2;
+  position: relative;
+  flex: none;
   width: 30px;
   height: 30px;
   display: grid;
@@ -1489,10 +1539,13 @@ body.is-map-page .site-header__inner {
   color: var(--wm-text);
   border-color: var(--wm-line-strong);
 }
-/* The body clears the close button already; a visible back button needs the left too. */
-.wm-panel:has(.wm-panel__back:not([hidden])) .wm-panel__title,
-.wm-panel:has(.wm-panel__back:not([hidden])) .wm-panel__kicker {
-  padding-left: 34px;
+/* Trailing action row at the foot of a sheet — directions, the forum thread,
+   gpx.studio. Right-aligned so it sits under the share control in the title row. */
+.wm-panel__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 4px;
 }
 
 /* The venue line is a disclosure into that place's own sheet. */

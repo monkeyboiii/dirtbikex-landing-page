@@ -91,6 +91,22 @@ function el(tag: string, className?: string, text?: string): HTMLElement {
 }
 
 /**
+ * lucide `square-arrow-out-up-right` — the same glyph the sheets use for anything
+ * that leaves this surface, so "share" and "open elsewhere" read as one family.
+ */
+const SHARE_SVG =
+  '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor"' +
+  ' stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+  '<path d="M21 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h6"/>' +
+  '<path d="m21 3-9 9"/><path d="M15 3h6v6"/></svg>';
+
+/** lucide `info` — the trail's own details, one step out to gpx.studio. */
+const INFO_SVG =
+  '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"' +
+  ' stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+  '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>';
+
+/**
  * The sheet's title, with a share control on the trailing edge.
  *
  * Every sheet has a shareable twin at `/s/<kind>/<key>` — the worker-rendered
@@ -117,10 +133,7 @@ function titleRow(
     button.title = label;
     button.setAttribute('aria-label', `${label} · ${text}`);
     button.innerHTML =
-      '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor"' +
-      ' stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
-      '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>' +
-      '<path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>';
+      SHARE_SVG;
 
     button.addEventListener('click', (event) => {
       event.stopPropagation();
@@ -160,6 +173,8 @@ export function createPanel(deps: PanelDeps) {
   const body = root.querySelector<HTMLElement>('[data-panel-body]')!;
   const closeBtn = root.querySelector<HTMLButtonElement>('[data-panel-close]')!;
   const backBtn = root.querySelector<HTMLButtonElement>('[data-panel-back]')!;
+  /** What this sheet is, centred in the control line: `01 / 100`, RIDER TRAIL, TRACK INFO. */
+  const slot = root.querySelector<HTMLElement>('[data-panel-slot]')!;
   /** A navigation stack, so an episode can lead to the place it was filmed at and still
       come back — the same push/pop a native app would give you. Sheets are stored as
       their build functions, so going back re-renders rather than caching stale DOM. */
@@ -176,10 +191,18 @@ export function createPanel(deps: PanelDeps) {
     paint();
   });
 
+  /** Puts this sheet's identity in the control line. `counter` gets the accent. */
+  function kicker(text: string, counter = false) {
+    slot.textContent = text;
+    slot.classList.toggle('is-counter', counter);
+  }
+
   function paint() {
     const build = views[views.length - 1];
     if (!build) return;
     generation++;
+    slot.replaceChildren();
+    slot.classList.remove('is-counter');
     body.replaceChildren();
     build(body);
     backBtn.hidden = views.length < 2;
@@ -200,6 +223,7 @@ export function createPanel(deps: PanelDeps) {
     views.length = 0;
     pushNext = false;
     backBtn.hidden = true;
+    slot.replaceChildren();
     root.classList.remove('is-open');
     root.hidden = true;
     body.replaceChildren();
@@ -574,25 +598,35 @@ export function createPanel(deps: PanelDeps) {
     return nav;
   }
 
-  function trackInfo(host: HTMLElement, track: TrackProps) {
-    const head = el('div', 'wm-panel__sectionrow');
-    head.appendChild(el('h3', 'wm-panel__section', strings['map.panel.trackInfo'] ?? 'Track info'));
-    if (Number.isFinite(track.lng) && Number.isFinite(track.lat)) {
-      const go = el('button', 'wm-panel__go') as HTMLButtonElement;
-      go.type = 'button';
-      const label = strings['map.panel.directions'] ?? 'Directions';
-      go.title = label;
-      go.setAttribute('aria-label', label);
-      go.innerHTML =
-        '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"' +
-        ' stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
-        '<path d="M12 21s7-6.4 7-11.4A7 7 0 0 0 5 9.6C5 14.6 12 21 12 21Z"/>' +
-        '<circle cx="12" cy="9.6" r="2.6"/></svg>';
-      go.addEventListener('click', () => openDirections(track));
-      head.appendChild(go);
-    }
-    host.appendChild(head);
+  /** Trailing action row at the foot of a sheet; lines up under the share control. */
+  function actionRow(host: HTMLElement, ...buttons: HTMLElement[]): void {
+    const kept = buttons.filter(Boolean);
+    if (!kept.length) return;
+    const row = el('div', 'wm-panel__actions');
+    for (const b of kept) row.appendChild(b);
+    host.appendChild(row);
+  }
 
+  function directionsButton(track: TrackProps): HTMLButtonElement | null {
+    if (!Number.isFinite(track.lng) || !Number.isFinite(track.lat)) return null;
+    const go = el('button', 'wm-panel__go') as HTMLButtonElement;
+    go.type = 'button';
+    const label = strings['map.panel.directions'] ?? 'Directions';
+    go.title = label;
+    go.setAttribute('aria-label', label);
+    go.innerHTML =
+      '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor"' +
+      ' stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+      '<path d="M12 21s7-6.4 7-11.4A7 7 0 0 0 5 9.6C5 14.6 12 21 12 21Z"/>' +
+      '<circle cx="12" cy="9.6" r="2.6"/></svg>';
+    go.addEventListener('click', () => openDirections(track));
+    return go;
+  }
+
+  function trackInfo(host: HTMLElement, track: TrackProps) {
+    // "Track info" moved into the control line, so the body opens on the content
+    // rather than on a label. Directions leaves with it and lands in the action
+    // row at the foot of the sheet, under the share control it lines up with.
     const meta = el('p', 'wm-panel__meta');
     const bits = [track.locality, track.country_code].filter(Boolean) as string[];
     meta.textContent = bits.join(' · ');
@@ -681,7 +715,7 @@ export function createPanel(deps: PanelDeps) {
     showTrail(trail: Trail) {
       open((host) => {
         const st = trail.stats ?? null;
-        host.appendChild(el('span', 'wm-panel__kicker', strings['map.trail.kicker'] ?? 'Rider trail'));
+        kicker(strings['map.trail.kicker'] ?? 'Rider trail');
         titleRow(host, localized(trail.title, lang) ?? trail.id, { kind: 'route', key: trail.id }, strings);
 
         const summary = localized(trail.summary, lang);
@@ -799,11 +833,14 @@ export function createPanel(deps: PanelDeps) {
           el('span', 'wm-by__meta', named ? `${riderLabel} · @${trail.author_username}` : riderLabel),
         );
         by.append(face, idBlock);
+        // A face and a name with nothing said about them read as the subject of the
+        // sheet. The label is what makes them the author of it.
+        host.appendChild(el('h3', 'wm-panel__section', strings['map.trail.uploadedBy'] ?? 'Uploaded by'));
         host.appendChild(by);
 
         // Plain links only — no gpx.studio preview card in this round.
-        const row = el('div', 'wm-panel__socials');
-        const mark = (icon: string, href: string, label: string) => {
+        const row = el('div', 'wm-panel__socials wm-panel__actions');
+        const mark = (icon: string | null, href: string, label: string, svg?: string) => {
           const a = el('a', 'wm-social') as HTMLAnchorElement;
           a.href = href;
           a.title = label;
@@ -812,14 +849,21 @@ export function createPanel(deps: PanelDeps) {
             a.target = '_blank';
             a.rel = 'noopener';
           }
-          a.innerHTML = markSvg(icon, `trail-${icon}-${generation}`);
+          a.innerHTML = svg ?? markSvg(icon!, `trail-${icon}-${generation}`);
           row.appendChild(a);
         };
-        if (trail.post_url) mark('thread', trail.post_url, strings['map.trail.thread'] ?? 'Forum thread');
+        // gpx.studio is where the trace's own detail lives, so it takes the info
+        // glyph rather than a second route mark beside the trail's own.
         if (trail.gpx_url) {
           const files = encodeURIComponent(JSON.stringify([trail.gpx_url]));
-          mark('route', `https://gpx.studio/app?files=${files}`, strings['map.trail.studio'] ?? 'Open in gpx.studio');
+          mark(
+            null,
+            `https://gpx.studio/app?files=${files}`,
+            strings['map.trail.studio'] ?? 'Open in gpx.studio',
+            INFO_SVG,
+          );
         }
+        if (trail.post_url) mark('thread', trail.post_url, strings['map.trail.thread'] ?? 'Forum thread');
         if (row.childElementCount) host.appendChild(row);
       });
     },
@@ -839,9 +883,11 @@ export function createPanel(deps: PanelDeps) {
       open((host) => {
         // A shop rides the same catalog row as a track, so the share kind follows
         // the row's own kind rather than the sheet it happens to be rendered in.
+        kicker(strings['map.panel.trackInfo'] ?? 'Track info');
         titleRow(host, track.name, { kind: track.kind === 'shop' ? 'shop' : 'track', key: track.slug }, strings);
         trackInfo(host, track);
         void builtBy(host, track);
+        actionRow(host, ...[directionsButton(track)].filter(Boolean) as HTMLElement[]);
       });
     },
 
@@ -853,8 +899,7 @@ export function createPanel(deps: PanelDeps) {
       steps: { prev: boolean; next: boolean } = { prev: false, next: false },
     ) {
       open((host) => {
-        const counter = entry.kind === 'episode' ? `${entry.label} / ${target}` : entry.label;
-        host.appendChild(el('span', 'wm-panel__counter', counter));
+        kicker(entry.kind === 'episode' ? `${entry.label} / ${target}` : String(entry.label), true);
         titleRow(
           host,
           localized(entry.title, lang) ?? track?.name ?? entry.label,

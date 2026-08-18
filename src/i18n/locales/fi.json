@@ -251,6 +251,7 @@
   "map.trail.pointToPoint": "Pisteestä pisteeseen",
   "map.trail.sections": "{n} osuutta",
   "map.trail.thread": "Foorumiketju",
+  "map.trail.uploadedBy": "Lataaja",
   "map.trail.studio": "Avaa gpx.studiossa",
   "map.layer.title": "Tasot",
   "map.track.builtBy": "Built by",

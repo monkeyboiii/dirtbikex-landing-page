@@ -251,6 +251,7 @@
   "map.trail.pointToPoint": "จุดถึงจุด",
   "map.trail.sections": "{n} ช่วง",
   "map.trail.thread": "กระทู้ในฟอรัม",
+  "map.trail.uploadedBy": "อัปโหลดโดย",
   "map.trail.studio": "เปิดใน gpx.studio",
   "map.layer.title": "เลเยอร์",
   "map.track.builtBy": "สร้างโดย",

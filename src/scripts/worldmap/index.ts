@@ -359,34 +359,6 @@ function blurExpr(): unknown {
   return ['interpolate', ['linear'], ['zoom'], 1, 0.7, 6, 0];
 }
 
-/** Flies the camera back to the episode the map opened on. */
-class RecenterControl {
-  constructor(
-    private readonly onPress: () => void,
-    private readonly label: string,
-  ) {}
-
-  onAdd(): HTMLElement {
-    const group = document.createElement('div');
-    group.className = 'maplibregl-ctrl maplibregl-ctrl-group wm-ctrl-recenter';
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.title = this.label;
-    button.setAttribute('aria-label', this.label);
-    button.innerHTML =
-      '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
-      '<circle cx="12" cy="12" r="4.5" fill="currentColor"/>' +
-      '<circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.6"/>' +
-      '<path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>' +
-      '</svg>';
-    button.addEventListener('click', () => this.onPress());
-    group.appendChild(button);
-    return group;
-  }
-
-  onRemove() {}
-}
-
 class WorldMap {
   private map!: MapLibreMap;
   private panel!: Panel;
@@ -469,15 +441,11 @@ class WorldMap {
       fadeDuration: 120,
     });
     this.map.touchZoomRotate.disableRotation();
-    // Bottom-right stacks upward in insertion order: info button, then recenter, then zoom.
+    // Bottom-right stacks upward in insertion order: info button, then zoom.
     this.map.addControl(new AttributionControl({ compact: true }), 'bottom-right');
-    this.map.addControl(
-      new RecenterControl(
-        () => this.recenter(),
-        strings['map.control.recenter'] ?? 'Back to the latest episode',
-      ),
-      'bottom-right',
-    );
+    // Recenter is not a map control any more: it lives at the foot of the layer
+    // rail, with the other things you press to change what you are looking at.
+    // Leaving it stacked with zoom put a navigation action in among the chrome.
     this.map.addControl(new NavigationControl({ showCompass: false }), 'bottom-right');
 
     this.map.on('error', (e) => console.warn('worldmap', e?.error?.message ?? e));
@@ -1549,6 +1517,12 @@ function wireRail(root: HTMLElement, world: WorldMap) {
       hint = setTimeout(() => delete button.dataset.hint, 1600);
     });
   }
+
+  // Recenter is in the rail rather than the zoom stack: everything in this rail
+  // changes what you are looking at, and recentring is that, not chrome. It is
+  // the one rail button with no pressed state — it acts and does not toggle.
+  const recenter = root.querySelector<HTMLButtonElement>('[data-recenter]');
+  recenter?.addEventListener('click', () => world.recenter());
 }
 
 function wireDrawer(root: HTMLElement) {

@@ -251,6 +251,7 @@
   "map.trail.pointToPoint": "Σημείο σε σημείο",
   "map.trail.sections": "{n} τμήματα",
   "map.trail.thread": "Νήμα φόρουμ",
+  "map.trail.uploadedBy": "Ανέβηκε από",
   "map.trail.studio": "Άνοιγμα στο gpx.studio",
   "map.layer.title": "Επίπεδα",
   "map.track.builtBy": "Built by",
