@@ -1539,13 +1539,30 @@ body.is-map-page .site-header__inner {
   color: var(--wm-text);
   border-color: var(--wm-line-strong);
 }
-/* Trailing action row at the foot of a sheet — directions, the forum thread,
-   gpx.studio. Right-aligned so it sits under the share control in the title row. */
-.wm-panel__actions {
+/* Directions belongs to the address it acts on, so it sits on that line. */
+.wm-panel__metarow {
   display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  margin-top: 4px;
+  align-items: center;
+  gap: 10px;
+}
+.wm-panel__metarow .wm-panel__meta {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+}
+
+/* Who uploaded it, and the two ways out of it, on one line. */
+.wm-panel__byline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.wm-panel__byline .wm-by {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.wm-panel__byline .wm-panel__socials {
+  flex: none;
 }
 
 /* The venue line is a disclosure into that place's own sheet. */

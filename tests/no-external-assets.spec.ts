@@ -39,10 +39,10 @@ interface RouteSpec {
 const LINEAGE_RESUME_PATH = process.env.LINEAGE_TEST_PATH ?? '/lineage/@calvin';
 
 /** The share spelling of the same résumé — a bare segment is a forum username. */
-const LINEAGE_SHARE_PATH = process.env.LINEAGE_TEST_SHARE_PATH ?? '/s/lineage/calvin';
+const LINEAGE_SHARE_PATH = process.env.LINEAGE_TEST_SHARE_PATH ?? '/share/lineage/calvin';
 
 /** A seeded map entity; overridable for the same reason as the rider above. */
-const ENTITY_SHARE_PATH = process.env.ENTITY_TEST_PATH ?? '/s/route/chongqing-shapingba-164';
+const ENTITY_SHARE_PATH = process.env.ENTITY_TEST_PATH ?? '/share/route/chongqing-shapingba-164';
 
 const ROUTES: RouteSpec[] = [
   { path: '/', allow: MAP_TILES_ALLOWED, exerciseMap: true },

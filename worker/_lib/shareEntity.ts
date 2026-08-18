@@ -38,6 +38,7 @@ export const SHARE_ALIASES: Record<string, string> = {
   ta: 'track',
   sh: 'shop',
   ch: 'challenge',
+  l: 'lineage',
 };
 
 export interface EntityFact {

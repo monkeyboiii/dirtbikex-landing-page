@@ -860,30 +860,37 @@ export default {
     if (se && request.method === 'GET') {
       return handleEvent(request, env, decodeURIComponent(se[1]));
     }
-    // `/s/{route,track,shop,challenge}/<key>` — one card, four lookups. The old
-    // two-letter codes 301 to the word, so a link that was ever shared keeps
-    // working and only one spelling is ever indexed.
-    const alias = url.pathname.match(/^\/s\/(tr|ta|sh|ch)\/(.+)$/);
-    if (alias && request.method === 'GET') {
+    // Web-only shares live under `/share/`, NOT `/s/`.
+    //
+    // Narrowing AASA to exclude `/s/route/*` was correct and did not work: iOS
+    // caches the association file and only re-reads it reliably on app install
+    // or update, so every device already carrying the old broad `/s/*` claim
+    // keeps opening the app — which cannot route these kinds, so it raises its
+    // invalid-link bubble. A different prefix is immune by construction: no
+    // AASA ever claimed `/share/*`, cached or otherwise.
+    //
+    // `/s/i`, `/s/u` and `/s/e` stay where they are; those are the kinds the app
+    // genuinely handles, and their links are already in the wild.
+    const shareAlias = url.pathname.match(/^\/s\/(tr|ta|sh|ch|l)\/(.+)$/);
+    if (shareAlias && request.method === 'GET') {
       const to = new URL(request.url);
-      to.pathname = `/s/${SHARE_ALIASES[alias[1]!]}/${alias[2]!}`;
+      to.pathname = `/share/${SHARE_ALIASES[shareAlias[1]!]}/${shareAlias[2]!}`;
       return Response.redirect(to.toString(), 301);
     }
-    const sm = url.pathname.match(/^\/s\/(route|track|shop|challenge)\/([^/]+)\/?$/);
+    const shareWord = url.pathname.match(/^\/s\/(route|track|shop|challenge|lineage)\/(.+)$/);
+    if (shareWord && request.method === 'GET') {
+      const to = new URL(request.url);
+      to.pathname = `/share/${shareWord[1]!}/${shareWord[2]!}`;
+      return Response.redirect(to.toString(), 301);
+    }
+    const sm = url.pathname.match(/^\/share\/(route|track|shop|challenge)\/([^/]+)\/?$/);
     if (sm && request.method === 'GET') {
       return handleEntity(request, env, sm[1]!, decodeURIComponent(sm[2]!));
     }
-    // `/s/lineage/<username>` — same treatment: the word is canonical, `l` redirects.
-    const sll = url.pathname.match(/^\/s\/l\/(.+)$/);
-    if (sll && request.method === 'GET') {
-      const to = new URL(request.url);
-      to.pathname = `/s/lineage/${sll[1]!}`;
-      return Response.redirect(to.toString(), 301);
-    }
-    const slw = url.pathname.match(/^\/s\/lineage\/([^/]+)\/?$/);
+    const slw = url.pathname.match(/^\/share\/lineage\/([^/]+)\/?$/);
     if (slw && request.method === 'GET') {
       const param = decodeURIComponent(slw[1]!);
-      return handleLineagePage(request, env, shareLineageRef(param), '/s/lineage/', param);
+      return handleLineagePage(request, env, shareLineageRef(param), '/share/lineage/', param);
     }
     // Rider lineage — the public read surface (LINEAGE_PLAN.md §4.2). Reads are
     // anonymous plugin endpoints, so no key and no CORS is involved; every write

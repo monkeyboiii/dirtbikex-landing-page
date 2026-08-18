@@ -100,6 +100,13 @@ const SHARE_SVG =
   '<path d="M21 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h6"/>' +
   '<path d="m21 3-9 9"/><path d="M15 3h6v6"/></svg>';
 
+/** lucide `messages-square` — the forum thread this thing is discussed in. */
+const THREAD_SVG =
+  '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"' +
+  ' stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+  '<path d="M16 10a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 14.286V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>' +
+  '<path d="M20 9a2 2 0 0 1 2 2v10.286a.71.71 0 0 1-1.212.502l-2.202-2.202A2 2 0 0 0 17.172 19H10a2 2 0 0 1-2-2v-1"/></svg>';
+
 /** lucide `info` — the trail's own details, one step out to gpx.studio. */
 const INFO_SVG =
   '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"' +
@@ -137,7 +144,7 @@ function titleRow(
 
     button.addEventListener('click', (event) => {
       event.stopPropagation();
-      const url = `${location.origin}/s/${share.kind}/${encodeURIComponent(share.key)}`;
+      const url = `${location.origin}/share/${share.kind}/${encodeURIComponent(share.key)}`;
       const data = { title: text, url };
       if (navigator.share) {
         void navigator.share(data).catch(() => {});
@@ -598,15 +605,6 @@ export function createPanel(deps: PanelDeps) {
     return nav;
   }
 
-  /** Trailing action row at the foot of a sheet; lines up under the share control. */
-  function actionRow(host: HTMLElement, ...buttons: HTMLElement[]): void {
-    const kept = buttons.filter(Boolean);
-    if (!kept.length) return;
-    const row = el('div', 'wm-panel__actions');
-    for (const b of kept) row.appendChild(b);
-    host.appendChild(row);
-  }
-
   function directionsButton(track: TrackProps): HTMLButtonElement | null {
     if (!Number.isFinite(track.lng) || !Number.isFinite(track.lat)) return null;
     const go = el('button', 'wm-panel__go') as HTMLButtonElement;
@@ -625,15 +623,22 @@ export function createPanel(deps: PanelDeps) {
 
   function trackInfo(host: HTMLElement, track: TrackProps) {
     // "Track info" moved into the control line, so the body opens on the content
-    // rather than on a label. Directions leaves with it and lands in the action
-    // row at the foot of the sheet, under the share control it lines up with.
+    // rather than on a label. Directions rides the address line it belongs to —
+    // it acts on that address — instead of floating alone at the foot of the sheet.
     const meta = el('p', 'wm-panel__meta');
     const bits = [track.locality, track.country_code].filter(Boolean) as string[];
     meta.textContent = bits.join(' · ');
     if (track.name_local && track.name_local !== track.name) {
       meta.textContent = [track.name_local, ...bits].join(' · ');
     }
-    host.appendChild(meta);
+    const go = directionsButton(track);
+    if (go) {
+      const row = el('div', 'wm-panel__metarow');
+      row.append(meta, go);
+      host.appendChild(row);
+    } else {
+      host.appendChild(meta);
+    }
 
     const chips = el('div', 'wm-panel__chips');
     chips.appendChild(el('span', 'wm-chip', strings[`map.cat.${track.category}`] ?? track.category));
@@ -836,10 +841,13 @@ export function createPanel(deps: PanelDeps) {
         // A face and a name with nothing said about them read as the subject of the
         // sheet. The label is what makes them the author of it.
         host.appendChild(el('h3', 'wm-panel__section', strings['map.trail.uploadedBy'] ?? 'Uploaded by'));
-        host.appendChild(by);
 
-        // Plain links only — no gpx.studio preview card in this round.
-        const row = el('div', 'wm-panel__socials wm-panel__actions');
+        // The two ways out of this trail sit on the uploader's row rather than in a
+        // strip of their own: one line of who and where-next, not two of each.
+        const row = el('div', 'wm-panel__socials');
+        const byline = el('div', 'wm-panel__byline');
+        byline.append(by, row);
+        host.appendChild(byline);
         const mark = (icon: string | null, href: string, label: string, svg?: string) => {
           const a = el('a', 'wm-social') as HTMLAnchorElement;
           a.href = href;
@@ -863,8 +871,9 @@ export function createPanel(deps: PanelDeps) {
             INFO_SVG,
           );
         }
-        if (trail.post_url) mark('thread', trail.post_url, strings['map.trail.thread'] ?? 'Forum thread');
-        if (row.childElementCount) host.appendChild(row);
+        if (trail.post_url) {
+          mark(null, trail.post_url, strings['map.trail.thread'] ?? 'Forum thread', THREAD_SVG);
+        }
       });
     },
 
@@ -887,7 +896,6 @@ export function createPanel(deps: PanelDeps) {
         titleRow(host, track.name, { kind: track.kind === 'shop' ? 'shop' : 'track', key: track.slug }, strings);
         trackInfo(host, track);
         void builtBy(host, track);
-        actionRow(host, ...[directionsButton(track)].filter(Boolean) as HTMLElement[]);
       });
     },
 

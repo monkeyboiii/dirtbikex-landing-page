@@ -226,7 +226,7 @@ function queries(t: LineageTrace, payload: DebugPayload): string {
 
 /** Same page, different knob — so a verification pass is clicking, not retyping. */
 function knobs(t: LineageTrace): string {
-  const base = t.route.startsWith('/s/') ? `/lineage/${t.ref}` : `/s/lineage/${t.ref.replace(/^@/, '')}`;
+  const base = t.route.startsWith('/share/') ? `/lineage/${t.ref}` : `/share/lineage/${t.ref.replace(/^@/, '')}`;
   const locales = LOCALE_LINKS.map((l) => link(`?debug=true&lang=${l}`, l)).join(' · ');
   return group('knobs', `<ul class="dbg-l">
 <li>locale: ${locales}</li>

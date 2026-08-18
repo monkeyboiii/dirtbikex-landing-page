@@ -219,6 +219,9 @@ function getHeroCopy(locale: Lang): HeroCopy {
 
 /**
  * The only script on any share card, and it only ships when the card is armed.
+ * It goes at the END OF BODY, not in the head: an inline script cannot be
+ * deferred, so in the head it runs before the button exists, finds nothing and
+ * bails — which is exactly how the countdown shipped doing nothing.
  * Bails on reduced-motion and on a metered or 2g connection: 3 KB of card versus
  * ~570 KB of map and third-party tiles is exactly the visitor who should be
  * asked rather than moved.
@@ -257,7 +260,7 @@ ${ogImage ? `<meta property="og:image" content="${esc(ogImage)}">
 <meta property="og:image:height" content="288">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="${esc(ogImage)}">` : ''}
-<style>${CSS}</style>${props.autoJump ? `<script>${JUMP_JS}</script>` : ''}`;
+<style>${CSS}</style>`;
 
   const body = props.invite
     ? heroCardBody(props.invite, props, locale)
@@ -291,7 +294,7 @@ ${ogImage ? `<meta property="og:image" content="${esc(ogImage)}">
   return `<!DOCTYPE html>
 <html lang="${locale}" dir="${isRTL(locale) ? 'rtl' : 'ltr'}">
 <head>${head(ogTitle, ogDescription)}</head>
-<body>${body}</body>
+<body>${body}${props.autoJump ? `<script>${JUMP_JS}</script>` : ''}</body>
 </html>`;
 }
 
@@ -645,7 +648,7 @@ function userCardBody(user: UserRow, props: ShareLandingProps, locale: Lang): st
     if (l.students > 0 || l.downstream > 0) {
       const label = copy.lineageMore ?? (USER_COPY.en as UserCopy).lineageMore!;
       stats.push(
-        `<a class="stat-info" href="/s/lineage/${esc(encodeURIComponent(user.username))}"` +
+        `<a class="stat-info" href="/share/lineage/${esc(encodeURIComponent(user.username))}"` +
           ` title="${esc(label)}" aria-label="${esc(label)}">${INFO_SVG}</a>`,
       );
     }
