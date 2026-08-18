@@ -207,6 +207,8 @@
   "map.panel.next": "ตอนถัดไป",
   "map.panel.directions": "เส้นทาง",
   "map.panel.openIn": "เปิดด้วย",
+  "map.panel.share": "แชร์",
+  "map.panel.shareCopied": "คัดลอกลิงก์แล้ว",
   "map.panel.systemMaps": "แอปแผนที่เริ่มต้น",
   "map.panel.inProduction": "ตอนใหม่กำลังผลิต",
   "map.panel.watch": "ดู",

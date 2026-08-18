@@ -630,6 +630,15 @@ body.is-map-page .site-header__inner {
   letter-spacing: 0.14em;
   color: var(--wm-accent);
 }
+.wm-panel__titlerow {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  /* The close control sits top-right of the sheet; the row keeps clear of it and
+     the share button takes the reserved space instead of the title's padding. */
+  padding-right: 28px;
+}
+
 .wm-panel__title {
   font-family: var(--font-display, 'Bricolage Grotesque', sans-serif);
   font-weight: 700;
@@ -637,7 +646,36 @@ body.is-map-page .site-header__inner {
   line-height: 1.18;
   letter-spacing: -0.015em;
   margin: 0;
-  padding-right: 28px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.wm-panel__share {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  margin-top: -2px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  opacity: 0.62;
+  cursor: pointer;
+  transition: opacity 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+}
+
+.wm-panel__share:hover,
+.wm-panel__share:focus-visible {
+  opacity: 1;
+  background: color-mix(in srgb, currentColor 12%, transparent);
+}
+
+.wm-panel__share.is-copied {
+  opacity: 1;
+  color: var(--wm-accent, #d64000);
 }
 .wm-panel__meta {
   margin: 0;

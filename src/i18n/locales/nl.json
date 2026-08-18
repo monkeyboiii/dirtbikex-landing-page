@@ -207,6 +207,8 @@
   "map.panel.next": "Volgende aflevering",
   "map.panel.directions": "Route",
   "map.panel.openIn": "Openen in",
+  "map.panel.share": "Delen",
+  "map.panel.shareCopied": "Link gekopieerd",
   "map.panel.systemMaps": "Standaard kaarten-app",
   "map.panel.inProduction": "Aflevering in productie",
   "map.panel.watch": "Bekijken",

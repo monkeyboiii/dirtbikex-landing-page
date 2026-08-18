@@ -207,6 +207,8 @@
   "map.panel.next": "Seuraava jakso",
   "map.panel.directions": "Reittiohjeet",
   "map.panel.openIn": "Avaa sovelluksessa",
+  "map.panel.share": "Jaa",
+  "map.panel.shareCopied": "Linkki kopioitu",
   "map.panel.systemMaps": "Oletuskarttasovellus",
   "map.panel.inProduction": "Jakso työn alla",
   "map.panel.watch": "Katso",

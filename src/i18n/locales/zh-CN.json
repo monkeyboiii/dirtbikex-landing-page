@@ -210,6 +210,8 @@
   "map.panel.next": "下一集",
   "map.panel.directions": "导航",
   "map.panel.openIn": "打开方式",
+  "map.panel.share": "分享",
+  "map.panel.shareCopied": "链接已复制",
   "map.panel.systemMaps": "默认地图应用",
   "map.panel.inProduction": "本集制作中",
   "map.panel.watch": "观看",

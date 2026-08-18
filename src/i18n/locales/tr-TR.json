@@ -207,6 +207,8 @@
   "map.panel.next": "Sonraki bölüm",
   "map.panel.directions": "Yol tarifi",
   "map.panel.openIn": "Şununla aç",
+  "map.panel.share": "Paylaş",
+  "map.panel.shareCopied": "Bağlantı kopyalandı",
   "map.panel.systemMaps": "Varsayılan harita uygulaması",
   "map.panel.inProduction": "Bölüm yapım aşamasında",
   "map.panel.watch": "İzle",

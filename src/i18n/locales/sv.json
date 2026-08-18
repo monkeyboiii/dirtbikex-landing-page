@@ -209,6 +209,8 @@
   "map.panel.next": "Nästa avsnitt",
   "map.panel.directions": "Vägbeskrivning",
   "map.panel.openIn": "Öppna i",
+  "map.panel.share": "Dela",
+  "map.panel.shareCopied": "Länk kopierad",
   "map.panel.systemMaps": "Standardkartapp",
   "map.panel.inProduction": "Avsnitt under produktion",
   "map.panel.watch": "Se",

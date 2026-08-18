@@ -90,6 +90,64 @@ function el(tag: string, className?: string, text?: string): HTMLElement {
   return node;
 }
 
+/**
+ * The sheet's title, with a share control on the trailing edge.
+ *
+ * Every sheet has a shareable twin at `/s/<kind>/<key>` — the worker-rendered
+ * card, which is what carries the OG unfurl and the app CTA. Sharing the map URL
+ * instead would unfurl as "DirtBikeX" and land a recipient on a viewport, so the
+ * button always shares the card and lets the card offer the map.
+ *
+ * `navigator.share` where it exists (every phone this matters on), clipboard
+ * everywhere else, and the button says so rather than silently doing nothing.
+ */
+function titleRow(
+  host: HTMLElement,
+  text: string,
+  share: { kind: 'tr' | 'ta' | 'sh' | 'ch'; key: string } | null,
+  strings: Record<string, string>,
+): void {
+  const row = el('div', 'wm-panel__titlerow');
+  row.appendChild(el('h2', 'wm-panel__title', text));
+
+  if (share?.key) {
+    const label = strings['map.panel.share'] ?? 'Share';
+    const button = el('button', 'wm-panel__share') as HTMLButtonElement;
+    button.type = 'button';
+    button.title = label;
+    button.setAttribute('aria-label', `${label} · ${text}`);
+    button.innerHTML =
+      '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor"' +
+      ' stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+      '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>' +
+      '<path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>';
+
+    button.addEventListener('click', (event) => {
+      event.stopPropagation();
+      const url = `${location.origin}/s/${share.kind}/${encodeURIComponent(share.key)}`;
+      const data = { title: text, url };
+      if (navigator.share) {
+        void navigator.share(data).catch(() => {});
+        return;
+      }
+      void navigator.clipboard
+        ?.writeText(url)
+        .then(() => {
+          button.classList.add('is-copied');
+          button.title = strings['map.panel.shareCopied'] ?? 'Link copied';
+          setTimeout(() => {
+            button.classList.remove('is-copied');
+            button.title = label;
+          }, 1600);
+        })
+        .catch(() => {});
+    });
+    row.appendChild(button);
+  }
+
+  host.appendChild(row);
+}
+
 function markSvg(platform: string, uid: string, size = 20): string {
   const body = PLATFORM_ICONS[platform]?.(uid) ?? TRAIL_ICONS[platform] ?? '';
   return `<svg viewBox="0 0 24 24" width="${size}" height="${size}" aria-hidden="true">${body}</svg>`;
@@ -624,7 +682,7 @@ export function createPanel(deps: PanelDeps) {
       open((host) => {
         const st = trail.stats ?? null;
         host.appendChild(el('span', 'wm-panel__kicker', strings['map.trail.kicker'] ?? 'Rider trail'));
-        host.appendChild(el('h2', 'wm-panel__title', localized(trail.title, lang) ?? trail.id));
+        titleRow(host, localized(trail.title, lang) ?? trail.id, { kind: 'tr', key: trail.id }, strings);
 
         const summary = localized(trail.summary, lang);
         if (summary) host.appendChild(el('p', 'wm-panel__meta', summary));
@@ -779,7 +837,9 @@ export function createPanel(deps: PanelDeps) {
 
     showTrack(track: TrackProps) {
       open((host) => {
-        host.appendChild(el('h2', 'wm-panel__title', track.name));
+        // A shop rides the same catalog row as a track, so the share kind follows
+        // the row's own kind rather than the sheet it happens to be rendered in.
+        titleRow(host, track.name, { kind: track.kind === 'shop' ? 'sh' : 'ta', key: track.slug }, strings);
         trackInfo(host, track);
         void builtBy(host, track);
       });
@@ -795,7 +855,12 @@ export function createPanel(deps: PanelDeps) {
       open((host) => {
         const counter = entry.kind === 'episode' ? `${entry.label} / ${target}` : entry.label;
         host.appendChild(el('span', 'wm-panel__counter', counter));
-        host.appendChild(el('h2', 'wm-panel__title', localized(entry.title, lang) ?? track?.name ?? entry.label));
+        titleRow(
+          host,
+          localized(entry.title, lang) ?? track?.name ?? entry.label,
+          { kind: 'ch', key: String(entry.label) },
+          strings,
+        );
 
         // An episode is filmed AT somewhere. Rather than bury that place's details at the
         // bottom of this sheet, the venue line is the way in to its own sheet, and back
