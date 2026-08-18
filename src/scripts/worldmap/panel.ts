@@ -104,7 +104,7 @@ function el(tag: string, className?: string, text?: string): HTMLElement {
 function titleRow(
   host: HTMLElement,
   text: string,
-  share: { kind: 'tr' | 'ta' | 'sh' | 'ch'; key: string } | null,
+  share: { kind: 'route' | 'track' | 'shop' | 'challenge'; key: string } | null,
   strings: Record<string, string>,
 ): void {
   const row = el('div', 'wm-panel__titlerow');
@@ -682,7 +682,7 @@ export function createPanel(deps: PanelDeps) {
       open((host) => {
         const st = trail.stats ?? null;
         host.appendChild(el('span', 'wm-panel__kicker', strings['map.trail.kicker'] ?? 'Rider trail'));
-        titleRow(host, localized(trail.title, lang) ?? trail.id, { kind: 'tr', key: trail.id }, strings);
+        titleRow(host, localized(trail.title, lang) ?? trail.id, { kind: 'route', key: trail.id }, strings);
 
         const summary = localized(trail.summary, lang);
         if (summary) host.appendChild(el('p', 'wm-panel__meta', summary));
@@ -839,7 +839,7 @@ export function createPanel(deps: PanelDeps) {
       open((host) => {
         // A shop rides the same catalog row as a track, so the share kind follows
         // the row's own kind rather than the sheet it happens to be rendered in.
-        titleRow(host, track.name, { kind: track.kind === 'shop' ? 'sh' : 'ta', key: track.slug }, strings);
+        titleRow(host, track.name, { kind: track.kind === 'shop' ? 'shop' : 'track', key: track.slug }, strings);
         trackInfo(host, track);
         void builtBy(host, track);
       });
@@ -858,7 +858,7 @@ export function createPanel(deps: PanelDeps) {
         titleRow(
           host,
           localized(entry.title, lang) ?? track?.name ?? entry.label,
-          { kind: 'ch', key: String(entry.label) },
+          { kind: 'challenge', key: String(entry.label) },
           strings,
         );
 
