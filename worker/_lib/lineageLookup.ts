@@ -8,7 +8,8 @@ import type { PagesEnv } from './types';
  */
 
 export interface LineageRiderCard {
-  slug: string;
+  /** Null when the forum account has no rider node yet — see `blank_resume`. */
+  slug: string | null;
   claimed: boolean;
   placeholder: boolean;
   username: string | null;
@@ -44,6 +45,8 @@ export interface LineageEdge {
 }
 
 export interface LineageResume {
+  /** True when this is a real account with nothing recorded yet, not a 404. */
+  empty?: boolean;
   rider: LineageRiderCard & {
     region: string | null;
     country_code: string | null;

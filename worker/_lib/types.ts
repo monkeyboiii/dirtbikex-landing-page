@@ -130,8 +130,9 @@ export type Lang =
 
 /** Props handed to the shared share-landing renderer. */
 export interface ShareLandingProps {
-  /** Discriminator per ShareKind raw value: `'i'` invite, `'u'` profile, `'e'` event. */
-  kind: 'i' | 'u' | 'e';
+  /** Discriminator per ShareKind raw value: `'i'` invite, `'u'` profile, `'e'` event,
+   *  `'r'` route, `'t'` track, `'h'` shop, `'c'` challenge. */
+  kind: 'i' | 'u' | 'e' | 'r' | 't' | 'h' | 'c';
   locale: Lang;
   primaryCTA: { label: string; url: string };
   /** Optional secondary CTA — the "open in the app" deep link. Set only for a
@@ -150,6 +151,10 @@ export interface ShareLandingProps {
   user?: UserRow;
   /** Valid event payload — drives the event card. Mutually exclusive with the others. */
   event?: EventRow;
+  /** A map entity — route / track / shop / challenge. Mutually exclusive with the others. */
+  entity?: import('./shareEntity').EntityCard;
+  /** Who sent the link (`?from=`), resolved for the "wants to share this with you" line. */
+  sharedBy?: { name: string; avatarURL: string | null } | null;
 }
 
 /**

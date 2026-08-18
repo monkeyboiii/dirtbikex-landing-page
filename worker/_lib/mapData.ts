@@ -21,16 +21,12 @@ export interface WaitUntil {
   waitUntil(promise: Promise<unknown>): void;
 }
 
-/** `doc` is the basename shared by the R2 key and the committed seed: series, trails. */
-export async function handleMapDoc(
-  request: Request,
-  env: PagesEnv,
-  ctx: WaitUntil,
-  doc: string,
-): Promise<Response> {
-  const cached = await caches.default.match(request).catch(() => undefined);
-  if (cached) return cached;
-
+/**
+ * R2 first, committed seed second — the one place that resolution order lives, so
+ * the JSON route and the share cards can never disagree about which document is
+ * canonical. Returns null when neither is readable.
+ */
+export async function readMapDocBody(request: Request, env: PagesEnv, doc: string): Promise<string | null> {
   const prefix = env.MAP_DATA_PREFIX ?? 'prod';
   let body: string | null = null;
 
@@ -45,6 +41,21 @@ export async function handleMapDoc(
     const seed = await env.ASSETS.fetch(new Request(new URL(`/map/${doc}.seed.json`, request.url).toString()));
     if (seed.ok) body = await seed.text();
   }
+
+  return body;
+}
+
+/** `doc` is the basename shared by the R2 key and the committed seed: series, trails. */
+export async function handleMapDoc(
+  request: Request,
+  env: PagesEnv,
+  ctx: WaitUntil,
+  doc: string,
+): Promise<Response> {
+  const cached = await caches.default.match(request).catch(() => undefined);
+  if (cached) return cached;
+
+  const body = await readMapDocBody(request, env, doc);
 
   if (body === null) {
     return new Response(JSON.stringify({ error: 'unavailable' }), {

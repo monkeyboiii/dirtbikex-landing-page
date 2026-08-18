@@ -131,7 +131,7 @@ function compare(name: string, ok: boolean, detail: string): string {
 function rider(r: LineageResume): string {
   const d = r.rider as LineageResume['rider'] & { map_visible?: unknown };
   return group('rider', kv([
-    ['slug', d.slug],
+    ['slug', d.slug ?? '— (no rider node yet)'],
     ['claimed', String(d.claimed)],
     ['placeholder', String(d.placeholder)],
     ['username', d.username ?? '—'],
@@ -204,8 +204,10 @@ function queries(t: LineageTrace, payload: DebugPayload): string {
 
   if (payload.kind === 'resume') {
     const r = payload.data.rider;
-    items.push(link(`${f}/dirtbikex/lineage/riders/${enc(r.slug)}.json`, 'rider by slug'));
-    items.push(link(`${f}/dirtbikex/lineage/riders/${enc(r.slug)}/stats.json`, 'rider stats (uncached CTE)'));
+    if (r.slug) {
+      items.push(link(`${f}/dirtbikex/lineage/riders/${enc(r.slug)}.json`, 'rider by slug'));
+      items.push(link(`${f}/dirtbikex/lineage/riders/${enc(r.slug)}/stats.json`, 'rider stats (uncached CTE)'));
+    }
     if (r.username) {
       items.push(link(`${f}/dirtbikex/lineage/u/${enc(r.username)}.json`, 'rider by username'));
       items.push(link(`${f}/dirtbikex/lineage/u/${enc(r.username)}/stats.json`, 'username stats'));

@@ -31,6 +31,12 @@ interface Copy {
   notFoundBody: string;
   openApp: string;
   openForum: string;
+  /** Shown on a real rider who simply has no lineage yet. */
+  emptyOwnHint: string;
+  emptyCta: string;
+  /** Shown when the username resolves to nobody. */
+  notFoundJoin: string;
+  notFoundExplore: string;
   claimTitle: (name: string) => string;
   claimBody: string;
   claimCta: string;
@@ -63,6 +69,10 @@ const COPY: Partial<Record<Lang, Copy>> = {
     notFoundBody: 'This rider is not in the lineage, or the page has been removed.',
     openApp: 'Get DirtBikeX',
     openForum: 'Open profile',
+    emptyOwnHint: 'Lineage is built from both sides. Record who taught you, or who you taught — they get a notification and confirm it.',
+    emptyCta: 'Connect with riders',
+    notFoundJoin: 'Join DirtBikeX',
+    notFoundExplore: 'Explore the map',
     claimTitle: (name) => `Is this you, ${name}?`,
     claimBody: 'Someone recorded you in their riding lineage. Claim your place to confirm or correct it.',
     claimCta: 'Claim your place',
@@ -93,6 +103,10 @@ const COPY: Partial<Record<Lang, Copy>> = {
     notFoundBody: '这位车手不在传承图谱中,或页面已被移除。',
     openApp: '下载 DirtBikeX',
     openForum: '查看主页',
+    emptyOwnHint: '传承由双方共同确认。记录是谁教了你,或你教过谁,对方会收到通知并确认。',
+    emptyCta: '联系其他车手',
+    notFoundJoin: '加入 DirtBikeX',
+    notFoundExplore: '看看地图',
     claimTitle: (name) => `这是你吗,${name}?`,
     claimBody: '有人把你记录进了他的骑行传承。认领后即可确认或更正。',
     claimCta: '认领我的位置',
@@ -269,7 +283,7 @@ function edgeRow(edge: LineageEdge, opts: { copy: Copy; labels: Record<string, s
       : esc(copy.unclaimed);
   const link =
     edge.rider && !edge.rider.placeholder
-      ? `<a class="who" href="/lineage/${esc(edge.rider.username ? '@' + edge.rider.username : edge.rider.slug)}">${who}</a>`
+      ? `<a class="who" href="/lineage/${esc(edge.rider.username ? '@' + edge.rider.username : (edge.rider.slug ?? ''))}">${who}</a>`
       : `<span class="who">${who}</span>`;
   const detail = [facetText(edge, labels), years(edge), copy.provenance[edge.provenance] ?? edge.provenance]
     .filter(Boolean)
@@ -311,6 +325,20 @@ function timeline(resume: LineageResume, opts: { copy: Copy; labels: Record<stri
   return `<h2>${esc(copy.timeline)}</h2><ul class="timeline">${items}</ul>`;
 }
 
+/**
+ * A real rider with nothing recorded yet. This is the page the whole feature is
+ * trying to reach, so it asks for the next step rather than apologising: the
+ * forum is where lineage is written (the worker has no visitor session), so the
+ * CTA points at the add form there.
+ */
+function emptyState(resume: LineageResume, copy: Copy, forumBase: string): string {
+  const cta =
+    forumBase && resume.rider.username
+      ? `<div class="ctas"><a class="btn" href="${esc(forumBase)}/lineage/add">${esc(copy.emptyCta)}</a></div>`
+      : '';
+  return `<p class="empty">${esc(copy.empty)}</p><p class="empty">${esc(copy.emptyOwnHint)}</p>${cta}`;
+}
+
 export function renderResume(
   resume: LineageResume,
   opts: {
@@ -336,13 +364,20 @@ export function renderResume(
   ].filter(Boolean);
 
   const s = resume.stats;
-  const statItems = [
-    s.students ? `<span><b>${s.students}</b> ${esc(copy.stats.students)}</span>` : '',
-    s.downstream ? `<span><b>${s.downstream}</b> ${esc(copy.stats.downstream)}</span>` : '',
-    s.generations ? `<span><b>${s.generations}</b> ${esc(copy.stats.generations)}</span>` : '',
-    s.mentors ? `<span><b>${s.mentors}</b> ${esc(copy.stats.mentors)}</span>` : '',
-    s.tracks ? `<span><b>${s.tracks}</b> ${esc(copy.stats.tracks)}</span>` : '',
+  const stat = (n: number, label: string) => `<span><b>${n}</b> ${esc(label)}</span>`;
+  const populated = [
+    s.students ? stat(s.students, copy.stats.students) : '',
+    s.downstream ? stat(s.downstream, copy.stats.downstream) : '',
+    s.generations ? stat(s.generations, copy.stats.generations) : '',
+    s.mentors ? stat(s.mentors, copy.stats.mentors) : '',
+    s.tracks ? stat(s.tracks, copy.stats.tracks) : '',
   ].filter(Boolean);
+  // A rider with nothing recorded still gets a strip. Zeros are a truthful state
+  // and they frame the call to action underneath; an absent strip reads as a page
+  // that failed to load.
+  const statItems = populated.length
+    ? populated
+    : [stat(0, copy.stats.mentors), stat(0, copy.stats.students)];
 
   const knownFor = (rider.known_for || []).map((code) => `<span class="chip">${esc(labels[code] ?? code)}</span>`).join('');
 
@@ -367,7 +402,7 @@ export function renderResume(
   }</div></div>
 ${knownFor ? `<div class="chips">${knownFor}</div>` : ''}
 ${statItems.length ? `<div class="stats">${statItems.join('')}</div>` : ''}
-${sections || `<p class="empty">${esc(copy.empty)}</p>`}
+${sections || emptyState(resume, copy, opts.forumBase)}
 ${timeline(resume, { copy, labels })}
 <div class="ctas">${ctas}</div>${opts.debug ?? ''}`;
 
@@ -448,7 +483,14 @@ export function renderLineageNotFound(locale: Lang, url: string, debug?: string 
       ogImage: null,
       // The 404 is the most common thing an E2E pass actually hits, so it
       // carries the panel too — that is where the upstream status lives.
-      body: `<h1>${esc(copy.notFound)}</h1><p class="sub">${esc(copy.notFoundBody)}</p>${debug ?? ''}`,
+      // It is also a landing page for a stranger who followed someone's link, so
+      // it offers a way in rather than only a dead end.
+      body:
+        `<h1>${esc(copy.notFound)}</h1><p class="sub">${esc(copy.notFoundBody)}</p>` +
+        `<div class="ctas">` +
+        `<a class="btn" href="/join">${esc(copy.notFoundJoin)}</a>` +
+        `<a class="btn secondary" href="/">${esc(copy.notFoundExplore)}</a>` +
+        `</div>${debug ?? ''}`,
       noindex: true,
       extraCSS: debug ? DEBUG_CSS : '',
     }),

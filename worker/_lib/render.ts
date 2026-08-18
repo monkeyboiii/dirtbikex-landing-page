@@ -1,3 +1,4 @@
+import type { EntityCard, EntityKind } from './shareEntity';
 import type { EventRow, InviteRow, Lang, ShareLandingProps, UserRow } from './types';
 
 /**
@@ -245,7 +246,9 @@ ${ogImage ? `<meta property="og:image" content="${esc(ogImage)}">
       ? userCardBody(props.user, props, locale)
       : props.event
         ? eventCardBody(props.event, props, locale)
-        : errorBody(props);
+        : props.entity
+          ? entityCardBody(props.entity, props, locale)
+          : errorBody(props);
 
   const ogTitle = props.invite
     ? buildHeadline(props.invite, locale)
@@ -253,12 +256,16 @@ ${ogImage ? `<meta property="og:image" content="${esc(ogImage)}">
       ? userHeadline(props.user)
       : props.event
         ? props.event.name
-        : (props.title ?? 'DirtBikeX');
+        : props.entity
+          ? props.entity.title
+          : (props.title ?? 'DirtBikeX');
   const ogDescription = props.invite?.description
     ?? props.user?.bio_excerpt
     ?? (props.user ? `View ${props.user.name?.trim() || props.user.username}'s profile on DirtBikeX` : null)
     ?? props.event?.description
     ?? (props.event ? eventOgDescription(props.event, locale) : null)
+    ?? props.entity?.subtitle
+    ?? (props.entity ? entityOgDescription(props.entity, locale) : null)
     ?? props.subtitle
     ?? null;
 
@@ -646,6 +653,369 @@ function userCardBody(user: UserRow, props: ShareLandingProps, locale: Lang): st
  * with status badge + wordmark, then title / organizer / date·location chips /
  * description / attendance / tags / CTAs. Grows vertically.
  */
+
+/* ============================================================
+   Map-entity share cards (route / track / shop / challenge).
+   `shares` is a function per locale rather than a template with a
+   placeholder, because word order around the name and the noun
+   differs enough that a single pattern would read wrong in half
+   of these. Locales absent here fall back to `en` via getEntityCopy().
+   ============================================================ */
+
+interface EntityCopy {
+  kind: Record<EntityKind, string>;
+  shares: (n: string, k: string) => string;
+  facts: Record<'distance' | 'ascent' | 'shape' | 'recorded' | 'where' | 'status', string>;
+  shapes: Record<string, string>;
+  seeOnMap: string;
+  openThread: string;
+  openWebsite: string;
+  openEpisode: string;
+  gone: string;
+  goneBody: (k: string) => string;
+}
+
+const ENTITY_COPY: Partial<Record<Lang, EntityCopy>> = {
+  en: {
+    kind: { route: 'route', track: 'track', shop: 'shop', challenge: 'episode' },
+    shares: (n, k) => `${n} wants to share a ${k} with you`,
+    facts: { distance: 'Distance', ascent: 'Climb', shape: 'Shape', recorded: 'Ridden', where: 'Where', status: 'Status' },
+    shapes: { loop: 'loop', point_to_point: 'point to point' },
+    seeOnMap: 'See it on the map',
+    openThread: 'Open the discussion',
+    openWebsite: 'Visit the website',
+    openEpisode: 'Watch the episode',
+    gone: 'This link has nothing behind it',
+    goneBody: (k) => `The ${k} may have been removed, or the link was mistyped.`,
+  },
+  'zh-CN': {
+    kind: { route: '路线', track: '场地', shop: '车店', challenge: '一集' },
+    shares: (n, k) => `${n} 想和你分享一条${k}`,
+    facts: { distance: '距离', ascent: '爬升', shape: '形态', recorded: '骑行于', where: '位置', status: '状态' },
+    shapes: { loop: '环线', point_to_point: '单程' },
+    seeOnMap: '在地图上查看',
+    openThread: '查看讨论帖',
+    openWebsite: '访问网站',
+    openEpisode: '观看视频',
+    gone: '这个链接没有对应的内容',
+    goneBody: (k) => `该${k}可能已被移除,或链接输入有误。`,
+  },
+  'zh-TW': {
+    kind: { route: '路線', track: '場地', shop: '車店', challenge: '一集' },
+    shares: (n, k) => `${n} 想和你分享一條${k}`,
+    facts: { distance: '距離', ascent: '爬升', shape: '型態', recorded: '騎行於', where: '位置', status: '狀態' },
+    shapes: { loop: '環線', point_to_point: '單程' },
+    seeOnMap: '在地圖上查看',
+    openThread: '查看討論串',
+    openWebsite: '造訪網站',
+    openEpisode: '觀看影片',
+    gone: '這個連結沒有對應的內容',
+    goneBody: (k) => `該${k}可能已被移除,或連結輸入有誤。`,
+  },
+  ja: {
+    kind: { route: 'ルート', track: 'コース', shop: 'ショップ', challenge: 'エピソード' },
+    shares: (n, k) => `${n}さんが${k}をシェアしました`,
+    facts: { distance: '距離', ascent: '獲得標高', shape: '形状', recorded: '走行日', where: '場所', status: 'ステータス' },
+    shapes: { loop: '周回', point_to_point: '片道' },
+    seeOnMap: '地図で見る',
+    openThread: 'スレッドを開く',
+    openWebsite: 'ウェブサイトへ',
+    openEpisode: 'エピソードを見る',
+    gone: 'このリンクの先には何もありません',
+    goneBody: (k) => `その${k}は削除されたか、リンクが間違っている可能性があります。`,
+  },
+  ko: {
+    kind: { route: '루트', track: '트랙', shop: '샵', challenge: '에피소드' },
+    shares: (n, k) => `${n}님이 ${k}을(를) 공유했습니다`,
+    facts: { distance: '거리', ascent: '상승', shape: '형태', recorded: '주행일', where: '위치', status: '상태' },
+    shapes: { loop: '순환', point_to_point: '편도' },
+    seeOnMap: '지도에서 보기',
+    openThread: '토론 열기',
+    openWebsite: '웹사이트 방문',
+    openEpisode: '에피소드 보기',
+    gone: '이 링크에 해당하는 내용이 없습니다',
+    goneBody: (k) => `해당 ${k}이(가) 삭제되었거나 링크가 잘못되었을 수 있습니다.`,
+  },
+  de: {
+    kind: { route: 'Route', track: 'Strecke', shop: 'Werkstatt', challenge: 'Folge' },
+    shares: (n, k) => `${n} möchte eine ${k} mit dir teilen`,
+    facts: { distance: 'Distanz', ascent: 'Anstieg', shape: 'Form', recorded: 'Gefahren', where: 'Ort', status: 'Status' },
+    shapes: { loop: 'Runde', point_to_point: 'Punkt zu Punkt' },
+    seeOnMap: 'Auf der Karte ansehen',
+    openThread: 'Diskussion öffnen',
+    openWebsite: 'Website besuchen',
+    openEpisode: 'Folge ansehen',
+    gone: 'Hinter diesem Link steht nichts',
+    goneBody: (k) => `Die ${k} wurde vielleicht entfernt, oder der Link ist falsch.`,
+  },
+  it: {
+    kind: { route: 'percorso', track: 'tracciato', shop: 'officina', challenge: 'episodio' },
+    shares: (n, k) => `${n} vuole condividere un ${k} con te`,
+    facts: { distance: 'Distanza', ascent: 'Dislivello', shape: 'Forma', recorded: 'Percorso il', where: 'Dove', status: 'Stato' },
+    shapes: { loop: 'anello', point_to_point: 'punto a punto' },
+    seeOnMap: 'Vedi sulla mappa',
+    openThread: 'Apri la discussione',
+    openWebsite: 'Visita il sito',
+    openEpisode: 'Guarda l\'episodio',
+    gone: 'Questo link non porta a nulla',
+    goneBody: (k) => `Il ${k} potrebbe essere stato rimosso, o il link è errato.`,
+  },
+  fr: {
+    kind: { route: 'itinéraire', track: 'terrain', shop: 'atelier', challenge: 'épisode' },
+    shares: (n, k) => `${n} veut partager un ${k} avec toi`,
+    facts: { distance: 'Distance', ascent: 'Dénivelé', shape: 'Forme', recorded: 'Roulé le', where: 'Où', status: 'Statut' },
+    shapes: { loop: 'boucle', point_to_point: 'aller simple' },
+    seeOnMap: 'Voir sur la carte',
+    openThread: 'Ouvrir la discussion',
+    openWebsite: 'Visiter le site',
+    openEpisode: 'Voir l\'épisode',
+    gone: 'Ce lien ne mène à rien',
+    goneBody: (k) => `Le ${k} a peut-être été supprimé, ou le lien est erroné.`,
+  },
+  es: {
+    kind: { route: 'ruta', track: 'circuito', shop: 'taller', challenge: 'episodio' },
+    shares: (n, k) => `${n} quiere compartir una ${k} contigo`,
+    facts: { distance: 'Distancia', ascent: 'Desnivel', shape: 'Forma', recorded: 'Rodado el', where: 'Dónde', status: 'Estado' },
+    shapes: { loop: 'circular', point_to_point: 'punto a punto' },
+    seeOnMap: 'Ver en el mapa',
+    openThread: 'Abrir la conversación',
+    openWebsite: 'Visitar la web',
+    openEpisode: 'Ver el episodio',
+    gone: 'Este enlace no lleva a ninguna parte',
+    goneBody: (k) => `La ${k} puede haber sido eliminada, o el enlace es incorrecto.`,
+  },
+  ar: {
+    kind: { route: 'مسار', track: 'مضمار', shop: 'متجر', challenge: 'حلقة' },
+    shares: (n, k) => `يريد ${n} مشاركة ${k} معك`,
+    facts: { distance: 'المسافة', ascent: 'الصعود', shape: 'الشكل', recorded: 'تاريخ القيادة', where: 'المكان', status: 'الحالة' },
+    shapes: { loop: 'حلقة مغلقة', point_to_point: 'من نقطة إلى نقطة' },
+    seeOnMap: 'شاهده على الخريطة',
+    openThread: 'افتح النقاش',
+    openWebsite: 'زيارة الموقع',
+    openEpisode: 'شاهد الحلقة',
+    gone: 'لا يوجد شيء خلف هذا الرابط',
+    goneBody: (k) => `قد يكون ${k} قد أُزيل، أو أن الرابط غير صحيح.`,
+  },
+  da: {
+    kind: { route: 'rute', track: 'bane', shop: 'værksted', challenge: 'afsnit' },
+    shares: (n, k) => `${n} vil dele en ${k} med dig`,
+    facts: { distance: 'Distance', ascent: 'Stigning', shape: 'Form', recorded: 'Kørt', where: 'Hvor', status: 'Status' },
+    shapes: { loop: 'rundtur', point_to_point: 'punkt til punkt' },
+    seeOnMap: 'Se det på kortet',
+    openThread: 'Åbn tråden',
+    openWebsite: 'Besøg hjemmesiden',
+    openEpisode: 'Se afsnittet',
+    gone: 'Der er intet bag dette link',
+    goneBody: (k) => `${k} er måske fjernet, eller linket er skrevet forkert.`,
+  },
+  el: {
+    kind: { route: 'διαδρομή', track: 'πίστα', shop: 'κατάστημα', challenge: 'επεισόδιο' },
+    shares: (n, k) => `Ο/Η ${n} θέλει να μοιραστεί μια ${k} μαζί σου`,
+    facts: { distance: 'Απόσταση', ascent: 'Ανάβαση', shape: 'Μορφή', recorded: 'Ημερομηνία', where: 'Πού', status: 'Κατάσταση' },
+    shapes: { loop: 'κλειστή', point_to_point: 'σημείο σε σημείο' },
+    seeOnMap: 'Δες το στον χάρτη',
+    openThread: 'Άνοιγμα συζήτησης',
+    openWebsite: 'Επίσκεψη ιστότοπου',
+    openEpisode: 'Δες το επεισόδιο',
+    gone: 'Αυτός ο σύνδεσμος δεν οδηγεί πουθενά',
+    goneBody: (k) => `Η ${k} μπορεί να αφαιρέθηκε ή ο σύνδεσμος είναι λάθος.`,
+  },
+  'fa-IR': {
+    kind: { route: 'مسیر', track: 'پیست', shop: 'فروشگاه', challenge: 'قسمت' },
+    shares: (n, k) => `${n} می‌خواهد یک ${k} را با شما به اشتراک بگذارد`,
+    facts: { distance: 'مسافت', ascent: 'صعود', shape: 'شکل', recorded: 'تاریخ رکاب', where: 'کجا', status: 'وضعیت' },
+    shapes: { loop: 'حلقه', point_to_point: 'نقطه به نقطه' },
+    seeOnMap: 'روی نقشه ببینید',
+    openThread: 'باز کردن گفتگو',
+    openWebsite: 'بازدید از وب‌سایت',
+    openEpisode: 'تماشای قسمت',
+    gone: 'پشت این پیوند چیزی نیست',
+    goneBody: (k) => `ممکن است آن ${k} حذف شده باشد یا پیوند اشتباه باشد.`,
+  },
+  fi: {
+    kind: { route: 'reitti', track: 'rata', shop: 'korjaamo', challenge: 'jakso' },
+    shares: (n, k) => `${n} haluaa jakaa kanssasi ${k}n`,
+    facts: { distance: 'Matka', ascent: 'Nousu', shape: 'Muoto', recorded: 'Ajettu', where: 'Missä', status: 'Tila' },
+    shapes: { loop: 'lenkki', point_to_point: 'päästä päähän' },
+    seeOnMap: 'Katso kartalla',
+    openThread: 'Avaa keskustelu',
+    openWebsite: 'Käy sivustolla',
+    openEpisode: 'Katso jakso',
+    gone: 'Tämän linkin takana ei ole mitään',
+    goneBody: (k) => `${k} on ehkä poistettu, tai linkki on kirjoitettu väärin.`,
+  },
+  id: {
+    kind: { route: 'rute', track: 'trek', shop: 'bengkel', challenge: 'episode' },
+    shares: (n, k) => `${n} ingin membagikan sebuah ${k} denganmu`,
+    facts: { distance: 'Jarak', ascent: 'Tanjakan', shape: 'Bentuk', recorded: 'Dikendarai', where: 'Lokasi', status: 'Status' },
+    shapes: { loop: 'memutar', point_to_point: 'satu arah' },
+    seeOnMap: 'Lihat di peta',
+    openThread: 'Buka diskusi',
+    openWebsite: 'Kunjungi situs',
+    openEpisode: 'Tonton episodenya',
+    gone: 'Tautan ini tidak menuju ke mana pun',
+    goneBody: (k) => `${k} tersebut mungkin sudah dihapus, atau tautannya salah.`,
+  },
+  nl: {
+    kind: { route: 'route', track: 'baan', shop: 'werkplaats', challenge: 'aflevering' },
+    shares: (n, k) => `${n} wil een ${k} met je delen`,
+    facts: { distance: 'Afstand', ascent: 'Klim', shape: 'Vorm', recorded: 'Gereden', where: 'Waar', status: 'Status' },
+    shapes: { loop: 'rondje', point_to_point: 'punt tot punt' },
+    seeOnMap: 'Bekijk op de kaart',
+    openThread: 'Open de discussie',
+    openWebsite: 'Bezoek de website',
+    openEpisode: 'Bekijk de aflevering',
+    gone: 'Achter deze link zit niets',
+    goneBody: (k) => `De ${k} is mogelijk verwijderd, of de link klopt niet.`,
+  },
+  pt: {
+    kind: { route: 'rota', track: 'pista', shop: 'oficina', challenge: 'episódio' },
+    shares: (n, k) => `${n} quer partilhar uma ${k} contigo`,
+    facts: { distance: 'Distância', ascent: 'Subida', shape: 'Forma', recorded: 'Percorrido em', where: 'Onde', status: 'Estado' },
+    shapes: { loop: 'circular', point_to_point: 'ponto a ponto' },
+    seeOnMap: 'Ver no mapa',
+    openThread: 'Abrir a discussão',
+    openWebsite: 'Visitar o site',
+    openEpisode: 'Ver o episódio',
+    gone: 'Este link não leva a lado nenhum',
+    goneBody: (k) => `A ${k} pode ter sido removida, ou o link está errado.`,
+  },
+  'tr-TR': {
+    kind: { route: 'rota', track: 'pist', shop: 'atölye', challenge: 'bölüm' },
+    shares: (n, k) => `${n} seninle bir ${k} paylaşmak istiyor`,
+    facts: { distance: 'Mesafe', ascent: 'Tırmanış', shape: 'Biçim', recorded: 'Sürüş tarihi', where: 'Yer', status: 'Durum' },
+    shapes: { loop: 'tur', point_to_point: 'noktadan noktaya' },
+    seeOnMap: 'Haritada gör',
+    openThread: 'Tartışmayı aç',
+    openWebsite: 'Siteyi ziyaret et',
+    openEpisode: 'Bölümü izle',
+    gone: 'Bu bağlantının arkasında bir şey yok',
+    goneBody: (k) => `${k} kaldırılmış olabilir ya da bağlantı yanlış.`,
+  },
+  th: {
+    kind: { route: 'เส้นทาง', track: 'สนาม', shop: 'ร้าน', challenge: 'ตอน' },
+    shares: (n, k) => `${n} อยากแชร์${k}กับคุณ`,
+    facts: { distance: 'ระยะทาง', ascent: 'ไต่ระดับ', shape: 'รูปแบบ', recorded: 'วันที่ขี่', where: 'ที่ไหน', status: 'สถานะ' },
+    shapes: { loop: 'วนกลับ', point_to_point: 'ไปทางเดียว' },
+    seeOnMap: 'ดูบนแผนที่',
+    openThread: 'เปิดกระทู้',
+    openWebsite: 'เข้าเว็บไซต์',
+    openEpisode: 'ดูตอนนี้',
+    gone: 'ลิงก์นี้ไม่มีเนื้อหา',
+    goneBody: (k) => `${k}นี้อาจถูกลบไปแล้ว หรือลิงก์ผิด`,
+  },
+  vi: {
+    kind: { route: 'cung đường', track: 'trường đua', shop: 'cửa hàng', challenge: 'tập' },
+    shares: (n, k) => `${n} muốn chia sẻ một ${k} với bạn`,
+    facts: { distance: 'Quãng đường', ascent: 'Độ cao', shape: 'Dạng', recorded: 'Đã chạy', where: 'Ở đâu', status: 'Trạng thái' },
+    shapes: { loop: 'vòng kín', point_to_point: 'một chiều' },
+    seeOnMap: 'Xem trên bản đồ',
+    openThread: 'Mở thảo luận',
+    openWebsite: 'Vào website',
+    openEpisode: 'Xem tập này',
+    gone: 'Liên kết này không dẫn tới đâu cả',
+    goneBody: (k) => `${k} có thể đã bị gỡ, hoặc liên kết bị sai.`,
+  },
+  sv: {
+    kind: { route: 'rutt', track: 'bana', shop: 'verkstad', challenge: 'avsnitt' },
+    shares: (n, k) => `${n} vill dela en ${k} med dig`,
+    facts: { distance: 'Distans', ascent: 'Stigning', shape: 'Form', recorded: 'Körd', where: 'Var', status: 'Status' },
+    shapes: { loop: 'runda', point_to_point: 'punkt till punkt' },
+    seeOnMap: 'Se på kartan',
+    openThread: 'Öppna tråden',
+    openWebsite: 'Besök webbplatsen',
+    openEpisode: 'Se avsnittet',
+    gone: 'Den här länken leder ingenstans',
+    goneBody: (k) => `${k} kan ha tagits bort, eller så är länken felskriven.`,
+  },
+};
+
+function getEntityCopy(locale: Lang): EntityCopy {
+  return ENTITY_COPY[locale] ?? (ENTITY_COPY.en as EntityCopy);
+}
+
+/** Error copy for a share whose entity is gone — named for the thing, not for a rider. */
+export function entityNotFound(locale: Lang, kind: EntityKind): { title: string; body: string } {
+  const copy = getEntityCopy(locale);
+  return { title: copy.gone, body: copy.goneBody(copy.kind[kind]) };
+}
+
+/**
+ * One card for four kinds. They differ only in which facts they carry and where
+ * "the source" points, so branching on `kind` inside one body keeps the OG tags,
+ * the CSS and the install-return helper identical across all of them.
+ */
+function entityCardBody(entity: EntityCard, props: ShareLandingProps, locale: Lang): string {
+  const copy = getEntityCopy(locale);
+  const noun = copy.kind[entity.kind];
+
+  // The "who sent this" line. `?from=` wins; a route falls back to the rider whose
+  // ride it is, because that is who a recipient will assume shared it.
+  const sender =
+    props.sharedBy ??
+    (entity.author
+      ? { name: entity.author.name, avatarURL: avatarURLFor(entity.author.avatarPath, props.forumBase) }
+      : null);
+  const sharedHTML = sender
+    ? `<div class="shared-by">${
+        sender.avatarURL
+          ? `<img class="shared-by-avatar" src="${esc(sender.avatarURL)}" alt="" loading="lazy" onerror="this.remove()">`
+          : ''
+      }<span>${esc(copy.shares(sender.name, noun))}</span></div>`
+    : '';
+
+  const factHTML = entity.facts.length
+    ? `<div class="meta">${entity.facts
+        .map((fact) => {
+          const label = fact.key ? copy.facts[fact.key] : null;
+          const value = fact.key === 'shape' ? (copy.shapes[fact.value] ?? fact.value) : fact.value;
+          return `<span class="meta-item">${label ? `${esc(label)} ` : ''}<b>${esc(value)}</b></span>`;
+        })
+        .join('')}</div>`
+    : '';
+
+  const sourceLabel =
+    entity.kind === 'route' ? copy.openThread : entity.kind === 'challenge' ? copy.openEpisode : copy.openWebsite;
+
+  const ctas = [
+    `<a class="cta" href="${esc(props.primaryCTA.url)}">${esc(props.primaryCTA.label)}</a>`,
+    props.appCTA ? `<a class="cta cta-secondary" href="${esc(props.appCTA.url)}">${esc(props.appCTA.label)}</a>` : '',
+    `<a class="cta cta-secondary" href="${esc(entity.mapURL)}">${esc(copy.seeOnMap)}</a>`,
+    entity.sourceURL
+      ? `<a class="cta cta-secondary" href="${esc(entity.sourceURL)}" rel="nofollow noopener">${esc(sourceLabel)}</a>`
+      : '',
+  ]
+    .filter(Boolean)
+    .join('');
+
+  return `
+<main class="card entity-card">
+  ${CARD_LOGO}
+  ${sharedHTML}
+  <h1 class="headline">${esc(entity.title)}</h1>
+  ${entity.subtitle ? `<p class="subtitle">${esc(entity.subtitle)}</p>` : ''}
+  ${factHTML}
+  ${ctas}
+</main>`;
+}
+
+/** OG description when the entity has no tagline of its own: its facts, flattened. */
+function entityOgDescription(entity: EntityCard, locale: Lang): string | null {
+  const copy = getEntityCopy(locale);
+  const parts = entity.facts.map((fact) => {
+    const value = fact.key === 'shape' ? (copy.shapes[fact.value] ?? fact.value) : fact.value;
+    return fact.key ? `${copy.facts[fact.key]} ${value}` : value;
+  });
+  return parts.length ? parts.join(' · ') : null;
+}
+
+/** `avatar_template` is a forum-relative path with a `{size}` hole in it. */
+function avatarURLFor(path: string | null, forumBase: string): string | null {
+  if (!path) return null;
+  const src = path.replace('{size}', '96');
+  return src.startsWith('http') ? src : forumBase ? `${forumBase}${src}` : null;
+}
+
 function eventCardBody(event: EventRow, props: ShareLandingProps, locale: Lang): string {
   const { primaryCTA, appCTA, forumBase } = props;
   const orgName = event.organizer.name?.trim() || event.organizer.username;
@@ -1194,4 +1564,8 @@ a.meta-item:hover, a.meta-item:active { background: var(--clay-200); }
   .stats { color: var(--clay-200); }
   .stats b { color: var(--clay-50); }
 }
+
+.shared-by{display:flex;align-items:center;justify-content:center;gap:.5rem;margin-bottom:.75rem;font-size:.9rem;opacity:.85}
+.shared-by-avatar{width:28px;height:28px;border-radius:50%;object-fit:cover;flex:none}
+.entity-card .meta{justify-content:center}
 `;

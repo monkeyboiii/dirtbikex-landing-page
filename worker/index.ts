@@ -1,7 +1,7 @@
 import { lookupInvite, type LookupResult } from './_lib/inviteLookup';
 import { lookupUser, type UserLookupResult } from './_lib/userLookup';
 import { lookupEvent, type EventLookupResult } from './_lib/eventLookup';
-import { renderShareLanding } from './_lib/render';
+import { entityNotFound, renderShareLanding } from './_lib/render';
 import { fetchForumMetrics } from './_lib/forumMetrics';
 import { fetchForumFeatured } from './_lib/forumFeatured';
 import { fetchSponsors, fetchLeaderboard } from './_lib/sponsorProxy';
@@ -11,6 +11,7 @@ import { handleJoinSubmit, handleJoinConfirm, handleUnsubscribe, handleCodePrech
 import { handleShortlinkResolve } from './_lib/shortlink';
 import { handleMapDoc } from './_lib/mapData';
 import { handleOgPreview } from './_lib/ogPreview';
+import { ENTITY_KINDS, loadEntity } from './_lib/shareEntity';
 import { lookupResume, lookupClaimPreview, lookupTrackContributors, lookupRiderPins, lineagePath } from './_lib/lineageLookup';
 import { renderResume, renderClaim, renderLineageNotFound, getFacetLabels, hasCopy, hasFacetLabels } from './_lib/lineageRender';
 import { debugPanel, type DebugPayload, type LineageTrace } from './_lib/lineageDebug';
@@ -621,6 +622,59 @@ async function handleForumFeatured(env: Env): Promise<Response> {
   });
 }
 
+/**
+ * `/s/<kind>/<key>` for the things on the map. `?from=<username>` names the sender,
+ * so the card can open with "Monkeyboi wants to share a route with you" — the sharer
+ * is not always the author, and for a track or a shop there is no author at all.
+ */
+async function handleEntity(request: Request, env: Env, kindLetter: string, key: string): Promise<Response> {
+  const url = new URL(request.url);
+  const locale = pickLocale(url, request.headers.get('accept-language'));
+  const copy = getCopy(locale);
+  const forumBase = env.FORUM_BASE ?? '';
+  const kind = ENTITY_KINDS[kindLetter]!;
+
+  const entity = await loadEntity(request, env, kind, key, locale);
+  const base: Pick<ShareLandingProps, 'kind' | 'locale' | 'primaryCTA' | 'returnTapCopy' | 'forumBase'> = {
+    kind: kindLetter as ShareLandingProps['kind'],
+    locale,
+    primaryCTA: { label: copy.ctaLabel, url: APP_STORE_URL },
+    returnTapCopy: copy.returnTap,
+    forumBase,
+  };
+
+  if (!entity) {
+    const nf = entityNotFound(locale, kind);
+    return renderShareLanding(
+      { ...base, title: nf.title, subtitle: nf.body },
+      request.url,
+      { status: 404, cacheControl: 'no-store' },
+    );
+  }
+
+  // Only resolved when asked for: an unattributed share stays one request.
+  const from = url.searchParams.get('from');
+  const sender = from ? await lookupSender(env, from) : null;
+
+  const appCTA = isDesktopUA(request.headers.get('user-agent'))
+    ? undefined
+    : { label: copy.openInAppLabel, url: `dirtbikex://s/${kindLetter}/${encodeURIComponent(key)}` };
+
+  return renderShareLanding({ ...base, appCTA, entity, sharedBy: sender }, request.url);
+}
+
+/** The sharer's name and face, from the same anonymous profile read `/s/u` uses. */
+async function lookupSender(env: Env, username: string): Promise<{ name: string; avatarURL: string | null } | null> {
+  const result = await lookupUser(env, username).catch(() => null);
+  if (!result || result.status !== 'valid' || result.user.hidden) return null;
+  const user = result.user;
+  const path = user.avatar_template ? user.avatar_template.replace('{size}', '96') : null;
+  return {
+    name: user.name?.trim() || user.username,
+    avatarURL: path ? (path.startsWith('http') ? path : `${env.FORUM_BASE ?? ''}${path}`) : null,
+  };
+}
+
 /** Locale + canonical URL, shared by both lineage pages. */
 function lineageContext(request: Request, env: Env) {
   const url = new URL(request.url);
@@ -801,6 +855,11 @@ export default {
     const se = url.pathname.match(/^\/s\/e\/([^/]+)\/?$/);
     if (se && request.method === 'GET') {
       return handleEvent(request, env, decodeURIComponent(se[1]));
+    }
+    // `/s/{r,t,h,c}/<key>` — route, track, shop, challenge. One card, four lookups.
+    const sm = url.pathname.match(/^\/s\/([rthc])\/([^/]+)\/?$/);
+    if (sm && request.method === 'GET') {
+      return handleEntity(request, env, sm[1]!, decodeURIComponent(sm[2]!));
     }
     // `/s/l/<username>` — the complete résumé under the share namespace, so a
     // lineage link is built, shared and AASA-claimed exactly like /s/u and /s/e.
