@@ -1,0 +1,82 @@
+{
+  "version": 1,
+  "trails": [
+    {
+      "id": "xihu-easter-egg",
+      "title": {
+        "en": "West Lake Easter Egg",
+        "zh-CN": "西湖彩蛋"
+      },
+      "author_user_id": 1,
+      "author_username": "calvin",
+      "gpx_url": "https://uploads-cdn.dirtbikechina.com/original/1X/037ffb428fb4b0f2e8c68b0ff519bc034a622791.gpx",
+      "author_name": "Monkeyboi",
+      "author_avatar": "/user_avatar/forum.dirtbikechina.com/calvin/{size}/112_2.png",
+      "distance_km": 6.3,
+      "stats": {
+        "segments": 4,
+        "points": 144,
+        "bbox": [
+          120.13401,
+          30.24086,
+          120.15199,
+          30.24714
+        ],
+        "centre": [
+          120.143,
+          30.244
+        ],
+        "shape": "point_to_point",
+        "ele": {
+          "ascent_m": null
+        },
+        "time": {
+          "recorded_at": "2026-08-10T06:30:00.000Z",
+          "moving_s": 1736,
+          "elapsed_s": 1874,
+          "source": "trkpt"
+        },
+        "gpx_bytes": 16312
+      }
+    },
+    {
+      "id": "chongqing-shapingba-164",
+      "title": {
+        "en": "Shapingba city loop",
+        "zh-CN": "重庆沙坪坝城区环线"
+      },
+      "author_user_id": 1,
+      "author_username": "calvin",
+      "post_url": "https://forum.dirtbikechina.com/t/topic/64/6",
+      "gpx_url": "https://uploads-cdn.dirtbikechina.com/original/1X/844cb36a49a533df2031a294e735fe43ef9121f0.gpx",
+      "author_name": "Monkeyboi",
+      "author_avatar": "/user_avatar/forum.dirtbikechina.com/calvin/{size}/112_2.png",
+      "distance_km": 4.5,
+      "stats": {
+        "segments": 1,
+        "points": 309,
+        "bbox": [
+          106.39193,
+          29.59278,
+          106.39616,
+          29.60454
+        ],
+        "centre": [
+          106.39405,
+          29.59866
+        ],
+        "shape": "loop",
+        "ele": {
+          "ascent_m": 200
+        },
+        "time": {
+          "recorded_at": "2026-08-16T02:56:34.000Z",
+          "moving_s": 910,
+          "elapsed_s": 12559,
+          "source": "trkpt"
+        },
+        "gpx_bytes": 62230
+      }
+    }
+  ]
+}

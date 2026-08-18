@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "trails": [
+    {
+      "id": "xihu-easter-egg",
+      "title": {
+        "en": "West Lake Easter Egg",
+        "zh-CN": "西湖彩蛋"
+      },
+      "author_user_id": 1,
+      "author_username": "rubio",
+      "gpx_url": "https://uploads-cdn.dirtbikex.com/original/1X/037ffb428fb4b0f2e8c68b0ff519bc034a622791.gpx",
+      "author_name": "Zenkai Rubio (ルビオ)",
+      "author_avatar": "/user_avatar/forum.dirtbikex.com/rubio/{size}/39_2.png",
+      "distance_km": 6.3,
+      "stats": {
+        "segments": 4,
+        "points": 144,
+        "bbox": [
+          120.13401,
+          30.24086,
+          120.15199,
+          30.24714
+        ],
+        "centre": [
+          120.143,
+          30.244
+        ],
+        "shape": "point_to_point",
+        "ele": {
+          "ascent_m": null
+        },
+        "time": {
+          "recorded_at": "2026-08-10T06:30:00.000Z",
+          "moving_s": 1736,
+          "elapsed_s": 1874,
+          "source": "trkpt"
+        },
+        "gpx_bytes": 16312
+      }
+    }
+  ]
+}

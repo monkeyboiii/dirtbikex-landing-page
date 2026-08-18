@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "shops": [
+    {
+      "slug": "cn-hangzhou-dbx-demo-shop",
+      "name": "Zhuantang Moto Works",
+      "name_local": "转塘机车工坊",
+      "country_code": "CN",
+      "locality": "Xihu, Hangzhou",
+      "website": null,
+      "lng": 120.0705,
+      "lat": 30.1804
+    }
+  ]
+}

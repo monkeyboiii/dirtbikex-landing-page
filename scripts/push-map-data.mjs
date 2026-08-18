@@ -4,30 +4,38 @@
 //   node scripts/push-map-data.mjs --env preview                 → preview/series.json
 //   node scripts/push-map-data.mjs --env preview --doc trails    → preview/trails.json
 //   node scripts/push-map-data.mjs --env prod                     → prod/series.json   (explicit-ask)
+//   node scripts/push-map-data.mjs --env prod --check             → diff only, push nothing
 //
 // The repo file is canonical; R2 is only the live projection. Never hand-edit the
-// bucket — edit public/map/<doc>.seed.json, commit, then push. Rollback = re-push
-// the previous commit's file. See CONCRETE_MAP_PLAN.md §5.4.
+// bucket — edit the source, commit, then push. Rollback = re-push the previous
+// commit's file. See CONCRETE_MAP_PLAN.md §5.4 and PROD_INSTALL_DEBT.md §3.
+//
+// Source per document (scripts/lib/map-source.mjs):
+//   trails, shops → fixtures/map/<env>/<doc>.json   environment data, never in the bundle
+//   series        → public/map/series.seed.json     identical in both environments
+//
+// --check answers the question that made an alpha.3 release ship nothing: R2 wins over
+// the bundle, so editing a seed and deploying changes NOTHING until it is pushed here.
 
 import { execFileSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
+import { DOCS, ENVS, readDoc, sourcePath, uploadsCdn } from './lib/map-source.mjs';
 
 const BUCKET = 'dbx-map';
 
 const args = process.argv.slice(2);
 const env = args[args.indexOf('--env') + 1];
 const name = args.includes('--doc') ? args[args.indexOf('--doc') + 1] : 'series';
-if (!['preview', 'prod'].includes(env ?? '') || !['series', 'trails', 'shops'].includes(name ?? '')) {
-  console.error('usage: push-map-data.mjs --env <preview|prod> [--doc <series|trails|shops>]');
+const checkOnly = args.includes('--check');
+if (!ENVS[env ?? ''] || !DOCS.includes(name ?? '')) {
+  console.error('usage: push-map-data.mjs --env <preview|prod> [--doc <series|trails|shops>] [--check]');
   process.exit(1);
 }
 
-const SOURCE = fileURLToPath(new URL(`../public/map/${name}.seed.json`, import.meta.url));
-const doc = JSON.parse(readFileSync(SOURCE, 'utf8'));
+const SOURCE = sourcePath(env, name);
+const doc = readDoc(SOURCE);
 
 const bail = (message) => {
-  console.error(`${name}.seed.json: ${message}`);
+  console.error(`${SOURCE}: ${message}`);
   process.exit(1);
 };
 
@@ -54,7 +62,7 @@ if (name === 'series') {
   if (!Array.isArray(doc.trails)) bail('missing `trails`');
   // The upload host follows the environment; a staging URL served to prod visitors
   // would 404 every trace.
-  const cdn = env === 'prod' ? 'https://uploads-cdn.dirtbikex.com' : 'https://uploads-cdn.dirtbikechina.com';
+  const cdn = uploadsCdn(env);
   const seen = new Set();
   for (const trail of doc.trails) {
     if (!trail.id || !trail.author_username || !Number.isInteger(trail.author_user_id)) {
@@ -63,11 +71,11 @@ if (name === 'series') {
     // Metadata-only: the map needs a point to place the blip and a URL to fetch on tap.
     const centre = trail.stats?.centre;
     if (!Array.isArray(centre) || centre.length !== 2 || !centre.every(Number.isFinite)) {
-      bail(`${trail.id} has no numeric stats.centre — re-run import-gpx-trail.mjs`);
+      bail(`${trail.id} has no numeric stats.centre — re-run import-forum-trail.mjs`);
     }
-    // [lng, lat], and in range. Hand-editing the seed is the documented workflow and
-    // the series doc uses {lat, lng}, so a swapped pair is the likely mistake — and it
-    // throws inside MapLibre's bounds check, which would take the whole catalog down.
+    // [lng, lat], and in range. Hand-editing is a documented workflow and the series
+    // doc uses {lat, lng}, so a swapped pair is the likely mistake — and it throws
+    // inside MapLibre's bounds check, which would take the whole catalog down.
     if (Math.abs(centre[0]) > 180 || Math.abs(centre[1]) > 90) {
       bail(`${trail.id} centre must be [lng, lat] in range; got ${JSON.stringify(centre)}`);
     }
@@ -76,11 +84,41 @@ if (name === 'series') {
     if (trail.gpx_url !== `${cdn}/original/1X/${trail.gpx_url?.split('/').pop() ?? ''}`) {
       bail(`${trail.id} gpx_url must live on ${cdn} for --env ${env}; got ${trail.gpx_url ?? 'nothing'}`);
     }
+    // The author cache is a forum reference; pointing it at the other environment
+    // attributes the ride to a stranger, which reads as true and is not.
+    const host = `forum.${ENVS[env].apex}`;
+    if (trail.author_avatar && !trail.author_avatar.includes(host)) {
+      bail(`${trail.id} author_avatar is not on ${host}: ${trail.author_avatar}`);
+    }
   }
   count = doc.trails.length;
 }
 
 const key = `${BUCKET}/${env}/${name}.json`;
+const liveURL = `https://${env === 'prod' ? 'www.dirtbikex.com' : 'www.dirtbikechina.com'}/api/map/${name}.json`;
+
+/** What the world sees right now, so a push can be compared against it. */
+const live = await fetch(liveURL, { cache: 'no-store' })
+  .then((r) => (r.ok ? r.text() : null))
+  .catch(() => null);
+
+const same = live !== null && JSON.stringify(JSON.parse(live)) === JSON.stringify(doc);
+if (live === null) console.log(`live ${liveURL}: unreadable (treating as drifted)`);
+else console.log(`live ${liveURL}: ${same ? 'already matches the source' : 'DIFFERS from the source'}`);
+
+if (checkOnly) {
+  if (same) {
+    console.log(`${name}/${env}: in sync — nothing to push`);
+    process.exit(0);
+  }
+  console.error(
+    `${name}/${env}: R2 holds a different document than ${SOURCE}.\n` +
+      `R2 wins over the bundle, so deploying this change alone would be a silent no-op.\n` +
+      `Run: node scripts/push-map-data.mjs --env ${env} --doc ${name}`,
+  );
+  process.exit(1);
+}
+
 console.log(`pushing ${count} ${name} → r2://${key}`);
 execFileSync(
   'pnpm',
