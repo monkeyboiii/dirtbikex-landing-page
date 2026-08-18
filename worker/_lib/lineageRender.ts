@@ -1,4 +1,5 @@
 import { esc } from './render';
+import { DEBUG_CSS } from './lineageDebug';
 import type { Lang } from './types';
 import type { LineageClaimPreview, LineageEdge, LineageResume } from './lineageLookup';
 
@@ -145,6 +146,15 @@ function getCopy(locale: Lang): Copy {
   return COPY[locale] ?? (COPY.en as Copy);
 }
 
+/** Whether this locale has its own tables, or silently renders the `en` ones. */
+export function hasCopy(locale: Lang): boolean {
+  return COPY[locale] !== undefined;
+}
+
+export function hasFacetLabels(locale: Lang): boolean {
+  return FACET_LABELS[locale] !== undefined;
+}
+
 function isRTL(locale: Lang): boolean {
   return locale === 'ar' || locale === 'fa-IR';
 }
@@ -190,6 +200,10 @@ function shell(opts: {
   url: string;
   ogImage: string | null;
   body: string;
+  /** The one URL this résumé should be indexed under — `/s/l/…` and `/lineage/…` are the same document. */
+  canonical?: string | null;
+  noindex?: boolean;
+  extraCSS?: string;
 }): string {
   return `<!DOCTYPE html>
 <html lang="${opts.locale}" dir="${isRTL(opts.locale) ? 'rtl' : 'ltr'}">
@@ -198,13 +212,13 @@ function shell(opts: {
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <title>${esc(opts.title)} · DirtBikeX</title>
-<meta property="og:title" content="${esc(opts.title)}">
+${opts.canonical ? `<link rel="canonical" href="${esc(opts.canonical)}">\n` : ''}${opts.noindex ? '<meta name="robots" content="noindex">\n' : ''}<meta property="og:title" content="${esc(opts.title)}">
 <meta property="og:description" content="${esc(opts.description)}">
 <meta property="og:url" content="${esc(opts.url)}">
 <meta property="og:type" content="profile">
 ${opts.ogImage ? `<meta property="og:image" content="${esc(opts.ogImage)}">
 <meta name="twitter:card" content="summary">` : ''}
-<style>${CSS}</style>
+<style>${CSS}${opts.extraCSS ?? ''}</style>
 </head>
 <body><main>${opts.body}</main></body>
 </html>`;
@@ -299,7 +313,17 @@ function timeline(resume: LineageResume, opts: { copy: Copy; labels: Record<stri
 
 export function renderResume(
   resume: LineageResume,
-  opts: { locale: Lang; url: string; forumBase: string; appStoreURL: string; facetLabels: Record<string, string> }
+  opts: {
+    locale: Lang;
+    url: string;
+    forumBase: string;
+    appStoreURL: string;
+    facetLabels: Record<string, string>;
+    /** `/s/l/<username>` and `/lineage/<ref>` are the same document. */
+    canonical?: string | null;
+    /** Pre-rendered `?debug=true` panel; its presence also makes the page noindex. */
+    debug?: string | null;
+  }
 ): Response {
   const copy = getCopy(opts.locale);
   const labels = opts.facetLabels;
@@ -345,7 +369,7 @@ ${knownFor ? `<div class="chips">${knownFor}</div>` : ''}
 ${statItems.length ? `<div class="stats">${statItems.join('')}</div>` : ''}
 ${sections || `<p class="empty">${esc(copy.empty)}</p>`}
 ${timeline(resume, { copy, labels })}
-<div class="ctas">${ctas}</div>`;
+<div class="ctas">${ctas}</div>${opts.debug ?? ''}`;
 
   const description = statItems.length
     ? `${name} · ${s.students} ${copy.stats.students} · ${s.downstream} ${copy.stats.downstream}`
@@ -364,6 +388,9 @@ ${timeline(resume, { copy, labels })}
               : `${opts.forumBase}${rider.avatar_template.replace('{size}', '288')}`)
           : null,
       body,
+      canonical: opts.canonical ?? opts.url,
+      noindex: !!opts.debug,
+      extraCSS: opts.debug ? DEBUG_CSS : '',
     }),
     { headers: { 'Content-Type': 'text/html; charset=utf-8' } }
   );
@@ -371,7 +398,14 @@ ${timeline(resume, { copy, labels })}
 
 export function renderClaim(
   preview: LineageClaimPreview,
-  opts: { locale: Lang; url: string; forumBase: string; token: string; facetLabels: Record<string, string> }
+  opts: {
+    locale: Lang;
+    url: string;
+    forumBase: string;
+    token: string;
+    facetLabels: Record<string, string>;
+    debug?: string | null;
+  }
 ): Response {
   const copy = getCopy(opts.locale);
   const labels = opts.facetLabels;
@@ -386,7 +420,7 @@ export function renderClaim(
 ${rows}
 <div class="ctas">
   <a class="btn" href="${esc(opts.forumBase)}/lineage/claim/${esc(opts.token)}">${esc(copy.claimCta)}</a>
-</div>`;
+</div>${opts.debug ?? ''}`;
 
   return new Response(
     shell({
@@ -396,12 +430,14 @@ ${rows}
       url: opts.url,
       ogImage: null,
       body,
+      noindex: true,
+      extraCSS: opts.debug ? DEBUG_CSS : '',
     }),
     { headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' } }
   );
 }
 
-export function renderLineageNotFound(locale: Lang, url: string): Response {
+export function renderLineageNotFound(locale: Lang, url: string, debug?: string | null): Response {
   const copy = getCopy(locale);
   return new Response(
     shell({
@@ -410,7 +446,11 @@ export function renderLineageNotFound(locale: Lang, url: string): Response {
       description: copy.notFoundBody,
       url,
       ogImage: null,
-      body: `<h1>${esc(copy.notFound)}</h1><p class="sub">${esc(copy.notFoundBody)}</p>`,
+      // The 404 is the most common thing an E2E pass actually hits, so it
+      // carries the panel too — that is where the upstream status lives.
+      body: `<h1>${esc(copy.notFound)}</h1><p class="sub">${esc(copy.notFoundBody)}</p>${debug ?? ''}`,
+      noindex: true,
+      extraCSS: debug ? DEBUG_CSS : '',
     }),
     { status: 404, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' } }
   );

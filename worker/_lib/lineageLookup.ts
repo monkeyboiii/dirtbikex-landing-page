@@ -61,15 +61,25 @@ export interface LineageClaimPreview {
   reported_by: LineageEdge[];
 }
 
+/**
+ * `reason` + `httpStatus` exist for `?debug=true` (LINEAGE_MODULE.md § debug):
+ * "unreachable" alone cannot tell an operator whether the forum was down, the
+ * plugin was disabled, or the JSON was malformed. Callers that only branch on
+ * `status` are unaffected.
+ */
 export type LineageResult<T> =
-  | { status: 'valid'; data: T }
-  | { status: 'not_found' }
-  | { status: 'unreachable' };
+  | { status: 'valid'; data: T; httpStatus: number }
+  | { status: 'not_found'; httpStatus: 404 }
+  | {
+      status: 'unreachable';
+      reason: 'missing_env' | 'fetch_failed' | 'bad_status' | 'bad_json';
+      httpStatus: number | null;
+    };
 
 async function getJSON<T>(env: PagesEnv, path: string): Promise<LineageResult<T>> {
   if (!env.FORUM_BASE) {
     console.error('lineage:missing_env');
-    return { status: 'unreachable' };
+    return { status: 'unreachable', reason: 'missing_env', httpStatus: null };
   }
 
   let resp: Response;
@@ -82,20 +92,20 @@ async function getJSON<T>(env: PagesEnv, path: string): Promise<LineageResult<T>
     });
   } catch (err) {
     console.error('lineage:fetch_failed', { path, err: String(err) });
-    return { status: 'unreachable' };
+    return { status: 'unreachable', reason: 'fetch_failed', httpStatus: null };
   }
 
-  if (resp.status === 404) return { status: 'not_found' };
+  if (resp.status === 404) return { status: 'not_found', httpStatus: 404 };
   if (!resp.ok) {
     console.error('lineage:bad_status', { path, status: resp.status });
-    return { status: 'unreachable' };
+    return { status: 'unreachable', reason: 'bad_status', httpStatus: resp.status };
   }
 
   try {
-    return { status: 'valid', data: (await resp.json()) as T };
+    return { status: 'valid', data: (await resp.json()) as T, httpStatus: resp.status };
   } catch (err) {
     console.error('lineage:bad_json', { path, err: String(err) });
-    return { status: 'unreachable' };
+    return { status: 'unreachable', reason: 'bad_json', httpStatus: resp.status };
   }
 }
 

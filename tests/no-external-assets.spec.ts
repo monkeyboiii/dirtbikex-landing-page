@@ -38,6 +38,9 @@ interface RouteSpec {
  */
 const LINEAGE_RESUME_PATH = process.env.LINEAGE_TEST_PATH ?? '/lineage/@calvin';
 
+/** The share spelling of the same résumé — a bare segment is a forum username. */
+const LINEAGE_SHARE_PATH = process.env.LINEAGE_TEST_SHARE_PATH ?? '/s/l/calvin';
+
 const ROUTES: RouteSpec[] = [
   { path: '/', allow: MAP_TILES_ALLOWED, exerciseMap: true },
   { path: '/zh-CN/', allow: MAP_TILES_ALLOWED, exerciseMap: true },
@@ -51,6 +54,9 @@ const ROUTES: RouteSpec[] = [
   // Lineage pages are worker-rendered and read by people who never sign in —
   // the China invariant has to extend to them (LINEAGE_PLAN.md §4.2).
   { path: LINEAGE_RESUME_PATH },
+  { path: LINEAGE_SHARE_PATH },
+  // `?debug=true` renders an extra panel; it must stay as asset-free as the page.
+  { path: `${LINEAGE_SHARE_PATH}?debug=true` },
 ];
 
 // Belt-and-suspenders: even if an allowlist is widened by accident,

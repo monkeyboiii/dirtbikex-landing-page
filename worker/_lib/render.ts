@@ -369,6 +369,8 @@ interface UserCopy {
    */
   lineageStudents?: (n: number) => string;
   lineageDownstream?: (n: number) => string;
+  /** CTA to the complete résumé at `/s/l/<username>`. */
+  lineageFull?: string;
 }
 
 // All 21 supported locales. `getUserCopy()` falls back to `en` for any gap.
@@ -381,10 +383,12 @@ const USER_COPY: Partial<Record<Lang, UserCopy>> = {
     privateProfile: 'This profile is private',
     lineageStudents: (n) => `${n} ${n === 1 ? 'Student' : 'Students'}`,
     lineageDownstream: (n) => `${n} Downstream`,
+    lineageFull: 'See the full lineage',
   },
   'zh-CN': {
     lineageStudents: (n) => `${n} 位徒弟`,
     lineageDownstream: (n) => `${n} 位下游车手`,
+    lineageFull: '查看完整传承',
     followers: (n) => `${n} 粉丝`,
     following: (n) => `${n} 关注`,
     cheers: (n) => `${n} Cheers`,
@@ -614,6 +618,15 @@ function userCardBody(user: UserRow, props: ShareLandingProps, locale: Lang): st
     ? `<div class="stats">${stats.join('<span class="dot">·</span>')}</div>`
     : '';
 
+  // The strip states the numbers; the résumé is where they are accounted for
+  // (LINEAGE_PLAN.md L7). Shown only when there is something to open.
+  const lineageHTML =
+    user.lineage && (user.lineage.students > 0 || user.lineage.downstream > 0 || user.lineage.tracks > 0)
+      ? `<a class="cta cta-secondary" href="/s/l/${esc(encodeURIComponent(user.username))}">${esc(
+          copy.lineageFull ?? (USER_COPY.en as UserCopy).lineageFull!
+        )}</a>`
+      : '';
+
   return `
 <main class="card profile-card">
   ${CARD_LOGO}
@@ -624,6 +637,7 @@ function userCardBody(user: UserRow, props: ShareLandingProps, locale: Lang): st
   ${metaHTML}
   ${statsHTML}
   ${ctas}
+  ${lineageHTML}
 </main>`;
 }
 

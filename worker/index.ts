@@ -11,8 +11,9 @@ import { handleJoinSubmit, handleJoinConfirm, handleUnsubscribe, handleCodePrech
 import { handleShortlinkResolve } from './_lib/shortlink';
 import { handleMapDoc } from './_lib/mapData';
 import { handleOgPreview } from './_lib/ogPreview';
-import { lookupResume, lookupClaimPreview, lookupTrackContributors, lookupRiderPins } from './_lib/lineageLookup';
-import { renderResume, renderClaim, renderLineageNotFound, getFacetLabels } from './_lib/lineageRender';
+import { lookupResume, lookupClaimPreview, lookupTrackContributors, lookupRiderPins, lineagePath } from './_lib/lineageLookup';
+import { renderResume, renderClaim, renderLineageNotFound, getFacetLabels, hasCopy, hasFacetLabels } from './_lib/lineageRender';
+import { debugPanel, type DebugPayload, type LineageTrace } from './_lib/lineageDebug';
 import type { Lang, PagesEnv, ShareLandingProps } from './_lib/types';
 
 interface Env extends PagesEnv {
@@ -629,28 +630,122 @@ function lineageContext(request: Request, env: Env) {
     url: url.origin + url.pathname,
     forumBase: env.FORUM_BASE ?? '',
     facetLabels: getFacetLabels(locale),
+    debug: url.searchParams.get('debug') === 'true',
   };
 }
 
-async function handleLineagePage(request: Request, env: Env, ref: string): Promise<Response> {
+/**
+ * `/s/l/<username>` is the share spelling of the résumé: a bare segment is a
+ * forum username, because that is the only handle a person can be told over the
+ * phone. `r-…` and a leading `@` still address the node directly, so a link
+ * built from either half of the graph resolves.
+ */
+function shareLineageRef(raw: string): string {
+  const v = raw.trim();
+  if (v.startsWith('@')) return v;
+  return /^r-[a-z0-9]+$/i.test(v) ? v : `@${v}`;
+}
+
+function lineageTrace(
+  request: Request,
+  ctx: ReturnType<typeof lineageContext>,
+  fields: { route: string; param: string; ref: string; upstreamPath: string; ms: number; result: { status: string; httpStatus?: number | null; reason?: string } },
+  canonical: string
+): LineageTrace {
+  const url = new URL(request.url);
+  return {
+    route: fields.route,
+    param: fields.param,
+    ref: fields.ref,
+    upstreamURL: `${ctx.forumBase}${fields.upstreamPath}`,
+    outcome: fields.result.status === 'unreachable' ? `unreachable:${fields.result.reason}` : fields.result.status,
+    httpStatus: fields.result.httpStatus ?? null,
+    ms: fields.ms,
+    langParam: url.searchParams.get('lang'),
+    acceptLanguage: request.headers.get('accept-language'),
+    locale: ctx.locale,
+    hasCopy: hasCopy(ctx.locale),
+    hasLabels: hasFacetLabels(ctx.locale),
+    canonical,
+    forumBase: ctx.forumBase,
+  };
+}
+
+async function handleLineagePage(request: Request, env: Env, ref: string, route: string, param: string): Promise<Response> {
   const ctx = lineageContext(request, env);
+  const started = Date.now();
   const result = await lookupResume(env, ref);
+  const ms = Date.now() - started;
+  // Both routes render the same document; `/lineage/<ref>` is the indexed one.
+  const canonical = `${new URL(request.url).origin}/lineage/${encodeURI(ref)}`;
+
+  const panel = (payload: DebugPayload) =>
+    ctx.debug
+      ? debugPanel(
+          lineageTrace(request, ctx, { route, param, ref, upstreamPath: lineagePath(ref), ms, result }, canonical),
+          payload,
+          ctx.facetLabels
+        )
+      : null;
+
   if (result.status !== 'valid') {
-    return renderLineageNotFound(ctx.locale, ctx.url);
+    return renderLineageNotFound(ctx.locale, ctx.url, panel({ kind: 'none' }));
   }
-  return renderResume(result.data, { ...ctx, appStoreURL: APP_STORE_URL });
+  return renderResume(result.data, {
+    ...ctx,
+    appStoreURL: APP_STORE_URL,
+    canonical,
+    debug: panel({ kind: 'resume', data: result.data }),
+  });
 }
 
 async function handleLineageClaim(request: Request, env: Env): Promise<Response> {
   const ctx = lineageContext(request, env);
   const token = new URL(request.url).searchParams.get('t') ?? '';
-  if (!token) return renderLineageNotFound(ctx.locale, ctx.url);
+  const upstreamPath = token
+    ? `/dirtbikex/lineage/claims/${encodeURIComponent(token)}/preview.json`
+    : ' (no token — nothing was fetched)';
 
-  const result = await lookupClaimPreview(env, token);
-  if (result.status !== 'valid') {
-    return renderLineageNotFound(ctx.locale, ctx.url);
+  // The token is the only credential on this page, so it never reaches the
+  // panel — an operator sharing a debug screenshot must not be sharing a claim.
+  const panel = (
+    payload: DebugPayload,
+    result: { status: string; httpStatus?: number | null; reason?: string },
+    ms: number
+  ) =>
+    ctx.debug
+      ? debugPanel(
+          lineageTrace(
+            request,
+            ctx,
+            { route: '/lineage/claim', param: token ? '(token withheld)' : '(missing)', ref: '—', upstreamPath, ms, result },
+            ctx.url
+          ),
+          payload,
+          ctx.facetLabels
+        )
+      : null;
+
+  if (!token) {
+    return renderLineageNotFound(
+      ctx.locale,
+      ctx.url,
+      panel({ kind: 'none' }, { status: 'no_token', httpStatus: null }, 0)
+    );
   }
-  return renderClaim(result.data, { ...ctx, token });
+
+  const started = Date.now();
+  const result = await lookupClaimPreview(env, token);
+  const ms = Date.now() - started;
+
+  if (result.status !== 'valid') {
+    return renderLineageNotFound(ctx.locale, ctx.url, panel({ kind: 'none' }, result, ms));
+  }
+  return renderClaim(result.data, {
+    ...ctx,
+    token,
+    debug: panel({ kind: 'claim', data: result.data }, result, ms),
+  });
 }
 
 /** JSON passthrough for the map/app; same anonymous projection the page renders. */
@@ -707,12 +802,20 @@ export default {
     if (se && request.method === 'GET') {
       return handleEvent(request, env, decodeURIComponent(se[1]));
     }
+    // `/s/l/<username>` — the complete résumé under the share namespace, so a
+    // lineage link is built, shared and AASA-claimed exactly like /s/u and /s/e.
+    const sl = url.pathname.match(/^\/s\/l\/([^/]+)\/?$/);
+    if (sl && request.method === 'GET') {
+      const param = decodeURIComponent(sl[1]!);
+      return handleLineagePage(request, env, shareLineageRef(param), '/s/l/', param);
+    }
     // Rider lineage — the public read surface (LINEAGE_PLAN.md §4.2). Reads are
     // anonymous plugin endpoints, so no key and no CORS is involved; every write
     // stays in the forum, which is the only place a visitor has a session.
     const lineagePage = url.pathname.match(/^\/lineage\/(@?[A-Za-z0-9._\-]+)\/?$/);
     if (lineagePage && request.method === 'GET' && lineagePage[1] !== 'claim') {
-      return handleLineagePage(request, env, decodeURIComponent(lineagePage[1]!));
+      const param = decodeURIComponent(lineagePage[1]!);
+      return handleLineagePage(request, env, param, '/lineage/', param);
     }
     if (url.pathname === '/lineage/claim' && request.method === 'GET') {
       return handleLineageClaim(request, env);

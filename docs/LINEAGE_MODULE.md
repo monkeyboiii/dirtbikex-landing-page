@@ -9,13 +9,60 @@ forum, which is where the session lives.
 
 | Route | What it serves |
 |---|---|
-| `/lineage/<slug>` | A rider résumé: header, legacy stats, *Learned from* / *Taught* / *Built*, and a timeline. `<slug>` is the opaque rider slug, or `@username` for a claimed rider. |
+| `/s/l/<username>` | **The complete résumé, share spelling.** A bare segment is a forum username (the only handle you can give someone over the phone); `@name` and an `r-…` slug also resolve. This is the link to hand out. |
+| `/lineage/<slug>` | The same document, addressed by node: the opaque rider slug, or `@username` for a claimed rider. Canonical — `/s/l/` points `rel=canonical` here so the two spellings do not split indexing. |
 | `/lineage/claim?t=<token>` | "Is this you?" — the preview a claim link opens, then a hand-off into the forum's claim route. `no-store`. |
 | `/api/lineage/rider.json?r=<slug\|@user>` | The same projection as JSON, for the app and anything else. |
 | `/api/lineage/track.json?slug=` | Contributors of one track (the byline on a track sheet). |
 
-All four are in `run_worker_first` in **both** wrangler blocks — without that,
+`/s/*` was already in `run_worker_first` in both wrangler blocks, so `/s/l/`
+needed no config change; the rest are listed explicitly. Without that,
 `not_found_handling: "404-page"` preempts and edge-caches a 404 for them.
+
+### Why `/s/l/` exists when `/lineage/` already did
+
+`/s/*` is the share namespace: it is AASA-claimed by the iOS app, it is what
+`shareURL(kind:key:)` builds, and it is the shape every other shareable thing
+already uses (`/s/i/`, `/s/u/`, `/s/e/`). A lineage link handed to a track owner
+is a *share*, and it should behave like one — open the app when the app is
+installed, open the web page otherwise. Addressing it by username rather than by
+slug is the other half: `r-a8z82qhgg7` is deliberately opaque and unguessable,
+which is right for a consent boundary and wrong for something you read aloud.
+
+**This is load-bearing on iOS:** because `/s/*` is AASA-claimed, a `/s/l/` URL
+opens the app *whether or not the app can route it*. `ShareKind.lineage = "l"`
+and the `.lineage` arm in `PushNotificationService.navigateToDestination` are
+what stop it dead-ending on a blank screen. Do not add an `/s/<kind>/` route
+here without the matching `ShareKind` case in the app.
+
+## `?debug=true`
+
+Any of the three HTML routes above takes `?debug=true` and appends an operator
+panel (`worker/_lib/lineageDebug.ts`). It exists for E2E passes — the questions
+a verification run actually asks, answered on the page instead of in five curls:
+
+| Block | Answers |
+|---|---|
+| request | which route matched, the raw segment, the normalized ref, `?lang=` vs `Accept-Language`, and **whether this locale has its own copy/label tables or silently fell back to `en`** |
+| upstream | the exact forum URL fetched (as a link), outcome, HTTP status, elapsed ms, and the 5-minute edge-cache caveat |
+| invariants | every counter against the length of the list rendered under it (`stats.mentors` = `learned_from`, `stats.students` = `taught`, `stats.tracks` = `contributed_to`, timeline arithmetic) with OK/MISMATCH. This is §3.4's contract made checkable: a public read counts reported *and* confirmed edges, and a withheld name still occupies a row, so the two must always agree |
+| rider | the node as the projection returned it — `claimed`, `placeholder`, `state`, `map_visible`, `known_for` |
+| sections | every edge with its raw values: id, provenance, documented, counterpart (`@user` / slug / `(placeholder)`), facet **codes**, years + precision, honorific vs proposed |
+| vocabulary | facet codes in this payload with no label in this locale — they render as the bare code on the page, which is invisible until you look for it |
+| related queries | one click to the rider/stats/track/user-serializer endpoints and the worker proxies for *this* rider |
+| knobs | the same page in another locale, the other route, `lang=auto`, and back to the visitor view |
+
+Notes:
+
+- It exposes nothing privileged. Every field comes from the same anonymous
+  endpoint the page already renders — a `curl` of the forum returns the same
+  bytes. The claim page is the exception that proves it: the token is the only
+  credential on that page, so the panel prints `(token withheld)`.
+- Debug renders are `noindex`, and they emit **zero JavaScript** (`<details>`,
+  no handlers) so the China asset invariant still covers them.
+- `?debug=true` on a 404 is the useful case: the not-found page carries the
+  panel too, and that is where the upstream status and reason live
+  (`unreachable:bad_status` + HTTP 502 reads very differently from `not_found`).
 
 ## How it reads the graph
 
@@ -51,6 +98,10 @@ locales, and this table.
 The profile card gained a lineage line (students · downstream). It costs no
 extra request: `dbx_lineage_counts` already rides the `/u/<name>.json` payload
 `lookupUser` fetches. It disappears on its own when the plugin setting is off.
+
+Under it, a "See the full lineage" CTA to `/s/l/<username>` — the card states
+the numbers, the résumé is where they are accounted for (LINEAGE_PLAN.md L7).
+Shown only when there is something to open.
 
 ## Verifying the asset invariant
 
