@@ -255,6 +255,6 @@
   "map.track.owner": "المالك",
   "map.trail.studio": "افتح في gpx.studio",
   "map.layer.title": "الطبقات",
-  "map.track.builtBy": "بناه",
+  "map.track.managedBy": "يديره",
   "map.track.unclaimedRider": "دراج غير مُطالب به"
 }

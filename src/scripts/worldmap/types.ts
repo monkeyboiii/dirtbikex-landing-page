@@ -155,7 +155,7 @@ export interface RidersDoc {
   riders: RiderPin[];
 }
 
-/** One row of the track sheet's "built by" byline. */
+/** One row of the track sheet's "managed by" byline. */
 export interface LineageContributor {
   id: number;
   provenance: string;

@@ -255,6 +255,6 @@
   "map.track.owner": "Gérant",
   "map.trail.studio": "Ouvrir dans gpx.studio",
   "map.layer.title": "Calques",
-  "map.track.builtBy": "Construit par",
+  "map.track.managedBy": "Géré par",
   "map.track.unclaimedRider": "Pilote non revendiqué"
 }

@@ -255,6 +255,6 @@
   "map.track.owner": "Responsável",
   "map.trail.studio": "Abrir no gpx.studio",
   "map.layer.title": "Camadas",
-  "map.track.builtBy": "Construído por",
+  "map.track.managedBy": "Gerenciado por",
   "map.track.unclaimedRider": "Piloto não reivindicado"
 }

@@ -255,6 +255,6 @@
   "map.track.owner": "Ejer",
   "map.trail.studio": "Åbn i gpx.studio",
   "map.layer.title": "Lag",
-  "map.track.builtBy": "Bygget af",
+  "map.track.managedBy": "Drives af",
   "map.track.unclaimedRider": "Ikke-krævet kører"
 }

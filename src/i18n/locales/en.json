@@ -261,6 +261,6 @@
   "map.track.owner": "Owner",
   "map.trail.studio": "Open in gpx.studio",
   "map.layer.title": "Layers",
-  "map.track.builtBy": "Built by",
+  "map.track.managedBy": "Managed by",
   "map.track.unclaimedRider": "Unclaimed rider"
 }

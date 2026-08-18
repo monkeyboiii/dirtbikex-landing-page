@@ -255,6 +255,6 @@
   "map.track.owner": "Omistaja",
   "map.trail.studio": "Avaa gpx.studiossa",
   "map.layer.title": "Tasot",
-  "map.track.builtBy": "Built by",
+  "map.track.managedBy": "Managed by",
   "map.track.unclaimedRider": "Unclaimed rider"
 }

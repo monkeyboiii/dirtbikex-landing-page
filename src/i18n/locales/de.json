@@ -255,6 +255,6 @@
   "map.track.owner": "Betreiber",
   "map.trail.studio": "In gpx.studio öffnen",
   "map.layer.title": "Ebenen",
-  "map.track.builtBy": "Gebaut von",
+  "map.track.managedBy": "Verwaltet von",
   "map.track.unclaimedRider": "Nicht beanspruchter Fahrer"
 }

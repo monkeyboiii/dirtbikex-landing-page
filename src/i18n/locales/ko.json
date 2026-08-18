@@ -255,6 +255,6 @@
   "map.track.owner": "운영자",
   "map.trail.studio": "gpx.studio에서 열기",
   "map.layer.title": "레이어",
-  "map.track.builtBy": "건설자",
+  "map.track.managedBy": "관리자",
   "map.track.unclaimedRider": "미확인 라이더"
 }

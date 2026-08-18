@@ -255,6 +255,6 @@
   "map.track.owner": "Gestore",
   "map.trail.studio": "Apri in gpx.studio",
   "map.layer.title": "Livelli",
-  "map.track.builtBy": "Costruito da",
+  "map.track.managedBy": "Gestito da",
   "map.track.unclaimedRider": "Pilota non rivendicato"
 }

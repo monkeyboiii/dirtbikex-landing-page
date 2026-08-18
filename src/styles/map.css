@@ -1630,8 +1630,8 @@ body.is-map-page .site-header__inner {
   background: var(--dbx-orange, #d64000);
 }
 
-/* "Built by" on a track sheet — a byline, not a section: the people who made
-   the place, at the same scale as a trail's author. */
+/* "Managed by" on a track sheet — a byline, not a section: the people who keep
+   the place running, at the same scale as a trail's author. */
 .wm-built {
   display: flex;
   flex-wrap: wrap;

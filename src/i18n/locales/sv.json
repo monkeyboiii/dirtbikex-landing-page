@@ -257,6 +257,6 @@
   "map.track.owner": "Ägare",
   "map.trail.studio": "Öppna i gpx.studio",
   "map.layer.title": "Lager",
-  "map.track.builtBy": "Byggd av",
+  "map.track.managedBy": "Drivs av",
   "map.track.unclaimedRider": "Ej hävdad förare"
 }

@@ -255,6 +255,6 @@
   "map.track.owner": "Ιδιοκτήτης",
   "map.trail.studio": "Άνοιγμα στο gpx.studio",
   "map.layer.title": "Επίπεδα",
-  "map.track.builtBy": "Built by",
+  "map.track.managedBy": "Managed by",
   "map.track.unclaimedRider": "Unclaimed rider"
 }

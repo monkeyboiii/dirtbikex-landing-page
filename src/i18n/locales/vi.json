@@ -255,6 +255,6 @@
   "map.track.owner": "Chủ sân",
   "map.trail.studio": "Mở trong gpx.studio",
   "map.layer.title": "Lớp",
-  "map.track.builtBy": "Xây bởi",
+  "map.track.managedBy": "Quản lý bởi",
   "map.track.unclaimedRider": "Tay lái chưa nhận"
 }

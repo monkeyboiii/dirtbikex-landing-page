@@ -255,6 +255,6 @@
   "map.track.owner": "Beheerder",
   "map.trail.studio": "Openen in gpx.studio",
   "map.layer.title": "Lagen",
-  "map.track.builtBy": "Gebouwd door",
+  "map.track.managedBy": "Beheerd door",
   "map.track.unclaimedRider": "Niet-geclaimde rijder"
 }

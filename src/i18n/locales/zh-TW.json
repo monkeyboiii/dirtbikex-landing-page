@@ -258,6 +258,6 @@
   "map.track.owner": "場地主理人",
   "map.trail.studio": "在 gpx.studio 中開啟",
   "map.layer.title": "圖層",
-  "map.track.builtBy": "修建者",
+  "map.track.managedBy": "管理者",
   "map.track.unclaimedRider": "待認領車手"
 }

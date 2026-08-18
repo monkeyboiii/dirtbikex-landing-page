@@ -706,7 +706,7 @@ export function createPanel(deps: PanelDeps) {
   /**
    * A track's owner and its write-up, when it has them. Both are optional on the
    * catalog row and most rows have neither, so this renders nothing rather than
-   * an empty byline — and it runs AFTER the sheet is open, like builtBy, because
+   * an empty byline — and it runs AFTER the sheet is open, like managedBy, because
    * the baked catalog cannot know who claimed a track this morning.
    */
   async function trackOwner(host: HTMLElement, track: TrackProps) {
@@ -745,7 +745,7 @@ export function createPanel(deps: PanelDeps) {
     host.appendChild(byline);
   }
 
-  async function builtBy(host: HTMLElement, track: TrackProps) {
+  async function managedBy(host: HTMLElement, track: TrackProps) {
     let contributors: LineageContributor[] = [];
     try {
       const doc = (await fetch(`/api/lineage/track.json?slug=${encodeURIComponent(track.slug)}`).then(
@@ -757,7 +757,7 @@ export function createPanel(deps: PanelDeps) {
     }
     if (!contributors.length || !host.isConnected) return;
 
-    const label = strings['map.track.builtBy'] ?? 'Built by';
+    const label = strings['map.track.managedBy'] ?? 'Managed by';
     const section = el('div', 'wm-built');
     section.appendChild(el('span', 'wm-built__label', label));
     for (const edge of contributors.slice(0, 6)) {
@@ -944,7 +944,7 @@ export function createPanel(deps: PanelDeps) {
         titleRow(host, track.name, { kind: track.kind === 'shop' ? 'shop' : 'track', key: track.slug }, strings);
         trackInfo(host, track);
         void trackOwner(host, track);
-        void builtBy(host, track);
+        void managedBy(host, track);
       });
     },
 
