@@ -16,13 +16,24 @@ import type { PagesEnv } from './types';
 export type EntityKind = 'route' | 'track' | 'shop' | 'challenge';
 
 /**
- * Raw path segment → kind. Two letters for the map entities, deliberately:
- * single-letter `t` is reserved for topic sharing, which is the one obvious
- * future kind that would otherwise collide with `track`. The older kinds
- * (`i`/`u`/`e`/`l`) keep their single letter — the parser does not care about
- * length, only that the segment matches exactly.
+ * Path segment → kind. The segment is the word, because a share URL is read
+ * aloud, pasted into chat and typed from memory — and `tr` vs `ta` is exactly
+ * the pair that gets transposed. Full words also settle the collision the short
+ * codes were invented to avoid: `/s/track/` and a future `/s/topic/` cannot be
+ * confused, so `t` stays free without costing legibility.
+ *
+ * The two-letter codes stay forever as aliases; they were live, and a share URL
+ * that ever worked must keep working. `SHARE_ALIASES` is the whole migration.
  */
 export const ENTITY_KINDS: Record<string, EntityKind> = {
+  route: 'route',
+  track: 'track',
+  shop: 'shop',
+  challenge: 'challenge',
+};
+
+/** Retired spellings, kept resolvable. Canonical output always uses the word. */
+export const SHARE_ALIASES: Record<string, string> = {
   tr: 'route',
   ta: 'track',
   sh: 'shop',
@@ -31,13 +42,15 @@ export const ENTITY_KINDS: Record<string, EntityKind> = {
 
 export interface EntityFact {
   /** A copy key on `EntityCopy['facts']`, or null when `value` is already a label. */
-  key: 'distance' | 'ascent' | 'shape' | 'recorded' | 'where' | 'status' | null;
+  key: 'distance' | 'ascent' | 'shape' | 'recorded' | 'where' | null;
   value: string;
 }
 
 export interface EntityCard {
   kind: EntityKind;
   key: string;
+  /** The line above the title. `03 / 100` for an episode — the product's own motif. */
+  kicker: string | null;
   title: string;
   subtitle: string | null;
   facts: EntityFact[];
@@ -111,6 +124,7 @@ async function loadRoute(request: Request, env: PagesEnv, id: string, locale: st
   return {
     kind: 'route',
     key: id,
+    kicker: null,
     title: pickText(trail.title, locale) ?? id,
     subtitle: null,
     facts,
@@ -136,6 +150,7 @@ async function loadShop(request: Request, env: PagesEnv, slug: string): Promise<
   return {
     kind: 'shop',
     key: slug,
+    kicker: null,
     title: (typeof shop.name_local === 'string' && shop.name_local) || String(shop.name ?? slug),
     subtitle: locality,
     facts: locality ? [{ key: 'where', value: locality }] : [],
@@ -147,14 +162,17 @@ async function loadShop(request: Request, env: PagesEnv, slug: string): Promise<
 }
 
 async function loadChallenge(request: Request, env: PagesEnv, label: string, locale: string): Promise<EntityCard | null> {
-  const doc = await mapDoc<{ entries?: Record<string, unknown>[] }>(request, env, 'series');
+  const doc = await mapDoc<{ entries?: Record<string, unknown>[]; target?: number }>(request, env, 'series');
   const entry = doc?.entries?.find((e) => String(e.label) === label);
   if (!entry) return null;
 
+  // `03 / 100` is the most distinctive thing the series has. It leads.
+  const target = num(doc?.target);
+
   const venue = pickText(entry.venue, locale);
-  const facts: EntityFact[] = [];
-  if (venue) facts.push({ key: 'where', value: venue });
-  if (typeof entry.status === 'string') facts.push({ key: 'status', value: entry.status });
+  // `status` is a production-pipeline value (live / upcoming / visited). It says
+  // nothing to a recipient and reads as a leaked column, so it stays off the card.
+  const facts: EntityFact[] = venue ? [{ key: 'where', value: venue }] : [];
 
   // An episode's own social links are the sharable artefact when it is published;
   // the map is the fallback for one that is still upcoming.
@@ -164,6 +182,7 @@ async function loadChallenge(request: Request, env: PagesEnv, label: string, loc
   return {
     kind: 'challenge',
     key: label,
+    kicker: target ? `${label} / ${target}` : label,
     title: pickText(entry.title, locale) ?? `#${label}`,
     subtitle: pickText(entry.tagline, locale),
     facts,
@@ -197,6 +216,7 @@ async function loadTrack(env: PagesEnv, slug: string): Promise<EntityCard | null
   return {
     kind: 'track',
     key: slug,
+    kicker: null,
     title: (typeof track.name_local === 'string' && track.name_local) || String(track.name ?? slug),
     subtitle: locality,
     facts,

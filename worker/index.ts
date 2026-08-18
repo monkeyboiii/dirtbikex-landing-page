@@ -11,7 +11,7 @@ import { handleJoinSubmit, handleJoinConfirm, handleUnsubscribe, handleCodePrech
 import { handleShortlinkResolve } from './_lib/shortlink';
 import { handleMapDoc } from './_lib/mapData';
 import { handleOgPreview } from './_lib/ogPreview';
-import { ENTITY_KINDS, loadEntity } from './_lib/shareEntity';
+import { ENTITY_KINDS, SHARE_ALIASES, loadEntity } from './_lib/shareEntity';
 import { lookupResume, lookupClaimPreview, lookupTrackContributors, lookupRiderPins, lineagePath } from './_lib/lineageLookup';
 import { renderResume, renderClaim, renderLineageNotFound, getFacetLabels, hasCopy, hasFacetLabels } from './_lib/lineageRender';
 import { debugPanel, type DebugPayload, type LineageTrace } from './_lib/lineageDebug';
@@ -644,7 +644,7 @@ async function handleEntity(request: Request, env: Env, kindCode: string, key: s
   };
 
   if (!entity) {
-    const nf = entityNotFound(locale, kind);
+    const nf = entityNotFound(locale);
     return renderShareLanding(
       { ...base, title: nf.title, subtitle: nf.body },
       request.url,
@@ -656,11 +656,10 @@ async function handleEntity(request: Request, env: Env, kindCode: string, key: s
   const from = url.searchParams.get('from');
   const sender = from ? await lookupSender(env, from) : null;
 
-  const appCTA = isDesktopUA(request.headers.get('user-agent'))
-    ? undefined
-    : { label: copy.openInAppLabel, url: `dirtbikex://s/${kindCode}/${encodeURIComponent(key)}` };
-
-  return renderShareLanding({ ...base, appCTA, entity, sharedBy: sender }, request.url);
+  // No app CTA: AASA does not claim these paths, and the app has no destination
+  // for most of them. When it gains one, the path joins AASA and the OS opens the
+  // app *instead of* this page — the merge, without a second button.
+  return renderShareLanding({ ...base, entity, sharedBy: sender }, request.url);
 }
 
 /** The sharer's name and face, from the same anonymous profile read `/s/u` uses. */
@@ -689,9 +688,9 @@ function lineageContext(request: Request, env: Env) {
 }
 
 /**
- * `/s/l/<username>` is the share spelling of the résumé: a bare segment is a
- * forum username, because that is the only handle a person can be told over the
- * phone. `r-…` and a leading `@` still address the node directly, so a link
+ * `/s/lineage/<username>` is the share spelling of the résumé: a bare segment is
+ * a forum username, because that is the only handle a person can be told over
+ * the phone. `r-…` and a leading `@` still address the node directly, so a link
  * built from either half of the graph resolves.
  */
 function shareLineageRef(raw: string): string {
@@ -856,18 +855,30 @@ export default {
     if (se && request.method === 'GET') {
       return handleEvent(request, env, decodeURIComponent(se[1]));
     }
-    // `/s/{tr,ta,sh,ch}/<key>` — route, track, shop, challenge. One card, four
-    // lookups. Two letters so single-letter `t` stays free for topic sharing.
-    const sm = url.pathname.match(/^\/s\/(tr|ta|sh|ch)\/([^/]+)\/?$/);
+    // `/s/{route,track,shop,challenge}/<key>` — one card, four lookups. The old
+    // two-letter codes 301 to the word, so a link that was ever shared keeps
+    // working and only one spelling is ever indexed.
+    const alias = url.pathname.match(/^\/s\/(tr|ta|sh|ch)\/(.+)$/);
+    if (alias && request.method === 'GET') {
+      const to = new URL(request.url);
+      to.pathname = `/s/${SHARE_ALIASES[alias[1]!]}/${alias[2]!}`;
+      return Response.redirect(to.toString(), 301);
+    }
+    const sm = url.pathname.match(/^\/s\/(route|track|shop|challenge)\/([^/]+)\/?$/);
     if (sm && request.method === 'GET') {
       return handleEntity(request, env, sm[1]!, decodeURIComponent(sm[2]!));
     }
-    // `/s/l/<username>` — the complete résumé under the share namespace, so a
-    // lineage link is built, shared and AASA-claimed exactly like /s/u and /s/e.
-    const sl = url.pathname.match(/^\/s\/l\/([^/]+)\/?$/);
-    if (sl && request.method === 'GET') {
-      const param = decodeURIComponent(sl[1]!);
-      return handleLineagePage(request, env, shareLineageRef(param), '/s/l/', param);
+    // `/s/lineage/<username>` — same treatment: the word is canonical, `l` redirects.
+    const sll = url.pathname.match(/^\/s\/l\/(.+)$/);
+    if (sll && request.method === 'GET') {
+      const to = new URL(request.url);
+      to.pathname = `/s/lineage/${sll[1]!}`;
+      return Response.redirect(to.toString(), 301);
+    }
+    const slw = url.pathname.match(/^\/s\/lineage\/([^/]+)\/?$/);
+    if (slw && request.method === 'GET') {
+      const param = decodeURIComponent(slw[1]!);
+      return handleLineagePage(request, env, shareLineageRef(param), '/s/lineage/', param);
     }
     // Rider lineage — the public read surface (LINEAGE_PLAN.md §4.2). Reads are
     // anonymous plugin endpoints, so no key and no CORS is involved; every write

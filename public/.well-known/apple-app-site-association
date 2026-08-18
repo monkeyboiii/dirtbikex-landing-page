@@ -2,13 +2,39 @@
   "applinks": {
     "details": [
       {
-        "appIDs": ["HWV4DP4TQ7.com.dirtbikex.app"],
+        "appIDs": [
+          "HWV4DP4TQ7.com.dirtbikex.app"
+        ],
         "components": [
-          { "/": "/t/*" },
-          { "/": "/u/*" },
-          { "/": "/c/*" },
-          { "/": "/chat/*" },
-          { "/": "/s/*" }
+          {
+            "/": "/t/*"
+          },
+          {
+            "/": "/u/*"
+          },
+          {
+            "/": "/c/*"
+          },
+          {
+            "/": "/chat/*"
+          },
+          {
+            "/": "/s/i/*",
+            "comment": "Invite claim - native"
+          },
+          {
+            "/": "/s/u/*",
+            "comment": "Rider profile - native"
+          },
+          {
+            "/": "/s/e/*",
+            "comment": "Event detail - native"
+          },
+          {
+            "/": "/s/*",
+            "exclude": true,
+            "comment": "Order matters: the first matching component wins, so this catch-all sits last. Everything else under /s/ stays on the web until the app ships a destination for it. Add that path ABOVE this rule when it does."
+          }
         ]
       }
     ]
