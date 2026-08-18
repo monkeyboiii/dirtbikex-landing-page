@@ -89,6 +89,25 @@ English and the right gender in Spanish, Italian, French, German, Portuguese, Du
 Swedish — four nouns each, 84 strings, and as many chances to be quietly wrong. It shipped reading
 "share a episode". The kicker and the title already say what the thing is.
 
+## Verifying these routes
+
+`tests/no-external-assets.spec.ts` covers `/s/route/…?stay=1` — the `stay` is load-bearing, or
+the run follows the countdown into the map and starts asserting the map's hosts (which have their
+own deliberate tile allowance) instead of the card's.
+
+Two things to know before running it against a deployed environment:
+
+- **Set `PLAYWRIGHT_BASE_URL`.** Without it the config boots `astro dev` as well, and vite plus
+  esbuild plus chromium on this box's two cores — alongside the whole staging stack — is what
+  rebooted it on 2026-08-18. With it set, the config now skips the dev server entirely.
+- **The staging zone injects a third-party script that the origin never sends.** Cloudflare Web
+  Analytics adds `static.cloudflareinsights.com/beacon.min.js` at the edge, to browser-like
+  requests only — `curl` sees nothing, a real browser does. It is on `dirtbikechina.com` and **not**
+  on `dirtbikex.com`, so it is a staging-zone setting, and it makes every HTML route fail this spec
+  when pointed at staging. That is the spec working: the beacon is exactly the kind of asset the
+  China invariant exists to keep out. Do not widen the allowlist to make it pass — turn Web
+  Analytics off for the zone.
+
 ## The rule this file exists to state
 
 **A path joins AASA only when the app has a real destination for it — and never before.** The

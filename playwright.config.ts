@@ -71,10 +71,16 @@ export default defineConfig({
     // },
   ],
 
-  webServer: {
-    command: 'pnpm dev',
-    url: 'http://localhost:4321',
-    reuseExistingServer: !process.env.CI,
-    timeout: 60_000,
-  },
+  // Only boot the dev server when the run actually targets it. Pointing
+  // PLAYWRIGHT_BASE_URL at a deployed environment and still starting `astro dev`
+  // put vite, esbuild and chromium on the same two cores as the whole staging
+  // stack — which is how a verification run rebooted the box on 2026-08-18.
+  webServer: process.env.PLAYWRIGHT_BASE_URL
+    ? undefined
+    : {
+        command: 'pnpm dev',
+        url: 'http://localhost:4321',
+        reuseExistingServer: !process.env.CI,
+        timeout: 60_000,
+      },
 });
