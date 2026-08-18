@@ -977,7 +977,8 @@ function entityCardBody(entity: EntityCard, props: ShareLandingProps, locale: La
   const ctas =
     `<a class="cta cta-jump" href="${esc(entity.mapURL)}"${props.autoJump ? ' data-jump' : ''}>` +
     `<span class="cta-fill"></span><span class="cta-text">${esc(copy.seeOnMap)}</span></a>` +
-    (props.autoJump ? `<button type="button" class="card-link" data-stay>${esc(copy.stay)}</button>` : '');
+    (props.autoJump ? `<button type="button" class="card-link" data-stay>${esc(copy.stay)}</button>` : '') +
+    secondary;
 
   return `
 <main class="card entity-card">
