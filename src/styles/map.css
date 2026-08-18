@@ -1103,11 +1103,15 @@ body.is-map-page .site-header__inner {
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
+/* The drawer is pinned to the bottom and travels upward, so closed points UP —
+   the direction it is about to go — and flips down to mean "put it back". It was
+   the other way round, which told you to expect the panel from off-screen below. */
 .wm__drawer-chevron {
+  transform: rotate(180deg);
   transition: transform var(--dur-base, 200ms) ease;
 }
 .wm__drawer.is-open .wm__drawer-chevron {
-  transform: rotate(180deg);
+  transform: rotate(0deg);
 }
 .wm__drawer-body {
   max-height: 0;

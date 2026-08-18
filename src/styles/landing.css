@@ -47,8 +47,12 @@
   color: var(--fg);
 }
 .dark .site-getapp:hover { background: rgba(255, 255, 255, 0.18); }
-/* The icon alternates between the Apple mark and a download glyph, so an
-   icon-only button still reads as "download the app". */
+/* The mobile button introduces itself once, then settles.
+   Apple mark -> download glyph -> the words for ten seconds -> download glyph,
+   and there it stays. A loop in a header is movement in the corner of the eye
+   for as long as the page is open, which is a cost with no second payoff: the
+   visitor only needs telling once. `forwards` is what makes the last frame the
+   resting state rather than a lap. */
 .site-getapp__icon {
   display: none;
   position: relative;
@@ -57,46 +61,64 @@
   height: 17px;
 }
 .site-getapp__icon svg { position: absolute; inset: 0; }
-.site-getapp__mark { animation: dbx-getapp-mark 7s ease-in-out infinite; }
-.site-getapp__dl { opacity: 0; animation: dbx-getapp-dl 7s ease-in-out infinite; }
+
 @keyframes dbx-getapp-mark {
-  0%, 44% { opacity: 1; }
-  50%, 94% { opacity: 0; }
-  100% { opacity: 1; }
+  0%, 12% { opacity: 1; }
+  15%, 100% { opacity: 0; }
 }
 @keyframes dbx-getapp-dl {
-  0%, 44% { opacity: 0; }
-  50%, 94% { opacity: 1; }
-  100% { opacity: 0; }
+  0%, 12% { opacity: 0; }
+  15%, 26% { opacity: 1; }
+  29%, 96% { opacity: 0; }
+  100% { opacity: 1; }
 }
-@media (prefers-reduced-motion: reduce) {
-  .site-getapp__mark { animation: none; opacity: 1; }
-  .site-getapp__dl { animation: none; opacity: 0; }
+/* The icon box collapses to nothing while the words are up — an icon and its
+   label are two ways of saying the same thing, and showing both at once is what
+   left a gap beside the glyph the rest of the time. */
+@keyframes dbx-getapp-iconbox {
+  0%, 26% { width: 17px; margin-right: 8px; }
+  29%, 96% { width: 0; margin-right: 0; }
+  100% { width: 17px; margin-right: 8px; }
 }
-/* On mobile the button is icon-only, which asks the visitor to know what an
-   Apple mark in a header means. So the label takes a turn in the same loop:
-   mark, download glyph, then the words — already localized, since it is the
-   very same `nav.getApp` the desktop button uses. */
 @keyframes dbx-getapp-label {
-  0%, 58% { max-width: 0; opacity: 0; margin-left: 0; }
-  66%, 90% { max-width: 9rem; opacity: 1; margin-left: 6px; }
-  100% { max-width: 0; opacity: 0; margin-left: 0; }
+  0%, 26% { max-width: 0; opacity: 0; }
+  29%, 96% { max-width: 9rem; opacity: 1; }
+  100% { max-width: 0; opacity: 0; }
 }
+
 @media (max-width: 767px) {
-  .site-getapp { padding-left: 12px; padding-right: 12px; }
-  .site-getapp__icon { display: block; }
+  /* No flex gap: an empty label would still reserve it, which is the sliver of
+     blank that used to sit to the icon's right. Spacing is carried by the
+     animated margin instead, so it disappears with the thing it separates. */
+  .site-getapp {
+    gap: 0;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  .site-getapp__icon {
+    display: block;
+    animation: dbx-getapp-iconbox 14s ease-in-out 1 forwards;
+  }
+  .site-getapp__mark { animation: dbx-getapp-mark 14s ease-in-out 1 forwards; }
+  .site-getapp__dl { opacity: 0; animation: dbx-getapp-dl 14s ease-in-out 1 forwards; }
   .site-getapp__label {
     display: inline-block;
     overflow: hidden;
     white-space: nowrap;
     max-width: 0;
     opacity: 0;
-    animation: dbx-getapp-label 7s ease-in-out infinite;
+    animation: dbx-getapp-label 14s ease-in-out 1 forwards;
   }
-  /* Never animate the words for someone who asked for stillness — they get the
-     icon-only button that shipped before this. */
+  /* Stillness was asked for: no sequence, just the resting state it ends on. */
   @media (prefers-reduced-motion: reduce) {
-    .site-getapp__label { animation: none; max-width: 0; opacity: 0; margin-left: 0; }
+    .site-getapp__icon,
+    .site-getapp__mark,
+    .site-getapp__dl,
+    .site-getapp__label { animation: none; }
+    .site-getapp__icon { width: 17px; margin-right: 8px; }
+    .site-getapp__mark { opacity: 0; }
+    .site-getapp__dl { opacity: 1; }
+    .site-getapp__label { max-width: 0; opacity: 0; }
   }
 }
 
