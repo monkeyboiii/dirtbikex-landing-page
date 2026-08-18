@@ -931,11 +931,13 @@ export function entityNotFound(locale: Lang): { title: string; body: string } {
 function entityCardBody(entity: EntityCard, props: ShareLandingProps, locale: Lang): string {
   const copy = getEntityCopy(locale);
 
-  // The "who sent this" line. `?from=` wins; a route falls back to the rider whose
-  // ride it is, because that is who a recipient will assume shared it.
+  // The "who sent this" line. `?from=` wins. Only a ROUTE falls back to its
+  // author: a ride belongs to the person who rode it, so a recipient will assume
+  // they sent it. A track's owner did not share their track by owning it, and
+  // captioning their name with "shared this with you" would be a small lie.
   const sender =
     props.sharedBy ??
-    (entity.author
+    (entity.kind === 'route' && entity.author
       ? { name: entity.author.name, avatarURL: avatarURLFor(entity.author.avatarPath, props.forumBase) }
       : null);
   const sharedHTML = sender
