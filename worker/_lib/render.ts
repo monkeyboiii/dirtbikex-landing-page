@@ -961,10 +961,17 @@ function entityCardBody(entity: EntityCard, props: ShareLandingProps, locale: La
         .join('<span class="dot">·</span>')}</p>`
     : '';
 
-  // One button. The forum thread and the website live on the map sheet, one tap
-  // further in, so the card does not carry a second link that competes with the
-  // only action worth taking.
-  //
+  // One button, and at most one quiet link under it — the thread a route was
+  // posted in, the write-up or website behind a track or shop. Challenge takes
+  // none: its platform links live on the map sheet one tap further in, and four
+  // buttons over an empty card is what started this.
+  const secondary =
+    entity.kind === 'challenge' || !entity.sourceURL
+      ? ''
+      : `<a class="card-link" href="${esc(entity.sourceURL)}" rel="nofollow noopener">${esc(
+          entity.kind === 'route' ? copy.openThread : copy.openWebsite,
+        )}</a>`;
+
   // That button is also a timer. The sheet this card previews is a strict
   // superset of it — Directions, the verified and claimed chips, the built-by
   // byline, and the actual location — so detaining anyone here buys them nothing.
