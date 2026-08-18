@@ -1,14 +1,17 @@
 # SHARE_ENTITIES — a card for every thing on the map
 
 `/s/<kind>/<key>` is the share grammar the whole product already uses (`/s/i` invite, `/s/u`
-profile, `/s/e` event, `/s/l` lineage). These four are the map:
+profile, `/s/e` event, `/s/l` lineage). These four are the map, and they take **two** letters
+on purpose: single-letter `t` is reserved for topic sharing, the one obvious future kind that
+would otherwise collide with `track`.
+
 
 | Route | Key | Source |
 |---|---|---|
-| `/s/r/<trail-id>` | trail id from `trails.json` | R2 map document |
-| `/s/t/<track-slug>` | catalog slug | `GET /dirtbikex/tracks/<slug>.json` on the forum |
-| `/s/h/<shop-slug>` | shop slug from `shops.json` | R2 map document |
-| `/s/c/<label>` | episode label, e.g. `01` | `series.json` |
+| `/s/tr/<trail-id>` | trail id from `trails.json` | R2 map document |
+| `/s/ta/<track-slug>` | catalog slug | `GET /dirtbikex/tracks/<slug>.json` on the forum |
+| `/s/sh/<shop-slug>` | shop slug from `shops.json` | R2 map document |
+| `/s/ch/<label>` | episode label, e.g. `01` | `series.json` |
 
 `/s/*` was already in `run_worker_first` in both wrangler blocks, so none of this needed config.
 

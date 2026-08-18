@@ -131,8 +131,9 @@ export type Lang =
 /** Props handed to the shared share-landing renderer. */
 export interface ShareLandingProps {
   /** Discriminator per ShareKind raw value: `'i'` invite, `'u'` profile, `'e'` event,
-   *  `'r'` route, `'t'` track, `'h'` shop, `'c'` challenge. */
-  kind: 'i' | 'u' | 'e' | 'r' | 't' | 'h' | 'c';
+   *  `'l'` lineage, `'tr'` route, `'ta'` track, `'sh'` shop, `'ch'` challenge.
+   *  `'t'` is deliberately unused — reserved for topic sharing. */
+  kind: 'i' | 'u' | 'e' | 'l' | 'tr' | 'ta' | 'sh' | 'ch';
   locale: Lang;
   primaryCTA: { label: string; url: string };
   /** Optional secondary CTA — the "open in the app" deep link. Set only for a

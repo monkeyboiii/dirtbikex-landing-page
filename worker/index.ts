@@ -627,16 +627,16 @@ async function handleForumFeatured(env: Env): Promise<Response> {
  * so the card can open with "Monkeyboi wants to share a route with you" — the sharer
  * is not always the author, and for a track or a shop there is no author at all.
  */
-async function handleEntity(request: Request, env: Env, kindLetter: string, key: string): Promise<Response> {
+async function handleEntity(request: Request, env: Env, kindCode: string, key: string): Promise<Response> {
   const url = new URL(request.url);
   const locale = pickLocale(url, request.headers.get('accept-language'));
   const copy = getCopy(locale);
   const forumBase = env.FORUM_BASE ?? '';
-  const kind = ENTITY_KINDS[kindLetter]!;
+  const kind = ENTITY_KINDS[kindCode]!;
 
   const entity = await loadEntity(request, env, kind, key, locale);
   const base: Pick<ShareLandingProps, 'kind' | 'locale' | 'primaryCTA' | 'returnTapCopy' | 'forumBase'> = {
-    kind: kindLetter as ShareLandingProps['kind'],
+    kind: kindCode as ShareLandingProps['kind'],
     locale,
     primaryCTA: { label: copy.ctaLabel, url: APP_STORE_URL },
     returnTapCopy: copy.returnTap,
@@ -658,7 +658,7 @@ async function handleEntity(request: Request, env: Env, kindLetter: string, key:
 
   const appCTA = isDesktopUA(request.headers.get('user-agent'))
     ? undefined
-    : { label: copy.openInAppLabel, url: `dirtbikex://s/${kindLetter}/${encodeURIComponent(key)}` };
+    : { label: copy.openInAppLabel, url: `dirtbikex://s/${kindCode}/${encodeURIComponent(key)}` };
 
   return renderShareLanding({ ...base, appCTA, entity, sharedBy: sender }, request.url);
 }
@@ -856,8 +856,9 @@ export default {
     if (se && request.method === 'GET') {
       return handleEvent(request, env, decodeURIComponent(se[1]));
     }
-    // `/s/{r,t,h,c}/<key>` — route, track, shop, challenge. One card, four lookups.
-    const sm = url.pathname.match(/^\/s\/([rthc])\/([^/]+)\/?$/);
+    // `/s/{tr,ta,sh,ch}/<key>` — route, track, shop, challenge. One card, four
+    // lookups. Two letters so single-letter `t` stays free for topic sharing.
+    const sm = url.pathname.match(/^\/s\/(tr|ta|sh|ch)\/([^/]+)\/?$/);
     if (sm && request.method === 'GET') {
       return handleEntity(request, env, sm[1]!, decodeURIComponent(sm[2]!));
     }

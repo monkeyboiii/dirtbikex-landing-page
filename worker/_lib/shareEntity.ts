@@ -15,12 +15,18 @@ import type { PagesEnv } from './types';
 
 export type EntityKind = 'route' | 'track' | 'shop' | 'challenge';
 
-/** Raw path segment → kind. One letter each, like `i`/`u`/`e`/`l` before them. */
+/**
+ * Raw path segment → kind. Two letters for the map entities, deliberately:
+ * single-letter `t` is reserved for topic sharing, which is the one obvious
+ * future kind that would otherwise collide with `track`. The older kinds
+ * (`i`/`u`/`e`/`l`) keep their single letter — the parser does not care about
+ * length, only that the segment matches exactly.
+ */
 export const ENTITY_KINDS: Record<string, EntityKind> = {
-  r: 'route',
-  t: 'track',
-  h: 'shop',
-  c: 'challenge',
+  tr: 'route',
+  ta: 'track',
+  sh: 'shop',
+  ch: 'challenge',
 };
 
 export interface EntityFact {
