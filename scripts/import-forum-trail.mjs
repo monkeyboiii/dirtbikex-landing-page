@@ -23,6 +23,7 @@
 // environment; without it, review the diff and run push-map-data.mjs yourself.
 
 import { execFileSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import { readTrailStats, buildTrailEntry } from './lib/gpx-trail.mjs';
 import { ENVS, forumBase, uploadsCdn, fixturePath, readDoc, writeDoc, upsertById } from './lib/map-source.mjs';
 
@@ -136,7 +137,7 @@ writeDoc(path, doc);
 console.log(`${summary}\n  → ${path} (${doc.trails.length} trail(s))\n  geometry stays at ${gpxUrl}`);
 
 if (flag('push')) {
-  execFileSync('node', [new URL('push-map-data.mjs', import.meta.url).pathname, '--env', env, '--doc', 'trails'], {
+  execFileSync('node', [fileURLToPath(new URL('push-map-data.mjs', import.meta.url)), '--env', env, '--doc', 'trails'], {
     stdio: 'inherit',
   });
 }
