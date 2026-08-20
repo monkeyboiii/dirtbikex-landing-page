@@ -530,6 +530,14 @@ body.is-map-page .site-header__inner {
 .wm-ep.wm-ep[data-tone='upcoming'] {
   background: radial-gradient(closest-side, rgba(var(--wm-tone-upcoming-rgb), 0.46), rgba(var(--wm-tone-upcoming-rgb), 0) 72%);
 }
+/* ...but only when the marker IS the pin. Once the venue's own icon is drawn beneath
+   it, the bloom sits behind that icon as a second, muddier disc — green under purple
+   reads as a grey smudge, which is exactly what it looked like. In badge mode the
+   challenge shows its number and nothing else. Same doubled class as the tones above,
+   and after them, so it wins the tie. */
+.wm-ep.wm-ep:not(.is-solo) {
+  background: none;
+}
 .wm-ep.is-visited .wm-ep__num {
   background: #3c3b3a;
 }
