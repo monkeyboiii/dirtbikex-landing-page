@@ -617,7 +617,10 @@ class WorldMap {
         'circle-blur': blurExpr() as never,
         'circle-stroke-color': c.pinStroke,
         'circle-stroke-width': ['interpolate', ['linear'], ['zoom'], 6, 0, 9, 1] as never,
-        'circle-stroke-opacity': 0.7,
+        // The outline is NOT covered by circle-opacity — MapLibre paints it from its own
+        // property — so fading the fill alone left a ring under every blip. It rides the
+        // same ramp, scaled to the 0.7 it used to sit at.
+        'circle-stroke-opacity': opacityExpr(0.7) as never,
       },
     });
 
@@ -1381,6 +1384,7 @@ class WorldMap {
         });
       });
       this.here = [fix.coords.longitude, fix.coords.latitude];
+      this.showHere(this.here);
       this.map.easeTo({
         center: this.here,
         zoom: Math.max(this.map.getZoom(), cityZoom()),
@@ -1392,6 +1396,24 @@ class WorldMap {
       // PERMISSION_DENIED is a decision. A timeout or a failed fix is not.
       return (err as GeolocationPositionError)?.code === 1 ? 'denied' : 'idle';
     }
+  }
+
+  private hereMarker: Marker | null = null;
+
+  /**
+   * The blue dot, at every zoom. It is a Marker rather than a layer because it is not a
+   * place in the catalog and must not be culled with them — and because a Marker is the
+   * one thing that survives the light/dark restyle without being replayed.
+   */
+  private showHere(at: [number, number]) {
+    if (this.hereMarker) {
+      this.hereMarker.setLngLat(at);
+      return;
+    }
+    const el = document.createElement('span');
+    el.className = 'wm-here';
+    el.setAttribute('aria-hidden', 'true');
+    this.hereMarker = new Marker({ element: el, anchor: 'center' }).setLngLat(at).addTo(this.map);
   }
 
   /** Showing the visitor their own position. */

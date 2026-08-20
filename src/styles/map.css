@@ -1260,9 +1260,12 @@ body.is-map-page .site-header__inner {
 .wm-rail__btn--locate .wm-rail__off {
   display: none;
 }
+/* The same off-state a layer toggle wears, not merely paler ink: a control that cannot
+   do anything yet should read as switched off, and the ink alone did not say that. */
 .wm-rail__btn--locate[data-state='idle'],
 .wm-rail__btn--locate[data-state='denied'] {
   color: var(--wm-text-faint);
+  background: rgba(var(--wm-veil), 0.5);
 }
 .wm-rail__btn--locate[data-state='denied'] {
   cursor: default;
@@ -1323,6 +1326,19 @@ body.is-map-page .site-header__inner {
 .wm-rail__btn[data-hint] .wm-rail__label {
   opacity: 1;
   transform: translate(0, -50%);
+}
+
+/* Where you are — the blue dot everybody already knows. Not a pin: a pin marks a place
+   in the catalog, and this is not one, so it never takes a kind colour or a glyph. */
+.wm-here {
+  display: block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #1a73e8;
+  border: 2.5px solid #ffffff;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.14), 0 2px 7px rgba(0, 0, 0, 0.4);
+  pointer-events: none;
 }
 
 /* ---------- search ---------- */
