@@ -110,6 +110,10 @@
     white-space: nowrap;
     max-width: 0;
     opacity: 0;
+    /* Matched to the icon box. A zero-width inline-block still contributes its line
+       box, so the label was quietly making the button a pixel taller than wide — and
+       a pixel taller again the moment the words appeared. */
+    line-height: 17px;
     animation: dbx-getapp-label 14s ease-in-out 1 forwards;
   }
   /* Stillness was asked for: no sequence, just the resting state it ends on. */
