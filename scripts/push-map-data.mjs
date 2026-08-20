@@ -50,6 +50,17 @@ if (name === 'series') {
       bail(`unknown status "${entry.status}" on ${entry.label}`);
     }
   }
+  // The verdict block is a public statement about named venues, so a typo in a slug
+  // must not read as "we do not vouch for it" — it has to be a slug the map knows.
+  if (doc.verified !== undefined) {
+    if (doc.verified === null || typeof doc.verified !== 'object' || Array.isArray(doc.verified)) {
+      bail('`verified` must be an object of slug -> boolean');
+    }
+    for (const [slug, called] of Object.entries(doc.verified)) {
+      if (typeof called !== 'boolean') bail(`verified.${slug} must be true or false`);
+      if (!slug.trim()) bail('`verified` has an empty slug');
+    }
+  }
   count = doc.entries.length;
 } else if (name === 'shops') {
   if (!Array.isArray(doc.shops)) bail('missing `shops`');

@@ -20,15 +20,3 @@ export const SOCIALS = {
 // Founder (Calvin) personal Facebook — founders page only.
 export const FOUNDER_FACEBOOK = 'https://www.facebook.com/profile.php?id=61590664892188';
 export const SUPPORT_EMAIL = 'support@dirtbikex.com';
-
-// The operator's own verdict on a place, which overrides everything else. A slug that
-// is absent here is decided by the signals: a stop in the 100 challenge, or a bound
-// forum topic. Never the catalog's CRM tier, which says how the row was sourced rather
-// than whether we stand behind it.
-//
-// `false` matters as much as `true`: we ride venues that then decline to come onto the
-// platform, and a stop on the map is not a claim that its owner is with us.
-export const MAP_VERIFIED: Record<string, boolean> = {
-  // Episode 02. Ridden, filmed, and not joining.
-  'cn-qiu-long-ke-ji-hang-zhou-yue-ye-ji-di': false,
-};

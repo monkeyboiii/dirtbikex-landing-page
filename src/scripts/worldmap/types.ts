@@ -63,6 +63,12 @@ export interface SeriesEntry {
 export interface SeriesDoc {
   series: string;
   target: number;
+  /**
+   * The operator's verdict per track slug, overriding every other signal in both
+   * directions. It rides the series document so a venue changing its mind is one R2
+   * push rather than a rebuild — see scripts/push-map-data.mjs.
+   */
+  verified?: Record<string, boolean>;
   entries: SeriesEntry[];
 }
 
@@ -126,8 +132,6 @@ export interface MapConfig {
   contactUrl: string;
   /** Curated active-claim slugs; replaced by a forum endpoint in V1.5 (D8). */
   claimed: string[];
-  /** The operator's verdict per slug, overriding the signals — see src/config.ts. */
-  verified: Record<string, boolean>;
 }
 
 export type Strings = Record<string, string>;

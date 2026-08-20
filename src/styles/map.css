@@ -1247,6 +1247,35 @@ body.is-map-page .site-header__inner {
 .wm-rail__btn--action {
   color: var(--wm-text-dim);
 }
+/* Orange means "you are already looking at it", so the control tells you there is
+   nothing to press before you press it. */
+.wm-rail__btn--action[data-state='active'] {
+  color: var(--wm-accent);
+  border-color: var(--wm-accent);
+  background: var(--wm-accent-soft);
+}
+/* Locate is the one control that needs the visitor's permission, so it starts faint:
+   it has not been given anything to point at yet. Blocked, it says so and stays put —
+   a browser will not re-prompt, and the fix is in settings, not here. */
+.wm-rail__btn--locate .wm-rail__off {
+  display: none;
+}
+.wm-rail__btn--locate[data-state='idle'],
+.wm-rail__btn--locate[data-state='denied'] {
+  color: var(--wm-text-faint);
+}
+.wm-rail__btn--locate[data-state='denied'] {
+  cursor: default;
+}
+.wm-rail__btn--locate[data-state='denied'] .wm-rail__on {
+  display: none;
+}
+.wm-rail__btn--locate[data-state='denied'] .wm-rail__off {
+  display: grid;
+}
+.wm-rail__btn--locate[data-state='busy'] {
+  opacity: 0.6;
+}
 .wm-rail__btn--action:hover,
 .wm-rail__btn--action:focus-visible {
   color: var(--wm-text);

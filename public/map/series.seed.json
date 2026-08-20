@@ -1,6 +1,9 @@
 {
   "series": "visiting-100-tracks",
   "target": 100,
+  "verified": {
+    "cn-qiu-long-ke-ji-hang-zhou-yue-ye-ji-di": false
+  },
   "entries": [
     {
       "main": 0,

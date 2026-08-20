@@ -5,7 +5,7 @@ import '../styles/map.css';
 import Footer from './Footer.astro';
 import { getLangFromUrl, localizedPath } from '../i18n/utils';
 import { ui, defaultLang } from '../i18n/ui';
-import { SOCIALS, FORUM_BASE, MAP_VERIFIED } from '../config';
+import { SOCIALS, FORUM_BASE } from '../config';
 import { LAYER_DEFAULTS, LAYER_IDS } from '../scripts/worldmap/types';
 
 /** English source of every map string; per-locale overrides come from src/i18n/locales. */
@@ -38,6 +38,8 @@ const DEFAULTS: Record<string, string> = {
   'map.search.placeholder': 'Search tracks, trails, shops',
   'map.search.all': 'All',
   'map.search.empty': 'Nothing matched',
+  'map.control.locate': 'Show where I am',
+  'map.control.locateDenied': 'Location is blocked in your browser settings',
   'map.layer.title': 'Layers',
   'map.layer.tracks': 'Tracks',
   'map.layer.ride': 'The 100 challenge',
@@ -140,7 +142,6 @@ const config = {
   },
   contactUrl: localizedPath(lang, '/contact'),
   claimed: [] as string[],
-  verified: MAP_VERIFIED,
 };
 ---
 
@@ -192,8 +193,24 @@ const config = {
         <span class="wm-rail__label">{s('map.search.open')}</span>
       </button>
       <button type="button" class="wm-rail__btn wm-rail__btn--action" data-recenter title={s('map.control.recenter')} aria-label={s('map.control.recenter')}>
-        <span class="wm-rail__on" set:html={`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="4.5" fill="currentColor"/><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.6"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>`} />
+        <span class="wm-rail__on" set:html={`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="2" x2="5" y1="12" y2="12"/><line x1="19" x2="22" y1="12" y2="12"/><line x1="12" x2="12" y1="2" y2="5"/><line x1="12" x2="12" y1="19" y2="22"/><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/></svg>`} />
         <span class="wm-rail__label">{s('map.control.recenter')}</span>
+      </button>
+    </div>
+    {/* Standalone, and its own hairline: this is the only control that asks the
+        visitor for something rather than moving the camera on its own authority. */}
+    <div class="wm-rail__actions">
+      <button
+        type="button"
+        class="wm-rail__btn wm-rail__btn--action wm-rail__btn--locate"
+        data-locate
+        data-state="idle"
+        title={s('map.control.locate')}
+        aria-label={s('map.control.locate')}
+      >
+        <span class="wm-rail__on" set:html={`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>`} />
+        <span class="wm-rail__off" set:html={`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.43 8.43 3 11l8 2 2 8 2.57-5.43"/><path d="M17.39 11.73 22 2l-9.73 4.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>`} />
+        <span class="wm-rail__label">{s('map.control.locate')}</span>
       </button>
     </div>
   </nav>

@@ -355,9 +355,9 @@ function radiusExpr(): unknown {
 }
 
 function opacityExpr(factor: number): unknown {
-  // A verified row is a dot until its blip fades in, then hands over completely —
-  // drawing both is what made the old glyph look like grit on top of a dot. Breadth
-  // rows stay dots at every zoom, which is what keeps a dense country readable.
+  // A row is a dot until its blip fades in, then hands over completely: past 9.4 exactly
+  // one of the two is drawn, never both. The tier split survives only at world zoom,
+  // where it is what keeps a dense country readable.
   const tier = (verified: number, breadth: number) => [
     'case',
     ['==', ['get', 'tier'], 'verified'],
@@ -369,7 +369,7 @@ function opacityExpr(factor: number): unknown {
     1, tier(0.78, 0.48),
     5, tier(0.9, 0.62),
     8.4, tier(0.9, 0.7),
-    9.4, tier(0, 0.75),
+    9.4, 0,
   ];
 }
 
@@ -589,7 +589,7 @@ class WorldMap {
       type: 'circle',
       source: 'tracks',
       minzoom: 8,
-      filter: ['all', ['!=', ['get', 'tier'], 'breadth'], IS_TRACK] as never,
+      filter: IS_TRACK,
       paint: {
         'circle-color': c.track,
         'circle-blur': 0.85,
@@ -633,7 +633,7 @@ class WorldMap {
       type: 'symbol',
       source: 'tracks',
       minzoom: 8,
-      filter: ['all', ['!=', ['get', 'tier'], 'breadth'], IS_TRACK] as never,
+      filter: IS_TRACK,
       layout: {
         'icon-image': 'blip-track',
         'icon-size': blipSize(this.selected) as never,
@@ -663,7 +663,7 @@ class WorldMap {
       type: 'symbol',
       source: 'tracks',
       minzoom: 9,
-      filter: ['all', ['!=', ['get', 'tier'], 'breadth'], IS_TRACK] as never,
+      filter: IS_TRACK,
       layout: {
         'text-field': ['coalesce', ['get', 'name'], ''] as never,
         'text-font': styleFont(map),
@@ -1181,6 +1181,7 @@ class WorldMap {
     map.on('moveend', () => {
       this.renderVisible();
       this.syncEpisodeChrome();
+      this.syncControls();
     });
 
     map.on('click', (e) => {
@@ -1265,6 +1266,27 @@ class WorldMap {
    * point where venue icons appear — the badge becomes the marker instead of floating
    * over empty map.
    */
+  /**
+   * The two camera controls tell you whether they have anywhere to take you. Orange is
+   * "you are already there", which is the difference between a button worth pressing
+   * and one that would do nothing.
+   */
+  syncControls() {
+    const mark = (selector: string, on: boolean) => {
+      const button = this.root.querySelector<HTMLElement>(selector);
+      if (!button) return;
+      if (button.dataset.state === 'denied' || button.dataset.state === 'busy') return;
+      if (on) button.dataset.state = 'active';
+      else if (button.dataset.state === 'active') delete button.dataset.state;
+    };
+    mark('[data-recenter]', this.atOpening);
+
+    const locate = this.root.querySelector<HTMLElement>('[data-locate]');
+    if (locate && locate.dataset.state !== 'denied' && locate.dataset.state !== 'busy') {
+      locate.dataset.state = this.atHere ? 'active' : this.here ? 'ready' : locate.dataset.state ?? 'idle';
+    }
+  }
+
   private syncEpisodeChrome() {
     const zoomed = this.map.getZoom() >= BLIP_IN;
     for (const { el, entry } of this.episodeMarkers) {
@@ -1321,6 +1343,65 @@ class WorldMap {
     return sheet.width >= canvas.width - 8
       ? { right: 0, bottom: Math.min(sheet.height, canvas.height * 0.6) }
       : { right: Math.min(sheet.width + 40, canvas.width * 0.55), bottom: 0 };
+  }
+
+  /**
+   * Is the camera parked on this point? Not "is it on screen" — at world zoom half the
+   * planet is on screen — but "is this what you are looking at": near the middle of the
+   * map you can actually see, and close enough in that the answer means something.
+   */
+  private lookingAt(at: [number, number] | null | undefined): boolean {
+    if (!at || this.map.getZoom() < cityZoom() - 1.5) return false;
+    const canvas = this.map.getCanvas();
+    const [dx, dy] = this.sheetOffset();
+    const point = this.map.project(at);
+    return (
+      Math.abs(point.x - (canvas.clientWidth / 2 + dx)) < canvas.clientWidth * 0.22 &&
+      Math.abs(point.y - (canvas.clientHeight / 2 + dy)) < canvas.clientHeight * 0.22
+    );
+  }
+
+  /** Where the visitor is, once they have told us. */
+  private here: [number, number] | null = null;
+
+  /**
+   * Ask the browser where the visitor is, and go there. Permission is theirs to give,
+   * so this only ever runs from their tap, and a refusal is remembered in the control
+   * rather than re-asked — a browser will not prompt twice, and pretending otherwise
+   * leaves a button that silently does nothing.
+   */
+  async locate(): Promise<'ready' | 'denied' | 'idle'> {
+    if (!navigator.geolocation) return 'denied';
+    try {
+      const fix = await new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 12_000,
+          maximumAge: 30_000,
+        });
+      });
+      this.here = [fix.coords.longitude, fix.coords.latitude];
+      this.map.easeTo({
+        center: this.here,
+        zoom: Math.max(this.map.getZoom(), cityZoom()),
+        duration: reducedMotion() ? 0 : 900,
+        offset: this.sheetOffset(),
+      });
+      return 'ready';
+    } catch (err) {
+      // PERMISSION_DENIED is a decision. A timeout or a failed fix is not.
+      return (err as GeolocationPositionError)?.code === 1 ? 'denied' : 'idle';
+    }
+  }
+
+  /** Showing the visitor their own position. */
+  get atHere(): boolean {
+    return this.lookingAt(this.here);
+  }
+
+  /** Already parked on the stop recenter would take you to. */
+  get atOpening(): boolean {
+    return this.lookingAt(this.opening ? this.placements.get(this.opening)?.lngLat : null);
   }
 
   /** Camera offset that lands the target in what is still map. */
@@ -1525,13 +1606,14 @@ class WorldMap {
   }
 
   /**
-   * Do we stand behind this place? The operator's entry in MAP_VERIFIED decides
+   * Do we stand behind this place? The series document's `verified` block decides
    * outright — including a `false` for a venue we rode and filmed that then declined
-   * to join. Absent from it, the signals speak: a stop in the challenge, or a bound
-   * forum topic (which only the per-track lookup knows, so callers pass it in).
+   * to join. It lives in published data rather than in the bundle so a venue changing
+   * its mind is an R2 push. Absent from it, the signals speak: a stop in the challenge,
+   * or a bound forum topic (which only the per-track lookup knows, so callers pass it in).
    */
   verdict(slug: string, hasTopic = false): boolean {
-    const called = this.cfg.verified?.[slug];
+    const called = this.series.verified?.[slug];
     if (typeof called === 'boolean') return called;
     return this.stops.has(slug) || hasTopic;
   }
@@ -1607,6 +1689,33 @@ function wireRail(root: HTMLElement, world: WorldMap) {
   // the one rail button with no pressed state — it acts and does not toggle.
   const recenter = root.querySelector<HTMLButtonElement>('[data-recenter]');
   recenter?.addEventListener('click', () => world.recenter());
+
+  const locate = root.querySelector<HTMLButtonElement>('[data-locate]');
+  if (locate) {
+    // The permission may already have been answered on a previous visit. Reading it
+    // does NOT prompt, so the control can start out honest instead of always faint.
+    void navigator.permissions
+      ?.query({ name: 'geolocation' as PermissionName })
+      .then((status) => {
+        const settle = () => {
+          if (locate.dataset.state === 'busy') return;
+          locate.dataset.state = status.state === 'denied' ? 'denied' : status.state === 'granted' ? 'ready' : 'idle';
+          world.syncControls();
+        };
+        settle();
+        status.addEventListener('change', settle);
+      })
+      .catch(() => undefined);
+
+    locate.addEventListener('click', async () => {
+      if (locate.dataset.state === 'denied' || locate.dataset.state === 'busy') return;
+      locate.dataset.state = 'busy';
+      locate.dataset.state = await world.locate();
+      world.syncControls();
+    });
+  }
+
+  world.syncControls();
 }
 
 function wireDrawer(root: HTMLElement) {
