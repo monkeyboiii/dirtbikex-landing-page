@@ -34,12 +34,21 @@ export interface SearchDeps {
  * typing "hu" puts Huzhou above a place with "hu" buried in the middle of its name.
  */
 function score(p: TrackProps, q: string): number {
+  const tight = q.replace(/\s+/g, '');
   let best = 0;
   for (const field of [p.name, p.name_local, p.locality]) {
     if (!field) continue;
     const hay = field.toLowerCase();
     if (hay.startsWith(q)) return 3;
-    if (hay.includes(q)) best = 1;
+    if (hay.includes(q)) {
+      best = Math.max(best, 1);
+      continue;
+    }
+    // Transliterated names are stored word-by-word ("Tong Lu 73 Hao ..."), which is
+    // not how anyone types them, so spacing must not decide whether a place is findable.
+    const packed = hay.replace(/\s+/g, '');
+    if (packed.startsWith(tight)) return 2;
+    if (packed.includes(tight)) best = Math.max(best, 1);
   }
   return best;
 }
