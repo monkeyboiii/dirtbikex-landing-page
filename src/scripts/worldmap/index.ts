@@ -105,7 +105,7 @@ interface ShopDoc {
 /** Toggleable map layers. `styleLayers` are MapLibre ids rebuilt by addLayers(); the
     rest of each layer's surface (DOM markers, the HUD) is toggled alongside them. */
 const LAYERS: Record<LayerId, readonly string[]> = {
-  tracks: ['tracks-halo', 'tracks-glow', 'tracks-dot', 'tracks-glyph', 'tracks-seal', 'tracks-label'],
+  tracks: ['tracks-glow', 'tracks-dot', 'tracks-glyph', 'tracks-seal', 'tracks-label'],
   shops: ['shops-glow', 'shops-blip', 'shops-label'],
   trails: ['trails-line', 'trails-glow', 'trails-blip', 'trails-label'],
   ride: ['journey-line'],
@@ -302,6 +302,24 @@ async function addGlyph(
 /** Blips are rasterised at 2x their largest drawn size so they stay crisp on a
     retina phone; 48px upscaled to 35 CSS px is what made the old glyphs mushy. */
 const BLIP_PX = 96;
+/** Blip artwork scale by zoom, and the step up the selection takes. With no bloom
+    behind it the pin itself has to say which one the sheet is about. */
+const BLIP_RAMP: [number, number][] = [
+  [8.4, 0.5],
+  [10, 0.72],
+  [14, 0.9],
+];
+const SELECTED_SCALE = 1.3;
+function blipSize(selected: string | null): unknown {
+  const ramp = (k: number) => [
+    'interpolate',
+    ['linear'],
+    ['zoom'],
+    ...BLIP_RAMP.flatMap(([zoom, size]) => [zoom, size * k]),
+  ];
+  if (!selected) return ramp(1);
+  return ['case', ['==', ['get', 'slug'], selected], ramp(SELECTED_SCALE), ramp(1)];
+}
 /** Zoom at which venue icons have fully faded in; below it a pin is only a dot. */
 const BLIP_IN = 9.4;
 
@@ -525,7 +543,7 @@ class WorldMap {
     await this.addLayers();
     this.renderVisible();
     this.applyLayers();
-    this.setHalo(this.selected);
+    this.setSelected(this.selected);
     this.setDimmed(this.seriesMode || !!this.selected);
     this.map.setPaintProperty('journey-line', 'line-opacity', this.seriesMode ? 0.55 : 0);
   }
@@ -562,21 +580,6 @@ class WorldMap {
       addGlyph(map, 'blip-trail', `${this.cfg.markersBase}trails.svg`, c.trail, BLIP_PX, c.labelHalo),
       addGlyph(map, 'blip-shop', `${this.cfg.markersBase}shop.svg`, c.shop, BLIP_PX, c.labelHalo),
     ]).catch((err) => console.warn('worldmap glyphs', err));
-
-    map.addLayer({
-      id: 'tracks-halo',
-      type: 'circle',
-      source: 'tracks',
-      filter: ['==', ['get', 'slug'], ''],
-      paint: {
-        // A ring in brand orange sat behind every selection regardless of kind, so a
-        // blue shop read as an orange target. Soft bloom, coloured by kind, no ring.
-        'circle-radius': ['case', ['==', ['get', 'precision'], 'centroid'], 32, 24] as never,
-        'circle-color': ['match', ['get', 'kind'], 'shop', c.shop, 'trail', c.trail, c.track] as never,
-        'circle-blur': 0.7,
-        'circle-opacity': 0.4,
-      },
-    });
 
     // Soft coloured bloom under each blip. A circle layer with circle-blur is the only
     // glow MapLibre draws cheaply — icon-halo-* is SDF-only, and an SDF icon cannot
@@ -633,9 +636,7 @@ class WorldMap {
       filter: ['all', ['!=', ['get', 'tier'], 'breadth'], IS_TRACK] as never,
       layout: {
         'icon-image': 'blip-track',
-        // 48 layout px at 2x; 0.44-0.78 puts it between 21 and 37 CSS px, against the
-        // 8.2 CSS px the old category glyph actually rendered at.
-        'icon-size': ['interpolate', ['linear'], ['zoom'], 8.4, 0.5, 10, 0.72, 14, 0.9] as never,
+        'icon-size': blipSize(this.selected) as never,
         'icon-allow-overlap': true,
         'icon-ignore-placement': true,
       },
@@ -713,7 +714,7 @@ class WorldMap {
       filter: shopFilter,
       layout: {
         'icon-image': 'blip-shop',
-        'icon-size': ['interpolate', ['linear'], ['zoom'], 8.4, 0.5, 10, 0.72, 14, 0.9] as never,
+        'icon-size': blipSize(this.selected) as never,
         'icon-allow-overlap': true,
         'icon-ignore-placement': true,
       },
@@ -783,7 +784,7 @@ class WorldMap {
         },
       },
       // Under the pins: a drawn trace is ground truth, not something to obscure them.
-      map.getLayer('tracks-halo') ? 'tracks-halo' : undefined,
+      map.getLayer('tracks-glow') ? 'tracks-glow' : undefined,
     );
 
     const trailFilter = ['==', ['get', 'kind'], 'trail'] as never;
@@ -808,7 +809,7 @@ class WorldMap {
       filter: trailFilter,
       layout: {
         'icon-image': 'blip-trail',
-        'icon-size': ['interpolate', ['linear'], ['zoom'], 8.4, 0.5, 10, 0.72, 14, 0.9] as never,
+        'icon-size': blipSize(this.selected) as never,
         'icon-allow-overlap': true,
         'icon-ignore-placement': true,
       },
@@ -875,7 +876,7 @@ class WorldMap {
     this.clearSelection();
     this.selected = id;
     this.selectedTrail = id;
-    this.setHalo(id);
+    this.setSelected(id);
     this.setDimmed(true);
     this.renderVisible();
     this.panel.showTrail(trail);
@@ -939,8 +940,9 @@ class WorldMap {
     const bounds = new LngLatBounds();
     for (const seg of lines) for (const point of seg) bounds.extend(point);
     if (bounds.isEmpty()) return;
+    const cover = this.sheetCover();
     this.map.fitBounds(bounds, {
-      padding: { top: 90, bottom: 120, left: 60, right: isNarrow() ? 60 : 440 },
+      padding: { top: 90, bottom: 120 + cover.bottom, left: 60, right: 60 + cover.right },
       maxZoom: 15,
       duration: reducedMotion() ? 0 : 900,
     });
@@ -1277,25 +1279,61 @@ class WorldMap {
   }
 
   private setDimmed(on: boolean) {
+    // The dim is for everything the sheet is NOT about, so the selected row is held
+    // out of it — including its label, which is the one worth reading.
+    const held = (dim: unknown, full: unknown): unknown =>
+      on && this.selected ? ['case', ['==', ['get', 'slug'], this.selected], full, dim] : dim;
     const factor = on ? DIM : 1;
-    this.map.setPaintProperty('tracks-dot', 'circle-opacity', opacityExpr(factor) as never);
-    this.map.setPaintProperty('tracks-glyph', 'icon-opacity', on ? DIM : 1);
-    this.map.setPaintProperty('tracks-glow', 'circle-opacity', on ? 0.06 : 0.32);
+    this.map.setPaintProperty('tracks-dot', 'circle-opacity', held(opacityExpr(factor), opacityExpr(1)) as never);
+    this.map.setPaintProperty('tracks-glyph', 'icon-opacity', held(on ? DIM : 1, 1) as never);
+    this.map.setPaintProperty('tracks-glow', 'circle-opacity', held(on ? 0.06 : 0.32, 0.32) as never);
     for (const id of ['shops-glow', 'trails-glow'] as const) {
-      if (this.map.getLayer(id)) this.map.setPaintProperty(id, 'circle-opacity', on ? 0.06 : 0.32);
+      if (this.map.getLayer(id)) {
+        this.map.setPaintProperty(id, 'circle-opacity', held(on ? 0.06 : 0.32, 0.32) as never);
+      }
     }
     for (const id of ['shops-blip', 'trails-blip'] as const) {
-      if (this.map.getLayer(id)) this.map.setPaintProperty(id, 'icon-opacity', on ? DIM : 1);
+      if (this.map.getLayer(id)) this.map.setPaintProperty(id, 'icon-opacity', held(on ? DIM : 1, 1) as never);
     }
     for (const id of ['shops-label', 'trails-label'] as const) {
-      if (this.map.getLayer(id)) this.map.setPaintProperty(id, 'text-opacity', on ? 0 : 1);
+      if (this.map.getLayer(id)) this.map.setPaintProperty(id, 'text-opacity', held(on ? 0 : 1, 1) as never);
     }
-    this.map.setPaintProperty('tracks-label', 'text-opacity', on ? 0 : 1);
+    this.map.setPaintProperty('tracks-label', 'text-opacity', held(on ? 0 : 1, 1) as never);
     this.root.classList.toggle('is-dimmed', on);
   }
 
-  private setHalo(slug: string | null) {
-    this.map.setFilter('tracks-halo', ['==', ['get', 'slug'], slug ?? '']);
+  /**
+   * Selection lives on the pin: it holds full opacity while the rest dims, and steps
+   * up a size. Dimming the very row the sheet is describing read as the tap having
+   * deselected something, and the bloom that used to mark it drew a second, softer
+   * pin beside the real one.
+   */
+  /**
+   * How much canvas the open sheet is sitting on, in pixels: a bottom band on a
+   * phone, a right-hand column on a wide screen. A sheet that covers the pin it
+   * describes is no better than not opening it.
+   */
+  private sheetCover(): { right: number; bottom: number } {
+    const panel = this.root.querySelector<HTMLElement>('[data-panel]');
+    if (!panel || panel.hidden) return { right: 0, bottom: 0 };
+    const sheet = panel.getBoundingClientRect();
+    const canvas = this.map.getCanvas().getBoundingClientRect();
+    if (!sheet.width || !sheet.height) return { right: 0, bottom: 0 };
+    return sheet.width >= canvas.width - 8
+      ? { right: 0, bottom: Math.min(sheet.height, canvas.height * 0.6) }
+      : { right: Math.min(sheet.width + 40, canvas.width * 0.55), bottom: 0 };
+  }
+
+  /** Camera offset that lands the target in what is still map. */
+  private sheetOffset(): [number, number] {
+    const { right, bottom } = this.sheetCover();
+    return [-right / 2, -bottom / 2];
+  }
+
+  private setSelected(slug: string | null) {
+    for (const id of ['tracks-glyph', 'shops-blip', 'trails-blip'] as const) {
+      if (this.map.getLayer(id)) this.map.setLayoutProperty(id, 'icon-size', blipSize(slug) as never);
+    }
   }
 
   selectTrack(slug: string, opts: { fly?: boolean } = {}) {
@@ -1313,10 +1351,13 @@ class WorldMap {
       .pop();
     this.selected = slug;
     this.renderVisible();
-    this.setHalo(slug);
+    this.setSelected(slug);
     this.setDimmed(true);
-    this.hud.highlight(entry ?? null);
-    if (entry) this.showEntrySheet(entry, track);
+    // Switching the challenge off is a request to stop being shown episodes, so a
+    // stop we have ridden opens as the place it is rather than as its film.
+    const asEpisode = entry && this.visible.ride ? entry : null;
+    this.hud.highlight(asEpisode);
+    if (asEpisode) this.showEntrySheet(asEpisode, track);
     else this.panel.showTrack(track);
     if (opts.fly) this.flyToSlug(slug);
   }
@@ -1329,6 +1370,7 @@ class WorldMap {
       center: [lng, lat],
       zoom: Math.max(this.map.getZoom(), cityZoom()),
       duration: reducedMotion() ? 0 : 900,
+      offset: this.sheetOffset(),
     });
   }
 
@@ -1338,7 +1380,7 @@ class WorldMap {
     const track = entry.track_slug ? this.tracksBySlug.get(entry.track_slug) ?? null : null;
     this.selected = entry.track_slug ?? entry.label;
     this.renderVisible();
-    this.setHalo(entry.track_slug ?? null);
+    this.setSelected(entry.track_slug ?? null);
     this.setDimmed(true);
     this.hud.highlight(entry);
     this.showEntrySheet(entry, track);
@@ -1348,6 +1390,7 @@ class WorldMap {
         center: at,
         zoom: Math.max(this.map.getZoom(), cityZoom()),
         duration: reducedMotion() ? 0 : 900,
+        offset: this.sheetOffset(),
       });
     }
   }
@@ -1417,7 +1460,7 @@ class WorldMap {
     this.selected = null;
     this.clearTrail();
     this.current = null;
-    this.setHalo(null);
+    this.setSelected(null);
     this.setDimmed(this.seriesMode);
     this.panel.close();
     this.hud.highlight(null);

@@ -257,7 +257,5 @@
   "map.trail.uploadedBy": "Hochgeladen von",
   "map.track.owner": "Betreiber",
   "map.trail.studio": "In gpx.studio öffnen",
-  "map.layer.title": "Ebenen",
-  "map.track.managedBy": "Verwaltet von",
-  "map.track.unclaimedRider": "Nicht beanspruchter Fahrer"
+  "map.layer.title": "Ebenen"
 }

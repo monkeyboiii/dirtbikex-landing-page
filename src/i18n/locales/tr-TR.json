@@ -257,7 +257,5 @@
   "map.trail.uploadedBy": "Yükleyen",
   "map.track.owner": "İşletmeci",
   "map.trail.studio": "gpx.studio'da aç",
-  "map.layer.title": "Katmanlar",
-  "map.track.managedBy": "Managed by",
-  "map.track.unclaimedRider": "Unclaimed rider"
+  "map.layer.title": "Katmanlar"
 }

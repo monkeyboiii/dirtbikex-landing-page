@@ -260,7 +260,5 @@
   "map.trail.uploadedBy": "アップロード",
   "map.track.owner": "オーナー",
   "map.trail.studio": "gpx.studio で開く",
-  "map.layer.title": "レイヤー",
-  "map.track.managedBy": "運営者",
-  "map.track.unclaimedRider": "未申請のライダー"
+  "map.layer.title": "レイヤー"
 }

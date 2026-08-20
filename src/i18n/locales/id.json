@@ -257,7 +257,5 @@
   "map.trail.uploadedBy": "Diunggah oleh",
   "map.track.owner": "Pemilik",
   "map.trail.studio": "Buka di gpx.studio",
-  "map.layer.title": "Lapisan",
-  "map.track.managedBy": "Dikelola oleh",
-  "map.track.unclaimedRider": "Pengendara belum diklaim"
+  "map.layer.title": "Lapisan"
 }

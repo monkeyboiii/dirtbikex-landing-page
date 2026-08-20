@@ -257,7 +257,5 @@
   "map.trail.uploadedBy": "อัปโหลดโดย",
   "map.track.owner": "เจ้าของสนาม",
   "map.trail.studio": "เปิดใน gpx.studio",
-  "map.layer.title": "เลเยอร์",
-  "map.track.managedBy": "ดูแลโดย",
-  "map.track.unclaimedRider": "นักขี่ที่ยังไม่ยืนยัน"
+  "map.layer.title": "เลเยอร์"
 }

@@ -257,7 +257,5 @@
   "map.trail.uploadedBy": "بارگذاری‌شده توسط",
   "map.track.owner": "مالک",
   "map.trail.studio": "باز کردن در gpx.studio",
-  "map.layer.title": "لایه‌ها",
-  "map.track.managedBy": "مدیریت توسط",
-  "map.track.unclaimedRider": "موتورسوار بدون ادعا"
+  "map.layer.title": "لایه‌ها"
 }

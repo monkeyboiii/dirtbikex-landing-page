@@ -257,7 +257,5 @@
   "map.trail.uploadedBy": "Mis en ligne par",
   "map.track.owner": "Gérant",
   "map.trail.studio": "Ouvrir dans gpx.studio",
-  "map.layer.title": "Calques",
-  "map.track.managedBy": "Géré par",
-  "map.track.unclaimedRider": "Pilote non revendiqué"
+  "map.layer.title": "Calques"
 }

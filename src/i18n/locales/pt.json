@@ -257,7 +257,5 @@
   "map.trail.uploadedBy": "Enviado por",
   "map.track.owner": "Responsável",
   "map.trail.studio": "Abrir no gpx.studio",
-  "map.layer.title": "Camadas",
-  "map.track.managedBy": "Gerenciado por",
-  "map.track.unclaimedRider": "Piloto não reivindicado"
+  "map.layer.title": "Camadas"
 }

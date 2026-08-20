@@ -1,6 +1,5 @@
 import { wgsToGcj } from './geo';
 import type {
-  LineageContributor,
   SeriesEntry,
   Strings,
   TrackProps,
@@ -719,7 +718,7 @@ export function createPanel(deps: PanelDeps) {
   /**
    * A track's owner and its write-up, when it has them. Both are optional on the
    * catalog row and most rows have neither, so this renders nothing rather than
-   * an empty byline — and it runs AFTER the sheet is open, like managedBy, because
+   * an empty byline — and it runs AFTER the sheet is open, because
    * the baked catalog cannot know who claimed a track this morning.
    */
   async function trackOwner(host: HTMLElement, track: TrackProps) {
@@ -758,40 +757,6 @@ export function createPanel(deps: PanelDeps) {
       byline.appendChild(links);
     }
     host.appendChild(byline);
-  }
-
-  async function managedBy(host: HTMLElement, track: TrackProps) {
-    let contributors: LineageContributor[] = [];
-    try {
-      const doc = (await fetch(`/api/lineage/track.json?slug=${encodeURIComponent(track.slug)}`).then(
-        (r) => (r.ok ? r.json() : null),
-      )) as { contributors?: LineageContributor[] } | null;
-      contributors = Array.isArray(doc?.contributors) ? doc!.contributors! : [];
-    } catch {
-      return;
-    }
-    if (!contributors.length || !host.isConnected) return;
-
-    const label = strings['map.track.managedBy'] ?? 'Managed by';
-    const section = el('div', 'wm-built');
-    section.appendChild(el('span', 'wm-built__label', label));
-    for (const edge of contributors.slice(0, 6)) {
-      const rider = edge.rider;
-      const name = rider?.placeholder
-        ? (strings['map.track.unclaimedRider'] ?? 'Unclaimed rider')
-        : (rider?.name_local?.trim() || rider?.name?.trim() || '');
-      if (!name) continue;
-      const glyph = edge.provenance === 'confirmed' ? '\u2713' : '\u25cb';
-      if (rider && !rider.placeholder) {
-        const link = el('a', 'wm-built__rider') as HTMLAnchorElement;
-        link.href = `/lineage/${rider.username ? '@' + rider.username : rider.slug}`;
-        link.textContent = `${glyph} ${name}`;
-        section.appendChild(link);
-      } else {
-        section.appendChild(el('span', 'wm-built__rider', `${glyph} ${name}`));
-      }
-    }
-    host.appendChild(section);
   }
 
   return {
@@ -959,7 +924,6 @@ export function createPanel(deps: PanelDeps) {
         titleRow(host, track.name, { kind: track.kind === 'shop' ? 'shop' : 'track', key: track.slug }, strings);
         trackInfo(host, track);
         void trackOwner(host, track);
-        void managedBy(host, track);
       });
     },
 

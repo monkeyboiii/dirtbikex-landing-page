@@ -257,7 +257,5 @@
   "map.trail.uploadedBy": "Subido por",
   "map.track.owner": "Responsable",
   "map.trail.studio": "Abrir en gpx.studio",
-  "map.layer.title": "Capas",
-  "map.track.managedBy": "Gestionado por",
-  "map.track.unclaimedRider": "Piloto sin reclamar"
+  "map.layer.title": "Capas"
 }

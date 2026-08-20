@@ -75,10 +75,12 @@
 /* The icon box collapses to nothing while the words are up — an icon and its
    label are two ways of saying the same thing, and showing both at once is what
    left a gap beside the glyph the rest of the time. */
+/* No margin at any point: the icon and the words alternate, they are never both
+   up, so the gap between them was only ever padding the button out of square. */
 @keyframes dbx-getapp-iconbox {
-  0%, 26% { width: 17px; margin-right: 8px; }
-  29%, 96% { width: 0; margin-right: 0; }
-  100% { width: 17px; margin-right: 8px; }
+  0%, 26% { width: 17px; }
+  29%, 96% { width: 0; }
+  100% { width: 17px; }
 }
 @keyframes dbx-getapp-label {
   0%, 26% { max-width: 0; opacity: 0; }
@@ -88,12 +90,13 @@
 
 @media (max-width: 767px) {
   /* No flex gap: an empty label would still reserve it, which is the sliver of
-     blank that used to sit to the icon's right. Spacing is carried by the
-     animated margin instead, so it disappears with the thing it separates. */
+     blank that used to sit to the icon's right. */
   .site-getapp {
     gap: 0;
-    padding-left: 12px;
-    padding-right: 12px;
+    /* Square at rest: with the label hidden the icon is the whole content, so the
+       inline padding has to be the same 9px .btn puts above and below it. */
+    padding-left: 9px;
+    padding-right: 9px;
   }
   .site-getapp__icon {
     display: block;
@@ -115,7 +118,7 @@
     .site-getapp__mark,
     .site-getapp__dl,
     .site-getapp__label { animation: none; }
-    .site-getapp__icon { width: 17px; margin-right: 8px; }
+    .site-getapp__icon { width: 17px; }
     .site-getapp__mark { opacity: 0; }
     .site-getapp__dl { opacity: 1; }
     .site-getapp__label { max-width: 0; opacity: 0; }

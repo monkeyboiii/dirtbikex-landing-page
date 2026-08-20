@@ -260,7 +260,5 @@
   "map.trail.uploadedBy": "上传者",
   "map.track.owner": "场地主理人",
   "map.trail.studio": "在 gpx.studio 中打开",
-  "map.layer.title": "图层",
-  "map.track.managedBy": "管理者",
-  "map.track.unclaimedRider": "待认领车手"
+  "map.layer.title": "图层"
 }

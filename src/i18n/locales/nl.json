@@ -257,7 +257,5 @@
   "map.trail.uploadedBy": "Geüpload door",
   "map.track.owner": "Beheerder",
   "map.trail.studio": "Openen in gpx.studio",
-  "map.layer.title": "Lagen",
-  "map.track.managedBy": "Beheerd door",
-  "map.track.unclaimedRider": "Niet-geclaimde rijder"
+  "map.layer.title": "Lagen"
 }
