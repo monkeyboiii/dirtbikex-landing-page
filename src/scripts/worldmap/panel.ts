@@ -72,9 +72,20 @@ export interface PanelDeps {
   lang: string;
   socials: Partial<Record<string, string>>;
   contactUrl: string;
+  forumBase: string;
   onClose(): void;
   /** Bottom-trailing arrows: -1 = previous episode, +1 = next. */
   onStep(delta: number): void;
+  /** Episode sheet -> venue sheet, pushed onto the view stack. */
+  onVenue?(track: TrackProps): void;
+  /**
+   * Whether we vouch for this place ourselves. Deliberately NOT the catalog's tier:
+   * that records how the row was sourced (a directory scrape vs. a curated import),
+   * which is our bookkeeping and says nothing a rider should read as an endorsement.
+   * A mark is earned by a stop in the 100 challenge or a hand-vouched slug here, or
+   * by a bound forum topic, which arrives later with the owner lookup.
+   */
+  isVerified(slug: string): boolean;
 }
 
 /** Picks the viewer's locale out of a {locale: text} block, falling back to en. */
@@ -621,6 +632,16 @@ export function createPanel(deps: PanelDeps) {
     return go;
   }
 
+  const verifiedChip = () =>
+    el('span', 'wm-chip wm-chip--verified', strings['map.panel.verified'] ?? 'Verified');
+
+  /** The mark, once a forum topic turns up. Idempotent: the sheet may already carry it. */
+  function markVerified(host: HTMLElement) {
+    const chips = host.querySelector('.wm-panel__chips');
+    if (!chips || chips.querySelector('.wm-chip--verified')) return;
+    chips.insertBefore(verifiedChip(), chips.children[1] ?? null);
+  }
+
   function trackInfo(host: HTMLElement, track: TrackProps) {
     // "Track info" moved into the control line, so the body opens on the content
     // rather than on a label. Directions rides the address line it belongs to —
@@ -642,15 +663,7 @@ export function createPanel(deps: PanelDeps) {
 
     const chips = el('div', 'wm-panel__chips');
     chips.appendChild(el('span', 'wm-chip', strings[`map.cat.${track.category}`] ?? track.category));
-    chips.appendChild(
-      el(
-        'span',
-        `wm-chip ${track.tier === 'verified' ? 'wm-chip--verified' : ''}`,
-        track.tier === 'verified'
-          ? strings['map.panel.verified'] ?? 'Verified'
-          : strings['map.panel.unverified'] ?? 'Unverified',
-      ),
-    );
+    if (deps.isVerified(track.slug)) chips.appendChild(verifiedChip());
     if (track.claimed) {
       chips.appendChild(el('span', 'wm-chip wm-chip--claimed', strings['map.panel.claimed'] ?? 'Claimed'));
     }
@@ -721,6 +734,8 @@ export function createPanel(deps: PanelDeps) {
     const owner = row?.owner;
     const topicId = row?.topic_id;
     if ((!owner?.username && !topicId) || !host.isConnected) return;
+    // A written-up place is one we stand behind, so the topic doubles as the vouch.
+    if (topicId) markVerified(host);
 
     const byline = el('div', 'wm-panel__byline');
     if (owner?.username) {

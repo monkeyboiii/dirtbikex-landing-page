@@ -20,3 +20,9 @@ export const SOCIALS = {
 // Founder (Calvin) personal Facebook — founders page only.
 export const FOUNDER_FACEBOOK = 'https://www.facebook.com/profile.php?id=61590664892188';
 export const SUPPORT_EMAIL = 'support@dirtbikex.com';
+
+// Track slugs the operator vouches for by hand. The map's "Verified" mark is otherwise
+// earned — a bound forum topic, or a stop in the 100 challenge — never inherited from
+// the catalog's CRM tier, which says how the row was sourced, not whether we stand
+// behind the place.
+export const MAP_VERIFIED: string[] = [];

@@ -15,6 +15,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import { fetchGpx, parseGpx } from './gpx';
 import { createPanel, type Panel } from './panel';
+import { wireSearch } from './search';
 import { createHud, type Hud } from './hud';
 import { LAYER_DEFAULTS, LAYER_IDS, type LayerId } from './types';
 import type {
@@ -1481,6 +1482,16 @@ class WorldMap {
     return this.opening;
   }
 
+  /** Everything the search box can match on: tracks, shops, and any loaded trails. */
+  get catalogRows(): TrackProps[] {
+    return [...this.tracksBySlug.values()];
+  }
+
+  /** Trails sit behind their rail toggle; search wants them in regardless. */
+  ensureTrails(): Promise<unknown> {
+    return this.loadTrails();
+  }
+
   get placementIndex() {
     return this.placements;
   }
@@ -1620,6 +1631,14 @@ export async function bootWorldMap() {
       });
     }
 
+    // What we vouch for, decided here rather than read off the catalog's tier: a stop
+    // we rode for the challenge, or a slug the operator listed by hand. A bound forum
+    // topic counts too, but that only lands with the per-track lookup.
+    const vouched = new Set<string>(cfg.verified ?? []);
+    for (const entry of (series as SeriesDoc).entries) {
+      if (entry.track_slug) vouched.add(entry.track_slug);
+    }
+
     const world = new WorldMap(root, cfg, series as SeriesDoc, catalog, trailsDoc);
     const panel = createPanel({
       root: root.querySelector<HTMLElement>('[data-panel]')!,
@@ -1628,6 +1647,7 @@ export async function bootWorldMap() {
       socials: cfg.socials,
       contactUrl: cfg.contactUrl,
       forumBase: cfg.forumBase,
+      isVerified: (slug) => vouched.has(slug),
       onClose: () => world.clearSelection(),
       onVenue: (track) => world.openVenue(track),
       onStep: (delta) => world.stepEntry(delta),
@@ -1656,6 +1676,12 @@ export async function bootWorldMap() {
     );
     world.attach(panel, hud);
     wireRail(root, world);
+    wireSearch(root, {
+      strings,
+      rows: () => world.catalogRows,
+      ensure: () => world.ensureTrails().then(() => undefined),
+      onPick: (slug) => world.selectTrack(slug, { fly: true }),
+    });
     world.applyDeepLink();
   } catch (err) {
     console.warn('worldmap boot', err);

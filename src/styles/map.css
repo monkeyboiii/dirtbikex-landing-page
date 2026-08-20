@@ -1225,20 +1225,27 @@ body.is-map-page .site-header__inner {
   color: var(--wm-text-faint);
   background: rgba(var(--wm-veil), 0.5);
 }
-/* Recenter acts, it does not toggle: no aria-pressed, so it never takes the
-   dimmed off-state, and a hairline separates it from the layers above it. */
-.wm-rail__btn--action {
-  margin-top: 6px;
-  color: var(--wm-text-dim);
+/* Search and recenter act, they do not toggle: no aria-pressed, so they never take
+   the dimmed off-state. The hairline belongs to the pair, not to each button, and
+   sits centred in the gap rather than crowding the one below it. */
+.wm-rail__actions {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
 }
-.wm-rail__btn--action::before {
+.wm-rail__actions::before {
   content: '';
   position: absolute;
-  top: -4px;
+  top: -10px;
   left: 8px;
   right: 8px;
   height: 1px;
   background: var(--wm-line);
+}
+.wm-rail__btn--action {
+  color: var(--wm-text-dim);
 }
 .wm-rail__btn--action:hover,
 .wm-rail__btn--action:focus-visible {
@@ -1289,6 +1296,156 @@ body.is-map-page .site-header__inner {
   transform: translate(0, -50%);
 }
 
+/* ---------- search ---------- */
+
+/* Anchored beside the rail it opens from, so the map never jumps and the control
+   the visitor pressed stays where they left it. */
+.wm-search {
+  position: absolute;
+  top: calc(64px + var(--space-4, 16px));
+  right: calc(var(--space-5, 20px) + 50px);
+  z-index: 14;
+  width: min(340px, calc(100vw - 140px));
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--wm-line);
+  border-radius: var(--radius-md, 10px);
+  background: var(--wm-surface-solid);
+  backdrop-filter: var(--wm-blur);
+  -webkit-backdrop-filter: var(--wm-blur);
+  overflow: hidden;
+}
+.wm-search[hidden] {
+  display: none;
+}
+.wm-search__bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+}
+.wm-search__glass {
+  flex: none;
+  color: var(--wm-text-faint);
+}
+.wm-search__input {
+  flex: 1;
+  min-width: 0;
+  height: 40px;
+  border: 0;
+  background: none;
+  color: var(--wm-text);
+  font: inherit;
+  font-size: 0.86rem;
+  outline: none;
+}
+.wm-search__input::placeholder {
+  color: var(--wm-text-faint);
+}
+/* Safari draws its own clear affordance on type=search; ours is the only one. */
+.wm-search__input::-webkit-search-cancel-button {
+  display: none;
+}
+.wm-search__close {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--wm-text-faint);
+  cursor: pointer;
+}
+.wm-search__close:hover {
+  color: var(--wm-text);
+}
+.wm-search__filters {
+  display: flex;
+  gap: 6px;
+  padding: 0 10px 8px;
+}
+.wm-search__filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  border: 1px solid var(--wm-line);
+  border-radius: 999px;
+  background: none;
+  color: var(--wm-text-faint);
+  font-size: 0.7rem;
+  cursor: pointer;
+}
+.wm-search__filter svg {
+  width: 14px;
+  height: 14px;
+}
+.wm-search__filter[aria-pressed='true'] {
+  border-color: var(--wm-line-strong);
+  color: var(--wm-text);
+}
+.wm-search__results {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: min(46vh, 340px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.wm-search__results:not(:empty) {
+  border-top: 1px solid var(--wm-line);
+}
+.wm-search__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+.wm-search__row:hover,
+.wm-search__row[aria-selected='true'] {
+  background: rgba(var(--wm-veil), 0.6);
+}
+.wm-search__mark {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 22px;
+}
+.wm-search__mark svg {
+  width: 20px;
+  height: 20px;
+}
+.wm-search__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.wm-search__text b {
+  font-weight: 600;
+  font-size: 0.82rem;
+  color: var(--wm-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.wm-search__text span {
+  font-size: 0.7rem;
+  color: var(--wm-text-faint);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.wm-search__empty {
+  padding: 12px;
+  font-size: 0.76rem;
+  color: var(--wm-text-faint);
+  text-align: center;
+}
+
 /* ---------- mobile ---------- */
 
 @media (max-width: 767px) {
@@ -1334,6 +1491,25 @@ body.is-map-page .site-header__inner {
   .wm-rail__btn {
     width: 38px;
     height: 38px;
+  }
+  .wm-rail__actions {
+    gap: 6px;
+    margin-top: 10px;
+  }
+  .wm-rail__actions::before {
+    top: -8px;
+  }
+  /* No room to sit beside the rail: the bar takes the top edge and the rail it came
+     from stands down, the same way the HUD does for an open sheet. */
+  .wm-search {
+    top: calc(58px + var(--space-3, 12px));
+    left: 12px;
+    right: 12px;
+    width: auto;
+  }
+  .wm.is-searching .wm-rail {
+    opacity: 0;
+    pointer-events: none;
   }
   /* An open sheet owns the bottom edge — HUD, CTAs and drawer stand down. */
   .wm:has(.wm-panel.is-open) .wm-hud,

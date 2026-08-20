@@ -129,6 +129,8 @@ export interface MapConfig {
   contactUrl: string;
   /** Curated active-claim slugs; replaced by a forum endpoint in V1.5 (D8). */
   claimed: string[];
+  /** Slugs the operator vouches for by hand — see MAP_VERIFIED in src/config.ts. */
+  verified: string[];
 }
 
 export type Strings = Record<string, string>;
