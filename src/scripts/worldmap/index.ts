@@ -587,7 +587,7 @@ class WorldMap {
         addGlyph(map, `cat-${name}-on`, `${this.cfg.markersBase}${name}.svg`, c.glyphOnClaimed),
       ]),
       addGlyph(map, 'claim-seal', `${this.cfg.markersBase}seal.svg`, ACCENT),
-      addGlyph(map, 'blip-track', `${this.cfg.markersBase}track.svg`, c.track, BLIP_PX, c.labelHalo),
+      addGlyph(map, 'blip-track', `${this.cfg.markersBase}flag.svg`, c.track, BLIP_PX, c.labelHalo),
       addGlyph(map, 'blip-trail', `${this.cfg.markersBase}trails.svg`, c.trail, BLIP_PX, c.labelHalo),
       addGlyph(map, 'blip-shop', `${this.cfg.markersBase}shop.svg`, c.shop, BLIP_PX, c.labelHalo),
     ]).catch((err) => console.warn('worldmap glyphs', err));

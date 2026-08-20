@@ -45,6 +45,7 @@ const DEFAULTS: Record<string, string> = {
   'map.layer.ride': 'The 100 challenge',
   'map.layer.trails': 'Rider trails',
   'map.layer.shops': 'Shops',
+  'map.layer.riders': 'Riders',
   'map.trail.rider': 'Rider',
   'map.trail.thread': 'Forum thread',
   'map.trail.studio': 'Open in gpx.studio',
@@ -102,10 +103,10 @@ const railIcon = (file: string) => {
 // `pressed` comes from the island's own defaults, never a second hardcoded list —
 // otherwise the server-rendered rail can disagree with the map it controls.
 const RAIL_ICONS: Record<string, string> = {
-  tracks: 'track',
+  tracks: 'flag',
   trails: 'trails',
   shops: 'shop',
-  ride: 'flag',
+  ride: 'trophy',
   riders: 'rider',
 };
 const RAIL = LAYER_IDS.map((layer) => ({
