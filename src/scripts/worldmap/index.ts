@@ -296,11 +296,22 @@ async function addGlyph(
   const img = new Image(px, px);
   img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(painted)}`;
   await img.decode();
-  if (!map.hasImage(id)) map.addImage(id, img, { pixelRatio: 2 });
+  // Runtime images do NOT die with setStyle the way sources and layers do, so skipping
+  // an id that already exists left every blip painted in the theme it was born in —
+  // dark contours on the light map and back again. Replace, always.
+  if (map.hasImage(id)) map.removeImage(id);
+  map.addImage(id, img, { pixelRatio: 2 });
 }
 
 /** Blips are rasterised at 2x their largest drawn size so they stay crisp on a
     retina phone; 48px upscaled to 35 CSS px is what made the old glyphs mushy. */
+/** Trail pins, minus the one whose trace is on the map: the line IS that trail, and a
+    pin over it hides the very shape the visitor asked to see. */
+function trailPinFilter(drawn: string | null): unknown {
+  const isTrail = ['==', ['get', 'kind'], 'trail'];
+  return drawn ? ['all', isTrail, ['!=', ['get', 'slug'], drawn]] : isTrail;
+}
+
 const BLIP_PX = 96;
 /** Blip artwork scale by zoom, and the step up the selection takes. With no bloom
     behind it the pin itself has to say which one the sheet is about. */
@@ -790,7 +801,7 @@ class WorldMap {
       map.getLayer('tracks-glow') ? 'tracks-glow' : undefined,
     );
 
-    const trailFilter = ['==', ['get', 'kind'], 'trail'] as never;
+    const trailFilter = trailPinFilter(this.tracedTrail) as never;
     map.addLayer({
       id: 'trails-glow',
       type: 'circle',
@@ -845,6 +856,10 @@ class WorldMap {
     this.drawTrail(this.selectedTrail);
   }
 
+  /** The trail currently drawn as a line, which is not the same as the selected one:
+      selection happens on tap, the trace only once its file has arrived. */
+  private tracedTrail: string | null = null;
+
   /** Puts one trail's geometry on the map, or clears it. */
   private drawTrail(id: string | null) {
     const source = this.map.getSource('trail-lines') as
@@ -852,6 +867,12 @@ class WorldMap {
       | undefined;
     if (!source) return;
     const lines = id ? this.trailGeometry.get(id) : null;
+    this.tracedTrail = lines?.length ? id : null;
+    for (const layer of ['trails-glow', 'trails-blip', 'trails-label'] as const) {
+      if (this.map.getLayer(layer)) {
+        this.map.setFilter(layer, trailPinFilter(this.tracedTrail) as never);
+      }
+    }
     source.setData(
       lines?.length
         ? {
