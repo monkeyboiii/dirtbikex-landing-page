@@ -54,9 +54,6 @@ export interface SeriesEntry {
   /** `upcoming` is announced but unreached: it draws on the rail and can be scrubbed
    *  to, but it never wins the opening camera. */
   status: 'visited' | 'live' | 'upcoming';
-  /** Operator-set dot colour on the journey rail: "success" | "partial" (green
-   *  shades) — anything else, or absent, uses the brand accent. */
-  tone?: string | null;
   links?: Record<string, string | null> | null;
   thumb?: string | null;
   visited_on?: string | null;
@@ -129,8 +126,8 @@ export interface MapConfig {
   contactUrl: string;
   /** Curated active-claim slugs; replaced by a forum endpoint in V1.5 (D8). */
   claimed: string[];
-  /** Slugs the operator vouches for by hand — see MAP_VERIFIED in src/config.ts. */
-  verified: string[];
+  /** The operator's verdict per slug, overriding the signals — see src/config.ts. */
+  verified: Record<string, boolean>;
 }
 
 export type Strings = Record<string, string>;

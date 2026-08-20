@@ -30,8 +30,7 @@
       },
       "thumb": null,
       "visited_on": null,
-      "published_on": null,
-      "tone": "success"
+      "published_on": null
     },
     {
       "main": 1,
@@ -62,8 +61,7 @@
       },
       "thumb": null,
       "visited_on": null,
-      "published_on": null,
-      "tone": "success"
+      "published_on": null
     },
     {
       "main": 2,
@@ -94,8 +92,7 @@
       },
       "thumb": null,
       "visited_on": null,
-      "published_on": null,
-      "tone": "partial"
+      "published_on": null
     },
     {
       "main": 3,
@@ -117,8 +114,7 @@
         "douyin": "https://v.douyin.com/80ahZEi9YPY/",
         "instagram": "https://www.instagram.com/reel/DcGjNkAFjzm/",
         "facebook": "https://www.facebook.com/share/r/14gRnNnHmaE/"
-      },
-      "tone": "success"
+      }
     }
   ]
 }

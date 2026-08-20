@@ -1137,8 +1137,7 @@ class WorldMap {
       el.setAttribute('aria-label', entry.label);
       // The bloom is the challenge's, so it carries the episode's tone rather than the
       // venue's kind colour — the venue already states its own colour through its icon.
-      if (entry.tone) el.dataset.tone = entry.tone;
-      else if (entry.status === 'upcoming') el.dataset.tone = 'upcoming';
+      el.dataset.tone = this.toneOf(entry);
       el.addEventListener('click', (ev) => {
         ev.stopPropagation();
         this.selectEntry(entry, { fly: true });
@@ -1525,6 +1524,37 @@ class WorldMap {
     return this.opening;
   }
 
+  /**
+   * Do we stand behind this place? The operator's entry in MAP_VERIFIED decides
+   * outright — including a `false` for a venue we rode and filmed that then declined
+   * to join. Absent from it, the signals speak: a stop in the challenge, or a bound
+   * forum topic (which only the per-track lookup knows, so callers pass it in).
+   */
+  verdict(slug: string, hasTopic = false): boolean {
+    const called = this.cfg.verified?.[slug];
+    if (typeof called === 'boolean') return called;
+    return this.stops.has(slug) || hasTopic;
+  }
+
+  private stopSlugs?: Set<string>;
+  private get stops(): Set<string> {
+    this.stopSlugs ??= new Set(
+      this.series.entries.map((e) => e.track_slug).filter(Boolean) as string[],
+    );
+    return this.stopSlugs;
+  }
+
+  /**
+   * The colour a stop wears on the rail and under its pin. It is the verdict, not a
+   * field somebody has to remember to set: green where we stand behind the venue,
+   * muted where we rode it and it is not with us. Upcoming stops have no venue to
+   * judge yet and keep their own colour.
+   */
+  toneOf(entry: SeriesEntry): string {
+    if (entry.status === 'upcoming') return 'upcoming';
+    return this.verdict(entry.track_slug ?? '') ? 'success' : 'partial';
+  }
+
   /** Everything the search box can match on: tracks, shops, and any loaded trails. */
   get catalogRows(): TrackProps[] {
     return [...this.tracksBySlug.values()];
@@ -1674,14 +1704,6 @@ export async function bootWorldMap() {
       });
     }
 
-    // What we vouch for, decided here rather than read off the catalog's tier: a stop
-    // we rode for the challenge, or a slug the operator listed by hand. A bound forum
-    // topic counts too, but that only lands with the per-track lookup.
-    const vouched = new Set<string>(cfg.verified ?? []);
-    for (const entry of (series as SeriesDoc).entries) {
-      if (entry.track_slug) vouched.add(entry.track_slug);
-    }
-
     const world = new WorldMap(root, cfg, series as SeriesDoc, catalog, trailsDoc);
     const panel = createPanel({
       root: root.querySelector<HTMLElement>('[data-panel]')!,
@@ -1690,7 +1712,7 @@ export async function bootWorldMap() {
       socials: cfg.socials,
       contactUrl: cfg.contactUrl,
       forumBase: cfg.forumBase,
-      isVerified: (slug) => vouched.has(slug),
+      isVerified: (slug, hasTopic) => world.verdict(slug, hasTopic),
       onClose: () => world.clearSelection(),
       onVenue: (track) => world.openVenue(track),
       onStep: (delta) => world.stepEntry(delta),
@@ -1713,6 +1735,7 @@ export async function bootWorldMap() {
         onOpen: (placement) => world.openEntry(placement),
         onToggleSeries: () => world.toggleSeriesMode(),
         opening: world.openingStop,
+        tone: (entry) => world.toneOf(entry),
       },
       series as SeriesDoc,
       world.placementIndex,

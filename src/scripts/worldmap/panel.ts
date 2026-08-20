@@ -81,10 +81,10 @@ export interface PanelDeps {
    * Whether we vouch for this place ourselves. Deliberately NOT the catalog's tier:
    * that records how the row was sourced (a directory scrape vs. a curated import),
    * which is our bookkeeping and says nothing a rider should read as an endorsement.
-   * A mark is earned by a stop in the 100 challenge or a hand-vouched slug here, or
-   * by a bound forum topic, which arrives later with the owner lookup.
+   * `hasTopic` is the one signal the sheet learns late, so it is asked twice: once as
+   * the sheet is built, and again when the owner lookup lands.
    */
-  isVerified(slug: string): boolean;
+  isVerified(slug: string, hasTopic: boolean): boolean;
 }
 
 /** Picks the viewer's locale out of a {locale: text} block, falling back to en. */
@@ -662,7 +662,7 @@ export function createPanel(deps: PanelDeps) {
 
     const chips = el('div', 'wm-panel__chips');
     chips.appendChild(el('span', 'wm-chip', strings[`map.cat.${track.category}`] ?? track.category));
-    if (deps.isVerified(track.slug)) chips.appendChild(verifiedChip());
+    if (deps.isVerified(track.slug, false)) chips.appendChild(verifiedChip());
     if (track.claimed) {
       chips.appendChild(el('span', 'wm-chip wm-chip--claimed', strings['map.panel.claimed'] ?? 'Claimed'));
     }
@@ -733,8 +733,9 @@ export function createPanel(deps: PanelDeps) {
     const owner = row?.owner;
     const topicId = row?.topic_id;
     if ((!owner?.username && !topicId) || !host.isConnected) return;
-    // A written-up place is one we stand behind, so the topic doubles as the vouch.
-    if (topicId) markVerified(host);
+    // A written-up place is normally one we stand behind, so the topic doubles as the
+    // vouch — unless the operator has already said otherwise about this venue.
+    if (topicId && deps.isVerified(track.slug, true)) markVerified(host);
 
     const byline = el('div', 'wm-panel__byline');
     if (owner?.username) {

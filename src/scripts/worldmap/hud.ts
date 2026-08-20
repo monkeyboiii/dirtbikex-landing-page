@@ -36,6 +36,8 @@ export interface HudDeps {
   onToggleSeries(): void;
   /** The stop the map opened on — the island owns the rule, the rail follows it. */
   opening: SeriesEntry | null;
+  /** Dot colour for a stop. Derived from whether we stand behind its venue. */
+  tone(entry: SeriesEntry): string;
 }
 
 function localized(block: Record<string, string> | null | undefined, lang: string): string | null {
@@ -110,8 +112,7 @@ export function createHud(deps: HudDeps, series: SeriesDoc, placements: Map<Seri
         .filter(Boolean)
         .join(' ');
       ball.dataset.label = entry.label;
-      // Dot colour is operator-set per entry (series.json `tone`).
-      if (entry.tone) ball.dataset.tone = entry.tone;
+      ball.dataset.tone = deps.tone(entry);
       ball.setAttribute('aria-label', `${entry.label} — ${shortLabel(entry)}`);
       ball.addEventListener('click', () => {
         const placement = placements.get(entry) ?? { entry, lngLat: null };
