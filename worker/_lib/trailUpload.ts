@@ -428,6 +428,50 @@ export async function handleTrailResolve(env: PagesEnv, secret: string): Promise
    session the visitor established, and tells the worker what it did.
    ============================================================ */
 
+/**
+ * GET /api/map/trails/admin.json — the whole index, for the forum's moderator surface.
+ *
+ * The plugin cannot read D1, and this is the half of the operator's job that lives here:
+ * the UNCLAIMED rows. Those are the ones worth watching — they are the abuse surface, they
+ * expire, and the plugin has no record of them at all because a claim is what creates one.
+ *
+ * Bearer-gated like every other plugin endpoint, and 404 rather than 401 when it fails.
+ * It returns secrets, so it must never be reachable by anything but the plugin.
+ */
+export async function handleTrailsAdmin(request: Request, env: PagesEnv): Promise<Response> {
+  if (!pluginAuthorised(request, env)) return json(404, { error: 'not_found' });
+  if (!env.SUBSCRIBERS_DB) return json(503, { error: 'service_misconfigured' });
+
+  const url = new URL(request.url);
+  const limit = Math.min(500, Math.max(1, Number(url.searchParams.get('limit') ?? 200) || 200));
+  const state = url.searchParams.get('state');
+  const where = ['public', 'private', 'unlisted'].includes(String(state)) ? 'WHERE visibility = ?' : '';
+
+  const stmt = env.SUBSCRIBERS_DB.prepare(
+    `SELECT id, secret, visibility, title, distance_km, author_user_id, author_username,
+            post_id, claimed_at, expires_at, created_at, gpx_sha1, sig_coarse,
+            length(COALESCE(sig, '')) AS sig_bytes,
+            json_extract(stats, '$.centre[0]') AS lng,
+            json_extract(stats, '$.centre[1]') AS lat,
+            json_extract(stats, '$.points')    AS points
+       FROM trails
+       ${where}
+      ORDER BY created_at DESC
+      LIMIT ?`,
+  );
+  const { results } = await (where ? stmt.bind(state, limit) : stmt.bind(limit)).all<Record<string, unknown>>();
+
+  const counts = await env.SUBSCRIBERS_DB.prepare(
+    `SELECT visibility, COUNT(*) AS n FROM trails GROUP BY visibility`,
+  ).all<{ visibility: string; n: number }>();
+
+  return json(200, {
+    trails: results ?? [],
+    counts: Object.fromEntries((counts.results ?? []).map((r) => [r.visibility, r.n])),
+    uploads_enabled: uploadsEnabled(env),
+  });
+}
+
 /** Fails closed: an unset token means these endpoints do not exist, not that they are open. */
 function pluginAuthorised(request: Request, env: PagesEnv): boolean {
   if (!env.TRAILS_PLUGIN_TOKEN) return false;
@@ -621,7 +665,7 @@ export async function handleTrailState(request: Request, env: PagesEnv, secret: 
   if (!pluginAuthorised(request, env)) return json(404, { error: 'not_found' });
   if (!env.SUBSCRIBERS_DB) return json(503, { error: 'service_misconfigured' });
 
-  let body: { visibility?: unknown; id?: unknown };
+  let body: { visibility?: unknown; id?: unknown; force?: unknown };
   try {
     body = (await request.json()) as typeof body;
   } catch {
@@ -653,7 +697,12 @@ export async function handleTrailState(request: Request, env: PagesEnv, secret: 
   if (!current) return json(404, { error: 'not_found' });
 
   let overlaps: OverlapReport[] = [];
-  if (want === 'public' && current.visibility !== 'public') {
+  // The escape hatch. A cap with no override turns every false positive into a support
+  // ticket somebody has to answer by hand — and the measure has known false positives
+  // (two switchback trails on one hillside read as identical). Only the plugin can set
+  // this, and only for staff.
+  const force = body.force === true;
+  if (want === 'public' && current.visibility !== 'public' && !force) {
     // Exactly the same bytes, already on the map. Checked only among PUBLISHED rows: the
     // same file legitimately exists across environments and as somebody's private copy,
     // and checking at upload would let anyone who fetched a published .gpx off the CDN

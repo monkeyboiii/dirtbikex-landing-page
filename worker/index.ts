@@ -15,6 +15,7 @@ import {
   handleTrailResolve,
   handleTrailGpx,
   handleUploadStatus,
+  handleTrailsAdmin,
   publicTrailEntries,
   sweepExpiredTrails,
   reconcileTrails,
@@ -1047,6 +1048,7 @@ export default {
       }
       // Plugin-only, bearer-checked, and 404 rather than 401 when it fails — an
       // unauthorised caller learns nothing about what lives here.
+      if (url.pathname === '/api/map/trails/admin.json') return handleTrailsAdmin(request, env);
       const claimResolve = url.pathname.match(/^\/api\/map\/trail\/claim\/([a-z0-9]{6,16})$/);
       if (claimResolve) return handleClaimResolve(request, env, claimResolve[1]!);
       const trailDoc = url.pathname.match(/^\/api\/map\/trail\/([a-z0-9]{6,16})\.json$/);
