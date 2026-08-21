@@ -15,11 +15,18 @@ test.describe('trail upload', () => {
   test.skip(!process.env.TRAIL_UPLOAD_E2E, 'opt-in: uploads for real');
   test.describe.configure({ mode: 'serial' });
 
+  // Carries <ele> and <time>, because a real recorder does and because the sheet's chips
+  // and stats are read off them.
   const gpx = (() => {
     const points: string[] = [];
+    const t0 = Date.UTC(2026, 4, 17, 8, 0, 0);
     for (let i = 0; i < 400; i++) {
       const t = (i / 400) * 2 * Math.PI;
-      points.push(`<trkpt lat="${(30.05 + 0.01 * Math.sin(t)).toFixed(6)}" lon="${(119.68 + 0.013 * Math.cos(t)).toFixed(6)}"/>`);
+      points.push(
+        `<trkpt lat="${(30.05 + 0.01 * Math.sin(t)).toFixed(6)}" lon="${(119.68 + 0.013 * Math.cos(t)).toFixed(6)}">` +
+          `<ele>${(120 + 40 * Math.sin(t)).toFixed(1)}</ele>` +
+          `<time>${new Date(t0 + i * 9000).toISOString()}</time></trkpt>`,
+      );
     }
     return `<?xml version="1.0"?><gpx version="1.1" creator="e2e"><trk><trkseg>${points.join('')}</trkseg></trk></gpx>`;
   })();
@@ -55,6 +62,14 @@ test.describe('trail upload', () => {
 
     // Drawn from the file we already hold, so the trace is on screen before any fetch.
     await expect(page.locator('canvas.maplibregl-canvas')).toBeVisible();
+
+    // The link and the code cannot be shown again, so a tap on empty map must not take
+    // them away. Regression for the sheet that used to dismiss itself.
+    const box = (await page.locator('canvas.maplibregl-canvas').boundingBox())!;
+    await page.mouse.click(box.x + 40, box.y + box.height - 40);
+    await page.waitForTimeout(400);
+    await expect(page.locator('.wm-panel__title')).toContainText('Your trail is on the map');
+    await expect(page.locator('.wm-panel__copy-value')).toHaveCount(2);
   });
 
   test('the secret link reopens it, and the public document does not carry it', async ({ page, request }) => {
@@ -63,7 +78,9 @@ test.describe('trail upload', () => {
     const doc = await (await request.get(`/api/map/trails.json?cb=${secret}`)).json();
     expect((doc.trails as { id: string }[]).map((t) => t.id)).not.toContain(secret);
 
-    await ready(page, `/?trail=${secret}`);
+    // ?layers= without `trails` is the state the reported bug needed: the trace layer used
+    // to be hidden with the rail's toggle, so a private link rendered an empty map.
+    await ready(page, `/?trail=${secret}&layers=tracks,ride`);
     // It opens as the trail card it is, kicker and all — the secret only decides how it
     // was found, not what it is.
     await expect(page.locator('.wm-panel__slot')).toContainText('Rider trail', { timeout: 30_000 });
@@ -71,6 +88,13 @@ test.describe('trail upload', () => {
     // An unclaimed trail has no rider, so it gets no byline and no share button.
     await expect(page.locator('.wm-panel__byline .wm-person')).toHaveCount(0);
     await expect(page.locator('.wm-panel__share')).toHaveCount(0);
+
+    // The chips come off <ele>/<time>, which the coordinate scanner does not read. Every
+    // upload used to be labelled "Plotted route" — the one thing the pre-flight rejects.
+    const chips = (await page.locator('.wm-chip').allTextContents()).join(' | ');
+    expect(chips).not.toContain('Plotted route');
+    expect(chips).toContain('Recorded');
+    expect(chips).toContain('Loop');
   });
 
   test('a link that resolves to nothing says so without confirming anything', async ({ page }) => {
