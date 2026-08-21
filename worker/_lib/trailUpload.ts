@@ -226,14 +226,18 @@ export async function handleTrailUpload(request: Request, env: PagesEnv): Promis
   const distance = Number(meta.distance_km);
 
   await env.SUBSCRIBERS_DB.prepare(
-    `INSERT INTO trails (id, secret, visibility, gpx_url, gpx_sha1, title, distance_km, stats,
-                         claim_code, expires_at, ip_hash)
-     VALUES (?, ?, 'unlisted', ?, ?, ?, ?, ?, ?, datetime('now', ?), ?)`,
+    `INSERT INTO trails (id, secret, visibility, gpx_url, gpx_short_url, gpx_sha1, title,
+                         distance_km, stats, claim_code, expires_at, ip_hash)
+     VALUES (?, ?, 'unlisted', ?, ?, ?, ?, ?, ?, ?, datetime('now', ?), ?)`,
   )
     .bind(
       secret,
       secret,
       gpxUrl,
+      // Kept because the forum only registers an upload_reference for a link written as
+      // `[name|attachment](upload://…)`; the CDN URL cooks to plain text and registers
+      // nothing, which would leave a claimed trail's file still queued for reaping.
+      typeof uploaded?.short_url === 'string' ? uploaded.short_url : null,
       typeof uploaded?.sha1 === 'string' ? uploaded.sha1 : null,
       title || null,
       Number.isFinite(distance) ? distance : null,
@@ -337,6 +341,151 @@ export async function handleTrailResolve(env: PagesEnv, secret: string): Promise
   return json(200, { trail: toEntry(row, true) });
 }
 
+/* ============================================================
+   The plugin surface. Everything below is called BY the forum plugin and by nobody
+   else — a shared bearer, checked in one place, failing closed when it is not set.
+
+   The direction of trust matters: the worker never asks the forum to do anything, and
+   the plugin never gets a Discourse API key. The plugin acts as the visitor, inside a
+   session the visitor established, and tells the worker what it did.
+   ============================================================ */
+
+/** Fails closed: an unset token means these endpoints do not exist, not that they are open. */
+function pluginAuthorised(request: Request, env: PagesEnv): boolean {
+  if (!env.TRAILS_PLUGIN_TOKEN) return false;
+  const header = request.headers.get('authorization') ?? '';
+  const presented = header.startsWith('Bearer ') ? header.slice(7) : '';
+  if (presented.length !== env.TRAILS_PLUGIN_TOKEN.length) return false;
+  // Constant-time-ish: compare every byte regardless of where the first mismatch is.
+  let diff = 0;
+  for (let i = 0; i < presented.length; i++) diff |= presented.charCodeAt(i) ^ env.TRAILS_PLUGIN_TOKEN.charCodeAt(i);
+  return diff === 0;
+}
+
+/**
+ * GET /api/map/trail/claim/<code> — what the plugin needs to write the post.
+ *
+ * Read-only on purpose. The claim is only recorded once the post exists, because the post
+ * is what keeps the file alive; recording it first would leave a trail that says it is
+ * permanent while its upload is still queued for reaping.
+ */
+export async function handleClaimResolve(request: Request, env: PagesEnv, code: string): Promise<Response> {
+  if (!pluginAuthorised(request, env)) return json(404, { error: 'not_found' });
+  if (!env.SUBSCRIBERS_DB) return json(503, { error: 'service_misconfigured' });
+  const row = await env.SUBSCRIBERS_DB.prepare(
+    `SELECT secret, gpx_url, gpx_short_url, title, distance_km, claimed_at
+       FROM trails
+      WHERE claim_code = ? AND (expires_at IS NULL OR expires_at > datetime('now'))`,
+  )
+    .bind(code)
+    .first<{ secret: string; gpx_url: string; gpx_short_url: string | null; title: string | null; distance_km: number | null; claimed_at: string | null }>();
+  if (!row || row.claimed_at) return json(404, { error: 'not_found' });
+  return json(200, {
+    secret: row.secret,
+    gpx_url: row.gpx_url,
+    gpx_short_url: row.gpx_short_url,
+    title: row.title,
+    distance_km: row.distance_km,
+  });
+}
+
+/**
+ * POST /api/map/trail/claim/<code> — the post exists, so the trail stops expiring.
+ *
+ * Clearing `expires_at` and clearing `claim_code` are the same statement: a claimed trail
+ * is permanent and its code is spent, and neither should be able to be true without the
+ * other. Visibility stays `private` — publishing is a separate, deliberate act.
+ */
+export async function handleClaimBind(request: Request, env: PagesEnv, code: string): Promise<Response> {
+  if (!pluginAuthorised(request, env)) return json(404, { error: 'not_found' });
+  if (!env.SUBSCRIBERS_DB) return json(503, { error: 'service_misconfigured' });
+
+  let body: { user_id?: unknown; username?: unknown; post_id?: unknown };
+  try {
+    body = (await request.json()) as typeof body;
+  } catch {
+    return json(400, { error: 'invalid_body' });
+  }
+  const userId = Number(body.user_id);
+  const postId = Number(body.post_id);
+  const username = typeof body.username === 'string' ? body.username.slice(0, 60) : '';
+  if (!Number.isInteger(userId) || !Number.isInteger(postId) || !username) {
+    return json(400, { error: 'invalid_body' });
+  }
+
+  const result = await env.SUBSCRIBERS_DB.prepare(
+    `UPDATE trails
+        SET author_user_id = ?, author_username = ?, post_id = ?,
+            visibility = 'private', claimed_at = datetime('now'),
+            claim_code = NULL, expires_at = NULL
+      WHERE claim_code = ? AND claimed_at IS NULL
+        AND (expires_at IS NULL OR expires_at > datetime('now'))`,
+  )
+    .bind(userId, username, postId, code)
+    .run();
+  if (!result.meta?.changes) return json(404, { error: 'not_found' });
+
+  const row = await env.SUBSCRIBERS_DB.prepare('SELECT secret FROM trails WHERE post_id = ?')
+    .bind(postId)
+    .first<{ secret: string }>();
+  return json(200, { secret: row?.secret ?? null, visibility: 'private' });
+}
+
+/**
+ * POST /api/map/trail/<secret>/state — publish, unpublish, or drop.
+ *
+ * `gone` deletes the row rather than tombstoning it, because the reconcile pull is a
+ * full comparison and a tombstone would have to be carried in it forever. The bytes are
+ * Discourse's to reap once the post is permanently deleted.
+ *
+ * Going private mints a NEW secret. The old one was published inside trails.json, which
+ * is edge-cached for a day, so keeping it would mean a trail that reads private and is
+ * still openable by anybody holding a stale copy of the document.
+ */
+export async function handleTrailState(request: Request, env: PagesEnv, secret: string): Promise<Response> {
+  if (!pluginAuthorised(request, env)) return json(404, { error: 'not_found' });
+  if (!env.SUBSCRIBERS_DB) return json(503, { error: 'service_misconfigured' });
+
+  let body: { visibility?: unknown; id?: unknown };
+  try {
+    body = (await request.json()) as typeof body;
+  } catch {
+    return json(400, { error: 'invalid_body' });
+  }
+  const want = String(body.visibility ?? '');
+  if (!['public', 'private', 'gone'].includes(want)) return json(400, { error: 'invalid_visibility' });
+
+  if (want === 'gone') {
+    const gone = await env.SUBSCRIBERS_DB.prepare('DELETE FROM trails WHERE secret = ?').bind(secret).run();
+    return gone.meta?.changes ? json(200, { visibility: 'gone' }) : json(404, { error: 'not_found' });
+  }
+
+  const current = await env.SUBSCRIBERS_DB.prepare(
+    'SELECT id, visibility FROM trails WHERE secret = ?',
+  )
+    .bind(secret)
+    .first<{ id: string; visibility: string }>();
+  if (!current) return json(404, { error: 'not_found' });
+
+  // A public trail is addressed by a readable id; a private one is addressed by nothing
+  // but its secret, so its id goes back to being the secret.
+  const wanted = typeof body.id === 'string' ? body.id.toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 60) : '';
+  const nextSecret = want === 'private' && current.visibility === 'public' ? token(8) : secret;
+  const nextId = want === 'public' ? wanted || current.id : nextSecret;
+
+  try {
+    await env.SUBSCRIBERS_DB.prepare(
+      `UPDATE trails SET visibility = ?, id = ?, secret = ? WHERE secret = ?`,
+    )
+      .bind(want, nextId, nextSecret, secret)
+      .run();
+  } catch {
+    // The only unique columns here are `id` and `secret`, and the secret is freshly minted.
+    return json(409, { error: 'id_taken' });
+  }
+  return json(200, { visibility: want, id: nextId, secret: nextSecret });
+}
+
 export type ClaimState =
   | { status: 'open'; secret: string }
   | { status: 'claimed' }
@@ -399,4 +548,83 @@ export async function sweepExpiredTrails(env: PagesEnv): Promise<number> {
     `DELETE FROM trails WHERE expires_at IS NOT NULL AND expires_at <= datetime('now')`,
   ).run();
   return result.meta?.changes ?? 0;
+}
+
+/** How far back the reconcile pull looks each minute. Deliberately much wider than the
+    cron interval so a run that fails, or a forum that was briefly down, is caught by the
+    next one without any cursor to keep. */
+const RECONCILE_WINDOW_MINUTES = 15;
+
+interface ReconcileRow {
+  secret?: unknown;
+  id?: unknown;
+  post_id?: unknown;
+  user_id?: unknown;
+  username?: unknown;
+  visibility?: unknown;
+  gone?: unknown;
+}
+
+/**
+ * Cron: pull the plugin's view of every recently-changed claim and make D1 agree.
+ *
+ * The push from the plugin is what makes the map update in a second; this is what makes
+ * it correct. A claim writes a forum post and then tells the worker, and the second half
+ * can fail — leaving a trail that expires in 72 hours while its post says it is
+ * permanent. Discourse's own webhook retry gives up after four attempts in two and a half
+ * minutes and then stays silent, which is fine for a cache nudge and not for this.
+ *
+ * The plugin is the authority here, because the plugin is where the post lives.
+ */
+export async function reconcileTrails(env: PagesEnv): Promise<number> {
+  if (!env.SUBSCRIBERS_DB || !env.FORUM_BASE || !env.TRAILS_PLUGIN_TOKEN) return 0;
+
+  let rows: ReconcileRow[] = [];
+  try {
+    const resp = await fetch(
+      `${env.FORUM_BASE}/dbx/trails/reconcile.json?minutes=${RECONCILE_WINDOW_MINUTES}`,
+      { headers: { Authorization: `Bearer ${env.TRAILS_PLUGIN_TOKEN}`, Accept: 'application/json' } },
+    );
+    if (!resp.ok) {
+      console.error('trail:reconcile_status', { status: resp.status });
+      return 0;
+    }
+    const body = (await resp.json()) as { trails?: unknown };
+    rows = Array.isArray(body.trails) ? (body.trails as ReconcileRow[]) : [];
+  } catch (err) {
+    console.error('trail:reconcile_threw', { err: String(err) });
+    return 0;
+  }
+
+  let applied = 0;
+  for (const row of rows) {
+    const secret = typeof row.secret === 'string' ? row.secret : '';
+    if (!secret) continue;
+    try {
+      if (row.gone) {
+        await env.SUBSCRIBERS_DB.prepare('DELETE FROM trails WHERE secret = ?').bind(secret).run();
+        applied++;
+        continue;
+      }
+      const visibility = ['public', 'private'].includes(String(row.visibility)) ? String(row.visibility) : 'private';
+      const id = typeof row.id === 'string' && row.id ? row.id : secret;
+      const userId = Number(row.user_id);
+      const postId = Number(row.post_id);
+      if (!Number.isInteger(userId) || !Number.isInteger(postId)) continue;
+      const result = await env.SUBSCRIBERS_DB.prepare(
+        `UPDATE trails
+            SET visibility = ?, id = ?, post_id = ?, author_user_id = ?, author_username = ?,
+                claim_code = NULL, expires_at = NULL,
+                claimed_at = COALESCE(claimed_at, datetime('now'))
+          WHERE secret = ?`,
+      )
+        .bind(visibility, id, postId, userId, typeof row.username === 'string' ? row.username : null, secret)
+        .run();
+      applied += result.meta?.changes ?? 0;
+    } catch (err) {
+      // One bad row must not stop the rest — an id collision is the likely cause.
+      console.error('trail:reconcile_row', { secret, err: String(err) });
+    }
+  }
+  return applied;
 }

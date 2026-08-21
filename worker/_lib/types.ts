@@ -57,6 +57,10 @@ export interface PagesEnv {
    *  Secret. A leak of this key can put a file in the upload store and do nothing else —
    *  it cannot post, cannot create a topic and cannot speak for a user. */
   FORUM_TRAILS_KEY?: string;
+  /** Shared bearer between the worker and the forum plugin, both directions. Unset means
+   *  the plugin surface does not exist — every one of its endpoints 404s, and the
+   *  reconcile pull does nothing. See TRAIL_UPLOAD_MODULE.md. */
+  TRAILS_PLUGIN_TOKEN?: string;
   ASSETS?: AssetsBinding;
   /** Shared bearer for the /api/outreach/* endpoints (the CRM's pre-invite test + batch). Secret. */
   OUTREACH_SECRET?: string;

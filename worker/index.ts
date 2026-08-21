@@ -16,7 +16,11 @@ import {
   handleTrailGpx,
   publicTrailEntries,
   sweepExpiredTrails,
+  reconcileTrails,
   lookupClaim,
+  handleClaimResolve,
+  handleClaimBind,
+  handleTrailState,
 } from './_lib/trailUpload';
 import { handleOgPreview } from './_lib/ogPreview';
 import { ENTITY_KINDS, SHARE_ALIASES, loadEntity } from './_lib/shareEntity';
@@ -1015,6 +1019,10 @@ export default {
           return { ...doc, trails: [...curated, ...(await publicTrailEntries(env))] };
         });
       }
+      // Plugin-only, bearer-checked, and 404 rather than 401 when it fails — an
+      // unauthorised caller learns nothing about what lives here.
+      const claimResolve = url.pathname.match(/^\/api\/map\/trail\/claim\/([a-z0-9]{6,16})$/);
+      if (claimResolve) return handleClaimResolve(request, env, claimResolve[1]!);
       const trailDoc = url.pathname.match(/^\/api\/map\/trail\/([a-z0-9]{6,16})\.json$/);
       if (trailDoc) return handleTrailResolve(env, trailDoc[1]!);
       const trailGpx = url.pathname.match(/^\/api\/map\/trail\/([a-z0-9]{6,16})\.gpx$/);
@@ -1061,9 +1069,15 @@ export default {
       return handleWebhook(request, env);
     }
 
-    // /join double-opt-in waitlist. See worker/_lib/join.ts.
+    // Visitor trail upload — the one unauthenticated write on this worker.
     if (url.pathname === '/api/map/trail' && request.method === 'POST') {
       return handleTrailUpload(request, env);
+    }
+    if (request.method === 'POST') {
+      const claimBind = url.pathname.match(/^\/api\/map\/trail\/claim\/([a-z0-9]{6,16})$/);
+      if (claimBind) return handleClaimBind(request, env, claimBind[1]!);
+      const trailState = url.pathname.match(/^\/api\/map\/trail\/([a-z0-9]{6,16})\/state$/);
+      if (trailState) return handleTrailState(request, env, trailState[1]!);
     }
 
     if (url.pathname === '/api/join' && request.method === 'POST') {
@@ -1111,6 +1125,14 @@ export default {
         if (dropped > 0) console.log('trail:swept', { dropped });
       } catch (err) {
         console.error('trail:sweep_threw', { err: String(err) });
+      }
+      // Pull, after the sweep: a claim recorded only on the forum side would otherwise be
+      // swept away a minute before the pull that would have made it permanent.
+      try {
+        const applied = await reconcileTrails(env);
+        if (applied > 0) console.log('trail:reconciled', { applied });
+      } catch (err) {
+        console.error('trail:reconcile_threw', { err: String(err) });
       }
     })());
   },
