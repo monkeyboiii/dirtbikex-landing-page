@@ -233,6 +233,11 @@ on staging: a trashed post keeps its reference; a real destroy removes it.
 `on(:user_anonymized)` drops every live claim the same way. A trail must not outlive the
 account that signed for it.
 
+**The owner deletes the topic, not the post.** `DELETE /posts/<id>` 403s on a first post
+(`can_delete_post?` is false where `can_delete_topic?` is true), which is core behaviour
+and is what the UI does too — the OP's delete button removes the topic. Either route
+destroys the post and fires the hook; only one of them is reachable.
+
 ## Rate limiting, and where it is thin
 
 | Limit | Value | Where |
@@ -276,6 +281,12 @@ one office IP will hit it — and it is the first number to revisit if real peop
   discourse-calendar-flavoured name for a flag that now governs three unrelated features.
 - **There are no request specs for the trail endpoints.** Everything here was verified by
   `rails runner` and curl against staging, because this host has no Rails dev environment.
+- **`Theme.clear_default!` does not clear a cache — it sets `default_theme_id = -1`.**
+  Calling it while updating the component's theme fields silently switched the whole forum
+  off FKB Pro. Restore with `SiteSetting.default_theme_id = 1` (components only load
+  through their parent theme, and all four are children of theme 1). Use
+  `Theme.expire_site_cache!` and `Stylesheet::Manager.clear_theme_cache!` when a cache
+  clear is what was meant.
 
 ## Operator
 
@@ -287,7 +298,7 @@ one office IP will hit it — and it is the first number to revisit if real peop
 | | Set `dirtbikex_trails_worker_base` to the landing origin, and turn `dirtbikex_trails_enabled` on |
 | | Apply `0009` and `0010` with `--env preview` (or the prod equivalent, explicit-ask) |
 | | `authorized_extensions` must include `gpx` |
-| Theme component | The map switch ships in `discourse-dbx-gpx-preview`; the installed copy must be updated for it to appear |
+| Theme component | The map switch ships in `discourse-dbx-gpx-preview`. The installed copy on staging is a **zip import** (`remote_theme` is nil), so a git push does not reach it — the theme fields have to be replaced from the repo, or a fresh zip uploaded |
 
 ## Verifying
 
