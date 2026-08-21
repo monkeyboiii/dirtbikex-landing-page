@@ -796,21 +796,35 @@ async function handleLineagePage(request: Request, env: Env, ref: string, route:
  * has a destination for that path, and this one has none yet. Adding it early is what makes
  * the app raise its invalid-link bubble on a perfectly good link.
  */
-const CLAIM_COPY: Partial<Record<Lang, { title: string; body: string; cta: string }>> = {
+interface ClaimCopy {
+  title: string;
+  body: string;
+  cta: string;
+  slowTitle: string;
+  slowBody: string;
+}
+
+const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
   en: {
     title: 'Claim your trail',
     body: 'Sign in on the forum and this ride becomes yours — it stops expiring, and you decide whether it goes on the map or stays on your link alone. Keep this link to yourself: whoever opens it becomes the owner.',
     cta: 'Claim it on the forum',
+    slowTitle: 'Too many attempts',
+    slowBody: 'Wait a few minutes, then open your link again. Nothing is lost — your trail is still here.',
   },
   'zh-CN': {
     title: '认领你的轨迹',
     body: '在论坛登录后这条轨迹就归你了——不再过期，是否显示在地图上也由你决定。请勿转发此链接：谁打开它，它就归谁。',
     cta: '前往论坛认领',
+    slowTitle: '尝试次数过多',
+    slowBody: '请稍等几分钟再打开你的链接。什么都没丢——轨迹还在。',
   },
   'zh-TW': {
     title: '認領你的軌跡',
     body: '在論壇登入後這條軌跡就歸你了——不再過期，是否顯示在地圖上也由你決定。請勿轉發此連結：誰打開它，它就歸誰。',
     cta: '前往論壇認領',
+    slowTitle: '嘗試次數過多',
+    slowBody: '請稍等幾分鐘再打開你的連結。什麼都沒丟——軌跡還在。',
   },
 };
 
@@ -818,13 +832,18 @@ function handleTrailClaim(request: Request, env: Env, code: string): Response {
   const url = new URL(request.url);
   const locale = pickLocale(url, request.headers.get('accept-language'), request.headers.get('user-agent'));
   const copy = CLAIM_COPY[locale] ?? CLAIM_COPY.en!;
+  // The forum sends a rate-limited rider back here rather than showing them Discourse's
+  // "page not found", which is what its rate-limit handler produces for a plain browser
+  // navigation and which reads as "your link is broken" — so they retry, and spend more
+  // budget. This is still a lookup-free page: the flag is in the URL, not in the database.
+  const slow = url.searchParams.get('e') === 'slow';
 
   return renderShareLanding(
     {
       kind: 'c',
       locale,
-      title: copy.title,
-      subtitle: copy.body,
+      title: slow ? copy.slowTitle : copy.title,
+      subtitle: slow ? copy.slowBody : copy.body,
       primaryCTA: {
         label: copy.cta,
         url: `${env.FORUM_BASE}/dbx/trails/claim?code=${encodeURIComponent(code)}`,
