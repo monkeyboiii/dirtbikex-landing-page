@@ -64,6 +64,38 @@ export interface EntityCard {
   ogImage: string | null;
 }
 
+/**
+ * A track's write-up carries a photo far better than anything we could draw: the
+ * forum topic's own thumbnail, already on our uploads CDN and already sized. One
+ * extra fetch, edge-cached for an hour, and only for a track that has a topic.
+ */
+async function topicImage(env: PagesEnv, topicId: number | null): Promise<string | null> {
+  if (!topicId || !env.FORUM_BASE) return null;
+  const resp = await fetch(`${env.FORUM_BASE}/t/${topicId}.json`, {
+    headers: { Accept: 'application/json' },
+    ...({ cf: { cacheTtl: 3600, cacheEverything: true } } as RequestInit),
+  }).catch(() => null);
+  if (!resp?.ok) return null;
+  const doc = (await resp.json().catch(() => null)) as { image_url?: unknown } | null;
+  return typeof doc?.image_url === 'string' && doc.image_url ? doc.image_url : null;
+}
+
+/** The venue's write-up photo, reached from a track slug rather than a topic id. */
+async function trackTopicImage(env: PagesEnv, slug: string): Promise<string | null> {
+  if (!env.FORUM_BASE) return null;
+  const resp = await fetch(`${env.FORUM_BASE}/dirtbikex/tracks/${encodeURIComponent(slug)}.json`, {
+    headers: { Accept: 'application/json' },
+    ...({ cf: { cacheTtl: 3600, cacheEverything: true } } as RequestInit),
+  }).catch(() => null);
+  if (!resp?.ok) return null;
+  const track = ((await resp.json().catch(() => null)) as { track?: Record<string, unknown> } | null)?.track;
+  return topicImage(env, num(track?.topic_id));
+}
+
+/** Operator-published picture on a map document row — R2, so changing one is a push. */
+const docThumb = (row: Record<string, unknown>): string | null =>
+  typeof row.thumb === 'string' && row.thumb ? row.thumb : null;
+
 const num = (n: unknown): number | null => (typeof n === 'number' && Number.isFinite(n) ? n : null);
 
 /** `ebike_park` -> `Ebike park`. Enum values are for the database, not the reader. */
@@ -144,7 +176,7 @@ async function loadRoute(request: Request, env: PagesEnv, id: string, locale: st
           avatarPath: typeof trail.author_avatar === 'string' ? trail.author_avatar : null,
         }
       : null,
-    ogImage: null,
+    ogImage: docThumb(trail),
   };
 }
 
@@ -166,7 +198,7 @@ async function loadShop(request: Request, env: PagesEnv, slug: string): Promise<
     mapURL: `/?layers=tracks,shops&t=${encodeURIComponent(slug)}`,
     sourceURL: typeof shop.website === 'string' ? shop.website : null,
     author: null,
-    ogImage: null,
+    ogImage: docThumb(shop),
   };
 }
 
@@ -198,7 +230,11 @@ async function loadChallenge(request: Request, env: PagesEnv, label: string, loc
     mapURL: `/?ep=${encodeURIComponent(label)}`,
     sourceURL: firstLink,
     author: null,
-    ogImage: typeof entry.thumb === 'string' ? entry.thumb : null,
+    // A stop with no picture of its own borrows its venue's — the same write-up
+    // photo the track card uses, so the two shares of one place agree.
+    ogImage:
+      (typeof entry.thumb === 'string' && entry.thumb ? entry.thumb : null) ??
+      (typeof entry.track_slug === 'string' ? await trackTopicImage(env, entry.track_slug) : null),
   };
 }
 
@@ -250,6 +286,6 @@ async function loadTrack(env: PagesEnv, slug: string): Promise<EntityCard | null
           avatarPath: owner.avatar_template ?? null,
         }
       : null,
-    ogImage: null,
+    ogImage: await topicImage(env, topicId),
   };
 }

@@ -1,5 +1,5 @@
 import type { EntityCard } from './shareEntity';
-import { BRAND_CARD, brandCardURL } from './brand';
+import { BRAND_CARD, brandCardURL, kindCardURL, type KindCard } from './brand';
 import type { EventRow, InviteRow, Lang, ShareLandingProps, UserRow } from './types';
 
 /**
@@ -1210,6 +1210,11 @@ function buildOgImage(props: ShareLandingProps, requestURL: string): OgImage {
   if (props.event?.image_url) {
     return { url: props.event.image_url, width: null, height: null, wide: true };
   }
+  // The thing's own picture beats anything we could draw for it, and beats the
+  // owner's avatar: the card is about the place, not about who runs it.
+  if (props.entity?.ogImage) {
+    return { url: props.entity.ogImage, width: null, height: null, wide: true };
+  }
   const template =
     props.invite?.invited_by.avatar_template ??
     props.user?.avatar_template ??
@@ -1219,7 +1224,20 @@ function buildOgImage(props: ShareLandingProps, requestURL: string): OgImage {
     const url = `${props.forumBase}${template.replace('{size}', '288')}`;
     return { url, width: 288, height: 288, wide: false };
   }
-  return { url: brandCardURL(requestURL), width: BRAND_CARD.width, height: BRAND_CARD.height, wide: false };
+  const card = cardKindFor(props);
+  const url = card ? kindCardURL(card, requestURL) : brandCardURL(requestURL);
+  return { url, width: BRAND_CARD.width, height: BRAND_CARD.height, wide: false };
+}
+
+/**
+ * Which kind card stands in when the thing shared has no picture. A rider without
+ * an avatar is still a rider; only a page that is about nothing in particular —
+ * an expired invite, a bad key — falls all the way through to the brand mark.
+ */
+function cardKindFor(props: ShareLandingProps): KindCard | null {
+  if (props.entity) return props.entity.kind as KindCard;
+  if (props.user) return 'rider';
+  return null;
 }
 
 /**

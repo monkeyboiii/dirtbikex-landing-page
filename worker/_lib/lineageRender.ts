@@ -1,5 +1,5 @@
 import { esc } from './render';
-import { BRAND_CARD, brandCardURL } from './brand';
+import { BRAND_CARD, kindCardURL } from './brand';
 import { weChatImageHints } from './render';
 import { DEBUG_CSS } from './lineageDebug';
 import type { Lang } from './types';
@@ -232,11 +232,11 @@ ${opts.canonical ? `<link rel="canonical" href="${esc(opts.canonical)}">\n` : ''
 <meta property="og:description" content="${esc(opts.description)}">
 <meta property="og:url" content="${esc(opts.url)}">
 <meta property="og:type" content="profile">
-<meta property="og:image" content="${esc(opts.ogImage ?? brandCardURL(opts.url))}">
+<meta property="og:image" content="${esc(opts.ogImage ?? kindCardURL('rider', opts.url))}">
 ${opts.ogImage ? '' : `<meta property="og:image:width" content="${BRAND_CARD.width}">
 <meta property="og:image:height" content="${BRAND_CARD.height}">`}
 <meta name="twitter:card" content="summary">
-${weChatImageHints(opts.ogImage ?? brandCardURL(opts.url))}
+${weChatImageHints(opts.ogImage ?? kindCardURL('rider', opts.url))}
 <style>${CSS}${opts.extraCSS ?? ''}</style>
 </head>
 <body><main>${opts.body}</main></body>
