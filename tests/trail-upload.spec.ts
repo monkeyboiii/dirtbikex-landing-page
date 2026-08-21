@@ -50,7 +50,7 @@ test.describe('trail upload', () => {
       buffer: Buffer.from(gpx),
     });
 
-    await expect(page.locator('.wm-panel__title')).toContainText('Your trail is on the map', { timeout: 30_000 });
+    await expect(page.locator('.wm-panel__title')).toContainText('One more step to go public', { timeout: 30_000 });
     // ONE artifact: the trail link. The claim code is never rendered — nothing in this
     // product accepts a typed one, so a copy button for it would be a dead control.
     const values = page.locator('.wm-panel__copy-value');
@@ -66,13 +66,19 @@ test.describe('trail upload', () => {
     // Drawn from the file we already hold, so the trace is on screen before any fetch.
     await expect(page.locator('canvas.maplibregl-canvas')).toBeVisible();
 
+    // It is the trail's own sheet, not a receipt: the numbers and chips it will keep are
+    // already on it, and the only blank is the rider.
+    await expect(page.locator('.wm-stat')).not.toHaveCount(0);
+    await expect(page.locator('.wm-by--empty')).toHaveCount(1);
+    if (process.env.SHOT_DIR) await page.screenshot({ path: `${process.env.SHOT_DIR}/upload-sheet-new.png` });
+
     // The link and the code cannot be shown again, so a tap on empty map must not take
     // them away. Regression for the sheet that used to dismiss itself.
     const box = (await page.locator('canvas.maplibregl-canvas').boundingBox())!;
     await page.mouse.click(box.x + 40, box.y + box.height - 40);
     await page.waitForTimeout(400);
-    await expect(page.locator('.wm-panel__title')).toContainText('Your trail is on the map');
-    await expect(page.locator('.wm-panel__copy-value')).toHaveCount(2);
+    await expect(page.locator('.wm-panel__title')).toContainText('One more step to go public');
+    await expect(page.locator('.wm-panel__copy-value')).toHaveCount(1);
   });
 
   test('the secret link reopens it, and the public document does not carry it', async ({ page, request }) => {
