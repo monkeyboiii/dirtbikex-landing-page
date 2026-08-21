@@ -1,4 +1,5 @@
 import type { EntityCard } from './shareEntity';
+import { BRAND_CARD, brandCardURL } from './brand';
 import type { EventRow, InviteRow, Lang, ShareLandingProps, UserRow } from './types';
 
 /**
@@ -244,7 +245,7 @@ function buildHTML(props: ShareLandingProps, requestURL: string): string {
   // Strip `?lang=` (the iOS link carries `lang=auto`) so crawlers canonicalize
   // every locale of a share to one `og:url`, not a per-language variant.
   const url = esc(canonicalURL(requestURL));
-  const ogImage = buildOgImage(props);
+  const og = buildOgImage(props, requestURL);
 
   const head = (titleText: string, description: string | null) => `
 <meta charset="utf-8">
@@ -255,11 +256,12 @@ function buildHTML(props: ShareLandingProps, requestURL: string): string {
 ${description ? `<meta property="og:description" content="${esc(description)}">` : ''}
 <meta property="og:url" content="${url}">
 <meta property="og:type" content="website">
-${ogImage ? `<meta property="og:image" content="${esc(ogImage)}">
-<meta property="og:image:width" content="288">
-<meta property="og:image:height" content="288">
-<meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="${esc(ogImage)}">` : ''}
+<meta property="og:image" content="${esc(og.url)}">
+${og.width ? `<meta property="og:image:width" content="${og.width}">
+<meta property="og:image:height" content="${og.height}">` : ''}
+<meta name="twitter:card" content="${og.wide ? 'summary_large_image' : 'summary'}">
+<meta name="twitter:image" content="${esc(og.url)}">
+${weChatImageHints(og.url)}
 <style>${CSS}</style>`;
 
   const body = props.invite
@@ -1185,22 +1187,49 @@ function formatDurationSince(iso: string, locale: Lang): string | null {
    Headline + helpers
    ============================================================ */
 
+interface OgImage {
+  url: string;
+  /** Omitted when the picture is somebody else's and its size is unknown. */
+  width: number | null;
+  height: number | null;
+  wide: boolean;
+}
+
 /**
- * Returns the absolute Discourse avatar URL to advertise as `og:image`, or null
- * if the inviter has no uploaded avatar (template stays null in that case — see
- * `buildAvatarTemplate` in inviteLookup.ts). 288px is Discourse's largest
- * pre-rendered size and matches the in-page hero card.
+ * The picture a card unfurls with. There is always one now: a track, a route, a
+ * shop and a stop in the challenge have no image of their own, and a card with no
+ * picture is the blank grey rectangle WeChat and every other chat app fall back
+ * to. They get the brand mark instead.
+ *
+ * 288px is Discourse's largest pre-rendered avatar size and matches the in-page
+ * hero card. Dimensions are declared only where we actually know them — an event
+ * hero is somebody else's upload, and a wrong `og:image:width` is worse than none.
  */
-function buildOgImage(props: ShareLandingProps): string | null {
+function buildOgImage(props: ShareLandingProps, requestURL: string): OgImage {
   // Event hero is an absolute CDN URL — use it directly (not forumBase-prefixed).
-  if (props.event?.image_url) return props.event.image_url;
+  if (props.event?.image_url) {
+    return { url: props.event.image_url, width: null, height: null, wide: true };
+  }
   const template =
     props.invite?.invited_by.avatar_template ??
     props.user?.avatar_template ??
     props.event?.organizer.avatar_template ??
     null;
-  if (!template) return null;
-  return `${props.forumBase}${template.replace('{size}', '288')}`;
+  if (template) {
+    const url = `${props.forumBase}${template.replace('{size}', '288')}`;
+    return { url, width: 288, height: 288, wide: false };
+  }
+  return { url: brandCardURL(requestURL), width: BRAND_CARD.width, height: BRAND_CARD.height, wide: false };
+}
+
+/**
+ * WeChat and QQ predate Open Graph in places and still read these two. Both are
+ * three lines of head and cost nothing; without them a card can unfurl blank in
+ * exactly the client this was built for.
+ */
+export function weChatImageHints(imageURL: string): string {
+  const href = esc(imageURL);
+  return `<meta itemprop="image" content="${href}">\n<link rel="image_src" href="${href}">`;
 }
 
 function buildHeadline(invite: InviteRow, locale: Lang): string {

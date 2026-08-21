@@ -355,7 +355,7 @@ const LOCALES: readonly Lang[] = [
  * deterministically — and the URL pattern stays under `/s/*` (path unchanged),
  * preserving the AASA universal-link contract.
  */
-function pickLocale(url: URL, acceptLanguage: string | null): Lang {
+function pickLocale(url: URL, acceptLanguage: string | null, userAgent?: string | null): Lang {
   // `?lang=auto` is the iOS share-link default (ShareLookup.shareURL) — it
   // explicitly defers to Accept-Language negotiation below. Any other value
   // pins the card; matched leniently via `matchTag` so `?lang=zh-cn`, `zh`,
@@ -366,8 +366,7 @@ function pickLocale(url: URL, acceptLanguage: string | null): Lang {
     if (pinned) return pinned;
   }
 
-  if (!acceptLanguage) return 'en';
-  const tags = acceptLanguage
+  const tags = (acceptLanguage ?? '')
     .split(',')
     .map((t) => t.trim().split(';')[0]!.trim())
     .filter(Boolean);
@@ -375,6 +374,13 @@ function pickLocale(url: URL, acceptLanguage: string | null): Lang {
     const m = matchTag(raw);
     if (m) return m;
   }
+
+  // WeChat renders a link card from ONE crawler fetch and caches it against the
+  // URL, so the reader's own language never reaches this decision — the crawler's
+  // does, and it sends none. Without this every card pasted into WeChat comes out
+  // English for a Chinese audience. `?lang=` still wins, so a link we generate can
+  // still pin any locale it likes.
+  if (userAgent && /MicroMessenger/i.test(userAgent)) return 'zh-CN';
   return 'en';
 }
 
@@ -460,7 +466,7 @@ function buildProps(
 
 async function handleInvite(request: Request, env: Env, key: string): Promise<Response> {
   const url = new URL(request.url);
-  const locale = pickLocale(url, request.headers.get('accept-language'));
+  const locale = pickLocale(url, request.headers.get('accept-language'), request.headers.get('user-agent'));
   const copy = getCopy(locale);
   const forumBase = env.FORUM_BASE ?? '';
 
@@ -525,7 +531,7 @@ function buildUserProps(
 
 async function handleUser(request: Request, env: Env, username: string): Promise<Response> {
   const url = new URL(request.url);
-  const locale = pickLocale(url, request.headers.get('accept-language'));
+  const locale = pickLocale(url, request.headers.get('accept-language'), request.headers.get('user-agent'));
   const copy = getCopy(locale);
   const forumBase = env.FORUM_BASE ?? '';
 
@@ -584,7 +590,7 @@ function buildEventProps(
 
 async function handleEvent(request: Request, env: Env, eventId: string): Promise<Response> {
   const url = new URL(request.url);
-  const locale = pickLocale(url, request.headers.get('accept-language'));
+  const locale = pickLocale(url, request.headers.get('accept-language'), request.headers.get('user-agent'));
   const copy = getCopy(locale);
   const forumBase = env.FORUM_BASE ?? '';
 
@@ -629,7 +635,7 @@ async function handleForumFeatured(env: Env): Promise<Response> {
  */
 async function handleEntity(request: Request, env: Env, kindCode: string, key: string): Promise<Response> {
   const url = new URL(request.url);
-  const locale = pickLocale(url, request.headers.get('accept-language'));
+  const locale = pickLocale(url, request.headers.get('accept-language'), request.headers.get('user-agent'));
   const copy = getCopy(locale);
   const forumBase = env.FORUM_BASE ?? '';
   const kind = ENTITY_KINDS[kindCode]!;
@@ -682,7 +688,7 @@ async function lookupSender(env: Env, username: string): Promise<{ name: string;
 /** Locale + canonical URL, shared by both lineage pages. */
 function lineageContext(request: Request, env: Env) {
   const url = new URL(request.url);
-  const locale = pickLocale(url, request.headers.get('accept-language'));
+  const locale = pickLocale(url, request.headers.get('accept-language'), request.headers.get('user-agent'));
   return {
     locale,
     url: url.origin + url.pathname,

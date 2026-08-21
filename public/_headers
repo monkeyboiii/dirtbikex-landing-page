@@ -84,5 +84,12 @@
 /api/unsubscribe
   Cache-Control: no-store
 
+# WeChat domain verification. Must be served as plain text, from this exact path,
+# with no redirect and no HTML wrapper — the crawler compares the body byte for byte.
+# Short cache so a re-issued token is not shadowed by a day-old edge copy.
+/98cb4034d143c97e195fc21a62d2bd36.txt
+  Content-Type: text/plain; charset=utf-8
+  Cache-Control: public, max-age=300
+
 /*
   Cache-Control: public, max-age=300, s-maxage=86400
