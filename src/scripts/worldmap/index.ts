@@ -1580,8 +1580,8 @@ class WorldMap {
     this.drawTrail(trail.id);
     const lines = this.trailGeometry.get(trail.id);
     if (lines?.length) this.fitTrail(lines);
-    // Last, so the link and the code are what is left on screen.
-    this.panel.showUploadDone(result);
+    // Last, so the claim is what is left on screen.
+    this.panel.showUploadDone(result, trail);
   }
 
   /**

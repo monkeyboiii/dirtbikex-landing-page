@@ -51,15 +51,17 @@ test.describe('trail upload', () => {
     });
 
     await expect(page.locator('.wm-panel__title')).toContainText('Your trail is on the map', { timeout: 30_000 });
+    // ONE artifact: the trail link. The claim code is never rendered — nothing in this
+    // product accepts a typed one, so a copy button for it would be a dead control.
     const values = page.locator('.wm-panel__copy-value');
-    await expect(values).toHaveCount(2);
+    await expect(values).toHaveCount(1);
     const link = (await values.first().textContent()) ?? '';
     expect(link).toMatch(/\/\?trail=[a-z0-9]{8}$/);
     secret = link.split('=')[1]!;
-    // Six digits, like an SMS code. Its safety is not its entropy — see the module doc —
-    // so if this assertion ever loosens, the rate limiting on the claim route is what has
-    // to be checked, not this line.
-    expect((await values.nth(1).textContent()) ?? '').toMatch(/^\d{6}$/);
+    // The claim lives in the button's href and nowhere on screen.
+    const claimHref = await page.locator('.wm-panel__cta').getAttribute('href');
+    expect(claimHref).toMatch(/^\/s\/c\/[a-z0-9]{8}$/);
+    expect(await page.locator('.wm-panel__body').innerText()).not.toContain(claimHref!.split('/').pop()!);
 
     // Drawn from the file we already hold, so the trace is on screen before any fetch.
     await expect(page.locator('canvas.maplibregl-canvas')).toBeVisible();

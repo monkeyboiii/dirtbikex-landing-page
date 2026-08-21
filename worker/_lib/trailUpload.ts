@@ -24,14 +24,15 @@ const UNCLAIMED_HOURS = 72;
     them — so a secret is 31^8 ≈ 8.5e11. An earlier comment here said 32 and 1.1e12, which
     was simply wrong; the number is still far beyond guessing, but write down what is true. */
 const ALPHABET = '23456789abcdefghjkmnpqrstuvwxyz';
-/** Six digits, like an SMS code, because that is what a person can hold in their head and
-    read down a phone line.
-    10^6 is small. Its safety does NOT come from its own entropy — it comes from the code
-    never being checkable anonymously: /s/c/<code> looks nothing up, and the only thing that
-    resolves a code is the forum's claim route, behind a login and a rate limiter. Do not
-    add an endpoint that answers yes-or-no to a code. That is the whole design. */
-const CODE_DIGITS = '0123456789';
-const CODE_LENGTH = 6;
+/** The claim code is 8 of the same alphabet, so 31^8 ≈ 8.5e11.
+    It was briefly six digits, on the theory that a rider would type it. Nothing in this
+    product accepts a typed claim code — not the web, not the forum, not the app — so
+    "easy to type" was buying nothing, and 10^6 was paying for it. The link is the
+    interface; the code is only ever inside it.
+    The controls that went in alongside the six-digit experiment all stay, because they
+    were right independent of the length: /s/c/<code> looks NOTHING up, the forum's claim
+    route is the only resolver and is rate-limited, and a claim binds only to its claimer.
+    Do not add an endpoint anywhere that answers yes-or-no to a code. */
 
 const json = (status: number, body: unknown, headers: Record<string, string> = {}): Response =>
   new Response(JSON.stringify(body), {
@@ -43,28 +44,6 @@ function token(length: number): string {
   const bytes = new Uint8Array(length);
   crypto.getRandomValues(bytes);
   return Array.from(bytes, (b) => ALPHABET[b % ALPHABET.length]).join('');
-}
-
-/**
- * Named for its shape rather than `claimCode`, which join.ts already uses for invite codes.
- *
- * Rejection sampling, not a bare modulo: 256 % 10 = 6, so `byte % 10` makes 0–5 about 20%
- * likelier than 6–9. That skew was ignorable at 31^8 and is not at 10^6, where the whole
- * keyspace is small enough to reason about. Discarding the top six byte values costs an
- * extra draw on ~2.3% of bytes and buys a flat distribution.
- */
-function claimDigits(): string {
-  let out = '';
-  while (out.length < CODE_LENGTH) {
-    const bytes = new Uint8Array(CODE_LENGTH);
-    crypto.getRandomValues(bytes);
-    for (const b of bytes) {
-      if (b >= 250) continue;
-      out += CODE_DIGITS[b % 10];
-      if (out.length === CODE_LENGTH) break;
-    }
-  }
-  return out;
 }
 
 async function hashed(value: string): Promise<string> {
@@ -253,10 +232,10 @@ export async function handleTrailUpload(request: Request, env: PagesEnv): Promis
 
   // --- the index ---------------------------------------------------------
   const secret = token(8);
-  // `let`, because a UNIQUE collision is a real event on a 10^6 keyspace — roughly
-  // (outstanding codes / 1e6) per upload — and the file is already in the forum's upload
-  // store by this point. Re-minting is far better than 500-ing and orphaning it.
-  let code = claimDigits();
+  // `let` and a retry below. At 31^8 a UNIQUE collision is vanishingly unlikely, but the
+  // file is already in the forum's upload store by this point, so the cost of NOT handling
+  // it is an orphaned upload and a 500 — and the handling is four lines.
+  let code = token(8);
   const title = typeof meta.title === 'string' ? meta.title.slice(0, 120).trim() : '';
   const distance = Number(meta.distance_km);
 
@@ -298,7 +277,7 @@ export async function handleTrailUpload(request: Request, env: PagesEnv): Promis
         console.error('trail:insert_failed', { err: String(err) });
         return json(500, { error: 'store_failed' });
       }
-      code = claimDigits();
+      code = token(8);
     }
   }
   if (!stored) {

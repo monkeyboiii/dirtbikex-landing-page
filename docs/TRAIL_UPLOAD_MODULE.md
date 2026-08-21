@@ -127,17 +127,21 @@ would report R2 drift the moment anybody published a trail.
 | Value | What it protects | Shape |
 |---|---|---|
 | `secret` | the trail itself — a precise trace of where somebody lives and rides | 8 chars of `23456789abcdefghjkmnpqrstuvwxyz` |
-| `claim_code` | the right to make the trail yours | **6 digits**, single use |
+| `claim_code` | the right to make the trail yours | 8 chars of the same alphabet, single use |
 | `TRAILS_PLUGIN_TOKEN` | every plugin↔worker call, both directions | 64 hex, wrangler secret + a `secret: true` site setting |
 
 The alphabet has no `0/O/1/I/l` because these are read aloud and typed from memory. It is
 **31** symbols, so a secret is 31^8 ≈ 8.5e11. (A comment in the source said 32 and 1.1e12
 until 2026-08-21. It was wrong.)
 
-### Why six digits is safe here
+### The code is never checked anonymously
 
-10^6 is small — an afternoon of guessing, if anything would tell you when you had guessed
-right. **Nothing does.** That is the whole design, and it is the only thing holding it up:
+The claim code was briefly six digits, on the theory that a rider would type it. **Nothing
+in this product accepts a typed claim code** — not the web, not the forum, not the app — so
+"easy to type" was buying nothing and 10^6 was paying for it. It is 8 characters again.
+
+The controls that went in alongside that experiment all stayed, because each was right
+independent of the length:
 
 - **`/s/c/<code>` looks nothing up.** Every code renders the same card. It used to render
   three — open, already claimed, no such code — which made it an oracle an attacker could
@@ -151,13 +155,12 @@ right. **Nothing does.** That is the whole design, and it is the only thing hold
   a previous bind failed, and now refuses unless it belongs to the caller. Without that, a
   guesser landing on a code in that window was handed a stranger's claim.
 
-**Do not add an endpoint anywhere that answers yes-or-no to a claim code.** That single rule
-is what six digits costs.
+**Do not add an endpoint anywhere that answers yes-or-no to a claim code.** Keep that rule
+and the code's length stops being load-bearing, which is the point.
 
-A UNIQUE collision is also a real event at 10^6 — roughly (outstanding codes / 1e6) per
-upload — so the insert re-mints up to five times rather than 500-ing with the file already
-in the forum's upload store. And the code is drawn by rejection sampling, not `byte % 10`:
-256 % 10 = 6, which would make 0–5 about 20% likelier than 6–9.
+The insert also re-mints on a UNIQUE collision rather than 500-ing. At 31^8 that will
+essentially never fire, but by then the file is already in the forum's upload store, so the
+cost of not handling it is an orphaned upload.
 
 Three rules follow from the secret being the whole access control:
 

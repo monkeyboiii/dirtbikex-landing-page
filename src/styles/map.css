@@ -1104,14 +1104,15 @@ body.is-map-page .site-header__inner {
   }
 }
 
-/* A secret shown once. It is monospaced and selectable because a visitor who cannot use
-   the clipboard still has to be able to write it down correctly. */
+/* A link to hand around. The whole value is the copy target — a URL is an awkward thing
+   to select by hand on a phone — and the button beside it shares rather than repeating
+   the same action twice on one row. */
 .wm-panel__copy {
   display: grid;
   grid-template-columns: 1fr auto;
   align-items: center;
   gap: 4px 10px;
-  margin-top: 10px;
+  margin-top: 14px;
 }
 .wm-panel__copy-label {
   grid-column: 1 / -1;
@@ -1121,27 +1122,63 @@ body.is-map-page .site-header__inner {
   color: var(--wm-text-dim);
 }
 .wm-panel__copy-value {
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: left;
   overflow-wrap: anywhere;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 0.82rem;
+  line-height: 1.45;
   color: var(--wm-text);
-  user-select: all;
+  cursor: pointer;
+}
+.wm-panel__copy-value:hover,
+.wm-panel__copy-value:focus-visible {
+  color: var(--wm-accent);
 }
 .wm-panel__copy-btn {
   flex: none;
-  padding: 5px 12px;
-  border-radius: var(--radius-pill, 999px);
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border-radius: 50%;
   border: 1px solid var(--wm-line-strong);
   background: transparent;
   color: var(--wm-text-dim);
   font: inherit;
-  font-size: 0.78rem;
   cursor: pointer;
+  transition: color 160ms ease, border-color 160ms ease;
 }
 .wm-panel__copy-btn:hover,
 .wm-panel__copy-btn:focus-visible {
   color: var(--wm-accent);
   border-color: var(--wm-accent);
+}
+.wm-panel__copy-btn svg {
+  width: 15px;
+  height: 15px;
+}
+
+/* The rider-shaped hole. Same geometry as a real byline so the eye reads it as the same
+   row, dashed and dimmed so it reads as unfilled rather than as somebody anonymous. */
+.wm-by--empty {
+  cursor: default;
+}
+.wm-by--empty .wm-by__avatar {
+  border-style: dashed;
+  border-color: var(--wm-line-strong);
+  background: transparent;
+  color: var(--wm-text-faint, var(--wm-text-dim));
+}
+.wm-by--empty .wm-by__name {
+  color: var(--wm-text-dim);
+}
+.wm-by--empty .wm-by__meta {
+  font-style: italic;
 }
 
 /* Only while a file is over the map. A drop target that is always visible is a target

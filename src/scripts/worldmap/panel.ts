@@ -658,16 +658,27 @@ export function createPanel(deps: PanelDeps) {
     chips.insertBefore(verifiedChip(), chips.children[1] ?? null);
   }
 
+  /** The name to lead with, or null when the romanised one is all there is. */
+  function preferLocal(track: TrackProps): string | null {
+    if (!track.name_local || track.name_local === track.name) return null;
+    return lang.startsWith('zh') || lang.startsWith('ja') || lang.startsWith('ko')
+      ? track.name_local
+      : null;
+  }
+
   function trackInfo(host: HTMLElement, track: TrackProps) {
     // "Track info" moved into the control line, so the body opens on the content
     // rather than on a label. Directions rides the address line it belongs to —
     // it acts on that address — instead of floating alone at the foot of the sheet.
     const meta = el('p', 'wm-panel__meta');
     const bits = [track.locality, track.country_code].filter(Boolean) as string[];
-    meta.textContent = bits.join(' · ');
-    if (track.name_local && track.name_local !== track.name) {
-      meta.textContent = [track.name_local, ...bits].join(' · ');
-    }
+    // Whichever name the title did NOT take goes here, so both are always on the sheet and
+    // neither is printed twice.
+    const titled = preferLocal(track) ?? track.name;
+    const other = titled === track.name ? track.name_local : track.name;
+    meta.textContent = [other && other !== titled ? other : null, ...bits]
+      .filter(Boolean)
+      .join(' · ');
     const go = directionsButton(track);
     if (go) {
       const row = el('div', 'wm-panel__metarow');
@@ -730,6 +741,111 @@ export function createPanel(deps: PanelDeps) {
     idBlock.append(el('span', 'wm-by__name', named ?? `@${username}`), el('span', 'wm-by__meta', meta));
     by.append(face, idBlock);
     return by;
+  }
+
+  /**
+   * Everything a trail says about itself between its title and its byline: the summary,
+   * the two big numbers, and the provenance chips.
+   *
+   * Shared, because the sheet a visitor sees the moment they finish uploading has to be
+   * the same object as the one everybody else sees afterwards. If it were built twice they
+   * would drift, and the upload sheet is exactly where a rider decides whether this thing
+   * is worth claiming — showing them a lesser version of their own ride is the wrong
+   * moment to economise.
+   */
+  function trailFacts(host: HTMLElement, trail: Trail) {
+    const st = trail.stats ?? null;
+      const summary = localized(trail.summary, lang);
+      if (summary) host.appendChild(el('p', 'wm-panel__meta', summary));
+
+      // style:'unit' also places the unit correctly in RTL, unlike a " km" suffix.
+      const unit = (v: number, u: string, extra: Intl.NumberFormatOptions = {}) =>
+        new Intl.NumberFormat(lang, { style: 'unit', unit: u, unitDisplay: 'short', ...extra }).format(v);
+
+      // Fixed order; a missing stat is dropped rather than dashed.
+      const slots: [string, string][] = [];
+      if (trail.distance_km) {
+        slots.push([
+          strings['map.trail.distance'] ?? 'Distance',
+          unit(trail.distance_km, 'kilometer', { maximumFractionDigits: trail.distance_km >= 100 ? 0 : 1 }),
+        ]);
+      }
+      const moving = st?.time?.moving_s ?? 0;
+      if (moving >= 60) {
+        const mins = Math.round(moving / 60);
+        // Two unit strings, not Intl.DurationFormat: that mixes Latin unit letters
+        // into non-Latin digits.
+        const value =
+          mins < 60
+            ? unit(mins, 'minute', { maximumFractionDigits: 0 })
+            : [
+                unit(Math.floor(mins / 60), 'hour', { maximumFractionDigits: 0 }),
+                mins % 60 ? unit(mins % 60, 'minute', { maximumFractionDigits: 0 }) : null,
+              ]
+                .filter(Boolean)
+                .join(' ');
+        slots.push([strings['map.trail.rideTime'] ?? 'Ride time', value]);
+      }
+      const climb = st?.ele?.ascent_m;
+      if (climb != null && climb >= 1) {
+        slots.push([
+          strings['map.trail.climb'] ?? 'Climb',
+          unit(climb, 'meter', { maximumFractionDigits: 0, signDisplay: 'always' }),
+        ]);
+      }
+      if (slots.length) {
+        const dl = el('dl', 'wm-stats');
+        for (const [label, value] of slots) {
+          const cell = el('div', 'wm-stat');
+          cell.append(el('dt', 'wm-stat__label', label), el('dd', 'wm-stat__value', value));
+          dl.appendChild(cell);
+        }
+        host.appendChild(dl);
+      }
+
+      const chips = el('div', 'wm-panel__chips');
+      // Provenance leads: it explains why the ride-time slot may be missing.
+      if (st?.time?.source === 'trkpt' && st.time.recorded_at) {
+        const when = new Date(st.time.recorded_at);
+        if (!Number.isNaN(when.valueOf())) {
+          chips.appendChild(
+            el(
+              'span',
+              'wm-chip',
+              (strings['map.trail.recordedOn'] ?? 'Recorded {date}').replace(
+                '{date}',
+                when.toLocaleDateString(lang, { year: 'numeric', month: 'short', day: 'numeric' }),
+              ),
+            ),
+          );
+        }
+      }
+      // There is deliberately no "Plotted route" chip for the other case. Both paths onto
+      // this map refuse a file containing <rtept> — the importer and the upload
+      // pre-flight independently — so no trail here IS a plotted route, and the chip was
+      // rendering that claim for every file that merely lacked timestamps. Uploaded
+      // trails lacked them by construction until the rich scan landed, so every single
+      // one was mislabelled. Absence of a "Recorded" chip already says what is unknown.
+      // `map.trail.plotted` is now unused; kept in the locale files rather than pruned
+      // across 21 of them for a string that may return with a real meaning.
+      if (st?.shape === 'loop') {
+        chips.appendChild(el('span', 'wm-chip', strings['map.trail.loop'] ?? 'Loop'));
+      } else if (st?.shape === 'point_to_point') {
+        chips.appendChild(el('span', 'wm-chip', strings['map.trail.pointToPoint'] ?? 'Point to point'));
+      }
+      if ((st?.segments ?? 1) > 1) {
+        chips.appendChild(
+          el(
+            'span',
+            'wm-chip',
+            (strings['map.trail.sections'] ?? '{n} sections').replace(
+              '{n}',
+              new Intl.NumberFormat(lang).format(st!.segments),
+            ),
+          ),
+        );
+      }
+      if (chips.childElementCount) host.appendChild(chips);
   }
 
   /**
@@ -858,47 +974,89 @@ export function createPanel(deps: PanelDeps) {
     },
 
     /**
-     * The link and the code are shown ONCE and never again \u2014 nothing a visitor can ask
-     * for will repeat them. So they are copyable, and the sheet says plainly that losing
-     * them loses the trail.
+     * The same sheet the trail will have once it is somebody's — with one section missing,
+     * and that missing section IS the call to action.
+     *
+     * A rider who has just uploaded is looking at a receipt or at their ride. Building it
+     * from `trailFacts`, exactly as the finished sheet does, makes it the second thing: the
+     * numbers, the chips and the shape are already theirs, and the only blank left is the
+     * face beside "uploaded by". That is a better argument for claiming than any sentence.
+     *
+     * The claim link is the ONE artifact. There is no code on this sheet: nothing in this
+     * product accepts a typed claim code — not the web, not the forum, not the app — so a
+     * copy button for one would put a string on the clipboard that cannot be pasted
+     * anywhere. The trail link is here too, but as something to share rather than to keep.
      */
-    showUploadDone(result: UploadResult) {
-      // Sticky: the link and the code are shown once and cannot be asked for again, so a
-      // stray tap on the map must not be able to take them away.
+    showUploadDone(result: UploadResult, trail: Trail) {
       open((host) => {
         kicker(strings['map.upload.kicker'] ?? 'Your trail');
-        titleRow(host, strings['map.upload.doneTitle'] ?? 'Your trail is on the map', null, strings);
-        host.appendChild(
-          el('p', 'wm-panel__meta', strings['map.upload.doneBody']
-            ?? 'Keep both of these. The link is the only way back to this trail, and the code is the only way to make it yours \u2014 we cannot show them to you again.'),
-        );
-        host.appendChild(
-          el('p', 'wm-panel__meta', (strings['map.upload.expires'] ?? 'It is deleted in {n} hours unless you claim it.')
-            .replace('{n}', String(result.expires_in_hours))),
-        );
+        titleRow(host, strings['map.upload.doneTitle'] ?? 'One more step to go public!', null, strings);
+        trailFacts(host, trail);
 
-        const copyRow = (label: string, value: string) => {
-          const row = el('div', 'wm-panel__copy');
-          row.appendChild(el('span', 'wm-panel__copy-label', label));
-          const field = el('code', 'wm-panel__copy-value', value);
-          const button = el('button', 'wm-panel__copy-btn') as HTMLButtonElement;
-          button.type = 'button';
-          button.textContent = strings['map.upload.copy'] ?? 'Copy';
-          button.addEventListener('click', () => {
-            void navigator.clipboard?.writeText(value).then(() => {
-              button.textContent = strings['map.upload.copied'] ?? 'Copied';
-            });
-          });
-          row.append(field, button);
-          host.appendChild(row);
-        };
-        copyRow(strings['map.upload.link'] ?? 'Trail link', `${location.origin}${result.map_url}`);
-        copyRow(strings['map.upload.code'] ?? 'Claim code', result.claim_code);
+        host.appendChild(el('h3', 'wm-panel__section', strings['map.trail.uploadedBy'] ?? 'Uploaded by'));
+
+        // Deliberately shaped like personBlock and deliberately not a link: it is the
+        // rider-shaped hole this trail has, drawn where their face will go.
+        const by = el('div', 'wm-by wm-by--empty');
+        by.appendChild(el('span', 'wm-by__avatar', '?'));
+        const idBlock = el('span', 'wm-by__id');
+        idBlock.append(
+          el('span', 'wm-by__name', strings['map.upload.you'] ?? 'You'),
+          el('span', 'wm-by__meta', strings['map.upload.yourNameHere'] ?? 'your name here'),
+        );
+        by.appendChild(idBlock);
+        host.appendChild(by);
 
         const claim = el('a', 'wm-panel__cta') as HTMLAnchorElement;
         claim.href = result.claim_url;
         claim.textContent = strings['map.upload.claim'] ?? 'Claim this trail';
         host.appendChild(claim);
+
+        host.appendChild(
+          el('p', 'wm-panel__meta', (strings['map.upload.expires'] ?? 'Unclaimed, it is deleted in {n} hours.')
+            .replace('{n}', String(result.expires_in_hours))),
+        );
+
+        // The other half: a link to show people, which is not the link that hands over
+        // ownership. Tap anywhere on it to copy; the button shares rather than duplicating
+        // the same action twice on one row.
+        const url = `${location.origin}${result.map_url}`;
+        const row = el('div', 'wm-panel__copy');
+        row.appendChild(el('span', 'wm-panel__copy-label', strings['map.upload.link'] ?? 'Trail link'));
+
+        const field = el('button', 'wm-panel__copy-value') as HTMLButtonElement;
+        field.type = 'button';
+        field.textContent = url;
+        const flash = (node: HTMLElement) => {
+          const was = node.textContent;
+          node.textContent = strings['map.upload.copied'] ?? 'Copied';
+          window.setTimeout(() => {
+            node.textContent = was;
+          }, 1400);
+        };
+        field.addEventListener('click', () => {
+          void navigator.clipboard?.writeText(url).then(() => flash(field));
+        });
+
+        const share = el('button', 'wm-panel__copy-btn wm-panel__copy-btn--share') as HTMLButtonElement;
+        share.type = 'button';
+        const shareLabel = strings['map.panel.share'] ?? 'Share';
+        share.title = shareLabel;
+        share.setAttribute('aria-label', shareLabel);
+        share.innerHTML = SHARE_SVG;
+        share.addEventListener('click', () => {
+          const data = { title: localized(trail.title, lang) ?? shareLabel, url };
+          // navigator.share is unreliable inside WeChat's webview, which is where most of
+          // these links are going, so the clipboard is the fallback and not the exception.
+          if (navigator.share) {
+            void navigator.share(data).catch(() => undefined);
+          } else {
+            void navigator.clipboard?.writeText(url).then(() => flash(field));
+          }
+        });
+
+        row.append(field, share);
+        host.appendChild(row);
       }, { sticky: true });
     },
 
@@ -947,7 +1105,6 @@ export function createPanel(deps: PanelDeps) {
      */
     showTrail(trail: Trail) {
       open((host) => {
-        const st = trail.stats ?? null;
         kicker(strings['map.trail.kicker'] ?? 'Rider trail');
         // /share/route/<id> reads the public map document, which a link-only trail is
         // deliberately not in. Sharing one means passing on its secret link, which the
@@ -960,97 +1117,7 @@ export function createPanel(deps: PanelDeps) {
           strings,
         );
 
-        const summary = localized(trail.summary, lang);
-        if (summary) host.appendChild(el('p', 'wm-panel__meta', summary));
-
-        // style:'unit' also places the unit correctly in RTL, unlike a " km" suffix.
-        const unit = (v: number, u: string, extra: Intl.NumberFormatOptions = {}) =>
-          new Intl.NumberFormat(lang, { style: 'unit', unit: u, unitDisplay: 'short', ...extra }).format(v);
-
-        // Fixed order; a missing stat is dropped rather than dashed.
-        const slots: [string, string][] = [];
-        if (trail.distance_km) {
-          slots.push([
-            strings['map.trail.distance'] ?? 'Distance',
-            unit(trail.distance_km, 'kilometer', { maximumFractionDigits: trail.distance_km >= 100 ? 0 : 1 }),
-          ]);
-        }
-        const moving = st?.time?.moving_s ?? 0;
-        if (moving >= 60) {
-          const mins = Math.round(moving / 60);
-          // Two unit strings, not Intl.DurationFormat: that mixes Latin unit letters
-          // into non-Latin digits.
-          const value =
-            mins < 60
-              ? unit(mins, 'minute', { maximumFractionDigits: 0 })
-              : [
-                  unit(Math.floor(mins / 60), 'hour', { maximumFractionDigits: 0 }),
-                  mins % 60 ? unit(mins % 60, 'minute', { maximumFractionDigits: 0 }) : null,
-                ]
-                  .filter(Boolean)
-                  .join(' ');
-          slots.push([strings['map.trail.rideTime'] ?? 'Ride time', value]);
-        }
-        const climb = st?.ele?.ascent_m;
-        if (climb != null && climb >= 1) {
-          slots.push([
-            strings['map.trail.climb'] ?? 'Climb',
-            unit(climb, 'meter', { maximumFractionDigits: 0, signDisplay: 'always' }),
-          ]);
-        }
-        if (slots.length) {
-          const dl = el('dl', 'wm-stats');
-          for (const [label, value] of slots) {
-            const cell = el('div', 'wm-stat');
-            cell.append(el('dt', 'wm-stat__label', label), el('dd', 'wm-stat__value', value));
-            dl.appendChild(cell);
-          }
-          host.appendChild(dl);
-        }
-
-        const chips = el('div', 'wm-panel__chips');
-        // Provenance leads: it explains why the ride-time slot may be missing.
-        if (st?.time?.source === 'trkpt' && st.time.recorded_at) {
-          const when = new Date(st.time.recorded_at);
-          if (!Number.isNaN(when.valueOf())) {
-            chips.appendChild(
-              el(
-                'span',
-                'wm-chip',
-                (strings['map.trail.recordedOn'] ?? 'Recorded {date}').replace(
-                  '{date}',
-                  when.toLocaleDateString(lang, { year: 'numeric', month: 'short', day: 'numeric' }),
-                ),
-              ),
-            );
-          }
-        }
-        // There is deliberately no "Plotted route" chip for the other case. Both paths onto
-        // this map refuse a file containing <rtept> — the importer and the upload
-        // pre-flight independently — so no trail here IS a plotted route, and the chip was
-        // rendering that claim for every file that merely lacked timestamps. Uploaded
-        // trails lacked them by construction until the rich scan landed, so every single
-        // one was mislabelled. Absence of a "Recorded" chip already says what is unknown.
-        // `map.trail.plotted` is now unused; kept in the locale files rather than pruned
-        // across 21 of them for a string that may return with a real meaning.
-        if (st?.shape === 'loop') {
-          chips.appendChild(el('span', 'wm-chip', strings['map.trail.loop'] ?? 'Loop'));
-        } else if (st?.shape === 'point_to_point') {
-          chips.appendChild(el('span', 'wm-chip', strings['map.trail.pointToPoint'] ?? 'Point to point'));
-        }
-        if ((st?.segments ?? 1) > 1) {
-          chips.appendChild(
-            el(
-              'span',
-              'wm-chip',
-              (strings['map.trail.sections'] ?? '{n} sections').replace(
-                '{n}',
-                new Intl.NumberFormat(lang).format(st!.segments),
-              ),
-            ),
-          );
-        }
-        if (chips.childElementCount) host.appendChild(chips);
+        trailFacts(host, trail);
 
         // An uploaded trail has no author until somebody claims it. Rendering an empty
         // face there would invent a person; rendering the service account would name the
@@ -1119,7 +1186,16 @@ export function createPanel(deps: PanelDeps) {
         // A shop rides the same catalog row as a track, so the share kind follows
         // the row's own kind rather than the sheet it happens to be rendered in.
         kicker(strings['map.panel.trackInfo'] ?? 'Track info');
-        titleRow(host, track.name, { kind: track.kind === 'shop' ? 'shop' : 'track', key: track.slug }, strings);
+        // `name` is the romanised form the catalog is keyed on; `name_local` is what the
+        // place is actually called. In a Chinese locale the transliteration is nobody's
+        // name for anything — "Tong Lu 73 Hao Yue Ye Zhu Ti Le Yuan" is a slug read aloud —
+        // so the local name leads and the romanisation falls back to the meta line.
+        titleRow(
+          host,
+          preferLocal(track) ?? track.name,
+          { kind: track.kind === 'shop' ? 'shop' : 'track', key: track.slug },
+          strings,
+        );
         trackInfo(host, track);
         void trackOwner(host, track);
       });
