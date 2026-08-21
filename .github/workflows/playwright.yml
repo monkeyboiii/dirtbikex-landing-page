@@ -15,6 +15,10 @@ jobs:
         node-version: lts/*
     - name: Install dependencies
       run: npm install -g pnpm && pnpm install
+    # Before the browser install: a pure-logic failure should not cost a 300 MB download.
+    # node --test with native type stripping — no loader, no dev dependency.
+    - name: Unit tests
+      run: pnpm test:unit
     - name: Install Playwright Browsers
       run: pnpm exec playwright install --with-deps
     - name: Run Playwright tests

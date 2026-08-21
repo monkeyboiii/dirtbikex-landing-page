@@ -13,6 +13,11 @@ import { defineConfig, devices } from '@playwright/test';
  */
 export default defineConfig({
   testDir: './tests',
+  /* Browser specs only. tests/unit/*.test.ts is pure logic run by `pnpm test:unit` under
+     node --test; Playwright's default testMatch would otherwise collect it as a browser
+     spec, run it three times, and — with PLAYWRIGHT_BASE_URL unset — boot `astro dev` to
+     do it. See docs/TRAIL_OVERLAP_MODULE.md. */
+  testMatch: '**/*.spec.ts',
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
