@@ -41,7 +41,8 @@ The chain in `buildOgImage`, strictly in order:
 1. an event's hero image
 2. **the entity's own picture** — a track's forum write-up photo; a challenge stop borrows
    its venue's; routes and shops read an optional `thumb` from their map document, which is
-   R2, so giving a route a photo is a push and not a deploy
+   R2, so giving a route a photo is a push and not a deploy — though **no importer emits
+   `thumb` today**, so in practice a route always falls through to its kind card
 3. an avatar at 288 — invite inviter, profile, event organiser
 4. **the per-kind card** — `/share/card-{track,route,shop,challenge,rider}.png`
 5. the brand mark, and only for a page that is about nothing in particular: an expired

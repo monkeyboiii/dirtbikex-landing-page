@@ -95,6 +95,16 @@ title; and a slugified id. `import-gpx-trail.mjs` is the same maths when there i
 attachment is in a public category, and pings the author first — a trace is a precise
 location, and promoting one is a consent decision, not a data decision.
 
+Two rules the importer enforces and any upload path inherits:
+
+- **A rider may only put their own ride on the map, from their own post.** The post is the
+  author's, so the trail is theirs; the operator running the script is not the author.
+- **Exactly one `.gpx` per post**, or it refuses. Ambiguity is not guessed at — "split them
+  across posts, or import each one separately".
+
+An ASCII slug collapses a CJK title to nothing, which is why the post id is always appended:
+a fully-Chinese title yields `trail-<postId>`.
+
 ## The parser is hand-rolled, and not for fun
 
 `gpx.ts` uses neither `DOMParser` nor a regex. `DOMParser` retains roughly twelve times the
@@ -113,6 +123,16 @@ that exists only bounds memory.
 scan loop made it O(points × filesize): a single-segment 20,000-point ride took 5.4 s on the
 main thread, and a 10 MB file took minutes.
 
+## There are two GPX parsers, and their numbers disagree
+
+`scripts/lib/gpx-trail.mjs` parses with regexes, in Node, at import time. `gpx.ts` parses
+with the hand-rolled scanner, in the browser, at tap time. They read the same file and do not
+have to agree, and nothing checks that they do.
+
+It has not bitten yet because the importer's numbers go in the document (distance, point
+count, bbox) and the browser's only feed the drawn line. **Anything that validates an upload
+has to pick one of them and say so** — see [TRAIL_UPLOAD_PLAN](../../../../TRAIL_UPLOAD_PLAN.md).
+
 ## Route points poison a file
 
 `<rtept>` is a plotted route, not a ridden line. A file containing them is **rejected
@@ -128,7 +148,13 @@ While a trail is traced, the trail layers exclude it — blip, glow and label. A
 top of the line it stands for hides the shape the visitor tapped to see.
 
 It is tied to the geometry **landing**, not to the tap, so a failed or aborted fetch leaves
-the pin where it was. Three fields have to move together: `selected`, `selectedTrail` and
+the pin where it was. The consequence to know: **while a trace is drawn, its line is the only
+clickable surface for that trail.** Hit-test order is explicit for the same reason — a blip
+beats the line it belongs to, and a small pin beats a large one drawn over it, so nothing
+becomes unselectable by being underneath.
+
+One trail is drawn at a time and one download is ever in flight; opening another aborts the
+previous fetch. Three fields have to move together: `selected`, `selectedTrail` and
 `tracedTrail` — the last is not the same as the second, and any track or episode selection
 must run `clearTrail()` first, or a late-arriving download flies the camera away from what
 the visitor is reading.
@@ -136,13 +162,48 @@ the visitor is reading.
 ## Traps
 
 - **`gpx-trail.mjs` and the two importers must not drift** — `push-map-data.mjs` validates
-  one shape.
+  one shape, and even the key order is fixed.
+- **`push-map-data` validates far less than it looks like it does.** For trails it checks the
+  id, the author, `stats.centre`, uniqueness and the two host rules — and nothing else. Not
+  `distance_km`, not `title`, not `bbox`/`points`/`segments`, and not that the `gpx_url`
+  basename is a 40-hex sha1. Any host-correct URL passes.
+- **A local-file import produces an entry that cannot be published.** `--gpx` only sets
+  `gpx_url` when the argument is already an http(s) URL; otherwise the key is omitted and the
+  push bails. Upload to the forum first.
+- **`--env preview` means the *staging forum*** (`forum.dirtbikechina.com`) and the `preview/`
+  R2 prefix. It is not the wrangler environment name, and the two are easy to conflate aloud.
+- **A missing trails document never 404s.** The worker falls back to the empty seed and only
+  503s when both R2 and the assets fail — so a bad `MAP_DATA_PREFIX` or an unpushed
+  environment looks exactly like "there are no trails yet".
 - **The `--check` flag fetches the live URL, not the bucket**, so a fresh push can still
   report DRIFTED from edge cache for minutes. Read the R2 object to settle it.
 - **A committed fixture change does nothing until pushed.** R2 wins over the bundle.
+- **A failed GPX fetch is cached as an empty trace for the rest of the page load.** Fixing
+  the upload on the forum does not fix an open tab — reload it.
+- **`?layers=` replaces the stored set whole**, so a share link naming `tracks,trails` turns
+  every other layer off.
+- **`loadTrails()` is memoised as a promise, not a result** — four concurrent callers would
+  otherwise each push a full copy of every trail into the shared source.
 - **`PROD_INSTALL_DEBT.md` never existed.** It was cited five times across the scripts, the
   guards and two prod-upgrade guides. Every citation was rewritten on 2026-08-21 to state the
   rule it meant, or to point here. Do not reintroduce it.
+
+## Written but never read
+
+Flagged rather than removed — each is someone's unfinished intent, not litter:
+
+- **`Trail.summary`** is rendered by the trail sheet and **`Trail.thumb`** is read as the
+  route card's og:image, but **no importer emits either**. The share card's "routes and shops
+  read an optional `thumb`" is true of the reader and currently unreachable in practice.
+- **`Trail.lines`** is documented as legacy baked geometry; nothing reads it. A document still
+  carrying it would have it silently ignored.
+- **The boot-time trails prefetch** is started, passed into the `WorldMap` constructor and
+  stored — and never referenced again. `loadTrails()` fetches independently.
+- **`ascent_m: null` is ambiguous** despite a comment claiming it keeps "flat" distinguishable
+  from "unknown": the noise gate and the no-gain case both return `null`.
+- **`personBlock` does not handle an absolute avatar URL** while the worker's `avatarURLFor`
+  does. Today `push-map-data` guarantees a root-relative path, so it holds by validation
+  rather than by code.
 
 ## Operator
 
