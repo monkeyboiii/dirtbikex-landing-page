@@ -1,7 +1,7 @@
 # LINEAGE_MODULE — the rider résumé on the web
 
 The public read surface for the lineage graph (design + phases:
-`LINEAGE_PLAN.md` at the umbrella root). Everything here is READ: the worker has
+the design record folded into this file 2026-08-21). Everything here is READ: the worker has
 no visitor session, so confirming, declining and claiming all happen in the
 forum, which is where the session lives.
 
@@ -81,7 +81,7 @@ Notes:
 `worker/_lib/lineageLookup.ts` fetches the plugin's anonymous endpoints
 (`/dirtbikex/lineage/…`) with a 5-minute edge cache. No API key, no CORS, no
 Data Explorer query and therefore no per-environment operator step — the same
-trade MAP_LAYERS_PLAN §3b settled for trails. A missing rider, a retracted one
+trade TRAILS_MODULE.md settled for trails. A missing rider, a retracted one
 and a profile-hidden one are indistinguishable (uniform 404 from the plugin), so
 the page cannot be used to test whether a named person is in the graph.
 
@@ -91,7 +91,7 @@ the page cannot be used to test whether a named person is in the graph.
   complete document with inline CSS; avatars come from the forum host, which the
   no-external-assets allowlist already covers. The lineage route is in that
   spec's ROUTES so the China invariant extends to it.
-- **No graph explorer.** LINEAGE_INIT § the timeline argues the story reads
+- **No graph explorer.** The timeline argues the story reads
   better than a node graph on a phone, and a layout engine is a dependency this
   page does not need. The explorer is a v2 question.
 - **No names it was not given.** An unclaimed rider renders as "Unclaimed rider"
@@ -112,7 +112,7 @@ extra request: `dbx_lineage_counts` already rides the `/u/<name>.json` payload
 `lookupUser` fetches. It disappears on its own when the plugin setting is off.
 
 Under it, a "See the full lineage" CTA to `/s/l/<username>` — the card states
-the numbers, the résumé is where they are accounted for (LINEAGE_PLAN.md L7).
+the numbers, the résumé is where they are accounted for.
 Shown only when there is something to open.
 
 ## Verifying the asset invariant
@@ -147,11 +147,84 @@ Two touches, both small on purpose:
   on it. It is drawn with **DOM markers, not style layers** — a `Marker`
   survives `setStyle`, so this layer never joins the hard-coded `addLayers()`
   block, the hit-test list or the click-dispatch chain that
-  MAP_LAYERS_PLAN §7 wants refactored before another style layer lands. Each
+  MAP_MODULE.md wants refactored before another style layer lands. Each
   marker is a plain anchor to that rider's résumé: no sheet, nothing to keep in
   sync, nothing to clear when the layer is switched off.
 
 Positions are coarsened to ~1 km on the server and only for riders the operator
-approved (or who cleared the confirmed-edge bar) — see LINEAGE_PLAN L8. The
+approved (or who cleared the confirmed-edge bar). The
 worker proxy returns an empty list rather than an error when the layer is off,
 which the island treats the same as "nobody is on the map".
+
+---
+
+# Design record
+
+Folded 2026-08-21 from `LINEAGE_PLAN.md` (293 lines) and `LINEAGE_INIT.md` (989), both
+untracked at the umbrella root. Kept here because the decisions are still load-bearing and
+the negative space is what stops them being re-litigated. The exploration prose is gone; the
+calls survive.
+
+## The calls, and what each one refused
+
+- **Do not fork or extend `discourse-follow`.** Lineage is its own model; follow stays
+  byte-identical. No auto-follow on a confirmed edge, and nothing in lineage may read follow
+  edges or derive seeds from them — so retiring follow later stays a clean removal.
+- **The graph lives in plugin-owned Postgres tables**, inside the existing
+  `discourse-dirtbikex-event-filters` plugin as a second top-level block. No D1, no R2 graph
+  document, no Data Explorer query for reads (a per-environment operator step, already
+  rejected once for trails), no new plugin, no new container pin.
+- **Unclaimed riders are plugin rows with `user_id NULL`** — never Discourse staged users, no
+  shadow accounts, no email stored for someone who has not signed up.
+- **Consent defaults closed.** `name_public=false`; a placeholder renders unless the operator
+  flags the person as consented. No name is rendered for an unclaimed node anywhere public —
+  the claim preview is the single exception, and only to whoever holds the token.
+- **Mutual confirmation runs on notification types plus a plugin endpoint**, not Reviewables
+  and not a PM courier. Reviewables are kept for disputes, token-less claim requests and
+  abuse flags — never for the ordinary "X says you taught them".
+- **The landing page is the primary public read surface; every write stays in the forum.**
+  Every renderer consumes the same two query shapes, so a new surface is a renderer, not a
+  new query.
+- **Riders reach the map only gated**: claimed, located, and either operator-approved or over
+  the confirmed-edge bar, with coordinates coarsened server-side. No people edges on the map.
+- **Provenance is published instead of a verified/fake binary.** Every edge shows who
+  asserted it and whether the counterparty agreed. No verification badge, no trust score, and
+  a reported edge renders with ○ rather than being withheld.
+- **Revelation is the reward** — contributing makes more of the network visible. No XP, no
+  badges, no leaderboards, no streaks. Rejected outright, not postponed.
+- **A neutral default label.** 师父/徒弟 is an optional elevation both parties opt into, a
+  separate `honorific` pair on the edge, never a relationship type or a required field.
+- **Approximate years with an explicit precision flag.** No mandatory dates, no session
+  counts, no evidence requirement to record an edge.
+- **Seed operator-first** — seed, claim, confirm, expand — stamping each seeded edge with its
+  source and leaving it unconfirmed. Seed names live in a private repo cloned on dbc only:
+  never in `Misc/`, never in the landing repo, never in the plugin repo, never in the CRM.
+- **No coupling to video-master at all.** No `video:` refs, no manifest emits, no status
+  field; `evidence_url` is a generic forum URL.
+
+## What the plans said that is no longer true
+
+- **The share URL is not `/s/l/<username>`.** Map-adjacent kinds moved to `/share/` — see
+  [SHARE_MODULE](SHARE_MODULE.md) for why an un-evictable iOS cache forced a different prefix.
+- **Notification 852 is `lineage_declined`, not `lineage_disputed`.** 850 and 851 are as
+  planned.
+- **`map_visible` is tri-state, not `bool default false`** — NULL means nobody has decided,
+  which is not the same as a "no".
+- **"Uniform 404" no longer covers a user with no rider node.**
+- **There is a profile tab**, contradicting §4.1's "no profile tab in v1".
+- **The worker's riders endpoint is `/api/lineage/riders.json`**, not `geo.json`.
+- **The `run_worker_first` entries are done**, not pending, and present in both blocks.
+- **The follow-keys time bomb is fixed in iOS source**, not pending.
+- **Every version pin in the plan's status header is stale.**
+- The five-state provenance table, the glyph legend's last row, the club/shop/event object
+  types, the five-view product framing and the three-screen funnel all describe scope that
+  was cut. **Every rider name in `LINEAGE_INIT.md` was an invented illustration**, not seed
+  data — do not quote its counts as if they were measurements.
+
+## Deferred
+
+Graph explorer and ego graphs; skills filter; degrees of separation; scene genealogy; mentor
+discovery; track→track influence edges; club/shop/event node types; "community-supported" as
+a provenance state; per-facet legacy statistics; an `attestations` table; materialised
+`dirtbikex_rider_stats` counters (build them event-driven only past ~2,000 nodes or p95 >
+50 ms); the `lineage-feed` topic filter; a CRM people table; abusive-confirmation heuristics.

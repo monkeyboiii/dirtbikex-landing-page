@@ -11,7 +11,7 @@
 // be the forum's own uploads CDN (uploads-cdn.<apex>), which serves ACAO * and is
 // inside the site's allowlist; never the /uploads/short-url/ form, which 302s to the
 // raw bucket host. Writes fixtures/map/<env>/trails.json; publish with
-// push-map-data.mjs --doc trails. See MAP_LAYERS_PLAN.md §3b.
+// push-map-data.mjs --doc trails. See docs/TRAILS_MODULE.md.
 
 import { readFileSync } from 'node:fs';
 import { readTrailStats, buildTrailEntry } from './lib/gpx-trail.mjs';

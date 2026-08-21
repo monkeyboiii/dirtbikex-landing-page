@@ -8,7 +8,7 @@
 //
 // The repo file is canonical; R2 is only the live projection. Never hand-edit the
 // bucket — edit the source, commit, then push. Rollback = re-push the previous
-// commit's file. See CONCRETE_MAP_PLAN.md §5.4 and PROD_INSTALL_DEBT.md §3.
+// commit's file. See docs/MAP_MODULE.md "R2 wins over the bundle" and docs/TRAILS_MODULE.md.
 //
 // Source per document (scripts/lib/map-source.mjs):
 //   trails, shops → fixtures/map/<env>/<doc>.json   environment data, never in the bundle

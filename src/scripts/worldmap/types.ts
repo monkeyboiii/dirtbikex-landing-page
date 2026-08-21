@@ -19,7 +19,7 @@ export const LAYER_DEFAULTS: Record<LayerId, boolean> = {
   riders: false,
 };
 
-/** Properties baked into public/map/tracks.json — see CONCRETE_MAP_PLAN.md §6.1. */
+/** Properties baked into public/map/tracks.json — see docs/MAP_MODULE.md. */
 export interface TrackProps {
   slug: string;
   /** Entity kind; absent means `track`. Render budgets are applied per kind. */
@@ -38,7 +38,7 @@ export interface TrackProps {
   lat?: number;
 }
 
-/** One activity on the journey — episode or side entry. CONCRETE_MAP_PLAN.md §6.2. */
+/** One activity on the journey — episode or side entry. See docs/MAP_MODULE.md. */
 export interface SeriesEntry {
   main: number;
   sub: number;
@@ -72,7 +72,7 @@ export interface SeriesDoc {
   entries: SeriesEntry[];
 }
 
-/** A GPX ride promoted from the forum — MAP_LAYERS_PLAN.md §3b.
+/** A GPX ride promoted from the forum — docs/TRAILS_MODULE.md.
  *  The author is stored as the numeric forum id (usernames can be renamed);
  *  `author_username` is the cached resolution the profile link uses. */
 export interface TrailStats {

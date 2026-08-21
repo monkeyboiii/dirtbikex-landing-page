@@ -6,8 +6,8 @@ import type { Lang } from './types';
 import type { LineageClaimPreview, LineageEdge, LineageResume } from './lineageLookup';
 
 /**
- * The rider résumé: a document, not a card. LINEAGE_INIT § "Apprenticeship
- * timeline" argues the story beats the tree on a phone, and LINEAGE_PLAN L19
+ * The rider résumé: a document, not a card. docs/LINEAGE_MODULE.md § "Apprenticeship
+ * timeline" argues the story beats the tree on a phone, and the same doc
  * makes this the first surface — so it is server-rendered with zero client JS,
  * no external assets, and readable by anyone the link reaches.
  */

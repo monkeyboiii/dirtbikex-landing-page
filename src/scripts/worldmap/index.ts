@@ -90,7 +90,7 @@ function renderBudget(map: MapLibreMap): number {
 
 const EMPTY: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: [] };
 
-/** A row in the operator-published shops doc — see MAP_LAYERS_PLAN.md §4. */
+/** A row in the operator-published shops doc — see docs/MAP_MODULE.md. */
 interface ShopDoc {
   slug: string;
   name: string;

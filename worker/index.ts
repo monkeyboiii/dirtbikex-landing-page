@@ -916,7 +916,7 @@ export default {
       const param = decodeURIComponent(slw[1]!);
       return handleLineagePage(request, env, shareLineageRef(param), '/share/lineage/', param);
     }
-    // Rider lineage — the public read surface (LINEAGE_PLAN.md §4.2). Reads are
+    // Rider lineage — the public read surface (docs/LINEAGE_MODULE.md). Reads are
     // anonymous plugin endpoints, so no key and no CORS is involved; every write
     // stays in the forum, which is the only place a visitor has a session.
     const lineagePage = url.pathname.match(/^\/lineage\/(@?[A-Za-z0-9._\-]+)\/?$/);

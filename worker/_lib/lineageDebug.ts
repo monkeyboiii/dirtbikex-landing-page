@@ -4,7 +4,7 @@ import type { LineageClaimPreview, LineageEdge, LineageResume } from './lineageL
 
 /**
  * `?debug=true` — the operator's E2E surface for the lineage pages
- * (LINEAGE_PLAN.md §4.4). It answers the three questions a verification run
+ * (docs/LINEAGE_MODULE.md). It answers the three questions a verification run
  * actually asks: which upstream call was made and what did it say, do the
  * counters agree with the rows underneath them, and which vocabulary codes
  * still have no label in this locale.

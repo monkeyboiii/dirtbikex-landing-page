@@ -1,7 +1,7 @@
 // Where each map document's canonical copy lives, and which forum it belongs to.
 //
 // The split exists because the repo must contain nothing environment-specific
-// (PROD_INSTALL_DEBT.md §3): `public/map/*.seed.json` is shipped inside the bundle
+// (docs/TRAILS_MODULE.md): `public/map/*.seed.json` is shipped inside the bundle
 // and is served to BOTH environments whenever R2 is unreachable, so anything in it
 // that names one environment becomes a lie told to the other one. Trails and shops
 // are environment data — the trail's GPX lives on that forum's upload CDN and the
