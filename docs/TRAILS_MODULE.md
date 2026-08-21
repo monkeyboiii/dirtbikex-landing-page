@@ -161,6 +161,12 @@ the visitor is reading.
 
 ## Traps
 
+- **The `/original/1X/<sha1>.gpx` shape breaks above upload id 1000, and both the importer
+  and the validator reconstruct it.** Discourse computes `depth = ceil(log16(id/1000))`, so
+  past id 1000 an upload lands at `original/2X/<c>/<sha1>.gpx`. `import-forum-trail.mjs` would
+  then build a URL that 404s, and `push-map-data.mjs` would reject a legitimate entry, because
+  both derive the path from the sha1 instead of reading it. **Staging is at upload id 138 —
+  862 to go.** The fix is to keep the `url` the upload API returns and swap only the host.
 - **`gpx-trail.mjs` and the two importers must not drift** — `push-map-data.mjs` validates
   one shape, and even the key order is fixed.
 - **`push-map-data` validates far less than it looks like it does.** For trails it checks the
