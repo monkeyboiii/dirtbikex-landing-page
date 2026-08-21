@@ -18,6 +18,8 @@ import type { TrailStats } from './types';
 /** Above the scanner's own ceiling, so the pre-flight measures the points as scanned
     rather than a decimated copy of them. */
 const NO_DECIMATION = 1_000_000;
+/** Matches gpx.ts's SCAN_LIMIT. The rich pass walks the same tags and must stop with it. */
+const RICH_LIMIT = 80_000;
 
 export type UploadReason =
   | 'too_large'
@@ -57,6 +59,107 @@ function metres(a: [number, number], b: [number, number]): number {
 const round = (n: number, places: number) => Number(n.toFixed(places));
 
 /**
+ * A second, bounded pass that reads what the coordinate scanner deliberately does not:
+ * the `<ele>` and `<time>` children of each trackpoint.
+ *
+ * gpx.ts reads attributes off the `<trkpt ...>` open tag and never descends into it, which
+ * is right for drawing a line and wrong for describing a ride. Without these an uploaded
+ * trail has no climb and no date — and, worse, the sheet labelled every upload a "Plotted
+ * route", which is the one thing the pre-flight exists to reject.
+ *
+ * Same discipline as the scanner it complements: indexOf only, no regex that can
+ * backtrack, terminators hoisted out of the loop, and a hard point ceiling.
+ */
+interface Run {
+  ele: (number | null)[];
+  at: (number | null)[];
+}
+
+function richScan(text: string): Run[] {
+  const OPEN = '<trkpt';
+  const SEG_END = '</trkseg>';
+  const runs: Run[] = [];
+  let current: Run | null = null;
+  let at = 0;
+  let points = 0;
+
+  const child = (body: string, tag: string): string | null => {
+    const open = body.indexOf(`<${tag}`);
+    if (open === -1) return null;
+    const gt = body.indexOf('>', open);
+    if (gt === -1) return null;
+    const close = body.indexOf(`</${tag}>`, gt);
+    return close === -1 ? null : body.slice(gt + 1, close);
+  };
+
+  while (points < RICH_LIMIT) {
+    const start = text.indexOf(OPEN, at);
+    if (start === -1) break;
+
+    // A </trkseg> between the previous point and this one is a pen lift, not a pause, so
+    // the runs stay separate and nothing is measured across the gap.
+    const segEnd = text.indexOf(SEG_END, at);
+    if (!current || (segEnd !== -1 && segEnd < start)) {
+      current = { ele: [], at: [] };
+      runs.push(current);
+    }
+
+    const gt = text.indexOf('>', start);
+    if (gt === -1) break;
+    // A self-closing trackpoint has no children at all, which is legal and common.
+    const body = text.charCodeAt(gt - 1) === 47 ? '' : (() => {
+      const close = text.indexOf('</trkpt>', gt);
+      return close === -1 ? '' : text.slice(gt + 1, close);
+    })();
+
+    const eleText = body ? child(body, 'ele') : null;
+    const timeText = body ? child(body, 'time') : null;
+    const ele = eleText === null ? NaN : Number(eleText);
+    const stamp = timeText === null ? NaN : Date.parse(timeText);
+    current.ele.push(Number.isFinite(ele) ? ele : null);
+    current.at.push(Number.isFinite(stamp) ? stamp : null);
+    points++;
+    at = gt + 1;
+  }
+  return runs;
+}
+
+/**
+ * Consumer GPS wanders vertically at rest, so a naive sum invents climb nobody rode.
+ * Same rule and the same constants as scripts/lib/gpx-trail.mjs, deliberately: an uploaded
+ * trail and an imported one must not disagree about the same file.
+ */
+function ascentOf(runs: Run[]): number | null {
+  let lo = Infinity;
+  let hi = -Infinity;
+  for (const run of runs) {
+    for (const ele of run.ele) {
+      if (ele == null) continue;
+      if (ele < lo) lo = ele;
+      if (ele > hi) hi = ele;
+    }
+  }
+  // Keeps "flat" distinguishable from "unknown": below the noise floor we say nothing.
+  if (!Number.isFinite(lo) || hi - lo < 20) return null;
+  let total = 0;
+  for (const run of runs) {
+    let anchor: number | null = null;
+    for (const ele of run.ele) {
+      if (ele == null) continue;
+      if (anchor == null) {
+        anchor = ele;
+        continue;
+      }
+      if (ele - anchor >= 3) {
+        total += ele - anchor;
+        anchor = ele;
+      } else if (anchor - ele >= 3) anchor = ele;
+    }
+  }
+  return total > 0 ? Math.round(total) : null;
+}
+
+/**
  * Parses and measures the file, or names the reason it cannot be shown. Returns the same
  * stats shape `scripts/lib/gpx-trail.mjs` emits, so a visitor upload and an operator import
  * produce one entry format — with two fields it cannot fill: the scanner reads coordinates
@@ -74,11 +177,23 @@ export function preflight(file: File, text: string): Preflight | UploadReason {
   if (!segments.length) return 'no_track';
 
   const flat = segments.flat();
+  // A loop, not Math.min(...flat) — the scanner allows up to 80,000 points and spreading
+  // that many arguments overflows the call stack in every engine.
+  let west = Infinity;
+  let south = Infinity;
+  let east = -Infinity;
+  let north = -Infinity;
+  for (const [lng, lat] of flat) {
+    if (lng < west) west = lng;
+    if (lng > east) east = lng;
+    if (lat < south) south = lat;
+    if (lat > north) north = lat;
+  }
   const bbox: [number, number, number, number] = [
-    round(Math.min(...flat.map((c) => c[0])), 5),
-    round(Math.min(...flat.map((c) => c[1])), 5),
-    round(Math.max(...flat.map((c) => c[0])), 5),
-    round(Math.max(...flat.map((c) => c[1])), 5),
+    round(west, 5),
+    round(south, 5),
+    round(east, 5),
+    round(north, 5),
   ];
   // Every point identical: gpx.studio's third failure, and a dead pin on our map.
   if (bbox[0] === bbox[2] && bbox[1] === bbox[3]) return 'empty';
@@ -96,6 +211,33 @@ export function preflight(file: File, text: string): Preflight | UploadReason {
         ? ('loop' as const)
         : null;
 
+  // What the coordinate scanner threw away. Without it the sheet has no climb, no date,
+  // and — because "no recorded time" is what it renders as — labels a genuine ride a
+  // "Plotted route", which is precisely what the pre-flight above refuses to accept.
+  const runs = richScan(text);
+  const stamps: number[] = [];
+  for (const run of runs) for (const t of run.at) if (t != null) stamps.push(t);
+  const first = stamps.length ? Math.min(stamps[0]!, stamps[stamps.length - 1]!) : null;
+  const last = stamps.length ? Math.max(stamps[0]!, stamps[stamps.length - 1]!) : null;
+  // Falls back to <metadata><time>, which many recorders write even when the points do not.
+  const metaTime = ((): number | null => {
+    const open = text.indexOf('<metadata');
+    if (open === -1) return null;
+    const close = text.indexOf('</metadata>', open);
+    if (close === -1) return null;
+    const block = text.slice(open, close);
+    const t = block.indexOf('<time');
+    if (t === -1) return null;
+    const gt = block.indexOf('>', t);
+    const end = block.indexOf('</time>', gt);
+    if (gt === -1 || end === -1) return null;
+    const parsed = Date.parse(block.slice(gt + 1, end));
+    return Number.isFinite(parsed) ? parsed : null;
+  })();
+
+  const recordedAt = first ?? metaTime;
+  const ascent = ascentOf(runs);
+
   return {
     // The filename is the only title a visitor gives us, and it is usually the date the
     // recorder wrote. Better than "ride.gpx" as a heading, and they can rename on claim.
@@ -107,31 +249,69 @@ export function preflight(file: File, text: string): Preflight | UploadReason {
       bbox,
       centre: [round((bbox[0] + bbox[2]) / 2, 5), round((bbox[1] + bbox[3]) / 2, 5)],
       shape,
-      ele: null,
-      time: null,
+      ele: { ascent_m: ascent },
+      time: {
+        recorded_at: recordedAt == null ? null : new Date(recordedAt).toISOString(),
+        // Moving time needs a per-point speed gate; the importer does it, this does not.
+        // Null is honest — the sheet only renders it when it is there.
+        moving_s: null,
+        elapsed_s: first != null && last != null ? Math.round((last - first) / 1000) : null,
+        source: first != null ? 'trkpt' : metaTime != null ? 'metadata' : null,
+      },
       gpx_bytes: file.size,
     },
   };
 }
 
-/** POSTs the file and the measurements the worker will trust. */
-export async function uploadTrail(file: File, pre: Preflight): Promise<UploadResult | UploadReason> {
+export type UploadPhase = 'sending' | 'finishing';
+
+/**
+ * POSTs the file and the measurements the worker will trust.
+ *
+ * XMLHttpRequest rather than fetch, for one reason: `xhr.upload.onprogress` is the only
+ * way a browser will tell you how many bytes of a request body have actually left. fetch
+ * cannot report request progress at all — streaming request bodies need `duplex: 'half'`,
+ * which is Chromium-only and does not apply to a FormData body anyway. A progress bar that
+ * cannot see the upload is a spinner wearing a costume, so this uses the API that can.
+ *
+ * Once the last byte is sent the bar has nothing true left to report: the worker is
+ * talking to Discourse and the browser is simply waiting. That is what 'finishing' means,
+ * and the caller shows it as indeterminate rather than inventing a number.
+ */
+export function uploadTrail(
+  file: File,
+  pre: Preflight,
+  onProgress?: (phase: UploadPhase, ratio: number | null) => void,
+): Promise<UploadResult | UploadReason> {
   const body = new FormData();
   body.set('file', file, file.name || 'ride.gpx');
   body.set('meta', JSON.stringify({ title: pre.title, distance_km: pre.distance_km, stats: pre.stats }));
 
-  let resp: Response;
-  try {
-    resp = await fetch('/api/map/trail', { method: 'POST', body });
-  } catch {
-    return 'failed';
-  }
-  if (resp.status === 429) return 'rate_limited';
-  if (resp.status === 413) return 'too_large';
-  if (!resp.ok) return 'failed';
-  try {
-    return (await resp.json()) as UploadResult;
-  } catch {
-    return 'failed';
-  }
+  return new Promise((resolve) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', '/api/map/trail');
+    xhr.responseType = 'text';
+
+    xhr.upload.addEventListener('progress', (e) => {
+      onProgress?.('sending', e.lengthComputable && e.total > 0 ? e.loaded / e.total : null);
+    });
+    // The body is gone; everything after this is somebody else's round trip.
+    xhr.upload.addEventListener('load', () => onProgress?.('finishing', null));
+
+    xhr.addEventListener('load', () => {
+      if (xhr.status === 429) return resolve('rate_limited');
+      if (xhr.status === 413) return resolve('too_large');
+      if (xhr.status < 200 || xhr.status >= 300) return resolve('failed');
+      try {
+        resolve(JSON.parse(xhr.responseText) as UploadResult);
+      } catch {
+        resolve('failed');
+      }
+    });
+    xhr.addEventListener('error', () => resolve('failed'));
+    xhr.addEventListener('abort', () => resolve('failed'));
+    xhr.addEventListener('timeout', () => resolve('failed'));
+
+    xhr.send(body);
+  });
 }

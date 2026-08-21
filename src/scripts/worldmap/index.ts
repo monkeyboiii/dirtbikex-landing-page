@@ -888,6 +888,8 @@ class WorldMap {
           }
         : EMPTY,
     );
+    // tracedTrail just changed, and it is half of what decides whether the line shows.
+    this.syncTrailLine();
   }
 
   /**
@@ -1194,8 +1196,12 @@ class WorldMap {
     /** Only layers that exist and are on — querying a missing layer throws. */
     const hit = () =>
       ['trails-blip', 'shops-blip', 'tracks-dot', 'trails-line'].filter((id) => {
+        if (!map.getLayer(id)) return false;
+        // The trace follows its own visibility rule, so it follows it here too — a line
+        // the visitor can see must be a line they can tap.
+        if (id === 'trails-line') return this.trailLineOn();
         const owner = LAYER_IDS.find((l) => (LAYERS[l] as readonly string[]).includes(id));
-        return map.getLayer(id) && (!owner || this.visible[owner]);
+        return !owner || this.visible[owner];
       });
 
     map.on('mousemove', (e) => {
@@ -1226,6 +1232,9 @@ class WorldMap {
 
     document.addEventListener('keydown', (e) => {
       if (e.key !== 'Escape') return;
+      // Escape is a deliberate dismissal, so it may close a sticky sheet. A tap on the
+      // map is not, and does not.
+      this.panel.allowClose();
       if (this.selected || this.selectedTrail) this.clearSelection();
       else if (this.seriesMode) this.setSeriesMode(false);
     });
@@ -1236,6 +1245,24 @@ class WorldMap {
    * addLayers(), including the theme restyle — setStyle drops the style layers and
    * they come back visible by default.
    */
+  /**
+   * The trace is not part of the trails CATALOG, and the rail only governs the catalog.
+   *
+   * `trails-line` is listed under LAYERS.trails so that hit-testing and the restyle replay
+   * still know who owns it, but its visibility is decided here instead: a drawn trace is
+   * the one thing the visitor explicitly asked for, by tapping a pin or by opening a
+   * ?trail= link. Gating it behind the toggle meant a private link rendered an empty map
+   * for anyone whose trails layer happened to be off — with nothing on screen to say why.
+   */
+  private trailLineOn(): boolean {
+    return this.visible.trails || !!this.tracedTrail;
+  }
+
+  private syncTrailLine() {
+    if (!this.map.getLayer('trails-line')) return;
+    this.map.setLayoutProperty('trails-line', 'visibility', this.trailLineOn() ? 'visible' : 'none');
+  }
+
   private applyLayers() {
     for (const id of LAYER_IDS) {
       const on = this.visible[id];
@@ -1245,6 +1272,8 @@ class WorldMap {
         }
       }
     }
+    // After the loop, so it wins over LAYERS.trails having just hidden it.
+    this.syncTrailLine();
     for (const { el } of this.episodeMarkers) el.style.display = this.visible.ride ? '' : 'none';
     for (const { el } of this.riderMarkers) el.style.display = this.visible.riders ? '' : 'none';
     this.syncEpisodeChrome();
@@ -1508,7 +1537,7 @@ class WorldMap {
   }
 
   async uploadTrail(file: File): Promise<void> {
-    this.panel.showUploadBusy();
+    const progress = this.panel.showUploadBusy();
     let text: string;
     try {
       text = await file.text();
@@ -1516,12 +1545,17 @@ class WorldMap {
       this.panel.showUploadError('failed');
       return;
     }
+    // The parse blocks the main thread, so the label has to reach the screen before it
+    // starts — otherwise the sheet still says "reading" for the whole measuring phase.
+    progress('measuring', null);
+    await new Promise((done) => requestAnimationFrame(() => done(null)));
     const pre = preflight(file, text);
     if (typeof pre === 'string') {
       this.panel.showUploadError(pre);
       return;
     }
-    const result = await uploadTrail(file, pre);
+    progress('sending', 0);
+    const result = await uploadTrail(file, pre, progress);
     if (typeof result === 'string') {
       this.panel.showUploadError(result);
       return;
@@ -1678,6 +1712,9 @@ class WorldMap {
   }
 
   clearSelection() {
+    // A sheet showing something unrepeatable holds the screen. Every incidental path into
+    // here — a tap on empty ground, a pin, a layer toggle — routes through this one guard.
+    if (this.panel.isSticky()) return;
     this.selected = null;
     this.clearTrail();
     this.current = null;

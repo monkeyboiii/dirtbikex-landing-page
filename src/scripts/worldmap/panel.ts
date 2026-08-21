@@ -199,9 +199,22 @@ export function createPanel(deps: PanelDeps) {
   const views: Array<(host: HTMLElement) => void> = [];
   /** Set by the push* entry points; consumed by the next open() call. */
   let pushNext = false;
+  /**
+   * A sheet that owns the screen until it is dismissed on purpose.
+   *
+   * Exactly one sheet needs this: the one showing a trail link and a claim code that are
+   * displayed once and cannot be recovered. Losing them to a stray tap on the map loses
+   * the trail, so while it is up, map interaction cannot close it or replace it — only
+   * the close button can.
+   */
+  let sticky = false;
 
   closeBtn.setAttribute('aria-label', strings['map.panel.close'] ?? 'Close');
-  closeBtn.addEventListener('click', () => deps.onClose());
+  closeBtn.addEventListener('click', () => {
+    // Clicking the X IS the deliberate dismissal, so it lifts the guard first.
+    sticky = false;
+    deps.onClose();
+  });
   backBtn.setAttribute('aria-label', strings['map.panel.back'] ?? 'Back');
   backBtn.addEventListener('click', () => {
     if (views.length < 2) return;
@@ -229,7 +242,9 @@ export function createPanel(deps: PanelDeps) {
     body.scrollTop = 0;
   }
 
-  function open(build: (host: HTMLElement) => void) {
+  function open(build: (host: HTMLElement) => void, opts: { sticky?: boolean } = {}) {
+    if (sticky && !opts.sticky) return;
+    sticky = !!opts.sticky;
     if (pushNext) pushNext = false;
     else views.length = 0;
     views.push(build);
@@ -237,6 +252,7 @@ export function createPanel(deps: PanelDeps) {
   }
 
   function close() {
+    if (sticky) return;
     generation++;
     views.length = 0;
     pushNext = false;
@@ -765,6 +781,14 @@ export function createPanel(deps: PanelDeps) {
     close,
     isOpen: () => !root.hidden,
 
+    /** True while a sheet refuses to be closed or replaced by anything but its own X. */
+    isSticky: () => sticky,
+
+    /** Lifts the guard. Only for a deliberate dismissal — Escape, and nothing else. */
+    allowClose() {
+      sticky = false;
+    },
+
     /** What the visitor is agreeing to before they hand over a trace of where they ride. */
     showUploadIntro(pick: () => void) {
       open((host) => {
@@ -782,11 +806,55 @@ export function createPanel(deps: PanelDeps) {
       });
     },
 
-    showUploadBusy() {
+    /**
+     * Returns its own updater rather than being re-called per tick: repainting the sheet
+     * would rebuild the DOM under the visitor sixty times a second.
+     *
+     * Only one of the four phases can honestly show a number — see uploadTrail(). The
+     * rest run the bar in its indeterminate state, which says "working" without claiming
+     * to know how far along it is.
+     */
+    showUploadBusy(): (phase: string, ratio: number | null) => void {
+      let fill: HTMLElement | null = null;
+      let bar: HTMLElement | null = null;
+      let note: HTMLElement | null = null;
+      const label = (phase: string) =>
+        strings[`map.upload.phase.${phase}`] ??
+        ({
+          reading: 'Reading your file\u2026',
+          measuring: 'Measuring the ride\u2026',
+          sending: 'Sending it\u2026',
+          finishing: 'Almost there\u2026',
+        }[phase] ?? '');
+
       open((host) => {
         kicker(strings['map.upload.kicker'] ?? 'Your trail');
         titleRow(host, strings['map.upload.working'] ?? 'Uploading\u2026', null, strings);
+        note = el('p', 'wm-panel__meta', label('reading'));
+        host.appendChild(note);
+        bar = el('div', 'wm-panel__progress is-indeterminate');
+        bar.setAttribute('role', 'progressbar');
+        bar.setAttribute('aria-valuemin', '0');
+        bar.setAttribute('aria-valuemax', '100');
+        fill = el('span', 'wm-panel__progress-fill');
+        bar.appendChild(fill);
+        host.appendChild(bar);
       });
+
+      return (phase, ratio) => {
+        if (note) note.textContent = label(phase);
+        if (!bar || !fill) return;
+        const known = typeof ratio === 'number' && Number.isFinite(ratio);
+        bar.classList.toggle('is-indeterminate', !known);
+        if (known) {
+          const pct = Math.max(0, Math.min(1, ratio));
+          fill.style.width = `${(pct * 100).toFixed(1)}%`;
+          bar.setAttribute('aria-valuenow', String(Math.round(pct * 100)));
+        } else {
+          fill.style.width = '';
+          bar.removeAttribute('aria-valuenow');
+        }
+      };
     },
 
     /**
@@ -795,6 +863,8 @@ export function createPanel(deps: PanelDeps) {
      * them loses the trail.
      */
     showUploadDone(result: UploadResult) {
+      // Sticky: the link and the code are shown once and cannot be asked for again, so a
+      // stray tap on the map must not be able to take them away.
       open((host) => {
         kicker(strings['map.upload.kicker'] ?? 'Your trail');
         titleRow(host, strings['map.upload.doneTitle'] ?? 'Your trail is on the map', null, strings);
@@ -829,7 +899,7 @@ export function createPanel(deps: PanelDeps) {
         claim.href = result.claim_url;
         claim.textContent = strings['map.upload.claim'] ?? 'Claim this trail';
         host.appendChild(claim);
-      });
+      }, { sticky: true });
     },
 
     /**
@@ -954,9 +1024,15 @@ export function createPanel(deps: PanelDeps) {
               ),
             );
           }
-        } else if (st) {
-          chips.appendChild(el('span', 'wm-chip', strings['map.trail.plotted'] ?? 'Plotted route'));
         }
+        // There is deliberately no "Plotted route" chip for the other case. Both paths onto
+        // this map refuse a file containing <rtept> — the importer and the upload
+        // pre-flight independently — so no trail here IS a plotted route, and the chip was
+        // rendering that claim for every file that merely lacked timestamps. Uploaded
+        // trails lacked them by construction until the rich scan landed, so every single
+        // one was mislabelled. Absence of a "Recorded" chip already says what is unknown.
+        // `map.trail.plotted` is now unused; kept in the locale files rather than pruned
+        // across 21 of them for a string that may return with a real meaning.
         if (st?.shape === 'loop') {
           chips.appendChild(el('span', 'wm-chip', strings['map.trail.loop'] ?? 'Loop'));
         } else if (st?.shape === 'point_to_point') {

@@ -1067,6 +1067,43 @@ body.is-map-page .site-header__inner {
   color: var(--wm-accent);
 }
 
+/* Borrows the boot gate's bar: 3px, hairline-inset, accent fill. Determinate while the
+   bytes are actually leaving; indeterminate whenever the honest answer is "working". */
+.wm-panel__progress {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  height: 3px;
+  margin-top: 12px;
+  border-radius: 2px;
+  background: rgba(var(--wm-veil), 0.28);
+  box-shadow: inset 0 0 0 1px var(--wm-line);
+}
+.wm-panel__progress-fill {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: 2px;
+  background: var(--wm-accent);
+  transition: width 180ms ease;
+}
+.wm-panel__progress.is-indeterminate .wm-panel__progress-fill {
+  width: 40%;
+  transition: none;
+  animation: wm-progress-sweep 1.1s ease-in-out infinite;
+}
+@keyframes wm-progress-sweep {
+  0% { transform: translateX(-105%); }
+  100% { transform: translateX(255%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wm-panel__progress.is-indeterminate .wm-panel__progress-fill {
+    animation: none;
+    width: 100%;
+    opacity: 0.45;
+  }
+}
+
 /* A secret shown once. It is monospaced and selectable because a visitor who cannot use
    the clipboard still has to be able to write it down correctly. */
 .wm-panel__copy {
