@@ -284,5 +284,9 @@
   "map.upload.errBusy": "Gerade zu viele Uploads von hier. Versuch es in ein paar Minuten noch einmal.",
   "map.upload.errFailed": "Das hat nicht geklappt. Versuch es noch einmal.",
   "map.trail.goneTitle": "Diese Strecke gibt es nicht mehr",
-  "map.trail.goneBody": "Eine geteilte Strecke lebt ein paar Tage, wenn ihr Fahrer sie nicht übernimmt. Dieser Link ist abgelaufen oder zeigte nie irgendwohin."
+  "map.trail.goneBody": "Eine geteilte Strecke lebt ein paar Tage, wenn ihr Fahrer sie nicht übernimmt. Dieser Link ist abgelaufen oder zeigte nie irgendwohin.",
+  "map.control.locate": "Zeig, wo ich bin",
+  "map.control.locateDenied": "Standort ist in deinen Browsereinstellungen blockiert",
+  "map.panel.back": "Zurück",
+  "map.panel.venue": "Über diesen Ort"
 }

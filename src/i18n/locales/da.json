@@ -284,5 +284,9 @@
   "map.upload.errBusy": "For mange uploads herfra lige nu. Prøv igen om et par minutter.",
   "map.upload.errFailed": "Det gik ikke igennem. Prøv igen.",
   "map.trail.goneTitle": "Dette spor er her ikke længere",
-  "map.trail.goneBody": "Et delt spor lever et par dage, medmindre køreren gør krav på det. Dette link er udløbet eller pegede aldrig nogen steder hen."
+  "map.trail.goneBody": "Et delt spor lever et par dage, medmindre køreren gør krav på det. Dette link er udløbet eller pegede aldrig nogen steder hen.",
+  "map.control.locate": "Vis hvor jeg er",
+  "map.control.locateDenied": "Placering er blokeret i dine browserindstillinger",
+  "map.panel.back": "Tilbage",
+  "map.panel.venue": "Om dette sted"
 }

@@ -290,5 +290,9 @@
   "map.upload.errBusy": "Too many uploads from here just now. Try again in a few minutes.",
   "map.upload.errFailed": "That did not go through. Try again.",
   "map.trail.goneTitle": "This trail is no longer here",
-  "map.trail.goneBody": "A shared trail lives for a few days unless its rider claims it. This link has expired, or never pointed anywhere."
+  "map.trail.goneBody": "A shared trail lives for a few days unless its rider claims it. This link has expired, or never pointed anywhere.",
+  "map.control.locate": "Show where I am",
+  "map.control.locateDenied": "Location is blocked in your browser settings",
+  "map.panel.back": "Back",
+  "map.panel.venue": "About this place"
 }

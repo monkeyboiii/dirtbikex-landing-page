@@ -257,7 +257,6 @@
   "map.trail.pointToPoint": "单程",
   "map.trail.sections": "{n} 段",
   "map.trail.thread": "论坛帖子",
-  "map.trail.uploadedBy": "上传者",
   "map.track.owner": "场地主理人",
   "map.trail.studio": "在 gpx.studio 中打开",
   "map.layer.title": "图层",
@@ -287,5 +286,10 @@
   "map.upload.errBusy": "当前上传次数过多，请几分钟后再试。",
   "map.upload.errFailed": "上传未成功，请重试。",
   "map.trail.goneTitle": "这条轨迹已不在了",
-  "map.trail.goneBody": "分享的轨迹只保留几天，除非骑手认领它。此链接已过期，或从未指向任何轨迹。"
+  "map.trail.goneBody": "分享的轨迹只保留几天，除非骑手认领它。此链接已过期，或从未指向任何轨迹。",
+  "map.control.locate": "显示我的位置",
+  "map.control.locateDenied": "浏览器设置中已禁止定位",
+  "map.panel.back": "返回",
+  "map.panel.venue": "关于这个地点",
+  "map.trail.uploadedBy": "上传者"
 }

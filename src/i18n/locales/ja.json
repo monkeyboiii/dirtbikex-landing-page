@@ -287,5 +287,9 @@
   "map.upload.errBusy": "アップロードが多すぎます。数分後にお試しください。",
   "map.upload.errFailed": "送信できませんでした。もう一度お試しください。",
   "map.trail.goneTitle": "このルートはもうありません",
-  "map.trail.goneBody": "共有されたルートは、ライダーが受け取らない限り数日で消えます。このリンクは期限切れか、初めから無効です。"
+  "map.trail.goneBody": "共有されたルートは、ライダーが受け取らない限り数日で消えます。このリンクは期限切れか、初めから無効です。",
+  "map.control.locate": "現在地を表示",
+  "map.control.locateDenied": "ブラウザの設定で位置情報がブロックされています",
+  "map.panel.back": "戻る",
+  "map.panel.venue": "この場所について"
 }

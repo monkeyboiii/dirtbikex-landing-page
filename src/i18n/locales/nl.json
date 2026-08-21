@@ -284,5 +284,9 @@
   "map.upload.errBusy": "Op dit moment te veel uploads vanaf hier. Probeer het over een paar minuten opnieuw.",
   "map.upload.errFailed": "Dat is niet gelukt. Probeer het opnieuw.",
   "map.trail.goneTitle": "Deze route is er niet meer",
-  "map.trail.goneBody": "Een gedeelde route leeft een paar dagen tenzij de rijder hem opeist. Deze link is verlopen, of wees nooit ergens heen."
+  "map.trail.goneBody": "Een gedeelde route leeft een paar dagen tenzij de rijder hem opeist. Deze link is verlopen, of wees nooit ergens heen.",
+  "map.control.locate": "Laat zien waar ik ben",
+  "map.control.locateDenied": "Locatie is geblokkeerd in je browserinstellingen",
+  "map.panel.back": "Terug",
+  "map.panel.venue": "Over deze plek"
 }

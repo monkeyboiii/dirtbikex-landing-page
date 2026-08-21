@@ -286,5 +286,9 @@
   "map.upload.errBusy": "För många uppladdningar härifrån just nu. Försök igen om några minuter.",
   "map.upload.errFailed": "Det gick inte. Försök igen.",
   "map.trail.goneTitle": "Det här spåret finns inte längre",
-  "map.trail.goneBody": "Ett delat spår lever några dagar om inte föraren gör anspråk på det. Länken har gått ut, eller pekade aldrig någonstans."
+  "map.trail.goneBody": "Ett delat spår lever några dagar om inte föraren gör anspråk på det. Länken har gått ut, eller pekade aldrig någonstans.",
+  "map.control.locate": "Visa var jag är",
+  "map.control.locateDenied": "Plats är blockerad i dina webbläsarinställningar",
+  "map.panel.back": "Tillbaka",
+  "map.panel.venue": "Om den här platsen"
 }

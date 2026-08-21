@@ -78,6 +78,14 @@ const DEFAULTS: Record<string, string> = {
   'map.layer.shops': 'Shops',
   'map.layer.riders': 'Riders',
   'map.trail.rider': 'Rider',
+  // These four were translated in all 21 locale files and still rendered English, because
+  // DEFAULTS is not a fallback table — it is the ALLOWLIST. `dict` is seeded from it and
+  // the overlay loop iterates Object.keys(DEFAULTS), so a key absent here can never reach
+  // the island however well it is translated. Anything the island asks for must be listed.
+  'map.trail.uploadedBy': 'Uploaded by',
+  'map.track.owner': 'Owner',
+  'map.panel.share': 'Share',
+  'map.panel.shareCopied': 'Link copied',
   'map.trail.thread': 'Forum thread',
   'map.trail.studio': 'Open in gpx.studio',
   'map.panel.watchOn': 'Watch on',

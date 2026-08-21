@@ -284,5 +284,9 @@
   "map.upload.errBusy": "Demasiados envios daqui agora. Tente de novo daqui a uns minutos.",
   "map.upload.errFailed": "Não foi enviado. Tente de novo.",
   "map.trail.goneTitle": "Esta trilha já não está aqui",
-  "map.trail.goneBody": "Uma trilha partilhada dura alguns dias se o piloto não a reivindicar. Este link expirou, ou nunca apontou para nada."
+  "map.trail.goneBody": "Uma trilha partilhada dura alguns dias se o piloto não a reivindicar. Este link expirou, ou nunca apontou para nada.",
+  "map.control.locate": "Mostrar onde estou",
+  "map.control.locateDenied": "A localização está bloqueada nas definições do navegador",
+  "map.panel.back": "Voltar",
+  "map.panel.venue": "Sobre este local"
 }

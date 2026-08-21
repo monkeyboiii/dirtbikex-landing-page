@@ -284,5 +284,9 @@
   "map.upload.errBusy": "Terlalu banyak unggahan dari sini saat ini. Coba lagi beberapa menit lagi.",
   "map.upload.errFailed": "Gagal terkirim. Coba lagi.",
   "map.trail.goneTitle": "Jalur ini sudah tidak ada",
-  "map.trail.goneBody": "Jalur yang dibagikan bertahan beberapa hari kecuali pengendaranya mengklaimnya. Tautan ini kedaluwarsa, atau tidak pernah menunjuk ke mana pun."
+  "map.trail.goneBody": "Jalur yang dibagikan bertahan beberapa hari kecuali pengendaranya mengklaimnya. Tautan ini kedaluwarsa, atau tidak pernah menunjuk ke mana pun.",
+  "map.control.locate": "Tunjukkan lokasi saya",
+  "map.control.locateDenied": "Lokasi diblokir di pengaturan peramban",
+  "map.panel.back": "Kembali",
+  "map.panel.venue": "Tentang tempat ini"
 }

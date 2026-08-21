@@ -284,5 +284,9 @@
   "map.upload.errBusy": "Trop d’envois depuis ici en ce moment. Réessayez dans quelques minutes.",
   "map.upload.errFailed": "L’envoi a échoué. Réessayez.",
   "map.trail.goneTitle": "Cette trace n’est plus là",
-  "map.trail.goneBody": "Une trace partagée ne vit que quelques jours si son pilote ne la revendique pas. Ce lien a expiré, ou n’a jamais rien désigné."
+  "map.trail.goneBody": "Une trace partagée ne vit que quelques jours si son pilote ne la revendique pas. Ce lien a expiré, ou n’a jamais rien désigné.",
+  "map.control.locate": "Montrer où je suis",
+  "map.control.locateDenied": "La localisation est bloquée dans les réglages du navigateur",
+  "map.panel.back": "Retour",
+  "map.panel.venue": "À propos de ce lieu"
 }

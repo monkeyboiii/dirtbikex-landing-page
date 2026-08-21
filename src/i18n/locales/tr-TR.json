@@ -284,5 +284,9 @@
   "map.upload.errBusy": "Şu anda buradan çok fazla yükleme yapıldı. Birkaç dakika sonra dene.",
   "map.upload.errFailed": "Gönderilemedi. Tekrar dene.",
   "map.trail.goneTitle": "Bu rota artık burada değil",
-  "map.trail.goneBody": "Paylaşılan bir rota, sürücüsü sahiplenmezse birkaç gün yaşar. Bu bağlantının süresi doldu veya hiçbir zaman bir şeye işaret etmedi."
+  "map.trail.goneBody": "Paylaşılan bir rota, sürücüsü sahiplenmezse birkaç gün yaşar. Bu bağlantının süresi doldu veya hiçbir zaman bir şeye işaret etmedi.",
+  "map.control.locate": "Nerede olduğumu göster",
+  "map.control.locateDenied": "Konum tarayıcı ayarlarında engellenmiş",
+  "map.panel.back": "Geri",
+  "map.panel.venue": "Bu yer hakkında"
 }

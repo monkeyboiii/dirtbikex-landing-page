@@ -284,5 +284,9 @@
   "map.upload.errBusy": "Liikaa lähetyksiä täältä juuri nyt. Yritä muutaman minuutin kuluttua.",
   "map.upload.errFailed": "Lähetys ei onnistunut. Yritä uudelleen.",
   "map.trail.goneTitle": "Tätä reittiä ei enää ole",
-  "map.trail.goneBody": "Jaettu reitti elää muutaman päivän, ellei kuljettaja lunasta sitä. Linkki on vanhentunut tai ei osoittanut koskaan mihinkään."
+  "map.trail.goneBody": "Jaettu reitti elää muutaman päivän, ellei kuljettaja lunasta sitä. Linkki on vanhentunut tai ei osoittanut koskaan mihinkään.",
+  "map.control.locate": "Näytä missä olen",
+  "map.control.locateDenied": "Sijainti on estetty selaimen asetuksissa",
+  "map.panel.back": "Takaisin",
+  "map.panel.venue": "Tietoa tästä paikasta"
 }

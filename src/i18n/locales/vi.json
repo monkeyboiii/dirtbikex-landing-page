@@ -284,5 +284,9 @@
   "map.upload.errBusy": "Hiện có quá nhiều lượt tải từ đây. Thử lại sau vài phút.",
   "map.upload.errFailed": "Không gửi được. Thử lại nhé.",
   "map.trail.goneTitle": "Cung đường này không còn ở đây",
-  "map.trail.goneBody": "Một cung đường được chia sẻ chỉ sống vài ngày nếu người chạy không nhận nó. Liên kết này đã hết hạn, hoặc chưa từng trỏ tới đâu."
+  "map.trail.goneBody": "Một cung đường được chia sẻ chỉ sống vài ngày nếu người chạy không nhận nó. Liên kết này đã hết hạn, hoặc chưa từng trỏ tới đâu.",
+  "map.control.locate": "Hiện vị trí của tôi",
+  "map.control.locateDenied": "Vị trí đang bị chặn trong cài đặt trình duyệt",
+  "map.panel.back": "Quay lại",
+  "map.panel.venue": "Về địa điểm này"
 }
