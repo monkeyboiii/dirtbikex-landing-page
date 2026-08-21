@@ -225,8 +225,9 @@ Carried here so nobody re-derives them from the old files:
 - **Marker artwork** — engineer-drawn placeholders; no designer pass happened.
 - **Hero / Features / FeaturedTopics / FAQ** still sit in `src/components/` with no home.
 - **Held firm at V1:** accounts, personalization, GPX uploads on web, editing from web, any
-  framework, live WebSocket anything. Web upload is now under discussion — see
-  [TRAIL_UPLOAD_PLAN](../../../../TRAIL_UPLOAD_PLAN.md).
+  framework, live WebSocket anything. **Web upload has since shipped**, and it holds the line
+  it was drawn against: the visitor still has no account here, and the forum is still the only
+  place they have a session — see [TRAIL_UPLOAD_MODULE](TRAIL_UPLOAD_MODULE.md).
 
 ## Operator
 

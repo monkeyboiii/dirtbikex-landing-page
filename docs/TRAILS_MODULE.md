@@ -4,8 +4,10 @@ A trail is one rider's recorded GPX, promoted onto the world map by an operator.
 a blip like any catalog pin until you tap it, at which point its trace is fetched and drawn
 as a polyline.
 
-This documents what exists. Web upload — letting a visitor add a trail themselves — is
-proposed and undecided in [TRAIL_UPLOAD_PLAN](../../../../TRAIL_UPLOAD_PLAN.md).
+This documents the operator path. The other one — a visitor dropping their own `.gpx` on
+the map — is [TRAIL_UPLOAD_MODULE](TRAIL_UPLOAD_MODULE.md), and it shares this file's entry
+format, its parser and its map layers, but none of its storage: an upload lives in D1 and is
+merged into the document at serve time, never written into it.
 
 Folded 2026-08-21 from the trail sections of `CONCRETE_MAP_PLAN.md` (D12) and
 `MAP_LAYERS_PLAN.md` §3b, both untracked at the umbrella root. The surface a trail appears on
@@ -52,7 +54,7 @@ The cost is one extra round trip per tap, and a client-side parse.
 | `id`, `author_username`, integer `author_user_id` | the id is the identity; the cached name keeps `/s/u/<username>` working through a rename |
 | `stats.centre` numeric, `[lng, lat]`, in range | a swapped pair throws inside MapLibre's bounds check and **takes the whole catalog down** — and the series document uses `{lat, lng}`, so the swap is the likely hand-edit mistake |
 | no duplicate `id` | — |
-| `gpx_url === <uploads-cdn for this env>/original/1X/<file>` | a staging URL served to prod visitors 404s every trace |
+| `gpx_url` starts with `<uploads-cdn for this env>/` | a staging URL served to prod visitors 404s every trace. **Host only** — the path is whatever Discourse returned |
 | author avatar host must be this environment's forum | pointing it at the other environment attributes the ride to a stranger, which reads as true and is not |
 
 That fourth rule is the load-bearing one: **a trail's file has to be a Discourse upload.**
@@ -66,7 +68,8 @@ object-store host**. That host serves the bytes, but the map must fetch
 `uploads-cdn.<apex>` — it is what the site's allowlist and the mainland-China invariant are
 written against, and it serves `ACAO: *`.
 
-So the short URL is followed exactly once, at import time, and only the sha1 is kept.
+So the short URL is followed exactly once, at import time, and **only the host is
+swapped** — the path is carried verbatim. See the first trap.
 
 ## Trails are environment data and never ship in the bundle
 
@@ -130,8 +133,11 @@ with the hand-rolled scanner, in the browser, at tap time. They read the same fi
 have to agree, and nothing checks that they do.
 
 It has not bitten yet because the importer's numbers go in the document (distance, point
-count, bbox) and the browser's only feed the drawn line. **Anything that validates an upload
-has to pick one of them and say so** — see [TRAIL_UPLOAD_PLAN](../../../../TRAIL_UPLOAD_PLAN.md).
+count, bbox) and the browser's only feed the drawn line. There is now a **third**:
+`src/scripts/worldmap/upload.ts` measures a visitor's file in the browser, using the same
+hand-rolled scanner, and those numbers go straight into the entry — so an uploaded trail's
+distance comes from `gpx.ts`'s reading and an imported trail's from `gpx-trail.mjs`'s. See
+[TRAIL_UPLOAD_MODULE](TRAIL_UPLOAD_MODULE.md).
 
 ## Route points poison a file
 
@@ -161,12 +167,13 @@ the visitor is reading.
 
 ## Traps
 
-- **The `/original/1X/<sha1>.gpx` shape breaks above upload id 1000, and both the importer
-  and the validator reconstruct it.** Discourse computes `depth = ceil(log16(id/1000))`, so
-  past id 1000 an upload lands at `original/2X/<c>/<sha1>.gpx`. `import-forum-trail.mjs` would
-  then build a URL that 404s, and `push-map-data.mjs` would reject a legitimate entry, because
-  both derive the path from the sha1 instead of reading it. **Staging is at upload id 138 —
-  862 to go.** The fix is to keep the `url` the upload API returns and swap only the host.
+- **`/original/1X/<sha1>.gpx` is not the only upload path, and both scripts used to assume
+  it was.** Discourse computes `depth = ceil(log16(id/1000))`, so past upload id 1000 a file
+  lands at `original/2X/<c>/<sha1>.gpx`. `import-forum-trail.mjs` rebuilt the shallow form
+  from the sha1 (a URL that would 404) and `push-map-data.mjs` asserted it (rejecting a
+  legitimate entry). **Fixed 2026-08-21** — the importer now carries the redirect's path and
+  swaps only the host, and the validator checks the host only. Staging was at upload id 138
+  when this was found, so it had never fired.
 - **`gpx-trail.mjs` and the two importers must not drift** — `push-map-data.mjs` validates
   one shape, and even the key order is fixed.
 - **`push-map-data` validates far less than it looks like it does.** For trails it checks the
@@ -182,7 +189,9 @@ the visitor is reading.
   503s when both R2 and the assets fail — so a bad `MAP_DATA_PREFIX` or an unpushed
   environment looks exactly like "there are no trails yet".
 - **The `--check` flag fetches the live URL, not the bucket**, so a fresh push can still
-  report DRIFTED from edge cache for minutes. Read the R2 object to settle it.
+  report DRIFTED from edge cache for minutes. Read the R2 object to settle it. For trails it
+  also strips every live entry carrying `visibility` first — those are visitor uploads merged
+  at serve time and are not in R2 at all.
 - **A committed fixture change does nothing until pushed.** R2 wins over the bundle.
 - **A failed GPX fetch is cached as an empty trace for the rest of the page load.** Fixing
   the upload on the forum does not fix an open tab — reload it.
