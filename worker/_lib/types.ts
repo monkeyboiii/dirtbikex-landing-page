@@ -50,6 +50,13 @@ export interface PagesEnv {
   MAP_BUCKET?: R2Bucket;
   /** Object-key prefix isolating this env's map data inside the shared bucket: `prod` / `preview`. */
   MAP_DATA_PREFIX?: string;
+  /** Discourse `Api-Username` for the trail-upload service account — a dedicated, non-staff
+   *  TL1 user, NOT the operator. See TRAIL_UPLOAD_MODULE.md. */
+  FORUM_TRAILS_USERNAME?: string;
+  /** Discourse `Api-Key` for that account, scoped to `uploads:create` and nothing else.
+   *  Secret. A leak of this key can put a file in the upload store and do nothing else —
+   *  it cannot post, cannot create a topic and cannot speak for a user. */
+  FORUM_TRAILS_KEY?: string;
   ASSETS?: AssetsBinding;
   /** Shared bearer for the /api/outreach/* endpoints (the CRM's pre-invite test + batch). Secret. */
   OUTREACH_SECRET?: string;

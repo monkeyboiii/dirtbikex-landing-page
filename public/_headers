@@ -78,6 +78,13 @@
 /s/*
   Cache-Control: no-store
 
+# Visitor trail uploads. The resolve and proxy routes are secret-bearing and expiring:
+# an edge copy would outlive the trail and be served to whoever asked next.
+/api/map/trail
+  Cache-Control: no-store
+/api/map/trail/*
+  Cache-Control: no-store
+
 # Worker-handled double-opt-in routes (token-bearing) — never edge-cache.
 /join/confirm
   Cache-Control: no-store

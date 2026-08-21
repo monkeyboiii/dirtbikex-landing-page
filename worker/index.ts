@@ -10,6 +10,13 @@ import { handleOutreachTest, handleBatch, handlePreview, handleStatus, handleMet
 import { handleJoinSubmit, handleJoinConfirm, handleUnsubscribe, handleCodePrecheck } from './_lib/join';
 import { handleShortlinkResolve } from './_lib/shortlink';
 import { handleMapDoc } from './_lib/mapData';
+import {
+  handleTrailUpload,
+  handleTrailResolve,
+  handleTrailGpx,
+  publicTrailEntries,
+  sweepExpiredTrails,
+} from './_lib/trailUpload';
 import { handleOgPreview } from './_lib/ogPreview';
 import { ENTITY_KINDS, SHARE_ALIASES, loadEntity } from './_lib/shareEntity';
 import { lookupResume, lookupClaimPreview, lookupTrackContributors, lookupRiderPins, lineagePath } from './_lib/lineageLookup';
@@ -936,7 +943,18 @@ export default {
       if (url.pathname === '/api/forum/featured.json') return handleForumFeatured(env);
       // World map story data — R2 projection with the committed seed as fallback.
       if (url.pathname === '/api/map/series.json') return handleMapDoc(request, env, ctx, 'series');
-      if (url.pathname === '/api/map/trails.json') return handleMapDoc(request, env, ctx, 'trails');
+      if (url.pathname === '/api/map/trails.json') {
+        // Curated fixture first, visitor uploads merged over it. Uploads never enter the
+        // R2 document — see TRAIL_UPLOAD_MODULE.md.
+        return handleMapDoc(request, env, ctx, 'trails', async (doc) => {
+          const curated = Array.isArray(doc.trails) ? doc.trails : [];
+          return { ...doc, trails: [...curated, ...(await publicTrailEntries(env))] };
+        });
+      }
+      const trailDoc = url.pathname.match(/^\/api\/map\/trail\/([a-z0-9]{6,16})\.json$/);
+      if (trailDoc) return handleTrailResolve(env, trailDoc[1]!);
+      const trailGpx = url.pathname.match(/^\/api\/map\/trail\/([a-z0-9]{6,16})\.gpx$/);
+      if (trailGpx) return handleTrailGpx(env, trailGpx[1]!);
       if (url.pathname === '/api/map/shops.json') return handleMapDoc(request, env, ctx, 'shops');
       if (url.pathname === '/api/map/track.json') return handleTrackJSON(request, env);
       if (url.pathname === '/api/map/og') return handleOgPreview(request, env, ctx);
@@ -980,6 +998,10 @@ export default {
     }
 
     // /join double-opt-in waitlist. See worker/_lib/join.ts.
+    if (url.pathname === '/api/map/trail' && request.method === 'POST') {
+      return handleTrailUpload(request, env);
+    }
+
     if (url.pathname === '/api/join' && request.method === 'POST') {
       return handleJoinSubmit(request, env);
     }
@@ -1011,6 +1033,20 @@ export default {
         // error metrics — the one signal that fires without anyone running `wrangler tail`.
         console.error('outreach:drip_threw', { err: String(err) });
         throw err;
+      }
+    })());
+
+    // Unclaimed trails expire. Their FILES expire independently, reaped by Discourse once
+    // the grace period passes an upload nothing references — this only clears the index, so
+    // a failed sweep leaves a row pointing at a file that is already gone rather than the
+    // other way round. Logged and swallowed: a sweep failure must not mask a drip failure,
+    // which is the signal this cron exists for.
+    ctx.waitUntil((async () => {
+      try {
+        const dropped = await sweepExpiredTrails(env);
+        if (dropped > 0) console.log('trail:swept', { dropped });
+      } catch (err) {
+        console.error('trail:sweep_threw', { err: String(err) });
       }
     })());
   },

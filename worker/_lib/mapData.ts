@@ -45,17 +45,34 @@ export async function readMapDocBody(request: Request, env: PagesEnv, doc: strin
   return body;
 }
 
-/** `doc` is the basename shared by the R2 key and the committed seed: series, trails. */
+/**
+ * `doc` is the basename shared by the R2 key and the committed seed: series, trails.
+ *
+ * `augment` lets a document gain rows the operator did not curate — today only visitor
+ * trail uploads, which live in D1 and are merged here rather than written into the R2
+ * document. Keeping them out of R2 is deliberate: the curated file stays an artifact one
+ * person edits and pushes, and no visitor write can corrupt it.
+ */
 export async function handleMapDoc(
   request: Request,
   env: PagesEnv,
   ctx: WaitUntil,
   doc: string,
+  augment?: (parsed: Record<string, unknown>) => Promise<Record<string, unknown>>,
 ): Promise<Response> {
   const cached = await caches.default.match(request).catch(() => undefined);
   if (cached) return cached;
 
-  const body = await readMapDocBody(request, env, doc);
+  let body = await readMapDocBody(request, env, doc);
+
+  if (body !== null && augment) {
+    try {
+      body = JSON.stringify(await augment(JSON.parse(body) as Record<string, unknown>));
+    } catch (err) {
+      // A broken merge must not take the curated document down with it.
+      console.error('mapDoc:augment_threw', { err: String(err), doc });
+    }
+  }
 
   if (body === null) {
     return new Response(JSON.stringify({ error: 'unavailable' }), {
