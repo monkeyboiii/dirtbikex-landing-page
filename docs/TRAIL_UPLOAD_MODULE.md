@@ -127,11 +127,37 @@ would report R2 drift the moment anybody published a trail.
 | Value | What it protects | Shape |
 |---|---|---|
 | `secret` | the trail itself — a precise trace of where somebody lives and rides | 8 chars of `23456789abcdefghjkmnpqrstuvwxyz` |
-| `claim_code` | the right to make the trail yours | same alphabet, single use |
+| `claim_code` | the right to make the trail yours | **6 digits**, single use |
 | `TRAILS_PLUGIN_TOKEN` | every plugin↔worker call, both directions | 64 hex, wrangler secret + a `secret: true` site setting |
 
-The alphabet has no `0/O/1/I/l` because these are read aloud and typed from memory. 32^8
-is about 1.1e12.
+The alphabet has no `0/O/1/I/l` because these are read aloud and typed from memory. It is
+**31** symbols, so a secret is 31^8 ≈ 8.5e11. (A comment in the source said 32 and 1.1e12
+until 2026-08-21. It was wrong.)
+
+### Why six digits is safe here
+
+10^6 is small — an afternoon of guessing, if anything would tell you when you had guessed
+right. **Nothing does.** That is the whole design, and it is the only thing holding it up:
+
+- **`/s/c/<code>` looks nothing up.** Every code renders the same card. It used to render
+  three — open, already claimed, no such code — which made it an oracle an attacker could
+  sweep with cheap anonymous GETs. Collapsing it cost one dead state (`claimed` was
+  unreachable anyway: binding clears `claim_code` and `claimed_at` in one statement, and
+  the lookup selected on `claim_code`).
+- **The only thing that resolves a code is `/dbx/trails/claim`**, which is behind a forum
+  login and two rate limiters — 20/hour per account and 100/day per IP — counted **before**
+  the lookup, so a miss costs the same as a hit.
+- **A claim binds only to the claimer.** `TrailClaims.claim!` returns an existing claim when
+  a previous bind failed, and now refuses unless it belongs to the caller. Without that, a
+  guesser landing on a code in that window was handed a stranger's claim.
+
+**Do not add an endpoint anywhere that answers yes-or-no to a claim code.** That single rule
+is what six digits costs.
+
+A UNIQUE collision is also a real event at 10^6 — roughly (outstanding codes / 1e6) per
+upload — so the insert re-mints up to five times rather than 500-ing with the file already
+in the forum's upload store. And the code is drawn by rejection sampling, not `byte % 10`:
+256 % 10 = 6, which would make 0–5 about 20% likelier than 6–9.
 
 Three rules follow from the secret being the whole access control:
 

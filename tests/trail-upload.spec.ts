@@ -56,9 +56,10 @@ test.describe('trail upload', () => {
     const link = (await values.first().textContent()) ?? '';
     expect(link).toMatch(/\/\?trail=[a-z0-9]{8}$/);
     secret = link.split('=')[1]!;
-    // The claim code is the other half and must not be the same string as the link's.
-    expect((await values.nth(1).textContent()) ?? '').toMatch(/^[a-z0-9]{8}$/);
-    expect((await values.nth(1).textContent()) ?? '').not.toBe(secret);
+    // Six digits, like an SMS code. Its safety is not its entropy — see the module doc —
+    // so if this assertion ever loosens, the rate limiting on the claim route is what has
+    // to be checked, not this line.
+    expect((await values.nth(1).textContent()) ?? '').toMatch(/^\d{6}$/);
 
     // Drawn from the file we already hold, so the trace is on screen before any fetch.
     await expect(page.locator('canvas.maplibregl-canvas')).toBeVisible();

@@ -17,7 +17,6 @@ import {
   publicTrailEntries,
   sweepExpiredTrails,
   reconcileTrails,
-  lookupClaim,
   handleClaimResolve,
   handleClaimBind,
   handleTrailState,
@@ -784,51 +783,58 @@ async function handleLineagePage(request: Request, env: Env, ref: string, route:
  * only in a clipboard — the forum route carries it in the query string, which is what
  * survives the login round-trip.
  *
+ * IT LOOKS NOTHING UP, and that is the entire reason a six-digit code is safe.
+ *
+ * It used to render three different answers — open, already claimed, no such code — which
+ * made it an oracle: an attacker could sweep the keyspace with cheap anonymous GETs and
+ * read off which codes exist, and at 10^6 that is an afternoon. Now every code renders the
+ * same card, so the only thing that can tell you whether a code is real is the forum's
+ * claim route, which is behind a login and a rate limiter. Do not reintroduce a lookup
+ * here, and do not add an endpoint anywhere that answers yes-or-no to a claim code.
+ *
  * `/s/c/*` is NOT in the AASA file, on purpose: a path joins it only when the shipped app
  * has a destination for that path, and this one has none yet. Adding it early is what makes
  * the app raise its invalid-link bubble on a perfectly good link.
  */
-const CLAIM_COPY: Partial<Record<Lang, { open: [string, string]; taken: [string, string]; gone: [string, string]; cta: string; map: string }>> = {
+const CLAIM_COPY: Partial<Record<Lang, { title: string; body: string; cta: string }>> = {
   en: {
-    open: ['Claim your trail', 'Sign in on the forum and this ride becomes yours — it stops expiring, and you decide whether it goes on the map or stays on your link alone.'],
-    taken: ['This trail already has a rider', 'Somebody has claimed it. If that was you, it is on your forum account.'],
-    gone: ['That code is no longer valid', 'A trail that nobody claims is deleted after 72 hours, and its code goes with it.'],
+    title: 'Claim your trail',
+    body: 'Sign in on the forum and this ride becomes yours — it stops expiring, and you decide whether it goes on the map or stays on your link alone. Keep this link to yourself: whoever opens it becomes the owner.',
     cta: 'Claim it on the forum',
-    map: 'Open the map',
   },
   'zh-CN': {
-    open: ['认领你的轨迹', '在论坛登录后这条轨迹就归你了——不再过期，是否显示在地图上也由你决定。'],
-    taken: ['这条轨迹已有归属', '已经有人认领了。如果是你本人，可以在论坛账号里找到。'],
-    gone: ['该认领码已失效', '无人认领的轨迹会在 72 小时后删除，认领码也随之失效。'],
+    title: '认领你的轨迹',
+    body: '在论坛登录后这条轨迹就归你了——不再过期，是否显示在地图上也由你决定。请勿转发此链接：谁打开它，它就归谁。',
     cta: '前往论坛认领',
-    map: '打开地图',
   },
   'zh-TW': {
-    open: ['認領你的軌跡', '在論壇登入後這條軌跡就歸你了——不再過期，是否顯示在地圖上也由你決定。'],
-    taken: ['這條軌跡已有歸屬', '已經有人認領了。如果是你本人，可以在論壇帳號裡找到。'],
-    gone: ['該認領碼已失效', '無人認領的軌跡會在 72 小時後刪除，認領碼也隨之失效。'],
+    title: '認領你的軌跡',
+    body: '在論壇登入後這條軌跡就歸你了——不再過期，是否顯示在地圖上也由你決定。請勿轉發此連結：誰打開它，它就歸誰。',
     cta: '前往論壇認領',
-    map: '打開地圖',
   },
 };
 
-async function handleTrailClaim(request: Request, env: Env, code: string): Promise<Response> {
+function handleTrailClaim(request: Request, env: Env, code: string): Response {
   const url = new URL(request.url);
   const locale = pickLocale(url, request.headers.get('accept-language'), request.headers.get('user-agent'));
   const copy = CLAIM_COPY[locale] ?? CLAIM_COPY.en!;
-  const state = await lookupClaim(env, code);
-
-  const [title, subtitle] =
-    state.status === 'open' ? copy.open : state.status === 'claimed' ? copy.taken : copy.gone;
-  const primaryCTA =
-    state.status === 'open'
-      ? { label: copy.cta, url: `${env.FORUM_BASE}/dbx/trails/claim?code=${encodeURIComponent(code)}` }
-      : { label: copy.map, url: '/' };
 
   return renderShareLanding(
-    { kind: 'c', locale, title, subtitle, primaryCTA, returnTapCopy: '', forumBase: env.FORUM_BASE ?? '' },
+    {
+      kind: 'c',
+      locale,
+      title: copy.title,
+      subtitle: copy.body,
+      primaryCTA: {
+        label: copy.cta,
+        url: `${env.FORUM_BASE}/dbx/trails/claim?code=${encodeURIComponent(code)}`,
+      },
+      returnTapCopy: '',
+      forumBase: env.FORUM_BASE ?? '',
+    },
     request.url,
-    // A card whose whole content is the state of a secret must never sit in an edge cache.
+    // Still no-store. The page is now identical for every code, but the URL carries a
+    // bearer credential and must not be logged into an edge cache alongside a response.
     { cacheControl: 'no-store' },
   );
 }

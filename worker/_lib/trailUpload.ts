@@ -20,8 +20,18 @@ const SNIFF_BYTES = 64 * 1024;
 /** Unclaimed lifetime. Must not exceed clean_orphan_uploads_grace_period_hours, or the
     file is reaped while the row still advertises it. */
 const UNCLAIMED_HOURS = 72;
-/** No 0/O/1/I/l: these are read aloud and typed from memory. 32^8 ≈ 1.1e12. */
+/** No 0/O/1/I/l: these are read aloud and typed from memory. THIRTY-ONE symbols — count
+    them — so a secret is 31^8 ≈ 8.5e11. An earlier comment here said 32 and 1.1e12, which
+    was simply wrong; the number is still far beyond guessing, but write down what is true. */
 const ALPHABET = '23456789abcdefghjkmnpqrstuvwxyz';
+/** Six digits, like an SMS code, because that is what a person can hold in their head and
+    read down a phone line.
+    10^6 is small. Its safety does NOT come from its own entropy — it comes from the code
+    never being checkable anonymously: /s/c/<code> looks nothing up, and the only thing that
+    resolves a code is the forum's claim route, behind a login and a rate limiter. Do not
+    add an endpoint that answers yes-or-no to a code. That is the whole design. */
+const CODE_DIGITS = '0123456789';
+const CODE_LENGTH = 6;
 
 const json = (status: number, body: unknown, headers: Record<string, string> = {}): Response =>
   new Response(JSON.stringify(body), {
@@ -33,6 +43,28 @@ function token(length: number): string {
   const bytes = new Uint8Array(length);
   crypto.getRandomValues(bytes);
   return Array.from(bytes, (b) => ALPHABET[b % ALPHABET.length]).join('');
+}
+
+/**
+ * Named for its shape rather than `claimCode`, which join.ts already uses for invite codes.
+ *
+ * Rejection sampling, not a bare modulo: 256 % 10 = 6, so `byte % 10` makes 0–5 about 20%
+ * likelier than 6–9. That skew was ignorable at 31^8 and is not at 10^6, where the whole
+ * keyspace is small enough to reason about. Discarding the top six byte values costs an
+ * extra draw on ~2.3% of bytes and buys a flat distribution.
+ */
+function claimDigits(): string {
+  let out = '';
+  while (out.length < CODE_LENGTH) {
+    const bytes = new Uint8Array(CODE_LENGTH);
+    crypto.getRandomValues(bytes);
+    for (const b of bytes) {
+      if (b >= 250) continue;
+      out += CODE_DIGITS[b % 10];
+      if (out.length === CODE_LENGTH) break;
+    }
+  }
+  return out;
 }
 
 async function hashed(value: string): Promise<string> {
@@ -221,11 +253,17 @@ export async function handleTrailUpload(request: Request, env: PagesEnv): Promis
 
   // --- the index ---------------------------------------------------------
   const secret = token(8);
-  const code = token(8);
+  // `let`, because a UNIQUE collision is a real event on a 10^6 keyspace — roughly
+  // (outstanding codes / 1e6) per upload — and the file is already in the forum's upload
+  // store by this point. Re-minting is far better than 500-ing and orphaning it.
+  let code = claimDigits();
   const title = typeof meta.title === 'string' ? meta.title.slice(0, 120).trim() : '';
   const distance = Number(meta.distance_km);
 
-  await env.SUBSCRIBERS_DB.prepare(
+  const ipHash = await hashed(ip);
+
+  const insert = () =>
+    env.SUBSCRIBERS_DB!.prepare(
     `INSERT INTO trails (id, secret, visibility, gpx_url, gpx_short_url, gpx_sha1, title,
                          distance_km, stats, claim_code, expires_at, ip_hash)
      VALUES (?, ?, 'unlisted', ?, ?, ?, ?, ?, ?, ?, datetime('now', ?), ?)`,
@@ -244,9 +282,29 @@ export async function handleTrailUpload(request: Request, env: PagesEnv): Promis
       JSON.stringify(stats),
       code,
       `+${UNCLAIMED_HOURS} hours`,
-      await hashed(ip),
+      ipHash,
     )
     .run();
+
+  let stored = false;
+  for (let attempt = 0; attempt < 5 && !stored; attempt++) {
+    try {
+      await insert();
+      stored = true;
+    } catch (err) {
+      // Only a claim_code collision is worth another go — the secret is 31^8 and the id
+      // is the secret, so those two cannot realistically collide.
+      if (!String(err).includes('UNIQUE')) {
+        console.error('trail:insert_failed', { err: String(err) });
+        return json(500, { error: 'store_failed' });
+      }
+      code = claimDigits();
+    }
+  }
+  if (!stored) {
+    console.error('trail:code_exhausted');
+    return json(503, { error: 'store_failed' });
+  }
 
   return json(201, {
     id: secret,
@@ -484,28 +542,6 @@ export async function handleTrailState(request: Request, env: PagesEnv, secret: 
     return json(409, { error: 'id_taken' });
   }
   return json(200, { visibility: want, id: nextId, secret: nextSecret });
-}
-
-export type ClaimState =
-  | { status: 'open'; secret: string }
-  | { status: 'claimed' }
-  | { status: 'unknown' };
-
-/**
- * Resolves a claim code for the intermediate card. An unknown code and an expired one
- * answer identically, for the same reason the secret lookup does — this is a bearer
- * credential and the page must not confirm which codes exist.
- */
-export async function lookupClaim(env: PagesEnv, code: string): Promise<ClaimState> {
-  if (!env.SUBSCRIBERS_DB) return { status: 'unknown' };
-  const row = await env.SUBSCRIBERS_DB.prepare(
-    `SELECT secret, claimed_at FROM trails
-      WHERE claim_code = ? AND (expires_at IS NULL OR expires_at > datetime('now'))`,
-  )
-    .bind(code)
-    .first<{ secret: string; claimed_at: string | null }>();
-  if (!row) return { status: 'unknown' };
-  return row.claimed_at ? { status: 'claimed' } : { status: 'open', secret: row.secret };
 }
 
 /**
