@@ -140,7 +140,7 @@ export interface ShareLandingProps {
   /** Discriminator per ShareKind raw value: `'i'` invite, `'u'` profile, `'e'` event,
    *  `'l'` lineage, `'tr'` route, `'ta'` track, `'sh'` shop, `'ch'` challenge.
    *  `'t'` is deliberately unused — reserved for topic sharing. */
-  kind: 'i' | 'u' | 'e' | 'l' | 'tr' | 'ta' | 'sh' | 'ch';
+  kind: 'i' | 'u' | 'e' | 'l' | 'tr' | 'ta' | 'sh' | 'ch' | 'c';
   locale: Lang;
   primaryCTA: { label: string; url: string };
   /** Optional secondary CTA — the "open in the app" deep link. Set only for a

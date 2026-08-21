@@ -14,6 +14,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 // the hashed, same-origin URL.
 import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import { fetchGpx, parseGpx } from './gpx';
+import { preflight, uploadTrail } from './upload';
 import { createPanel, type Panel } from './panel';
 import { wireSearch } from './search';
 import { createHud, type Hud } from './hud';
@@ -1497,6 +1498,103 @@ class WorldMap {
     });
   }
 
+  /**
+   * Takes a file the visitor picked or dropped: measure it here, send it, then show the
+   * trace and the two secrets. The trail is drawn from the file we already hold rather
+   * than fetched back, so nothing rides on the upload being readable yet.
+   */
+  openUploadIntro(pick: () => void): void {
+    this.panel.showUploadIntro(pick);
+  }
+
+  async uploadTrail(file: File): Promise<void> {
+    this.panel.showUploadBusy();
+    let text: string;
+    try {
+      text = await file.text();
+    } catch {
+      this.panel.showUploadError('failed');
+      return;
+    }
+    const pre = preflight(file, text);
+    if (typeof pre === 'string') {
+      this.panel.showUploadError(pre);
+      return;
+    }
+    const result = await uploadTrail(file, pre);
+    if (typeof result === 'string') {
+      this.panel.showUploadError(result);
+      return;
+    }
+
+    const trail: Trail = {
+      id: result.id,
+      title: pre.title ? { en: pre.title } : null,
+      visibility: 'unlisted',
+      distance_km: pre.distance_km,
+      stats: pre.stats,
+      gpx_url: `/api/map/trail/${result.secret}.gpx`,
+    };
+    this.trailsById.set(trail.id, trail);
+    this.trailGeometry.set(trail.id, parseGpx(text));
+    this.clearSelection();
+    this.selected = trail.id;
+    this.selectedTrail = trail.id;
+    this.setSelected(trail.id);
+    this.setDimmed(true);
+    this.renderVisible();
+    this.drawTrail(trail.id);
+    const lines = this.trailGeometry.get(trail.id);
+    if (lines?.length) this.fitTrail(lines);
+    // Last, so the link and the code are what is left on screen.
+    this.panel.showUploadDone(result);
+  }
+
+  /**
+   * Resolves one trail from its secret and shows it. Deliberately NOT added to
+   * `this.trails` or the shared source: it is not part of the catalog, must not appear in
+   * search, and must vanish when the visitor leaves.
+   */
+  private async openSecretTrail(secret: string): Promise<void> {
+    let trail: Trail | null = null;
+    try {
+      const doc = (await fetch(`/api/map/trail/${encodeURIComponent(secret)}.json`).then((r) =>
+        r.ok ? r.json() : null,
+      )) as { trail?: Trail } | null;
+      trail = doc?.trail ?? null;
+    } catch {
+      trail = null;
+    }
+    // A miss and an expiry are the same answer by design — say the honest thing.
+    if (!trail?.stats?.centre) {
+      this.panel.showMissingTrail();
+      return;
+    }
+    this.trailsById.set(trail.id, trail);
+    this.clearSelection();
+    this.selected = trail.id;
+    this.selectedTrail = trail.id;
+    this.setSelected(trail.id);
+    this.setDimmed(true);
+    this.renderVisible();
+    this.panel.showTrail(trail);
+
+    await this.traceTrail(trail);
+    if (this.selectedTrail !== trail.id || this.selected !== trail.id) return;
+    this.drawTrail(trail.id);
+    const lines = this.trailGeometry.get(trail.id);
+    // Framing the trace is the arrival; the centre is only the fallback for a file that
+    // would not load, so the visitor is not left staring at the whole country.
+    if (lines?.length) this.fitTrail(lines);
+    else
+      this.map.easeTo({
+        center: trail.stats.centre as [number, number],
+        zoom: Math.max(this.map.getZoom(), cityZoom()),
+        duration: reducedMotion() ? 0 : 900,
+        offset: this.sheetOffset(),
+      });
+  }
+
   /** Panel-opening selection of a journey entry (marker tap). */
   selectEntry(entry: SeriesEntry, opts: { fly?: boolean } = {}) {
     this.clearTrail();
@@ -1617,6 +1715,14 @@ class WorldMap {
     const params = new URLSearchParams(location.search);
     const slug = params.get('t');
     const ep = params.get('ep');
+    const secret = params.get('trail');
+    // A link-only trail is never in the map document — it is fetched by its secret and
+    // drawn once, for this visit. Losing the link is losing the trail, which is the whole
+    // contract; so it also never joins the layer, the search index or the cull.
+    if (secret) {
+      void this.openSecretTrail(secret);
+      return;
+    }
     // A trail link is only resolvable once its catalog has loaded, which the rail
     // otherwise defers until the layer is switched on.
     if (slug && !this.tracksBySlug.has(slug) && this.visible.trails) {
@@ -1755,6 +1861,48 @@ function wireRail(root: HTMLElement, world: WorldMap) {
       locate.dataset.state = 'busy';
       locate.dataset.state = await world.locate();
       world.syncControls();
+    });
+  }
+
+  // A file picker and a drop target for the same one action. The picker is what a phone
+  // has; the drop target is what a desktop reaches for first, and it is invisible until
+  // a file is actually over the map.
+  const upload = root.querySelector<HTMLButtonElement>('[data-upload]');
+  const picker = root.querySelector<HTMLInputElement>('[data-upload-input]');
+  const drop = root.querySelector<HTMLElement>('[data-drop]');
+  if (upload && picker) {
+    upload.addEventListener('click', () => world.openUploadIntro(() => picker.click()));
+    picker.addEventListener('change', () => {
+      const file = picker.files?.[0];
+      // Cleared before the await, or picking the same file twice fires no second change.
+      picker.value = '';
+      if (file) void world.uploadTrail(file);
+    });
+  }
+  if (picker && drop) {
+    let over = 0;
+    const gpx = (e: DragEvent) => Array.from(e.dataTransfer?.items ?? []).some((i) => i.kind === 'file');
+    root.addEventListener('dragenter', (e) => {
+      if (!gpx(e)) return;
+      e.preventDefault();
+      over++;
+      drop.hidden = false;
+    });
+    // dragover must be cancelled every time or the browser navigates to the file.
+    root.addEventListener('dragover', (e) => {
+      if (over) e.preventDefault();
+    });
+    root.addEventListener('dragleave', () => {
+      over = Math.max(0, over - 1);
+      if (!over) drop.hidden = true;
+    });
+    root.addEventListener('drop', (e) => {
+      if (!over) return;
+      e.preventDefault();
+      over = 0;
+      drop.hidden = true;
+      const file = e.dataTransfer?.files?.[0];
+      if (file) void world.uploadTrail(file);
     });
   }
 

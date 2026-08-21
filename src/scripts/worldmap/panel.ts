@@ -1,4 +1,5 @@
 import { wgsToGcj } from './geo';
+import type { UploadReason, UploadResult } from './upload';
 import type {
   SeriesEntry,
   Strings,
@@ -764,6 +765,111 @@ export function createPanel(deps: PanelDeps) {
     close,
     isOpen: () => !root.hidden,
 
+    /** What the visitor is agreeing to before they hand over a trace of where they ride. */
+    showUploadIntro(pick: () => void) {
+      open((host) => {
+        kicker(strings['map.upload.kicker'] ?? 'Your trail');
+        titleRow(host, strings['map.upload.title'] ?? 'Put your ride on the map', null, strings);
+        host.appendChild(
+          el('p', 'wm-panel__meta', strings['map.upload.body']
+            ?? 'Drop a .gpx file and we will draw it. Nobody else sees it: you get a private link and a code, and the trail is deleted in 72 hours unless you claim it on the forum.'),
+        );
+        const button = el('button', 'wm-panel__cta') as HTMLButtonElement;
+        button.type = 'button';
+        button.textContent = strings['map.upload.pick'] ?? 'Choose a .gpx file';
+        button.addEventListener('click', pick);
+        host.appendChild(button);
+      });
+    },
+
+    showUploadBusy() {
+      open((host) => {
+        kicker(strings['map.upload.kicker'] ?? 'Your trail');
+        titleRow(host, strings['map.upload.working'] ?? 'Uploading\u2026', null, strings);
+      });
+    },
+
+    /**
+     * The link and the code are shown ONCE and never again \u2014 nothing a visitor can ask
+     * for will repeat them. So they are copyable, and the sheet says plainly that losing
+     * them loses the trail.
+     */
+    showUploadDone(result: UploadResult) {
+      open((host) => {
+        kicker(strings['map.upload.kicker'] ?? 'Your trail');
+        titleRow(host, strings['map.upload.doneTitle'] ?? 'Your trail is on the map', null, strings);
+        host.appendChild(
+          el('p', 'wm-panel__meta', strings['map.upload.doneBody']
+            ?? 'Keep both of these. The link is the only way back to this trail, and the code is the only way to make it yours \u2014 we cannot show them to you again.'),
+        );
+        host.appendChild(
+          el('p', 'wm-panel__meta', (strings['map.upload.expires'] ?? 'It is deleted in {n} hours unless you claim it.')
+            .replace('{n}', String(result.expires_in_hours))),
+        );
+
+        const copyRow = (label: string, value: string) => {
+          const row = el('div', 'wm-panel__copy');
+          row.appendChild(el('span', 'wm-panel__copy-label', label));
+          const field = el('code', 'wm-panel__copy-value', value);
+          const button = el('button', 'wm-panel__copy-btn') as HTMLButtonElement;
+          button.type = 'button';
+          button.textContent = strings['map.upload.copy'] ?? 'Copy';
+          button.addEventListener('click', () => {
+            void navigator.clipboard?.writeText(value).then(() => {
+              button.textContent = strings['map.upload.copied'] ?? 'Copied';
+            });
+          });
+          row.append(field, button);
+          host.appendChild(row);
+        };
+        copyRow(strings['map.upload.link'] ?? 'Trail link', `${location.origin}${result.map_url}`);
+        copyRow(strings['map.upload.code'] ?? 'Claim code', result.claim_code);
+
+        const claim = el('a', 'wm-panel__cta') as HTMLAnchorElement;
+        claim.href = result.claim_url;
+        claim.textContent = strings['map.upload.claim'] ?? 'Claim this trail';
+        host.appendChild(claim);
+      });
+    },
+
+    /**
+     * One message per thing the visitor can do about it. The three parse failures collapse
+     * into one: from where they stand, a file with route points, a file with only waypoints
+     * and a file that never moved are all \u201cthis is not a recorded ride\u201d.
+     */
+    showUploadError(reason: UploadReason) {
+      open((host) => {
+        kicker(strings['map.upload.kicker'] ?? 'Your trail');
+        const text =
+          reason === 'too_large'
+            ? strings['map.upload.errTooBig'] ?? 'That file is larger than 10 MB.'
+            : reason === 'rate_limited'
+              ? strings['map.upload.errBusy'] ?? 'Too many uploads from here just now. Try again in a few minutes.'
+              : reason === 'failed'
+                ? strings['map.upload.errFailed'] ?? 'That did not go through. Try again.'
+                : strings['map.upload.errNoTrack']
+                  ?? 'That file has no recorded track in it \u2014 only a planned route, or waypoints, or a trace that never moved.';
+        titleRow(host, strings['map.upload.failed'] ?? 'That file could not be added', null, strings);
+        host.appendChild(el('p', 'wm-panel__meta', text));
+      });
+    },
+
+    /**
+     * A secret link that resolved to nothing. Deliberately one message for both "no such
+     * trail" and "it expired": the secret is the whole access control, so the sheet must
+     * not confirm which ids ever existed.
+     */
+    showMissingTrail() {
+      open((host) => {
+        kicker(strings['map.trail.kicker'] ?? 'Rider trail');
+        titleRow(host, strings['map.trail.goneTitle'] ?? 'This trail is no longer here', null, strings);
+        host.appendChild(
+          el('p', 'wm-panel__meta', strings['map.trail.goneBody']
+            ?? 'A shared trail lives for a few days unless its rider claims it. This link has expired, or never pointed anywhere.'),
+        );
+      });
+    },
+
     /**
      * A ride somebody recorded. The trace is the subject: its numbers sit under the
      * title, the file's provenance reads as chips, and the rider is a byline — an
@@ -773,7 +879,16 @@ export function createPanel(deps: PanelDeps) {
       open((host) => {
         const st = trail.stats ?? null;
         kicker(strings['map.trail.kicker'] ?? 'Rider trail');
-        titleRow(host, localized(trail.title, lang) ?? trail.id, { kind: 'route', key: trail.id }, strings);
+        // /share/route/<id> reads the public map document, which a link-only trail is
+        // deliberately not in. Sharing one means passing on its secret link, which the
+        // upload sheet hands over explicitly — so this card simply has no share button.
+        const shareable = !trail.visibility || trail.visibility === 'public';
+        titleRow(
+          host,
+          localized(trail.title, lang) ?? trail.id,
+          shareable ? { kind: 'route', key: trail.id } : null,
+          strings,
+        );
 
         const summary = localized(trail.summary, lang);
         if (summary) host.appendChild(el('p', 'wm-panel__meta', summary));
@@ -861,21 +976,27 @@ export function createPanel(deps: PanelDeps) {
         }
         if (chips.childElementCount) host.appendChild(chips);
 
-        const by = personBlock(
-          trail.author_username,
-          trail.author_name ?? '',
-          trail.author_avatar ?? null,
-          strings['map.trail.rider'] ?? 'Rider',
-        );
+        // An uploaded trail has no author until somebody claims it. Rendering an empty
+        // face there would invent a person; rendering the service account would name the
+        // wrong one. So an unclaimed trail simply has no byline, and its links stand alone.
+        const by = trail.author_username
+          ? personBlock(
+              trail.author_username,
+              trail.author_name ?? '',
+              trail.author_avatar ?? null,
+              strings['map.trail.rider'] ?? 'Rider',
+            )
+          : null;
         // A face and a name with nothing said about them read as the subject of the
         // sheet. The label is what makes them the author of it.
-        host.appendChild(el('h3', 'wm-panel__section', strings['map.trail.uploadedBy'] ?? 'Uploaded by'));
+        if (by) host.appendChild(el('h3', 'wm-panel__section', strings['map.trail.uploadedBy'] ?? 'Uploaded by'));
 
         // The two ways out of this trail sit on the uploader's row rather than in a
         // strip of their own: one line of who and where-next, not two of each.
         const row = el('div', 'wm-panel__socials');
         const byline = el('div', 'wm-panel__byline');
-        byline.append(by, row);
+        if (by) byline.append(by);
+        byline.append(row);
         host.appendChild(byline);
         const mark = (icon: string | null, href: string, label: string, svg?: string) => {
           const a = el('a', 'wm-social') as HTMLAnchorElement;

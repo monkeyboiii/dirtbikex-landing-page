@@ -92,7 +92,10 @@ if (name === 'series') {
     }
     if (seen.has(trail.id)) bail(`duplicate trail id ${trail.id}`);
     seen.add(trail.id);
-    if (trail.gpx_url !== `${cdn}/original/1X/${trail.gpx_url?.split('/').pop() ?? ''}`) {
+    // Host, not path: Discourse nests uploads by id, so `original/2X/<a>/<sha1>.gpx` is
+    // as correct as `original/1X/<sha1>.gpx` and asserting the shallow form rejects
+    // every upload above id 1000. What matters is only that it is this env's CDN.
+    if (!trail.gpx_url?.startsWith(`${cdn}/`)) {
       bail(`${trail.id} gpx_url must live on ${cdn} for --env ${env}; got ${trail.gpx_url ?? 'nothing'}`);
     }
     // The author cache is a forum reference; pointing it at the other environment
@@ -113,7 +116,18 @@ const live = await fetch(liveURL, { cache: 'no-store' })
   .then((r) => (r.ok ? r.text() : null))
   .catch(() => null);
 
-const same = live !== null && JSON.stringify(JSON.parse(live)) === JSON.stringify(doc);
+// `/api/map/trails.json` is the R2 document PLUS the public visitor uploads D1 holds,
+// merged at serve time and never written to R2. Diffing the merged view against the
+// source would report drift the moment anyone publishes an upload — and tell the
+// operator R2 was stale when it is not. A merged entry is the only one carrying
+// `visibility`, so dropping those leaves exactly the document R2 stores.
+const curated = (text) => {
+  const parsed = JSON.parse(text);
+  if (name !== 'trails' || !Array.isArray(parsed.trails)) return parsed;
+  return { ...parsed, trails: parsed.trails.filter((t) => !t.visibility) };
+};
+
+const same = live !== null && JSON.stringify(curated(live)) === JSON.stringify(doc);
 if (live === null) console.log(`live ${liveURL}: unreadable (treating as drifted)`);
 else console.log(`live ${liveURL}: ${same ? 'already matches the source' : 'DIFFERS from the source'}`);
 

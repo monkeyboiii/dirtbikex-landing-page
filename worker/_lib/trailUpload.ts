@@ -187,7 +187,12 @@ export async function handleTrailUpload(request: Request, env: PagesEnv): Promis
   upload.set('synchronous', 'true');
   upload.set('file', file, file.name || 'ride.gpx');
 
-  let uploaded: { url?: unknown; sha1?: unknown; short_url?: unknown } | null = null;
+  interface UploadedFile {
+    url?: unknown;
+    sha1?: unknown;
+    short_url?: unknown;
+  }
+  let uploaded: UploadedFile | null = null;
   try {
     const resp = await fetch(`${env.FORUM_BASE}/uploads.json`, {
       method: 'POST',
@@ -202,7 +207,7 @@ export async function handleTrailUpload(request: Request, env: PagesEnv): Promis
       console.error('trail:upload_rejected', { status: resp.status });
       return json(502, { error: 'upload_failed' });
     }
-    uploaded = (await resp.json()) as typeof uploaded;
+    uploaded = (await resp.json()) as UploadedFile;
   } catch (err) {
     console.error('trail:upload_threw', { err: String(err) });
     return json(502, { error: 'upload_failed' });
@@ -276,6 +281,10 @@ function toEntry(row: TrailRow, proxied: boolean): Record<string, unknown> {
     title: row.title ? { en: row.title } : null,
     // Proxied so the durable uploads-cdn URL never reaches a visitor of a private trail —
     // losing the link then means losing the trail, which is not true of a bare CDN URL.
+    // Proxied for anything link-only: the durable uploads-cdn URL survives the trail's
+    // expiry by 30 days of tombstone, so handing it out would make "lose the link, lose
+    // the trail" false of the bytes. A public trail is served from the CDN directly —
+    // the proxy URL contains the secret and must not reach a public document.
     gpx_url: proxied ? `/api/map/trail/${row.secret}.gpx` : row.gpx_url,
     distance_km: row.distance_km,
     stats,
@@ -297,7 +306,12 @@ export async function publicTrailEntries(env: PagesEnv): Promise<Record<string, 
         WHERE visibility = 'public'
           AND (expires_at IS NULL OR expires_at > datetime('now'))`,
     ).all<TrailRow>();
-    return (results ?? []).map((row) => toEntry(row, true));
+    // NOT proxied. A public trail has nothing to hide, so its bytes go straight to the
+    // uploads CDN instead of through the worker — and, more importantly, the proxy URL
+    // carries the secret, which must never be published in a document that is cached at
+    // the edge for a day. Flipping a trail back to private therefore has to mint a NEW
+    // secret; the old one is already in every copy of trails.json anyone fetched.
+    return (results ?? []).map((row) => toEntry(row, false));
   } catch (err) {
     console.error('trail:list_threw', { err: String(err) });
     return [];
@@ -321,6 +335,28 @@ export async function handleTrailResolve(env: PagesEnv, secret: string): Promise
   // control, so the endpoint must not become an oracle that confirms which ids exist.
   if (!row) return json(404, { error: 'not_found' });
   return json(200, { trail: toEntry(row, true) });
+}
+
+export type ClaimState =
+  | { status: 'open'; secret: string }
+  | { status: 'claimed' }
+  | { status: 'unknown' };
+
+/**
+ * Resolves a claim code for the intermediate card. An unknown code and an expired one
+ * answer identically, for the same reason the secret lookup does — this is a bearer
+ * credential and the page must not confirm which codes exist.
+ */
+export async function lookupClaim(env: PagesEnv, code: string): Promise<ClaimState> {
+  if (!env.SUBSCRIBERS_DB) return { status: 'unknown' };
+  const row = await env.SUBSCRIBERS_DB.prepare(
+    `SELECT secret, claimed_at FROM trails
+      WHERE claim_code = ? AND (expires_at IS NULL OR expires_at > datetime('now'))`,
+  )
+    .bind(code)
+    .first<{ secret: string; claimed_at: string | null }>();
+  if (!row) return { status: 'unknown' };
+  return row.claimed_at ? { status: 'claimed' } : { status: 'open', secret: row.secret };
 }
 
 /**

@@ -16,6 +16,7 @@ import {
   handleTrailGpx,
   publicTrailEntries,
   sweepExpiredTrails,
+  lookupClaim,
 } from './_lib/trailUpload';
 import { handleOgPreview } from './_lib/ogPreview';
 import { ENTITY_KINDS, SHARE_ALIASES, loadEntity } from './_lib/shareEntity';
@@ -770,6 +771,64 @@ async function handleLineagePage(request: Request, env: Env, ref: string, route:
   });
 }
 
+/**
+ * The one-time claim card a visitor is handed after an upload. See TRAIL_UPLOAD_MODULE.md.
+ *
+ * It is deliberately a buffer rather than a redirect: the code is a bearer credential and
+ * the jump lands on a forum login, so a visitor who arrives here needs to be told what is
+ * about to happen and to whom the trail will belong. It is also where the code stops being
+ * only in a clipboard — the forum route carries it in the query string, which is what
+ * survives the login round-trip.
+ *
+ * `/s/c/*` is NOT in the AASA file, on purpose: a path joins it only when the shipped app
+ * has a destination for that path, and this one has none yet. Adding it early is what makes
+ * the app raise its invalid-link bubble on a perfectly good link.
+ */
+const CLAIM_COPY: Partial<Record<Lang, { open: [string, string]; taken: [string, string]; gone: [string, string]; cta: string; map: string }>> = {
+  en: {
+    open: ['Claim your trail', 'Sign in on the forum and this ride becomes yours — it stops expiring, and you decide whether it goes on the map or stays on your link alone.'],
+    taken: ['This trail already has a rider', 'Somebody has claimed it. If that was you, it is on your forum account.'],
+    gone: ['That code is no longer valid', 'A trail that nobody claims is deleted after 72 hours, and its code goes with it.'],
+    cta: 'Claim it on the forum',
+    map: 'Open the map',
+  },
+  'zh-CN': {
+    open: ['认领你的轨迹', '在论坛登录后这条轨迹就归你了——不再过期，是否显示在地图上也由你决定。'],
+    taken: ['这条轨迹已有归属', '已经有人认领了。如果是你本人，可以在论坛账号里找到。'],
+    gone: ['该认领码已失效', '无人认领的轨迹会在 72 小时后删除，认领码也随之失效。'],
+    cta: '前往论坛认领',
+    map: '打开地图',
+  },
+  'zh-TW': {
+    open: ['認領你的軌跡', '在論壇登入後這條軌跡就歸你了——不再過期，是否顯示在地圖上也由你決定。'],
+    taken: ['這條軌跡已有歸屬', '已經有人認領了。如果是你本人，可以在論壇帳號裡找到。'],
+    gone: ['該認領碼已失效', '無人認領的軌跡會在 72 小時後刪除，認領碼也隨之失效。'],
+    cta: '前往論壇認領',
+    map: '打開地圖',
+  },
+};
+
+async function handleTrailClaim(request: Request, env: Env, code: string): Promise<Response> {
+  const url = new URL(request.url);
+  const locale = pickLocale(url, request.headers.get('accept-language'), request.headers.get('user-agent'));
+  const copy = CLAIM_COPY[locale] ?? CLAIM_COPY.en!;
+  const state = await lookupClaim(env, code);
+
+  const [title, subtitle] =
+    state.status === 'open' ? copy.open : state.status === 'claimed' ? copy.taken : copy.gone;
+  const primaryCTA =
+    state.status === 'open'
+      ? { label: copy.cta, url: `${env.FORUM_BASE}/dbx/trails/claim?code=${encodeURIComponent(code)}` }
+      : { label: copy.map, url: '/' };
+
+  return renderShareLanding(
+    { kind: 'c', locale, title, subtitle, primaryCTA, returnTapCopy: '', forumBase: env.FORUM_BASE ?? '' },
+    request.url,
+    // A card whose whole content is the state of a secret must never sit in an edge cache.
+    { cacheControl: 'no-store' },
+  );
+}
+
 async function handleLineageClaim(request: Request, env: Env): Promise<Response> {
   const ctx = lineageContext(request, env);
   const token = new URL(request.url).searchParams.get('t') ?? '';
@@ -886,6 +945,11 @@ export default {
     const su = url.pathname.match(/^\/s\/u\/([^/]+)\/?$/);
     if (su && request.method === 'GET') {
       return handleUser(request, env, decodeURIComponent(su[1]));
+    }
+    // Trail claim. Alphabet-scoped so a typo 404s at the router rather than in D1.
+    const sc = url.pathname.match(/^\/s\/c\/([a-z0-9]{6,16})\/?$/);
+    if (sc && request.method === 'GET') {
+      return handleTrailClaim(request, env, sc[1]!);
     }
     const se = url.pathname.match(/^\/s\/e\/([^/]+)\/?$/);
     if (se && request.method === 'GET') {

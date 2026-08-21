@@ -17,7 +17,9 @@
 // `/uploads/short-url/<base62>.gpx` form, which 302s to the raw object-store host.
 // That host serves the bytes, but the map must fetch `uploads-cdn.<apex>` — it is what
 // the site's allowlist and the China invariant are written against. So the short URL
-// is followed once here, at import time, and only the sha1 is kept.
+// is followed once here, at import time, and only the HOST is swapped. The path is kept
+// verbatim: Discourse nests uploads by id (`original/1X`, then `2X/<a>`, and deeper),
+// so rebuilding it as `original/1X/<sha1>` 404s for every upload above id 1000.
 //
 // Writes fixtures/map/<env>/trails.json. `--push` then publishes it to R2 for that
 // environment; without it, review the diff and run push-map-data.mjs yourself.
@@ -75,10 +77,12 @@ const redirect = await fetch(shortURL, { redirect: 'manual' });
 if (redirect.status !== 302 && redirect.status !== 301) {
   die(`${shortURL} did not redirect (${redirect.status}) — is the upload secure, or the post hidden?`);
 }
-const sha1 = /\/original\/[^/]+\/([0-9a-f]{40})\.gpx/.exec(redirect.headers.get('location') ?? '')?.[1];
-if (!sha1) die(`could not read a sha1 out of ${redirect.headers.get('location')}`);
+const location = redirect.headers.get('location') ?? '';
+if (!/\/original\/[^/]+?\/(?:[0-9a-f]\/)*[0-9a-f]{40}\.gpx$/.test(new URL(location, base).pathname)) {
+  die(`${location} is not an upload path — is the upload secure, or the post hidden?`);
+}
 
-const gpxUrl = `${uploadsCdn(env)}/original/1X/${sha1}.gpx`;
+const gpxUrl = `${uploadsCdn(env)}${new URL(location, base).pathname}`;
 const source = await fetch(gpxUrl).then((r) => {
   if (!r.ok) throw new Error(`${r.status} fetching ${gpxUrl}`);
   return r.text();

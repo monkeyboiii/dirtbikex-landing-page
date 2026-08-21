@@ -35,6 +35,32 @@ const DEFAULTS: Record<string, string> = {
   'map.drawer.close': 'Close',
   'map.control.recenter': 'Back to the latest episode',
   'map.search.open': 'Search',
+  'map.upload.open': 'Add your trail',
+  'map.upload.kicker': 'Your trail',
+  'map.upload.title': 'Put your ride on the map',
+  'map.upload.body':
+    'Drop a .gpx file and we will draw it. Nobody else sees it: you get a private link and a code, and the trail is deleted in 72 hours unless you claim it on the forum.',
+  'map.upload.pick': 'Choose a .gpx file',
+  'map.upload.drop': 'Drop your .gpx here',
+  'map.upload.working': 'Uploading\u2026',
+  'map.upload.doneTitle': 'Your trail is on the map',
+  'map.upload.doneBody':
+    'Keep both of these. The link is the only way back to this trail, and the code is the only way to make it yours \u2014 we cannot show them to you again.',
+  'map.upload.expires': 'It is deleted in {n} hours unless you claim it.',
+  'map.upload.link': 'Trail link',
+  'map.upload.code': 'Claim code',
+  'map.upload.claim': 'Claim this trail',
+  'map.upload.copy': 'Copy',
+  'map.upload.copied': 'Copied',
+  'map.upload.failed': 'That file could not be added',
+  'map.upload.errNoTrack':
+    'That file has no recorded track in it \u2014 only a planned route, or waypoints, or a trace that never moved.',
+  'map.upload.errTooBig': 'That file is larger than 10 MB.',
+  'map.upload.errBusy': 'Too many uploads from here just now. Try again in a few minutes.',
+  'map.upload.errFailed': 'That did not go through. Try again.',
+  'map.trail.goneTitle': 'This trail is no longer here',
+  'map.trail.goneBody':
+    'A shared trail lives for a few days unless its rider claims it. This link has expired, or never pointed anywhere.',
   'map.search.placeholder': 'Search tracks, trails, shops',
   'map.search.all': 'All',
   'map.search.empty': 'Nothing matched',
@@ -214,7 +240,19 @@ const config = {
         <span class="wm-rail__label">{s('map.control.locate')}</span>
       </button>
     </div>
+    {/* Third block, third hairline: this is the only control that puts something INTO
+        the map rather than changing what you see of it. */}
+    <div class="wm-rail__actions">
+      <button type="button" class="wm-rail__btn wm-rail__btn--action" data-upload title={s('map.upload.open')} aria-label={s('map.upload.open')}>
+        <span class="wm-rail__on" set:html={`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>`} />
+        <span class="wm-rail__label">{s('map.upload.open')}</span>
+      </button>
+    </div>
   </nav>
+
+  {/* Only rendered while a file is over the map — see .wm__drop. */}
+  <div class="wm__drop" data-drop hidden>{s('map.upload.drop')}</div>
+  <input type="file" accept=".gpx,application/gpx+xml" data-upload-input hidden />
 
   {/* Opens where it is asked for: beside the rail on a wide screen, across the top
       on a phone, where a rail-width popover would be unusable. */}

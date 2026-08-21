@@ -1040,6 +1040,95 @@ body.is-map-page .site-header__inner {
   color: var(--wm-accent);
   border-color: var(--wm-accent);
 }
+/* ---------- trail upload ---------- */
+
+/* Same pill as the drawer's, at sheet width: one action, and it is the whole point of
+   the sheet it sits in. */
+.wm-panel__cta {
+  display: block;
+  width: 100%;
+  margin: 12px 0 0;
+  padding: 10px 18px;
+  border-radius: var(--radius-pill, 999px);
+  border: 1px solid var(--wm-raise-line);
+  background: var(--wm-raise);
+  color: var(--wm-text);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color var(--dur-fast, 120ms) ease, color var(--dur-fast, 120ms) ease;
+}
+.wm-panel__cta:hover,
+.wm-panel__cta:focus-visible {
+  border-color: var(--wm-accent);
+  color: var(--wm-accent);
+}
+
+/* A secret shown once. It is monospaced and selectable because a visitor who cannot use
+   the clipboard still has to be able to write it down correctly. */
+.wm-panel__copy {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 4px 10px;
+  margin-top: 10px;
+}
+.wm-panel__copy-label {
+  grid-column: 1 / -1;
+  font-size: 0.74rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--wm-text-dim);
+}
+.wm-panel__copy-value {
+  overflow-wrap: anywhere;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.82rem;
+  color: var(--wm-text);
+  user-select: all;
+}
+.wm-panel__copy-btn {
+  flex: none;
+  padding: 5px 12px;
+  border-radius: var(--radius-pill, 999px);
+  border: 1px solid var(--wm-line-strong);
+  background: transparent;
+  color: var(--wm-text-dim);
+  font: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+.wm-panel__copy-btn:hover,
+.wm-panel__copy-btn:focus-visible {
+  color: var(--wm-accent);
+  border-color: var(--wm-accent);
+}
+
+/* Only while a file is over the map. A drop target that is always visible is a target
+   that is always in the way of the map it covers. */
+.wm__drop {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  text-align: center;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--wm-text);
+  background: rgba(var(--wm-veil), 0.72);
+  border: 2px dashed var(--wm-accent);
+  border-radius: 12px;
+  pointer-events: none;
+}
+.wm__drop[hidden] {
+  display: none;
+}
+
 .wm__drawer-cta {
   margin: 14px 0 0;
   display: flex;

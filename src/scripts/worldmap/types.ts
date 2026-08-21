@@ -94,8 +94,15 @@ export interface TrailStats {
 export interface Trail {
   id: string;
   title?: Record<string, string> | null;
-  author_user_id: number;
-  author_username: string;
+  /** Absent until somebody claims the upload. An operator-imported trail always has one;
+   *  a visitor upload has none until the claim creates the post that owns it. */
+  author_user_id?: number | null;
+  author_username?: string | null;
+  /** unlisted = uploaded, link-only, expiring · private = claimed, link-only ·
+   *  public = on the map. Absent on operator imports, which are public by definition. */
+  visibility?: 'unlisted' | 'private' | 'public' | null;
+  /** The forum post whose upload reference keeps the file alive. */
+  post_id?: number | null;
   post_url?: string | null;
   gpx_url?: string | null;
   /** Cached from the forum so the profile link keeps working between imports. */
