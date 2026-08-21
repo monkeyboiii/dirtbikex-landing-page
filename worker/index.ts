@@ -14,6 +14,7 @@ import {
   handleTrailUpload,
   handleTrailResolve,
   handleTrailGpx,
+  handleUploadStatus,
   publicTrailEntries,
   sweepExpiredTrails,
   reconcileTrails,
@@ -1052,6 +1053,7 @@ export default {
       if (trailDoc) return handleTrailResolve(env, trailDoc[1]!);
       const trailGpx = url.pathname.match(/^\/api\/map\/trail\/([a-z0-9]{6,16})\.gpx$/);
       if (trailGpx) return handleTrailGpx(env, trailGpx[1]!);
+      if (url.pathname === '/api/map/upload.json') return handleUploadStatus(env);
       if (url.pathname === '/api/map/shops.json') return handleMapDoc(request, env, ctx, 'shops');
       if (url.pathname === '/api/map/track.json') return handleTrackJSON(request, env);
       if (url.pathname === '/api/map/og') return handleOgPreview(request, env, ctx);

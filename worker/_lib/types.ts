@@ -57,6 +57,20 @@ export interface PagesEnv {
    *  Secret. A leak of this key can put a file in the upload store and do nothing else —
    *  it cannot post, cannot create a topic and cannot speak for a user. */
   FORUM_TRAILS_KEY?: string;
+  /** Visitor trail upload, on or off. "0" / "false" / "off" disables it; anything else,
+   *  including absent, leaves it on — a kill switch must never be armed by a typo, and a
+   *  missing var must never silently disable a shipped feature. */
+  TRAILS_UPLOAD_ENABLED?: string;
+  /** Overlap thresholds and the publish cap. Strings, parsed behind hard-coded fallbacks —
+   *  see worker/_lib/trailOverlap.ts and wrangler.jsonc, where they live in BOTH blocks. */
+  TRAIL_OVERLAP_CORRIDOR_M?: string;
+  TRAIL_OVERLAP_SHARE_FRAC?: string;
+  TRAIL_OVERLAP_FLOOR_M?: string;
+  TRAIL_OVERLAP_NUDGE_M?: string;
+  TRAIL_OVERLAP_MAX_CANDIDATES?: string;
+  TRAIL_OVERLAP_BUDGET_MS?: string;
+  /** Published trails one author may already have on the same ground. "0" DISABLES it. */
+  TRAIL_PUBLISH_CAP?: string;
   /** Shared bearer between the worker and the forum plugin, both directions. Unset means
    *  the plugin surface does not exist — every one of its endpoints 404s, and the
    *  reconcile pull does nothing. See TRAIL_UPLOAD_MODULE.md. */

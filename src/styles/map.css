@@ -1104,6 +1104,48 @@ body.is-map-page .site-header__inner {
   }
 }
 
+/* The link, directly under the title: smaller than the body, monospaced so a URL reads as
+   a URL, and the whole thing is the copy target. */
+.wm-panel__link-copy {
+  display: block;
+  width: 100%;
+  margin: 2px 0 10px;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  overflow-wrap: anywhere;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.74rem;
+  line-height: 1.5;
+  color: var(--wm-text-dim);
+  cursor: pointer;
+}
+.wm-panel__link-copy:hover,
+.wm-panel__link-copy:focus-visible {
+  color: var(--wm-accent);
+}
+
+/* The one action on the sheet, on the byline's row. Accent-filled rather than outlined:
+   every other control here is chrome, and this one is the point. */
+.wm-panel__claim {
+  flex: none;
+  padding: 8px 20px;
+  border-radius: var(--radius-pill, 999px);
+  border: 1px solid var(--wm-accent);
+  background: var(--wm-accent);
+  color: #fff;
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: filter var(--dur-fast, 120ms) ease;
+}
+.wm-panel__claim:hover,
+.wm-panel__claim:focus-visible {
+  filter: brightness(1.08);
+}
+
 /* A link to hand around. The whole value is the copy target — a URL is an awkward thing
    to select by hand on a phone — and the button beside it shares rather than repeating
    the same action twice on one row. */
@@ -1161,6 +1203,15 @@ body.is-map-page .site-header__inner {
 .wm-panel__copy-btn svg {
   width: 15px;
   height: 15px;
+}
+
+/* A control that is switched off. Same treatment as a toggled-off layer, because that is
+   what it is: still there, still tappable, and honest that it will not do anything. */
+.wm-rail__btn[data-state='off'] {
+  opacity: 0.42;
+}
+.wm-rail__btn[data-state='off']:hover {
+  opacity: 0.6;
 }
 
 /* The rider-shaped hole. Same geometry as a real byline so the eye reads it as the same

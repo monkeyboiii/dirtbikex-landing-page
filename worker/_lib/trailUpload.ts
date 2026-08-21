@@ -11,6 +11,7 @@
  * and the file's reaping are the same deadline, expressed twice.
  */
 import { rateLimitConsume } from './rateLimit';
+import { COARSE_SPACING_M, SIG_VERSION, compareSignatures, thresholds } from './trailOverlap';
 import type { PagesEnv } from './types';
 
 /** Matches gpx.ts's MAX_GPX_BYTES and the forum's max_attachment_size_kb. All three agree. */
@@ -143,8 +144,33 @@ function sniff(head: string, bbox: number[]): string | null {
   return null;
 }
 
+/**
+ * The kill switch. Off means off — the endpoint refuses and the button greys out.
+ *
+ * Deliberately opt-OUT: only an explicit "0" / "false" / "off" disables uploads. A kill
+ * switch that arms itself when a var is missing or misspelled takes a shipped feature down
+ * on a deploy nobody thought was risky.
+ */
+export function uploadsEnabled(env: PagesEnv): boolean {
+  const raw = String(env.TRAILS_UPLOAD_ENABLED ?? '').trim().toLowerCase();
+  return !['0', 'false', 'off', 'no'].includes(raw);
+}
+
+/**
+ * GET /api/map/upload.json — is the door open?
+ *
+ * `no-store`, because the whole point is that flipping the var takes effect on the next
+ * tap rather than after a cache expires. It costs one small request at boot and it is what
+ * lets the control tell the truth before somebody has picked a file.
+ */
+export function handleUploadStatus(env: PagesEnv): Response {
+  return json(200, { enabled: uploadsEnabled(env) });
+}
+
 /** POST /api/map/trail — the whole visitor-facing write surface. */
 export async function handleTrailUpload(request: Request, env: PagesEnv): Promise<Response> {
+  // Checked first, before the rate limiter spends anyone's budget on a closed door.
+  if (!uploadsEnabled(env)) return json(503, { error: 'uploads_disabled' });
   if (!env.SUBSCRIBERS_DB) {
     console.error('trail:no_db');
     return json(503, { error: 'service_misconfigured' });
@@ -178,7 +204,15 @@ export async function handleTrailUpload(request: Request, env: PagesEnv): Promis
   if (!(file instanceof File) || file.size === 0) return json(400, { error: 'no_file' });
   if (file.size > MAX_GPX_BYTES) return json(413, { error: 'too_large' });
 
-  let meta: { title?: unknown; distance_km?: unknown; stats?: TrailStatsInput };
+  let meta: {
+    title?: unknown;
+    distance_km?: unknown;
+    stats?: TrailStatsInput;
+    sig?: unknown;
+    sig_v?: unknown;
+    sig_len_m?: unknown;
+    sig_coarse?: unknown;
+  };
   try {
     meta = JSON.parse(String(form.get('meta') ?? '{}'));
   } catch {
@@ -244,8 +278,9 @@ export async function handleTrailUpload(request: Request, env: PagesEnv): Promis
   const insert = () =>
     env.SUBSCRIBERS_DB!.prepare(
     `INSERT INTO trails (id, secret, visibility, gpx_url, gpx_short_url, gpx_sha1, title,
-                         distance_km, stats, claim_code, expires_at, ip_hash)
-     VALUES (?, ?, 'unlisted', ?, ?, ?, ?, ?, ?, ?, datetime('now', ?), ?)`,
+                         distance_km, stats, claim_code, expires_at, ip_hash,
+                         sig, sig_v, sig_len_m, sig_coarse)
+     VALUES (?, ?, 'unlisted', ?, ?, ?, ?, ?, ?, ?, datetime('now', ?), ?, ?, ?, ?, ?)`,
   )
     .bind(
       secret,
@@ -262,6 +297,12 @@ export async function handleTrailUpload(request: Request, env: PagesEnv): Promis
       code,
       `+${UNCLAIMED_HOURS} hours`,
       ipHash,
+      // A signature the client could not compute is stored as NULL, which every reader
+      // treats as "no verdict" rather than as "no overlap".
+      typeof meta.sig === 'string' && meta.sig.length < 32_000 ? meta.sig : null,
+      Number(meta.sig_v) === SIG_VERSION ? SIG_VERSION : null,
+      Number.isFinite(Number(meta.sig_len_m)) ? Number(meta.sig_len_m) : null,
+      meta.sig_coarse ? 1 : 0,
     )
     .run();
 
@@ -479,6 +520,103 @@ export async function handleClaimBind(request: Request, env: PagesEnv, code: str
  * is edge-cached for a day, so keeping it would mean a trail that reads private and is
  * still openable by anybody holding a stale copy of the document.
  */
+interface CandidateRow {
+  id: string;
+  title: string | null;
+  author_username: string | null;
+  sig: string | null;
+  sig_v: number | null;
+  sig_coarse: number | null;
+}
+
+export interface OverlapReport {
+  id: string;
+  title: string | null;
+  author: string | null;
+  shared_m: number;
+  /** Sampled too widely to refuse on. Reported, never counted toward the cap. */
+  coarse: boolean;
+}
+
+/**
+ * Which published trails share ground with this one, and whether its author already has
+ * too many of them.
+ *
+ * Runs at PUBLISH and nowhere else. Clutter does not exist until somebody publishes —
+ * unlisted and private trails are invisible to everyone but their link holder — so a cap at
+ * upload would refuse an anonymous visitor, who has no account to count against and whose
+ * row deletes itself in 72 hours, for an act that harms nobody.
+ *
+ * The centre-distance pre-filter is a HEURISTIC, unlike the comparison it feeds. Two traces
+ * can share ground while their centres sit far apart — a 60 km ride overlapping a 2 km loop
+ * at one end. Such a pair is missed. That is the safe direction: a miss means no refusal.
+ */
+async function overlapsFor(
+  env: PagesEnv,
+  row: { secret: string; sig: string | null; sig_v: number | null; author_user_id: number | null; centre: [number, number] | null; extentKm: number },
+): Promise<{ overlaps: OverlapReport[]; sameGroundByAuthor: OverlapReport[] } | null> {
+  if (!env.SUBSCRIBERS_DB || !row.sig || row.sig_v !== SIG_VERSION || !row.centre) return null;
+  const limits = thresholds(env as unknown as Record<string, unknown>);
+  const maxCandidates = Math.max(1, Number(env.TRAIL_OVERLAP_MAX_CANDIDATES ?? 12) || 12);
+  const budgetMs = Math.max(1, Number(env.TRAIL_OVERLAP_BUDGET_MS ?? 5) || 5);
+
+  // Half of this trail's own extent, plus a generous margin, plus the corridor.
+  const reachKm = row.extentKm / 2 + 5;
+  const [lng, lat] = row.centre;
+  const dLat = reachKm / 111.32;
+  const dLng = reachKm / (111.32 * Math.max(0.08, Math.cos((lat * Math.PI) / 180)));
+
+  const { results } = await env.SUBSCRIBERS_DB.prepare(
+    `SELECT id, title, author_username, sig, sig_v, sig_coarse
+       FROM trails
+      WHERE visibility = 'public'
+        AND secret != ?
+        AND sig IS NOT NULL
+        AND centre_lat BETWEEN ? AND ?
+        AND centre_lng BETWEEN ? AND ?
+      LIMIT ?`,
+  )
+    .bind(row.secret, lat - dLat, lat + dLat, lng - dLng, lng + dLng, maxCandidates)
+    .all<CandidateRow & { author_user_id?: number }>();
+
+  const overlaps: OverlapReport[] = [];
+  const started = Date.now();
+  for (const cand of results ?? []) {
+    // The budget is wall clock, not a count: one very long pair can cost what ten short
+    // ones do, and the free plan bills CPU.
+    if (Date.now() - started > budgetMs) {
+      console.warn('trail:overlap_budget', { secret: row.secret, done: overlaps.length });
+      break;
+    }
+    if (cand.sig_v !== SIG_VERSION) continue;
+    const seen = compareSignatures(row.sig, cand.sig, limits);
+    if (!seen || seen.sharedM < limits.nudgeM) continue;
+    overlaps.push({
+      id: cand.id,
+      title: cand.title,
+      author: cand.author_username,
+      shared_m: Math.round(seen.sharedM),
+      coarse: !!cand.sig_coarse,
+    });
+  }
+
+  // The cap counts only this author's own trails: a global cap would let the first riders
+  // in a city lock out everybody after them.
+  const mine = new Set<string>();
+  if (row.author_user_id != null) {
+    const { results: own } = await env.SUBSCRIBERS_DB.prepare(
+      `SELECT id FROM trails WHERE visibility = 'public' AND author_user_id = ?`,
+    )
+      .bind(row.author_user_id)
+      .all<{ id: string }>();
+    for (const r of own ?? []) mine.add(r.id);
+  }
+  const sameGroundByAuthor = overlaps.filter(
+    (o) => mine.has(o.id) && !o.coarse && o.shared_m >= limits.floorM,
+  );
+  return { overlaps, sameGroundByAuthor };
+}
+
 export async function handleTrailState(request: Request, env: PagesEnv, secret: string): Promise<Response> {
   if (!pluginAuthorised(request, env)) return json(404, { error: 'not_found' });
   if (!env.SUBSCRIBERS_DB) return json(503, { error: 'service_misconfigured' });
@@ -498,11 +636,78 @@ export async function handleTrailState(request: Request, env: PagesEnv, secret: 
   }
 
   const current = await env.SUBSCRIBERS_DB.prepare(
-    'SELECT id, visibility FROM trails WHERE secret = ?',
+    `SELECT id, visibility, sig, sig_v, sig_coarse, gpx_sha1, author_user_id, stats
+       FROM trails WHERE secret = ?`,
   )
     .bind(secret)
-    .first<{ id: string; visibility: string }>();
+    .first<{
+      id: string;
+      visibility: string;
+      sig: string | null;
+      sig_v: number | null;
+      sig_coarse: number | null;
+      gpx_sha1: string | null;
+      author_user_id: number | null;
+      stats: string;
+    }>();
   if (!current) return json(404, { error: 'not_found' });
+
+  let overlaps: OverlapReport[] = [];
+  if (want === 'public' && current.visibility !== 'public') {
+    // Exactly the same bytes, already on the map. Checked only among PUBLISHED rows: the
+    // same file legitimately exists across environments and as somebody's private copy,
+    // and checking at upload would let anyone who fetched a published .gpx off the CDN
+    // discover whether a stranger's pending trail held the same bytes.
+    if (current.gpx_sha1) {
+      const twin = await env.SUBSCRIBERS_DB.prepare(
+        `SELECT id FROM trails WHERE visibility = 'public' AND gpx_sha1 = ? AND secret != ? LIMIT 1`,
+      )
+        .bind(current.gpx_sha1, secret)
+        .first<{ id: string }>();
+      if (twin) return json(409, { error: 'already_published', trail: twin.id });
+    }
+
+    const cap = Number(env.TRAIL_PUBLISH_CAP ?? 3);
+    const stats = ((): { centre?: unknown; bbox?: unknown } => {
+      try {
+        return JSON.parse(current.stats) as { centre?: unknown; bbox?: unknown };
+      } catch {
+        return {};
+      }
+    })();
+    const centre = Array.isArray(stats.centre) && stats.centre.length === 2
+      ? ([Number(stats.centre[0]), Number(stats.centre[1])] as [number, number])
+      : null;
+    const bbox = Array.isArray(stats.bbox) && stats.bbox.length === 4 ? stats.bbox.map(Number) : null;
+    const extentKm = bbox
+      ? Math.max(
+          (bbox[3]! - bbox[1]!) * 111.32,
+          (bbox[2]! - bbox[0]!) * 111.32 * Math.max(0.08, Math.cos(((centre?.[1] ?? 0) * Math.PI) / 180)),
+        )
+      : 0;
+
+    const found = await overlapsFor(env, {
+      secret,
+      sig: current.sig,
+      sig_v: current.sig_v,
+      author_user_id: current.author_user_id,
+      centre,
+      extentKm,
+    });
+    overlaps = found?.overlaps ?? [];
+    // 0 DISABLES the cap here. Note that OUTREACH_DAILY_CAP in the same config uses 0 to
+    // mean a hard stop — the opposite — which is exactly the ambiguity that stalled the
+    // outreach drip, so it is spelled out in wrangler.jsonc too.
+    if (Number.isFinite(cap) && cap > 0 && (found?.sameGroundByAuthor.length ?? 0) >= cap) {
+      return json(409, {
+        error: 'too_many_nearby',
+        cap,
+        // Named, so the refusal can say which ones and offer the way out: unpublishing any
+        // of them frees a slot immediately.
+        trails: found!.sameGroundByAuthor,
+      });
+    }
+  }
 
   // A public trail is addressed by a readable id; a private one is addressed by nothing
   // but its secret, so its id goes back to being the secret.
@@ -520,7 +725,7 @@ export async function handleTrailState(request: Request, env: PagesEnv, secret: 
     // The only unique columns here are `id` and `secret`, and the secret is freshly minted.
     return json(409, { error: 'id_taken' });
   }
-  return json(200, { visibility: want, id: nextId, secret: nextSecret });
+  return json(200, { visibility: want, id: nextId, secret: nextSecret, overlaps });
 }
 
 /**

@@ -1532,7 +1532,35 @@ class WorldMap {
    * trace and the two secrets. The trail is drawn from the file we already hold rather
    * than fetched back, so nothing rides on the upload being readable yet.
    */
+  /** Null until the status lands. Absent is treated as ON, matching the worker. */
+  private uploadsOn: boolean | null = null;
+
+  /**
+   * Asks the worker whether the door is open. Fire-and-forget at boot: the answer only
+   * changes how a control LOOKS, and the worker refuses regardless, so nothing waits on it.
+   */
+  async checkUploads(button: HTMLElement): Promise<void> {
+    try {
+      const res = (await fetch('/api/map/upload.json', { cache: 'no-store' }).then((r) =>
+        r.ok ? r.json() : null,
+      )) as { enabled?: boolean } | null;
+      this.uploadsOn = res?.enabled !== false;
+    } catch {
+      // A failed probe must not grey out a working button.
+      this.uploadsOn = true;
+    }
+    button.dataset.state = this.uploadsOn ? 'idle' : 'off';
+  }
+
+  uploadsClosed(): boolean {
+    return this.uploadsOn === false;
+  }
+
   openUploadIntro(pick: () => void): void {
+    if (this.uploadsOn === false) {
+      this.panel.showUploadOff();
+      return;
+    }
     this.panel.showUploadIntro(pick);
   }
 
@@ -1556,6 +1584,13 @@ class WorldMap {
     }
     progress('sending', 0);
     const result = await uploadTrail(file, pre, progress);
+    if (result === 'uploads_disabled') {
+      this.uploadsOn = false;
+      const button = this.root.querySelector<HTMLElement>('[data-upload]');
+      if (button) button.dataset.state = 'off';
+      this.panel.showUploadOff();
+      return;
+    }
     if (typeof result === 'string') {
       this.panel.showUploadError(result);
       return;
@@ -1908,6 +1943,7 @@ function wireRail(root: HTMLElement, world: WorldMap) {
   const picker = root.querySelector<HTMLInputElement>('[data-upload-input]');
   const drop = root.querySelector<HTMLElement>('[data-drop]');
   if (upload && picker) {
+    void world.checkUploads(upload);
     upload.addEventListener('click', () => world.openUploadIntro(() => picker.click()));
     picker.addEventListener('change', () => {
       const file = picker.files?.[0];
@@ -1939,7 +1975,12 @@ function wireRail(root: HTMLElement, world: WorldMap) {
       over = 0;
       drop.hidden = true;
       const file = e.dataTransfer?.files?.[0];
-      if (file) void world.uploadTrail(file);
+      if (!file) return;
+      if (world.uploadsClosed()) {
+        world.openUploadIntro(() => picker.click());
+        return;
+      }
+      void world.uploadTrail(file);
     });
   }
 

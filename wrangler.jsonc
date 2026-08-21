@@ -77,7 +77,25 @@
 		"OUTREACH_ALLOW_REAL": "1",
 		// Backstop, not the pacer; keep the value in THIS file (dashboard edits are
 		// clobbered by deploy). docs/OUTREACH_MODULE.md § "Drip throughput".
-		"OUTREACH_DAILY_CAP": "10000"
+		"OUTREACH_DAILY_CAP": "10000",
+		// Visitor trail upload. "0" / "false" / "off" shuts the door: the endpoint refuses and
+		// the map's upload control greys out. Opt-OUT on purpose — a missing or misspelled var
+		// must never take a shipped feature down on a deploy nobody thought was risky.
+		"TRAILS_UPLOAD_ENABLED": "1",
+		// What counts as "the same ground", and what to do about it. Every one is a string and
+		// is parsed behind a hard-coded fallback, so a typo degrades to the default rather than
+		// to NaN — NaN >= 0.6 is false, which would silently DISABLE the cap. Keep the values in
+		// THIS file: dashboard edits are clobbered by deploy. See docs/TRAIL_UPLOAD_MODULE.md.
+		// Metres two traces may be apart and still be one ride. THE similarity threshold.
+		"TRAIL_OVERLAP_CORRIDOR_M": "60",
+		// Fraction of the SHORTER ride that must be shared.
+		"TRAIL_OVERLAP_SHARE_FRAC": "0.60",
+		// Absolute floor, so a car-park stub cannot claim a 50 km ride.
+		"TRAIL_OVERLAP_FLOOR_M": "300",
+		// Published trails one author may already have on the same ground. "0" DISABLES the cap
+		// — the opposite of OUTREACH_DAILY_CAP two lines up, where 0 is a hard stop. Stated
+		// because that exact ambiguity is what stalled the outreach drip.
+		"TRAIL_PUBLISH_CAP": "3"
 	},
 	"d1_databases": [
 		// `wrangler d1 create dbx-subscribers`, then paste the returned database_id.
@@ -134,7 +152,25 @@
 				"MAP_DATA_PREFIX": "preview",
 				// docs/OUTREACH_MODULE.md § "Staging asymmetry"
 				"OUTREACH_ALLOW_REAL": "0",
-				"OUTREACH_DAILY_CAP": "1000"
+				"OUTREACH_DAILY_CAP": "1000",
+				// Visitor trail upload. "0" / "false" / "off" shuts the door: the endpoint refuses and
+				// the map's upload control greys out. Opt-OUT on purpose — a missing or misspelled var
+				// must never take a shipped feature down on a deploy nobody thought was risky.
+				"TRAILS_UPLOAD_ENABLED": "1",
+				// What counts as "the same ground", and what to do about it. Every one is a string and
+				// is parsed behind a hard-coded fallback, so a typo degrades to the default rather than
+				// to NaN — NaN >= 0.6 is false, which would silently DISABLE the cap. Keep the values in
+				// THIS file: dashboard edits are clobbered by deploy. See docs/TRAIL_UPLOAD_MODULE.md.
+				// Metres two traces may be apart and still be one ride. THE similarity threshold.
+				"TRAIL_OVERLAP_CORRIDOR_M": "60",
+				// Fraction of the SHORTER ride that must be shared.
+				"TRAIL_OVERLAP_SHARE_FRAC": "0.60",
+				// Absolute floor, so a car-park stub cannot claim a 50 km ride.
+				"TRAIL_OVERLAP_FLOOR_M": "300",
+				// Published trails one author may already have on the same ground. "0" DISABLES the cap
+				// — the opposite of OUTREACH_DAILY_CAP two lines up, where 0 is a hard stop. Stated
+				// because that exact ambiguity is what stalled the outreach drip.
+				"TRAIL_PUBLISH_CAP": "3"
 			},
 			"assets": {
 				"directory": "./dist",

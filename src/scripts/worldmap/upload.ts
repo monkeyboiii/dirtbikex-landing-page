@@ -13,6 +13,11 @@
  * here is what stops a trail that the forum embed would not be able to show.
  */
 import { MAX_GPX_BYTES, parseGpx } from './gpx';
+// The first src/ -> worker/ import in this repo, and a deliberate one: the browser computes
+// the overlap signature and the Worker compares it, and the two must never disagree about
+// spacing or codec — a mismatch produces silently wrong verdicts with no error. Duplicating
+// the constants is how that mismatch would happen. The module imports nothing itself.
+import { SIG_VERSION, encodeSig, resample, signable } from '../../../worker/_lib/trailOverlap';
 import type { TrailStats } from './types';
 
 /** Above the scanner's own ceiling, so the pre-flight measures the points as scanned
@@ -22,6 +27,7 @@ const NO_DECIMATION = 1_000_000;
 const RICH_LIMIT = 80_000;
 
 export type UploadReason =
+  | 'uploads_disabled'
   | 'too_large'
   | 'no_track'
   | 'route_points'
@@ -42,6 +48,19 @@ export interface Preflight {
   title: string;
   distance_km: number;
   stats: TrailStats;
+  /**
+   * The overlap signature: a 25 m resampling of the trace, Google-encoded. Null when the
+   * trace cannot be signed — across the antimeridian, or near a pole.
+   *
+   * A null signature means **no verdict**, never "no overlap": the Worker skips both the
+   * publish cap and the duplicate nudge rather than guessing. It is sent as a top-level
+   * `meta` field and stored in its own column, NOT inside `stats` — toEntry() copies stats
+   * verbatim into the public map document, which is measured at 676 B/entry.
+   */
+  sig: string | null;
+  sigVersion: number;
+  sigLengthM: number;
+  sigCoarse: boolean;
 }
 
 const R = 6_371_000;
@@ -238,6 +257,9 @@ export function preflight(file: File, text: string): Preflight | UploadReason {
   const recordedAt = first ?? metaTime;
   const ascent = ascentOf(runs);
 
+  const signed = signable(bbox) ? resample(segments) : null;
+  const sig = signed && signed.runs.length ? encodeSig(signed.runs) : null;
+
   return {
     // The filename is the only title a visitor gives us, and it is usually the date the
     // recorder wrote. Better than "ride.gpx" as a heading, and they can rename on claim.
@@ -260,6 +282,12 @@ export function preflight(file: File, text: string): Preflight | UploadReason {
       },
       gpx_bytes: file.size,
     },
+    sig,
+    sigVersion: SIG_VERSION,
+    sigLengthM: signed ? Math.round(signed.lengthM) : 0,
+    // Sampled more widely than 25 m because the ride was too long for the point budget.
+    // Such a trail can still be REPORTED as an overlap but must never be refused on one.
+    sigCoarse: !!signed && signed.spacingM > 30,
   };
 }
 
@@ -285,7 +313,19 @@ export function uploadTrail(
 ): Promise<UploadResult | UploadReason> {
   const body = new FormData();
   body.set('file', file, file.name || 'ride.gpx');
-  body.set('meta', JSON.stringify({ title: pre.title, distance_km: pre.distance_km, stats: pre.stats }));
+  body.set(
+    'meta',
+    JSON.stringify({
+      title: pre.title,
+      distance_km: pre.distance_km,
+      stats: pre.stats,
+      // Top level, never inside stats — see Preflight.sig.
+      sig: pre.sig,
+      sig_v: pre.sigVersion,
+      sig_len_m: pre.sigLengthM,
+      sig_coarse: pre.sigCoarse,
+    }),
+  );
 
   return new Promise((resolve) => {
     const xhr = new XMLHttpRequest();
@@ -300,6 +340,9 @@ export function uploadTrail(
 
     xhr.addEventListener('load', () => {
       if (xhr.status === 429) return resolve('rate_limited');
+      // The kill switch, learned the hard way: the button may have been drawn before the
+      // door shut, so the answer has to come back through this path too.
+      if (xhr.status === 503) return resolve('uploads_disabled');
       if (xhr.status === 413) return resolve('too_large');
       if (xhr.status < 200 || xhr.status >= 300) return resolve('failed');
       try {

@@ -138,13 +138,20 @@ const INFO_SVG =
 function titleRow(
   host: HTMLElement,
   text: string,
-  share: { kind: 'route' | 'track' | 'shop' | 'challenge'; key: string } | null,
+  share:
+    | { kind: 'route' | 'track' | 'shop' | 'challenge'; key: string }
+    // An explicit URL, for a sheet whose shareable thing is not a /share/ card — an
+    // unlisted trail has only its secret link, and it belongs in the same corner every
+    // other sheet puts its share button.
+    | { url: string }
+    | null,
   strings: Record<string, string>,
 ): void {
   const row = el('div', 'wm-panel__titlerow');
   row.appendChild(el('h2', 'wm-panel__title', text));
 
-  if (share?.key) {
+  const target = share && ('url' in share ? share.url : share.key ? `${location.origin}/share/${share.kind}/${encodeURIComponent(share.key)}` : '');
+  if (target) {
     const label = strings['map.panel.share'] ?? 'Share';
     const button = el('button', 'wm-panel__share') as HTMLButtonElement;
     button.type = 'button';
@@ -155,7 +162,7 @@ function titleRow(
 
     button.addEventListener('click', (event) => {
       event.stopPropagation();
-      const url = `${location.origin}/share/${share.kind}/${encodeURIComponent(share.key)}`;
+      const url = target;
       const data = { title: text, url };
       if (navigator.share) {
         void navigator.share(data).catch(() => {});
@@ -905,6 +912,19 @@ export function createPanel(deps: PanelDeps) {
       sticky = false;
     },
 
+    /** The door is shut. Said plainly, and with the one reassurance that matters: whatever
+     *  they already shared still works. */
+    showUploadOff() {
+      open((host) => {
+        kicker(strings['map.upload.kicker'] ?? 'Your trail');
+        titleRow(host, strings['map.upload.unavailable'] ?? 'Trail upload is switched off right now', null, strings);
+        host.appendChild(
+          el('p', 'wm-panel__meta', strings['map.upload.unavailableBody']
+            ?? 'Uploading is paused on this site. Nothing you have already shared is affected — your links still work.'),
+        );
+      });
+    },
+
     /** What the visitor is agreeing to before they hand over a trace of where they ride. */
     showUploadIntro(pick: () => void) {
       open((host) => {
@@ -989,14 +1009,36 @@ export function createPanel(deps: PanelDeps) {
      */
     showUploadDone(result: UploadResult, trail: Trail) {
       open((host) => {
+        const url = `${location.origin}${result.map_url}`;
         kicker(strings['map.upload.kicker'] ?? 'Your trail');
-        titleRow(host, strings['map.upload.doneTitle'] ?? 'One more step to go public!', null, strings);
+        // The share button sits where every other sheet keeps it. What it shares is the
+        // secret link, because that is the only address this trail has.
+        titleRow(host, strings['map.upload.doneTitle'] ?? 'One more step to go public!', { url }, strings);
+
+        // Directly under the title: the thing to hand around, before the facts about it.
+        // Tap anywhere on it — a URL is an awkward thing to select by hand on a phone.
+        const link = el('button', 'wm-panel__link-copy') as HTMLButtonElement;
+        link.type = 'button';
+        link.textContent = url;
+        link.title = strings['map.upload.copyLink'] ?? 'Copy this link';
+        link.addEventListener('click', () => {
+          void navigator.clipboard?.writeText(url).then(() => {
+            link.textContent = strings['map.upload.copied'] ?? 'Copied';
+            window.setTimeout(() => {
+              link.textContent = url;
+            }, 1400);
+          });
+        });
+        host.appendChild(link);
+
         trailFacts(host, trail);
 
         host.appendChild(el('h3', 'wm-panel__section', strings['map.trail.uploadedBy'] ?? 'Uploaded by'));
 
-        // Deliberately shaped like personBlock and deliberately not a link: it is the
-        // rider-shaped hole this trail has, drawn where their face will go.
+        // The byline and the action share one row, exactly as a finished trail's byline
+        // shares its row with the links out. The blank rider IS the prompt; the button
+        // beside it is what fills it in.
+        const row = el('div', 'wm-panel__byline');
         const by = el('div', 'wm-by wm-by--empty');
         by.appendChild(el('span', 'wm-by__avatar', '?'));
         const idBlock = el('span', 'wm-by__id');
@@ -1005,58 +1047,17 @@ export function createPanel(deps: PanelDeps) {
           el('span', 'wm-by__meta', strings['map.upload.yourNameHere'] ?? 'your name here'),
         );
         by.appendChild(idBlock);
-        host.appendChild(by);
 
-        const claim = el('a', 'wm-panel__cta') as HTMLAnchorElement;
+        const claim = el('a', 'wm-panel__claim') as HTMLAnchorElement;
         claim.href = result.claim_url;
-        claim.textContent = strings['map.upload.claim'] ?? 'Claim this trail';
-        host.appendChild(claim);
+        claim.textContent = strings['map.upload.claimShort'] ?? 'Claim';
+        row.append(by, claim);
+        host.appendChild(row);
 
         host.appendChild(
           el('p', 'wm-panel__meta', (strings['map.upload.expires'] ?? 'Unclaimed, it is deleted in {n} hours.')
             .replace('{n}', String(result.expires_in_hours))),
         );
-
-        // The other half: a link to show people, which is not the link that hands over
-        // ownership. Tap anywhere on it to copy; the button shares rather than duplicating
-        // the same action twice on one row.
-        const url = `${location.origin}${result.map_url}`;
-        const row = el('div', 'wm-panel__copy');
-        row.appendChild(el('span', 'wm-panel__copy-label', strings['map.upload.link'] ?? 'Trail link'));
-
-        const field = el('button', 'wm-panel__copy-value') as HTMLButtonElement;
-        field.type = 'button';
-        field.textContent = url;
-        const flash = (node: HTMLElement) => {
-          const was = node.textContent;
-          node.textContent = strings['map.upload.copied'] ?? 'Copied';
-          window.setTimeout(() => {
-            node.textContent = was;
-          }, 1400);
-        };
-        field.addEventListener('click', () => {
-          void navigator.clipboard?.writeText(url).then(() => flash(field));
-        });
-
-        const share = el('button', 'wm-panel__copy-btn wm-panel__copy-btn--share') as HTMLButtonElement;
-        share.type = 'button';
-        const shareLabel = strings['map.panel.share'] ?? 'Share';
-        share.title = shareLabel;
-        share.setAttribute('aria-label', shareLabel);
-        share.innerHTML = SHARE_SVG;
-        share.addEventListener('click', () => {
-          const data = { title: localized(trail.title, lang) ?? shareLabel, url };
-          // navigator.share is unreliable inside WeChat's webview, which is where most of
-          // these links are going, so the clipboard is the fallback and not the exception.
-          if (navigator.share) {
-            void navigator.share(data).catch(() => undefined);
-          } else {
-            void navigator.clipboard?.writeText(url).then(() => flash(field));
-          }
-        });
-
-        row.append(field, share);
-        host.appendChild(row);
       }, { sticky: true });
     },
 
