@@ -12,7 +12,16 @@
  */
 import { purgeMapDoc } from './mapData';
 import { rateLimitConsume } from './rateLimit';
-import { COARSE_SPACING_M, SIG_VERSION, compareSignatures, thresholds } from './trailOverlap';
+import {
+  COARSE_SPACING_M,
+  SIG_VERSION,
+  compareSignatures,
+  encodeSig,
+  resample,
+  signable,
+  thresholds,
+} from './trailOverlap';
+import type { Run } from './trailOverlap';
 import type { PagesEnv } from './types';
 
 /** Matches gpx.ts's MAX_GPX_BYTES and the forum's max_attachment_size_kb. All three agree. */
@@ -390,6 +399,7 @@ export interface TrailRow {
   author_name: string | null;
   author_avatar: string | null;
   post_id: number | null;
+  post_url: string | null;
 }
 
 /** The map entry shape, identical to what an operator import emits. */
@@ -417,6 +427,7 @@ function toEntry(row: TrailRow, proxied: boolean): Record<string, unknown> {
     author_username: row.author_username,
     author_name: row.author_name,
     author_avatar: row.author_avatar,
+    ...(row.post_url ? { post_url: row.post_url } : {}),
     visibility: row.visibility,
     post_id: row.post_id,
   };
@@ -438,7 +449,7 @@ export async function trailForShare(env: PagesEnv, id: string): Promise<Record<s
   try {
     const row = await env.SUBSCRIBERS_DB.prepare(
       `SELECT id, secret, visibility, gpx_url, title, distance_km, stats,
-              author_user_id, author_username, author_name, author_avatar, post_id
+              author_user_id, author_username, author_name, author_avatar, post_id, post_url
          FROM trails
         WHERE id = ? AND (expires_at IS NULL OR expires_at > datetime('now'))`,
     )
@@ -457,7 +468,7 @@ export async function publicTrailEntries(env: PagesEnv): Promise<Record<string, 
   try {
     const { results } = await env.SUBSCRIBERS_DB.prepare(
       `SELECT id, secret, visibility, gpx_url, title, distance_km, stats,
-              author_user_id, author_username, author_name, author_avatar, post_id
+              author_user_id, author_username, author_name, author_avatar, post_id, post_url
          FROM trails
         WHERE visibility = 'public'
           AND (expires_at IS NULL OR expires_at > datetime('now'))`,
@@ -479,7 +490,7 @@ export async function handleTrailResolve(env: PagesEnv, secret: string): Promise
   if (!env.SUBSCRIBERS_DB) return json(503, { error: 'service_misconfigured' });
   const row = await env.SUBSCRIBERS_DB.prepare(
     `SELECT id, secret, visibility, gpx_url, title, distance_km, stats,
-            author_user_id, author_username, author_name, author_avatar, post_id
+            author_user_id, author_username, author_name, author_avatar, post_id, post_url
        FROM trails
       WHERE secret = ?
         AND (expires_at IS NULL OR expires_at > datetime('now'))`,
@@ -592,6 +603,109 @@ export async function claimPreview(
     console.error('trail:claim_preview_threw', { err: String(err) });
     return null;
   }
+}
+
+/**
+ * POST /api/map/trail/import — a public forum post becoming a map trail.
+ *
+ * The other direction of the upload story. The visitor route is file-first: bytes arrive
+ * anonymously, then somebody signs for them with a code. This one is post-first, and the
+ * post has already settled everything the code exists to establish — who the rider is,
+ * that the file is theirs, and that they meant it to be seen. So a row lands here already
+ * claimed, with no code and no expiry.
+ *
+ * Only the plugin may call it, because only the plugin can check any of that. The worker
+ * holds one Discourse scope and cannot read a post.
+ *
+ * `sig` is deliberately NOT accepted. It is a matching key, and a second implementation of
+ * it — in Ruby, in a theme — would disagree with this one in ways nothing would catch. The
+ * row lands unsigned and `signPendingTrails` fills it in on the next cron tick, which
+ * costs the trail a minute of not participating in overlap checks and costs the codebase
+ * nothing.
+ *
+ * Visibility is always `private` on the way in. Publishing is a separate call to
+ * handleTrailState, because that is the one path that applies the duplicate-file check,
+ * the overlap measure and the publish cap.
+ */
+export async function handleTrailImport(request: Request, env: PagesEnv): Promise<Response> {
+  if (!pluginAuthorised(request, env)) return json(404, { error: 'not_found' });
+  if (!env.SUBSCRIBERS_DB) return json(503, { error: 'service_misconfigured' });
+
+  let body: Record<string, unknown>;
+  try {
+    body = (await request.json()) as Record<string, unknown>;
+  } catch {
+    return json(400, { error: 'invalid_body' });
+  }
+
+  const str = (v: unknown, max: number): string | null =>
+    typeof v === 'string' && v.trim() ? v.trim().slice(0, max) : null;
+  const postId = Number(body.post_id);
+  const userId = Number(body.user_id);
+  const gpxUrl = str(body.gpx_url, 500);
+  const username = str(body.username, 60);
+  if (!Number.isInteger(postId) || !Number.isInteger(userId) || !gpxUrl || !username) {
+    return json(400, { error: 'invalid_body' });
+  }
+  const stats = (body.stats ?? {}) as TrailStatsInput;
+  if (!checkStats(stats)) return json(400, { error: 'invalid_stats' });
+
+  // Idempotent on the post. The button can be pressed twice, the first response can be
+  // lost, and the reconcile pull can arrive in the middle of either.
+  const already = await env.SUBSCRIBERS_DB.prepare(
+    'SELECT id, secret FROM trails WHERE post_id = ?',
+  )
+    .bind(postId)
+    .first<{ id: string; secret: string }>();
+  if (already) return json(200, { id: already.id, secret: already.secret, existing: true });
+
+  const secret = token(8);
+  const wanted = str(body.id, 60) ?? secret;
+  const distance = Number(body.distance_km);
+
+  // The id is readable here rather than opaque, because it is derived from a public topic
+  // title and sits alongside the operator's imports, which have always looked like this.
+  // A collision still has to give way to something — the secret, which cannot collide.
+  let id = wanted;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const clash = await env.SUBSCRIBERS_DB.prepare('SELECT 1 FROM trails WHERE id = ?')
+      .bind(id)
+      .first();
+    if (!clash) break;
+    id = attempt === 1 ? secret : `${wanted}-${token(3)}`;
+  }
+
+  try {
+    await env.SUBSCRIBERS_DB.prepare(
+      `INSERT INTO trails (id, secret, visibility, gpx_url, gpx_short_url, gpx_sha1, title,
+                           distance_km, stats, post_id, post_url,
+                           author_user_id, author_username, author_name, author_avatar,
+                           claimed_at, expires_at)
+       VALUES (?, ?, 'private', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), NULL)`,
+    )
+      .bind(
+        id,
+        secret,
+        gpxUrl,
+        str(body.gpx_short_url, 200),
+        str(body.gpx_sha1, 64),
+        str(body.title, 120),
+        Number.isFinite(distance) ? distance : null,
+        JSON.stringify(stats),
+        postId,
+        str(body.post_url, 500),
+        userId,
+        username,
+        str(body.name, 80),
+        str(body.avatar, 200),
+      )
+      .run();
+  } catch (err) {
+    console.error('trail:import_failed', { postId, err: String(err) });
+    return json(500, { error: 'store_failed' });
+  }
+
+  return json(201, { id, secret });
 }
 
 /**
@@ -1008,6 +1122,103 @@ interface ReconcileRow {
  *
  * The plugin is the authority here, because the plugin is where the post lives.
  */
+/**
+ * Runs of track points, straight out of the file. Segments stay apart: joining them would
+ * draw the corridor through every pause, and a pen lift is not ground anybody rode.
+ *
+ * Regex rather than a parser because this has to agree with the browser's reader on
+ * malformed input, which is the input that actually turns up. Attribute order is not
+ * significant in XML, so lat and lon are read independently.
+ */
+function runsFromGpx(source: string): Run[] {
+  const runs: Run[] = [];
+  for (const chunk of source.split('</trkseg>')) {
+    const run: Run = [];
+    for (const m of chunk.matchAll(/<trkpt([^>]*?)(?:\/>|>)/g)) {
+      const lat = Number(/\blat="(-?[\d.]+)"/.exec(m[1] ?? '')?.[1]);
+      const lng = Number(/\blon="(-?[\d.]+)"/.exec(m[1] ?? '')?.[1]);
+      if (Number.isFinite(lat) && Number.isFinite(lng)) run.push([lng, lat]);
+    }
+    if (run.length > 1) runs.push(run);
+  }
+  return runs;
+}
+
+/**
+ * Signs the trails that arrived without a signature.
+ *
+ * Only the import route produces those. The visitor upload signs in the browser, where
+ * the file already is and where the one implementation of the algorithm lives; an import
+ * has no browser in the loop at all, and putting a second implementation in Ruby — or a
+ * vendored copy in a Discourse theme — would give the map two matching keys that disagree
+ * in ways nothing would catch.
+ *
+ * So the row lands unsigned and is signed here instead, off the rider's critical path and
+ * inside a cron invocation's CPU allowance rather than a request's. The cost is that an
+ * imported trail does not participate in overlap checks for up to a minute; the gain is
+ * that `encodeSig` exists exactly once.
+ *
+ * One per tick. The fetch and the resample are the expensive things this worker does, and
+ * a backlog is a queue, not an emergency.
+ */
+export async function signPendingTrails(env: PagesEnv, limit = 1): Promise<number> {
+  if (!env.SUBSCRIBERS_DB) return 0;
+
+  const pending = await env.SUBSCRIBERS_DB.prepare(
+    `SELECT secret, gpx_url, stats FROM trails
+      WHERE sig IS NULL AND sig_v IS NULL AND gpx_url IS NOT NULL
+      ORDER BY created_at ASC LIMIT ?`,
+  )
+    .bind(limit)
+    .all<{ secret: string; gpx_url: string; stats: string }>();
+
+  let signed = 0;
+  for (const row of pending.results ?? []) {
+    try {
+      const bbox = ((): [number, number, number, number] | null => {
+        try {
+          const b = (JSON.parse(row.stats) as { bbox?: unknown }).bbox;
+          return Array.isArray(b) && b.length === 4 ? (b.map(Number) as [number, number, number, number]) : null;
+        } catch {
+          return null;
+        }
+      })();
+      // Unsignable ground — a pole, or a trace crossing the antimeridian. Mark the row so
+      // it is not refetched every minute for ever; NULL sig with a set version reads as
+      // "asked and answered: no verdict".
+      if (!bbox || !signable(bbox)) {
+        await env.SUBSCRIBERS_DB.prepare('UPDATE trails SET sig_v = ? WHERE secret = ?')
+          .bind(SIG_VERSION, row.secret)
+          .run();
+        continue;
+      }
+
+      const resp = await fetch(row.gpx_url);
+      if (!resp.ok) {
+        console.error('trail:sign_fetch', { secret: row.secret, status: resp.status });
+        continue;
+      }
+      const runs = runsFromGpx(await resp.text());
+      const sampled = resample(runs);
+      await env.SUBSCRIBERS_DB.prepare(
+        'UPDATE trails SET sig = ?, sig_v = ?, sig_len_m = ?, sig_coarse = ? WHERE secret = ?',
+      )
+        .bind(
+          sampled.runs.length ? encodeSig(sampled.runs) : null,
+          SIG_VERSION,
+          Math.round(sampled.lengthM),
+          sampled.spacingM > COARSE_SPACING_M ? 1 : 0,
+          row.secret,
+        )
+        .run();
+      signed++;
+    } catch (err) {
+      console.error('trail:sign_threw', { secret: row.secret, err: String(err) });
+    }
+  }
+  return signed;
+}
+
 export async function reconcileTrails(env: PagesEnv): Promise<number> {
   if (!env.SUBSCRIBERS_DB || !env.FORUM_BASE || !env.TRAILS_PLUGIN_TOKEN) return 0;
 

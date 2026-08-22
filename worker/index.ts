@@ -22,6 +22,8 @@ import {
   publicTrailEntries,
   sweepExpiredTrails,
   reconcileTrails,
+  signPendingTrails,
+  handleTrailImport,
   handleClaimResolve,
   handleClaimBind,
   handleTrailState,
@@ -1410,6 +1412,10 @@ export default {
     if (url.pathname === '/api/map/trail' && request.method === 'POST') {
       return handleTrailUpload(request, env);
     }
+    // The other direction: the plugin turning somebody's own public post into a trail.
+    if (url.pathname === '/api/map/trail/import' && request.method === 'POST') {
+      return handleTrailImport(request, env);
+    }
     if (request.method === 'POST') {
       const claimBind = url.pathname.match(/^\/api\/map\/trail\/claim\/([a-z0-9]{6,16})$/);
       if (claimBind) return handleClaimBind(request, env, claimBind[1]!);
@@ -1470,6 +1476,16 @@ export default {
         if (applied > 0) console.log('trail:reconciled', { applied });
       } catch (err) {
         console.error('trail:reconcile_threw', { err: String(err) });
+      }
+      // Last, and only ever one: an imported trail arrives unsigned because the signature
+      // has exactly one implementation and it is not reachable from the forum. Signing
+      // means fetching and resampling a whole ride, which belongs in a cron invocation's
+      // CPU allowance rather than a rider's request.
+      try {
+        const signed = await signPendingTrails(env);
+        if (signed > 0) console.log('trail:signed', { signed });
+      } catch (err) {
+        console.error('trail:sign_threw', { err: String(err) });
       }
     })());
   },
