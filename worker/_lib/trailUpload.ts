@@ -929,7 +929,7 @@ export async function handleTrailState(request: Request, env: PagesEnv, secret: 
   }
 
   const current = await env.SUBSCRIBERS_DB.prepare(
-    `SELECT id, visibility, sig, sig_v, sig_coarse, gpx_sha1, author_user_id, stats
+    `SELECT id, visibility, sig, sig_v, sig_coarse, gpx_sha1, author_user_id, stats, post_url
        FROM trails WHERE secret = ?`,
   )
     .bind(secret)
@@ -942,6 +942,7 @@ export async function handleTrailState(request: Request, env: PagesEnv, secret: 
       gpx_sha1: string | null;
       author_user_id: number | null;
       stats: string;
+      post_url: string | null;
     }>();
   if (!current) return json(404, { error: 'not_found' });
 
@@ -1008,10 +1009,18 @@ export async function handleTrailState(request: Request, env: PagesEnv, secret: 
   }
 
   // A public trail is addressed by a readable id; a private one is addressed by nothing
-  // but its secret, so its id goes back to being the secret.
+  // but its secret, so its id goes back to being the secret — which is also what stops a
+  // stale copy of trails.json from still naming a trail that has gone private.
+  //
+  // An IMPORTED trail is the exception, and `post_url` is what marks one. Its id comes from
+  // a public topic title and its post is public whatever the map says, so collapsing the id
+  // hides nothing — it just loses the readable name the first time the rider toggles the
+  // trail off and on, and lands them on an opaque id where the operator's imports of the
+  // very same post have a readable one. The secret still rotates; only the name survives.
+  const fromPost = !!current.post_url;
   const wanted = typeof body.id === 'string' ? body.id.toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 60) : '';
   const nextSecret = want === 'private' && current.visibility === 'public' ? token(8) : secret;
-  const nextId = want === 'public' ? wanted || current.id : nextSecret;
+  const nextId = want === 'public' || fromPost ? wanted || current.id : nextSecret;
 
   try {
     await env.SUBSCRIBERS_DB.prepare(
