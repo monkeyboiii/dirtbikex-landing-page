@@ -290,14 +290,16 @@
   "map.panel.back": "Atrás",
   "map.panel.venue": "Sobre este lugar",
   "map.upload.rename": "Renombrar",
-  "map.upload.confirm": "Confirmar subida",
+  "map.upload.confirm": "Confirmar",
   "map.upload.chooseAnother": "Elegir otro archivo",
   "map.upload.ready": "Listo para subir",
-  "map.upload.privateNote": "Solo quien reciba el enlace puede ver esta ruta.",
-  "map.upload.shareHint": "Comparte el enlace: es la única forma de volver.",
+  "map.upload.privateNote": "Solo quien tenga este enlace puede verla. Crea un perfil para reclamarla y luego hazla pública.",
+  "map.upload.shareHint": "Comparte el enlace: la única vuelta.",
   "map.upload.verifying": "Comprobando…",
   "map.trail.visibleOnMap": "En el mapa público",
   "map.trail.hiddenFromMap": "Fuera del mapa: solo por enlace",
   "map.trail.anonymous": "Anónimo",
-  "map.trail.anonymousMeta": "nadie ha reclamado esta salida"
+  "map.trail.anonymousMeta": "nadie ha reclamado esta salida",
+  "map.upload.expiresChip": "Caduca en {n} h",
+  "map.trail.publicNote": "Cualquiera puede encontrar esta ruta en el mapa."
 }

@@ -290,14 +290,16 @@
   "map.panel.back": "Zurück",
   "map.panel.venue": "Über diesen Ort",
   "map.upload.rename": "Umbenennen",
-  "map.upload.confirm": "Hochladen",
+  "map.upload.confirm": "Bestätigen",
   "map.upload.chooseAnother": "Andere Datei wählen",
   "map.upload.ready": "Bereit zum Hochladen",
-  "map.upload.privateNote": "Nur wer den Link von dir bekommt, sieht diese Strecke.",
-  "map.upload.shareHint": "Teile den Link — er ist der einzige Weg zurück.",
+  "map.upload.privateNote": "Nur wer diesen Link hat, sieht sie. Leg ein Profil an, um sie zu übernehmen, und mach sie dann öffentlich.",
+  "map.upload.shareHint": "Link teilen — der einzige Weg zurück.",
   "map.upload.verifying": "Prüfung läuft…",
   "map.trail.visibleOnMap": "Auf der öffentlichen Karte",
   "map.trail.hiddenFromMap": "Nicht auf der Karte — nur per Link",
   "map.trail.anonymous": "Anonym",
-  "map.trail.anonymousMeta": "noch niemand hat diese Fahrt übernommen"
+  "map.trail.anonymousMeta": "noch niemand hat diese Fahrt übernommen",
+  "map.upload.expiresChip": "Läuft in {n} h ab",
+  "map.trail.publicNote": "Jeder kann diese Strecke auf der Karte finden."
 }

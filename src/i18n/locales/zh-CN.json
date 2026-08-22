@@ -293,14 +293,16 @@
   "map.panel.venue": "关于这个地点",
   "map.trail.uploadedBy": "上传者",
   "map.upload.rename": "重命名",
-  "map.upload.confirm": "确认上传",
+  "map.upload.confirm": "确认",
   "map.upload.chooseAnother": "换一个文件",
   "map.upload.ready": "准备上传",
-  "map.upload.privateNote": "只有收到链接的人才能看到这条轨迹。",
-  "map.upload.shareHint": "分享这个链接——这是回到这条轨迹的唯一方式。",
+  "map.upload.privateNote": "只有拿到这个链接的人才能查看。建立个人资料即可认领，然后可以设为公开。",
+  "map.upload.shareHint": "分享链接——唯一的回程。",
   "map.upload.verifying": "正在验证…",
   "map.trail.visibleOnMap": "已在公开地图上",
   "map.trail.hiddenFromMap": "不在地图上——仅限链接",
   "map.trail.anonymous": "匿名",
-  "map.trail.anonymousMeta": "还没有人认领这次骑行"
+  "map.trail.anonymousMeta": "还没有人认领这次骑行",
+  "map.upload.expiresChip": "{n} 小时后过期",
+  "map.trail.publicNote": "任何人都能在地图上找到这条轨迹。"
 }

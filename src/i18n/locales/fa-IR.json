@@ -290,14 +290,16 @@
   "map.panel.back": "بازگشت",
   "map.panel.venue": "دربارهٔ این مکان",
   "map.upload.rename": "تغییر نام",
-  "map.upload.confirm": "تأیید بارگذاری",
+  "map.upload.confirm": "تأیید",
   "map.upload.chooseAnother": "انتخاب فایل دیگر",
   "map.upload.ready": "آمادهٔ بارگذاری",
-  "map.upload.privateNote": "فقط کسانی که لینک را برایشان می‌فرستی این مسیر را می‌بینند.",
-  "map.upload.shareHint": "لینک را به اشتراک بگذار — تنها راه بازگشت همین است.",
+  "map.upload.privateNote": "فقط کسانی که این لینک را دارند می‌بینند. برای از آنِ خود کردن، نمایه بساز و بعد عمومی‌اش کن.",
+  "map.upload.shareHint": "لینک را به اشتراک بگذار — تنها راه بازگشت.",
   "map.upload.verifying": "در حال بررسی…",
   "map.trail.visibleOnMap": "روی نقشهٔ عمومی",
   "map.trail.hiddenFromMap": "روی نقشه نیست — فقط با لینک",
   "map.trail.anonymous": "ناشناس",
-  "map.trail.anonymousMeta": "هنوز کسی این رکاب‌زنی را از آنِ خود نکرده"
+  "map.trail.anonymousMeta": "هنوز کسی این رکاب‌زنی را از آنِ خود نکرده",
+  "map.upload.expiresChip": "تا {n} ساعت دیگر منقضی می‌شود",
+  "map.trail.publicNote": "هر کسی می‌تواند این مسیر را روی نقشه پیدا کند."
 }

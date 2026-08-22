@@ -293,14 +293,16 @@
   "map.panel.back": "返回",
   "map.panel.venue": "關於這個地點",
   "map.upload.rename": "重新命名",
-  "map.upload.confirm": "確認上傳",
+  "map.upload.confirm": "確認",
   "map.upload.chooseAnother": "換一個檔案",
   "map.upload.ready": "準備上傳",
-  "map.upload.privateNote": "只有收到連結的人才能看到這條軌跡。",
-  "map.upload.shareHint": "分享這個連結——這是回到這條軌跡的唯一方式。",
+  "map.upload.privateNote": "只有拿到這個連結的人才能查看。建立個人檔案即可認領，然後可以設為公開。",
+  "map.upload.shareHint": "分享連結——唯一的回程。",
   "map.upload.verifying": "正在驗證…",
   "map.trail.visibleOnMap": "已在公開地圖上",
   "map.trail.hiddenFromMap": "不在地圖上——僅限連結",
   "map.trail.anonymous": "匿名",
-  "map.trail.anonymousMeta": "還沒有人認領這次騎行"
+  "map.trail.anonymousMeta": "還沒有人認領這次騎行",
+  "map.upload.expiresChip": "{n} 小時後過期",
+  "map.trail.publicNote": "任何人都能在地圖上找到這條軌跡。"
 }

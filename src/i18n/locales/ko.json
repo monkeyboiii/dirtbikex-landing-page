@@ -290,14 +290,16 @@
   "map.panel.back": "뒤로",
   "map.panel.venue": "이 장소에 대하여",
   "map.upload.rename": "이름 바꾸기",
-  "map.upload.confirm": "업로드 확인",
+  "map.upload.confirm": "확인",
   "map.upload.chooseAnother": "다른 파일 선택",
   "map.upload.ready": "업로드 준비됨",
-  "map.upload.privateNote": "링크를 보낸 사람만 이 트레일을 볼 수 있습니다.",
-  "map.upload.shareHint": "링크를 공유하세요. 이 트레일로 돌아오는 유일한 방법입니다.",
+  "map.upload.privateNote": "이 링크를 가진 사람만 볼 수 있습니다. 프로필을 만들면 가져갈 수 있고, 그 뒤 공개할 수 있습니다.",
+  "map.upload.shareHint": "링크 공유 — 돌아오는 유일한 길입니다.",
   "map.upload.verifying": "확인 중…",
   "map.trail.visibleOnMap": "공개 지도에 표시됨",
   "map.trail.hiddenFromMap": "지도에 없음 — 링크 전용",
   "map.trail.anonymous": "익명",
-  "map.trail.anonymousMeta": "아직 아무도 이 라이딩을 가져가지 않았습니다"
+  "map.trail.anonymousMeta": "아직 아무도 이 라이딩을 가져가지 않았습니다",
+  "map.upload.expiresChip": "{n}시간 후 만료",
+  "map.trail.publicNote": "누구나 지도에서 이 트레일을 찾을 수 있습니다."
 }

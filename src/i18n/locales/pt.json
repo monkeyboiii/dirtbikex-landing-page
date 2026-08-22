@@ -290,14 +290,16 @@
   "map.panel.back": "Voltar",
   "map.panel.venue": "Sobre este local",
   "map.upload.rename": "Renomear",
-  "map.upload.confirm": "Confirmar envio",
+  "map.upload.confirm": "Confirmar",
   "map.upload.chooseAnother": "Escolher outro ficheiro",
   "map.upload.ready": "Pronto para enviar",
-  "map.upload.privateNote": "Só quem receber o link vê esta trilha.",
-  "map.upload.shareHint": "Partilhe o link — é a única forma de voltar.",
+  "map.upload.privateNote": "Só quem tem este link a vê. Crie um perfil para a reivindicar e depois torne-a pública.",
+  "map.upload.shareHint": "Partilhe o link — o único regresso.",
   "map.upload.verifying": "A verificar…",
   "map.trail.visibleOnMap": "No mapa público",
   "map.trail.hiddenFromMap": "Fora do mapa — só por link",
   "map.trail.anonymous": "Anónimo",
-  "map.trail.anonymousMeta": "ninguém reivindicou este rolê"
+  "map.trail.anonymousMeta": "ninguém reivindicou este rolê",
+  "map.upload.expiresChip": "Expira em {n} h",
+  "map.trail.publicNote": "Qualquer pessoa pode encontrar esta trilha no mapa."
 }

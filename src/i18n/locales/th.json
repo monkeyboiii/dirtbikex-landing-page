@@ -290,14 +290,16 @@
   "map.panel.back": "ย้อนกลับ",
   "map.panel.venue": "เกี่ยวกับสถานที่นี้",
   "map.upload.rename": "เปลี่ยนชื่อ",
-  "map.upload.confirm": "ยืนยันการอัปโหลด",
+  "map.upload.confirm": "ยืนยัน",
   "map.upload.chooseAnother": "เลือกไฟล์อื่น",
   "map.upload.ready": "พร้อมอัปโหลด",
-  "map.upload.privateNote": "เฉพาะคนที่คุณส่งลิงก์ให้เท่านั้นที่เห็นเส้นทางนี้",
-  "map.upload.shareHint": "แชร์ลิงก์นี้ — เป็นทางเดียวที่จะกลับมา",
+  "map.upload.privateNote": "เฉพาะคนที่มีลิงก์นี้เท่านั้นที่ดูได้ สร้างโปรไฟล์เพื่อรับสิทธิ์ แล้วจึงเผยแพร่ได้",
+  "map.upload.shareHint": "แชร์ลิงก์ — ทางกลับทางเดียว",
   "map.upload.verifying": "กำลังตรวจสอบ…",
   "map.trail.visibleOnMap": "อยู่บนแผนที่สาธารณะ",
   "map.trail.hiddenFromMap": "ไม่อยู่บนแผนที่ — เฉพาะลิงก์",
   "map.trail.anonymous": "ไม่ระบุชื่อ",
-  "map.trail.anonymousMeta": "ยังไม่มีใครรับสิทธิ์การขี่ครั้งนี้"
+  "map.trail.anonymousMeta": "ยังไม่มีใครรับสิทธิ์การขี่ครั้งนี้",
+  "map.upload.expiresChip": "หมดอายุใน {n} ชม.",
+  "map.trail.publicNote": "ใครก็ตามสามารถหาเส้นทางนี้บนแผนที่ได้"
 }

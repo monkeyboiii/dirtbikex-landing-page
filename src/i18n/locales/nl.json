@@ -290,14 +290,16 @@
   "map.panel.back": "Terug",
   "map.panel.venue": "Over deze plek",
   "map.upload.rename": "Naam wijzigen",
-  "map.upload.confirm": "Uploaden bevestigen",
+  "map.upload.confirm": "Bevestigen",
   "map.upload.chooseAnother": "Ander bestand kiezen",
   "map.upload.ready": "Klaar om te uploaden",
-  "map.upload.privateNote": "Alleen wie de link van jou krijgt, ziet deze route.",
-  "map.upload.shareHint": "Deel de link — het is de enige weg terug.",
+  "map.upload.privateNote": "Alleen wie deze link heeft, ziet hem. Maak een profiel om hem op te eisen en zet hem daarna publiek.",
+  "map.upload.shareHint": "Deel de link — de enige weg terug.",
   "map.upload.verifying": "Controleren…",
   "map.trail.visibleOnMap": "Op de openbare kaart",
   "map.trail.hiddenFromMap": "Niet op de kaart — alleen via link",
   "map.trail.anonymous": "Anoniem",
-  "map.trail.anonymousMeta": "niemand heeft deze rit opgeëist"
+  "map.trail.anonymousMeta": "niemand heeft deze rit opgeëist",
+  "map.upload.expiresChip": "Verloopt over {n} u",
+  "map.trail.publicNote": "Iedereen kan deze route op de kaart vinden."
 }

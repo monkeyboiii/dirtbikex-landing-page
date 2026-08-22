@@ -290,14 +290,16 @@
   "map.panel.back": "Geri",
   "map.panel.venue": "Bu yer hakkında",
   "map.upload.rename": "Yeniden adlandır",
-  "map.upload.confirm": "Yüklemeyi onayla",
+  "map.upload.confirm": "Onayla",
   "map.upload.chooseAnother": "Başka dosya seç",
   "map.upload.ready": "Yüklemeye hazır",
-  "map.upload.privateNote": "Bu rotayı yalnızca bağlantıyı gönderdiğin kişiler görebilir.",
-  "map.upload.shareHint": "Bağlantıyı paylaş — buraya dönmenin tek yolu bu.",
+  "map.upload.privateNote": "Yalnızca bu bağlantıya sahip olanlar görebilir. Profil oluşturup sahiplen, sonra herkese aç.",
+  "map.upload.shareHint": "Bağlantıyı paylaş — tek dönüş yolu.",
   "map.upload.verifying": "Kontrol ediliyor…",
   "map.trail.visibleOnMap": "Herkese açık haritada",
   "map.trail.hiddenFromMap": "Haritada değil — yalnızca bağlantı",
   "map.trail.anonymous": "Anonim",
-  "map.trail.anonymousMeta": "bu sürüşü henüz kimse sahiplenmedi"
+  "map.trail.anonymousMeta": "bu sürüşü henüz kimse sahiplenmedi",
+  "map.upload.expiresChip": "{n} sa sonra dolar",
+  "map.trail.publicNote": "Bu rotayı haritada herkes bulabilir."
 }

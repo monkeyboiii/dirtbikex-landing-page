@@ -290,14 +290,16 @@
   "map.panel.back": "Quay lại",
   "map.panel.venue": "Về địa điểm này",
   "map.upload.rename": "Đổi tên",
-  "map.upload.confirm": "Xác nhận tải lên",
+  "map.upload.confirm": "Xác nhận",
   "map.upload.chooseAnother": "Chọn tệp khác",
   "map.upload.ready": "Sẵn sàng tải lên",
-  "map.upload.privateNote": "Chỉ những người bạn gửi liên kết mới thấy cung đường này.",
-  "map.upload.shareHint": "Hãy chia sẻ liên kết — đó là cách duy nhất quay lại.",
+  "map.upload.privateNote": "Chỉ người có liên kết này mới xem được. Tạo hồ sơ để nhận nó, rồi công khai.",
+  "map.upload.shareHint": "Chia sẻ liên kết — lối về duy nhất.",
   "map.upload.verifying": "Đang kiểm tra…",
   "map.trail.visibleOnMap": "Trên bản đồ công khai",
   "map.trail.hiddenFromMap": "Không trên bản đồ — chỉ qua liên kết",
   "map.trail.anonymous": "Ẩn danh",
-  "map.trail.anonymousMeta": "chưa ai nhận chuyến chạy này"
+  "map.trail.anonymousMeta": "chưa ai nhận chuyến chạy này",
+  "map.upload.expiresChip": "Hết hạn sau {n} giờ",
+  "map.trail.publicNote": "Ai cũng có thể tìm thấy cung đường này trên bản đồ."
 }

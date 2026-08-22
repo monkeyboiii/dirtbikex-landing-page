@@ -789,6 +789,9 @@ class WorldMap {
     if (map.getSource('trail-lines')) return;
     const c = palette(this.dark);
 
+    // A ride that has been measured but not sent. Its own source and its own layer so it
+    // can never be mistaken for a trace that exists, and so clearing it is one call.
+    map.addSource('trail-pending', { type: 'geojson', data: EMPTY });
     map.addSource('trail-lines', { type: 'geojson', data: EMPTY });
     map.addLayer(
       {
@@ -805,6 +808,19 @@ class WorldMap {
       // Under the pins: a drawn trace is ground truth, not something to obscure them.
       map.getLayer('tracks-glow') ? 'tracks-glow' : undefined,
     );
+
+    map.addLayer({
+      id: 'trails-pending',
+      type: 'line',
+      source: 'trail-pending',
+      layout: { 'line-cap': 'butt', 'line-join': 'round' },
+      paint: {
+        'line-color': c.trail,
+        'line-width': ['interpolate', ['linear'], ['zoom'], 6, 1.8, 11, 3.4, 14, 5.2] as never,
+        'line-opacity': 0.95,
+        'line-dasharray': [0, 4, 3] as never,
+      },
+    });
 
     const trailFilter = trailPinFilter(this.tracedTrail) as never;
     map.addLayer({
@@ -1262,6 +1278,53 @@ class WorldMap {
     return this.visible.trails || !!this.tracedTrail;
   }
 
+  /**
+   * Draws a ride that has been measured but not uploaded, as a marching dashed line.
+   *
+   * The dash marches because MapLibre has no animated dash: the pattern is stepped through
+   * a short cycle on a timer, which is the standard way and costs one setPaintProperty a
+   * frame-ish. It says "this is not on the map yet" without a word of copy.
+   */
+  showPendingTrail(lines: [number, number][][]) {
+    const source = this.map.getSource('trail-pending') as
+      | { setData(d: GeoJSON.FeatureCollection): void }
+      | undefined;
+    if (!source) return;
+    source.setData(
+      lines.length
+        ? {
+            type: 'FeatureCollection',
+            features: [
+              { type: 'Feature', properties: {}, geometry: { type: 'MultiLineString', coordinates: lines } },
+            ],
+          }
+        : EMPTY,
+    );
+    if (!lines.length || this.pendingTimer !== null) return;
+    const steps = [
+      [0, 4, 3], [0.5, 4, 2.5], [1, 4, 2], [1.5, 4, 1.5], [2, 4, 1],
+      [2.5, 4, 0.5], [3, 4, 0], [0, 0.5, 3, 3.5], [0, 1, 3, 3], [0, 1.5, 3, 2.5],
+      [0, 2, 3, 2], [0, 2.5, 3, 1.5], [0, 3, 3, 1], [0, 3.5, 3, 0.5],
+    ];
+    let at = 0;
+    this.pendingTimer = window.setInterval(() => {
+      if (!this.map.getLayer('trails-pending')) return;
+      at = (at + 1) % steps.length;
+      this.map.setPaintProperty('trails-pending', 'line-dasharray', steps[at] as never);
+    }, 90);
+  }
+
+  clearPendingTrail() {
+    if (this.pendingTimer !== null) {
+      window.clearInterval(this.pendingTimer);
+      this.pendingTimer = null;
+    }
+    const source = this.map.getSource('trail-pending') as
+      | { setData(d: GeoJSON.FeatureCollection): void }
+      | undefined;
+    source?.setData(EMPTY);
+  }
+
   private syncTrailLine() {
     if (!this.map.getLayer('trails-line')) return;
     this.map.setLayoutProperty('trails-line', 'visibility', this.trailLineOn() ? 'visible' : 'none');
@@ -1538,6 +1601,7 @@ class WorldMap {
    */
   /** Null until the status lands. Absent is treated as ON, matching the worker. */
   private uploadsOn: boolean | null = null;
+  private pendingTimer: number | null = null;
   /** Both null unless the operator configured Turnstile; see /api/map/upload.json. */
   private turnstileSiteKey: string | null = null;
   private turnstileToken: string | null = null;
@@ -1603,6 +1667,13 @@ class WorldMap {
       return;
     }
 
+    // Draw it before asking. The rider sees their own ride marching on the map while they
+    // check the name, which is a better answer to "will this work?" than any wording.
+    const lines = parseGpx(text);
+    this.clearSelection();
+    this.showPendingTrail(lines);
+    if (lines.length) this.fitTrail(lines);
+
     const ready = { ...pre };
     this.panel.showUploadReady({
       name: ready.title || file.name.replace(/\.gpx$/i, ''),
@@ -1611,7 +1682,10 @@ class WorldMap {
       onRename: (name) => {
         ready.title = name;
       },
-      onRepick: repick,
+      onRepick: () => {
+        this.clearPendingTrail();
+        repick();
+      },
       onConfirm: () => void this.sendUpload(file, text, ready),
     });
   }
@@ -1640,6 +1714,7 @@ class WorldMap {
     progress('sending', 0);
     const result = await uploadTrail(file, pre, progress, this.turnstileToken);
     if (result === 'uploads_disabled') {
+      this.clearPendingTrail();
       this.uploadsOn = false;
       const button = this.root.querySelector<HTMLElement>('[data-upload]');
       if (button) button.dataset.state = 'off';
@@ -1647,6 +1722,7 @@ class WorldMap {
       return;
     }
     if (typeof result === 'string') {
+      this.clearPendingTrail();
       this.panel.showUploadError(result);
       return;
     }
@@ -1659,6 +1735,7 @@ class WorldMap {
       stats: pre.stats,
       gpx_url: `/api/map/trail/${result.secret}.gpx`,
     };
+    this.clearPendingTrail();
     this.trailsById.set(trail.id, trail);
     this.trailGeometry.set(trail.id, parseGpx(text));
     this.clearSelection();
@@ -1805,6 +1882,8 @@ class WorldMap {
     // A sheet showing something unrepeatable holds the screen. Every incidental path into
     // here — a tap on empty ground, a pin, a layer toggle — routes through this one guard.
     if (this.panel.isSticky()) return;
+    // Walking away from the ready sheet abandons the upload, so the marching line goes too.
+    this.clearPendingTrail();
     this.selected = null;
     this.clearTrail();
     this.current = null;

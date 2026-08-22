@@ -290,14 +290,16 @@
   "map.panel.back": "Πίσω",
   "map.panel.venue": "Σχετικά με αυτό το μέρος",
   "map.upload.rename": "Μετονομασία",
-  "map.upload.confirm": "Επιβεβαίωση αποστολής",
+  "map.upload.confirm": "Επιβεβαίωση",
   "map.upload.chooseAnother": "Επίλεξε άλλο αρχείο",
   "map.upload.ready": "Έτοιμο για αποστολή",
-  "map.upload.privateNote": "Μόνο όσοι λάβουν τον σύνδεσμο βλέπουν αυτή τη διαδρομή.",
-  "map.upload.shareHint": "Μοιράσου τον σύνδεσμο — είναι ο μόνος δρόμος πίσω.",
+  "map.upload.privateNote": "Μόνο όσοι έχουν αυτόν τον σύνδεσμο τη βλέπουν. Φτιάξε προφίλ για να τη διεκδικήσεις και μετά κάνε τη δημόσια.",
+  "map.upload.shareHint": "Μοιράσου τον σύνδεσμο — η μόνη επιστροφή.",
   "map.upload.verifying": "Γίνεται έλεγχος…",
   "map.trail.visibleOnMap": "Στον δημόσιο χάρτη",
   "map.trail.hiddenFromMap": "Εκτός χάρτη — μόνο με σύνδεσμο",
   "map.trail.anonymous": "Ανώνυμο",
-  "map.trail.anonymousMeta": "κανείς δεν έχει διεκδικήσει αυτή τη βόλτα"
+  "map.trail.anonymousMeta": "κανείς δεν έχει διεκδικήσει αυτή τη βόλτα",
+  "map.upload.expiresChip": "Λήγει σε {n} ώ",
+  "map.trail.publicNote": "Οποιοσδήποτε μπορεί να βρει αυτή τη διαδρομή στον χάρτη."
 }

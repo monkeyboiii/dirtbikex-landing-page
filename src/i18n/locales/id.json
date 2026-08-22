@@ -290,14 +290,16 @@
   "map.panel.back": "Kembali",
   "map.panel.venue": "Tentang tempat ini",
   "map.upload.rename": "Ganti nama",
-  "map.upload.confirm": "Konfirmasi unggah",
+  "map.upload.confirm": "Konfirmasi",
   "map.upload.chooseAnother": "Pilih berkas lain",
   "map.upload.ready": "Siap diunggah",
-  "map.upload.privateNote": "Hanya orang yang kamu kirimi tautan yang bisa melihat jalur ini.",
-  "map.upload.shareHint": "Bagikan tautannya — itu satu-satunya jalan kembali.",
+  "map.upload.privateNote": "Hanya yang punya tautan ini bisa melihatnya. Buat profil untuk mengklaimnya, lalu buka untuk umum.",
+  "map.upload.shareHint": "Bagikan tautan — satu-satunya jalan kembali.",
   "map.upload.verifying": "Memeriksa…",
   "map.trail.visibleOnMap": "Di peta publik",
   "map.trail.hiddenFromMap": "Tidak di peta — hanya tautan",
   "map.trail.anonymous": "Anonim",
-  "map.trail.anonymousMeta": "belum ada yang mengklaim perjalanan ini"
+  "map.trail.anonymousMeta": "belum ada yang mengklaim perjalanan ini",
+  "map.upload.expiresChip": "Kedaluwarsa dalam {n} j",
+  "map.trail.publicNote": "Siapa pun bisa menemukan jalur ini di peta."
 }

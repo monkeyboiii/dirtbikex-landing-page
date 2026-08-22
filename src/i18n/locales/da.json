@@ -290,14 +290,16 @@
   "map.panel.back": "Tilbage",
   "map.panel.venue": "Om dette sted",
   "map.upload.rename": "Omdøb",
-  "map.upload.confirm": "Bekræft upload",
+  "map.upload.confirm": "Bekræft",
   "map.upload.chooseAnother": "Vælg en anden fil",
   "map.upload.ready": "Klar til upload",
-  "map.upload.privateNote": "Kun dem, du sender linket til, kan se dette spor.",
-  "map.upload.shareHint": "Del linket — det er den eneste vej tilbage.",
+  "map.upload.privateNote": "Kun dem med dette link kan se det. Opret en profil for at gøre krav på det, og gør det så offentligt.",
+  "map.upload.shareHint": "Del linket — den eneste vej tilbage.",
   "map.upload.verifying": "Kontrollerer…",
   "map.trail.visibleOnMap": "På det offentlige kort",
   "map.trail.hiddenFromMap": "Ikke på kortet — kun link",
   "map.trail.anonymous": "Anonym",
-  "map.trail.anonymousMeta": "ingen har gjort krav på denne tur"
+  "map.trail.anonymousMeta": "ingen har gjort krav på denne tur",
+  "map.upload.expiresChip": "Udløber om {n} t",
+  "map.trail.publicNote": "Alle kan finde dette spor på kortet."
 }

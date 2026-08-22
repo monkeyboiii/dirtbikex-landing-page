@@ -293,14 +293,16 @@
   "map.panel.back": "戻る",
   "map.panel.venue": "この場所について",
   "map.upload.rename": "名前を変更",
-  "map.upload.confirm": "アップロードする",
+  "map.upload.confirm": "確認",
   "map.upload.chooseAnother": "別のファイルを選ぶ",
   "map.upload.ready": "アップロードの準備完了",
-  "map.upload.privateNote": "リンクを送った相手だけがこのルートを見られます。",
-  "map.upload.shareHint": "リンクを共有してください。ここへ戻る唯一の方法です。",
+  "map.upload.privateNote": "このリンクを持つ人だけが見られます。プロフィールを作れば受け取れ、その後で公開できます。",
+  "map.upload.shareHint": "リンクを共有 — 戻る唯一の道です。",
   "map.upload.verifying": "確認中…",
   "map.trail.visibleOnMap": "公開マップに掲載中",
   "map.trail.hiddenFromMap": "マップには出ません — リンクのみ",
   "map.trail.anonymous": "匿名",
-  "map.trail.anonymousMeta": "まだ誰も受け取っていません"
+  "map.trail.anonymousMeta": "まだ誰も受け取っていません",
+  "map.upload.expiresChip": "{n} 時間で失効",
+  "map.trail.publicNote": "誰でも地図でこのルートを見つけられます。"
 }

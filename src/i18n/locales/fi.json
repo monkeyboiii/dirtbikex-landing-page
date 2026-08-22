@@ -290,14 +290,16 @@
   "map.panel.back": "Takaisin",
   "map.panel.venue": "Tietoa tästä paikasta",
   "map.upload.rename": "Nimeä uudelleen",
-  "map.upload.confirm": "Vahvista lähetys",
+  "map.upload.confirm": "Vahvista",
   "map.upload.chooseAnother": "Valitse toinen tiedosto",
   "map.upload.ready": "Valmis lähetettäväksi",
-  "map.upload.privateNote": "Vain ne, joille lähetät linkin, näkevät tämän reitin.",
-  "map.upload.shareHint": "Jaa linkki — se on ainoa tie takaisin.",
+  "map.upload.privateNote": "Vain tämän linkin haltijat näkevät sen. Luo profiili lunastaaksesi sen, ja julkaise se sitten.",
+  "map.upload.shareHint": "Jaa linkki — ainoa tie takaisin.",
   "map.upload.verifying": "Tarkistetaan…",
   "map.trail.visibleOnMap": "Julkisella kartalla",
   "map.trail.hiddenFromMap": "Ei kartalla — vain linkillä",
   "map.trail.anonymous": "Nimetön",
-  "map.trail.anonymousMeta": "kukaan ei ole lunastanut tätä ajoa"
+  "map.trail.anonymousMeta": "kukaan ei ole lunastanut tätä ajoa",
+  "map.upload.expiresChip": "Vanhenee {n} h kuluttua",
+  "map.trail.publicNote": "Kuka tahansa löytää tämän reitin kartalta."
 }

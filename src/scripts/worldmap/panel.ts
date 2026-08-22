@@ -145,7 +145,7 @@ function titleRow(
     // An explicit URL, for a sheet whose shareable thing is not a /share/ card — an
     // unlisted trail has only its secret link, and it belongs in the same corner every
     // other sheet puts its share button.
-    | { url: string }
+    | { url: string; pulse?: boolean }
     | null,
   strings: Record<string, string>,
 ): void {
@@ -155,7 +155,10 @@ function titleRow(
   const target = share && ('url' in share ? share.url : share.key ? `${location.origin}/share/${share.kind}/${encodeURIComponent(share.key)}` : '');
   if (target) {
     const label = strings['map.panel.share'] ?? 'Share';
-    const button = el('button', 'wm-panel__share') as HTMLButtonElement;
+    // `pulse` is for the one sheet where this button is the only way to keep something:
+    // it beats gently every five seconds instead of shouting once.
+    const pulse = !!share && 'pulse' in share && share.pulse;
+    const button = el('button', `wm-panel__share${pulse ? ' wm-panel__share--pulse' : ''}`) as HTMLButtonElement;
     button.type = 'button';
     button.title = label;
     button.setAttribute('aria-label', `${label} · ${text}`);
@@ -328,6 +331,26 @@ function renderTurnstile(host: HTMLElement, siteKey: string): Promise<string> {
   );
 }
 
+const CLOCK_FADING_SVG =
+  '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2a10 10 0 0 1 7.38 16.75"/><path d="M12 6v6l4 2"/><path d="M2.5 8.875a10 10 0 0 0-.5 3"/><path d="M2.83 16a10 10 0 0 0 2.43 3.4"/><path d="M4.636 5.235a10 10 0 0 1 .891-.857"/><path d="M8.644 21.42a10 10 0 0 0 7.631-.38"/></svg>';
+
+/**
+ * When this trail stops existing, as a chip rather than a sentence.
+ *
+ * Dashed and dimmer than the chips beside it on purpose: the others state what the ride
+ * IS, and this one states what is about to happen to it. It reads as provisional because
+ * it is, and it disappears the moment somebody claims the trail.
+ */
+function expiryChip(hours: number, strings: Record<string, string>): HTMLElement {
+  const chip = el('span', 'wm-chip wm-chip--pending');
+  const icon = el('span', 'wm-chip__icon');
+  icon.innerHTML = CLOCK_FADING_SVG;
+  chip.append(icon, document.createTextNode(
+    (strings['map.upload.expiresChip'] ?? 'Expires in {n} h').replace('{n}', String(hours)),
+  ));
+  return chip;
+}
+
 /**
  * The rider who has not signed for this trail yet.
  *
@@ -353,15 +376,41 @@ function anonBlock(strings: Record<string, string>): HTMLElement {
  * tooltip, because a sheet that has to explain its own icon has the wrong icon.
  */
 function visibilityMark(onMap: boolean, strings: Record<string, string>): HTMLElement {
-  const mark = el('span', `wm-eye${onMap ? ' wm-eye--on' : ''}`);
+  const mark = el('button', `wm-eye${onMap ? ' wm-eye--on' : ''}`) as HTMLButtonElement;
+  mark.type = 'button';
   const label = onMap
     ? strings['map.trail.visibleOnMap'] ?? 'On the public map'
     : strings['map.trail.hiddenFromMap'] ?? 'Not on the map — link only';
   mark.title = label;
   mark.setAttribute('aria-label', label);
-  mark.setAttribute('role', 'img');
   mark.innerHTML = onMap ? EYE_SVG : EYE_OFF_SVG;
   return mark;
+}
+
+/**
+ * The section line: a label, and the eye at its trailing edge.
+ *
+ * Tapping the eye reveals what the state means, rather than a sentence sitting there
+ * permanently making the sheet taller than every other trail's. It is on demand because
+ * most riders only need to ask once.
+ */
+function uploadedByLine(host: HTMLElement, onMap: boolean, strings: Record<string, string>): void {
+  const line = el('div', 'wm-panel__sectionrow');
+  line.appendChild(el('h3', 'wm-panel__section', strings['map.trail.uploadedBy'] ?? 'Uploaded by'));
+  const eye = visibilityMark(onMap, strings);
+  line.appendChild(eye);
+  host.appendChild(line);
+
+  const note = el('p', 'wm-panel__meta wm-panel__meta--note');
+  note.hidden = true;
+  note.textContent = onMap
+    ? strings['map.trail.publicNote'] ?? 'Anyone can find this trail on the map.'
+    : strings['map.upload.privateNote']
+      ?? 'Only people with this link can view it. Claim it by setting up a profile, then turn it public.';
+  host.appendChild(note);
+  eye.addEventListener('click', () => {
+    note.hidden = !note.hidden;
+  });
 }
 
 /**
@@ -953,7 +1002,7 @@ export function createPanel(deps: PanelDeps) {
    * is worth claiming — showing them a lesser version of their own ride is the wrong
    * moment to economise.
    */
-  function trailFacts(host: HTMLElement, trail: Trail) {
+  function trailFacts(host: HTMLElement, trail: Trail, extraChip?: HTMLElement | null) {
     const st = trail.stats ?? null;
       const summary = localized(trail.summary, lang);
       if (summary) host.appendChild(el('p', 'wm-panel__meta', summary));
@@ -1045,6 +1094,7 @@ export function createPanel(deps: PanelDeps) {
           ),
         );
       }
+      if (extraChip) chips.appendChild(extraChip);
       if (chips.childElementCount) host.appendChild(chips);
   }
 
@@ -1183,7 +1233,10 @@ export function createPanel(deps: PanelDeps) {
           field.value = name;
           heading.hidden = true;
           field.hidden = false;
-          field.focus();
+          // preventScroll, and a >=16px font in the CSS: iOS zooms the page when a focused
+          // input is smaller than that, and getting back to a centred map afterwards is a
+          // fight the visitor should never have been given.
+          field.focus({ preventScroll: true });
           field.select();
         };
         field.addEventListener('blur', commit);
@@ -1222,7 +1275,7 @@ export function createPanel(deps: PanelDeps) {
 
         const confirm = el('button', 'wm-panel__claim') as HTMLButtonElement;
         confirm.type = 'button';
-        confirm.textContent = strings['map.upload.confirm'] ?? 'Confirm upload';
+        confirm.textContent = strings['map.upload.confirm'] ?? 'Confirm';
         confirm.addEventListener('click', () => {
           // Commit an open rename first, or the edit is silently discarded by the upload.
           if (!field.hidden) commit();
@@ -1320,11 +1373,11 @@ export function createPanel(deps: PanelDeps) {
         // The trail's own name leads, because by now it has one — the ready sheet made
         // sure of that. The share button sits where every other sheet keeps it, and what
         // it hands over is the secret link, the only address this trail has.
-        titleRow(host, localized(trail.title, lang) ?? result.id, { url }, strings);
+        titleRow(host, localized(trail.title, lang) ?? result.id, { url, pulse: true }, strings);
 
-        trailFacts(host, trail);
+        trailFacts(host, trail, expiryChip(result.expires_in_hours, strings));
 
-        host.appendChild(el('h3', 'wm-panel__section', strings['map.trail.uploadedBy'] ?? 'Uploaded by'));
+        uploadedByLine(host, false, strings);
 
         // The byline and the action share one row, exactly as a finished trail's byline
         // shares its row with the links out. The blank rider IS the prompt; the button
@@ -1342,20 +1395,12 @@ export function createPanel(deps: PanelDeps) {
         const claim = el('a', 'wm-panel__claim') as HTMLAnchorElement;
         claim.href = result.claim_url;
         claim.textContent = strings['map.upload.claimShort'] ?? 'Claim';
-        row.append(by, visibilityMark(false, strings), claim);
+        row.append(by, claim);
         host.appendChild(row);
 
-        // What "private" actually means, said where the rider is looking — under the face
-        // that is not theirs yet. The URL is not repeated here: the share button owns it.
-        host.appendChild(
-          el('p', 'wm-panel__meta', strings['map.upload.privateNote']
-            ?? 'Only people you send the link to can see this trail.'),
-        );
-        host.appendChild(
-          el('p', 'wm-panel__meta', (strings['map.upload.expires'] ?? 'Unclaimed, it is deleted in {n} hours.')
-            .replace('{n}', String(result.expires_in_hours))),
-        );
-        // The link is now behind one button, so it is worth pointing at it once.
+        // One line, and it starts with the verb. Everything this sheet used to say in two
+        // full-width paragraphs — what private means, when it expires — now lives in the
+        // chip row and behind the eye, so the sheet is no taller than any other trail's.
         nudgeShare(host, strings);
       }, { sticky: true });
     },
@@ -1440,17 +1485,14 @@ export function createPanel(deps: PanelDeps) {
           : anonBlock(strings);
         // A face and a name with nothing said about them read as the subject of the
         // sheet. The label is what makes them the author of it.
-        host.appendChild(el('h3', 'wm-panel__section', strings['map.trail.uploadedBy'] ?? 'Uploaded by'));
+        if (trail.visibility) uploadedByLine(host, trail.visibility === 'public', strings);
+        else host.appendChild(el('h3', 'wm-panel__section', strings['map.trail.uploadedBy'] ?? 'Uploaded by'));
 
         // The two ways out of this trail sit on the uploader's row rather than in a
         // strip of their own: one line of who and where-next, not two of each.
         const row = el('div', 'wm-panel__socials');
         const byline = el('div', 'wm-panel__byline');
         byline.append(by);
-        // A trail that knows its own visibility says so here. An operator import has no
-        // `visibility` at all and is public by definition, so it gets no mark — the eye
-        // is only interesting where it could have been the other way.
-        if (trail.visibility) byline.append(visibilityMark(trail.visibility === 'public', strings));
         byline.append(row);
         host.appendChild(byline);
         const mark = (icon: string | null, href: string, label: string, svg?: string) => {

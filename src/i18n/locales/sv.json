@@ -292,14 +292,16 @@
   "map.panel.back": "Tillbaka",
   "map.panel.venue": "Om den här platsen",
   "map.upload.rename": "Byt namn",
-  "map.upload.confirm": "Bekräfta uppladdning",
+  "map.upload.confirm": "Bekräfta",
   "map.upload.chooseAnother": "Välj en annan fil",
   "map.upload.ready": "Redo att laddas upp",
-  "map.upload.privateNote": "Bara de du skickar länken till kan se det här spåret.",
-  "map.upload.shareHint": "Dela länken — det är enda vägen tillbaka.",
+  "map.upload.privateNote": "Bara de med den här länken kan se det. Skapa en profil för att göra anspråk på det och gör det sedan offentligt.",
+  "map.upload.shareHint": "Dela länken — enda vägen tillbaka.",
   "map.upload.verifying": "Kontrollerar…",
   "map.trail.visibleOnMap": "På den offentliga kartan",
   "map.trail.hiddenFromMap": "Inte på kartan — endast länk",
   "map.trail.anonymous": "Anonym",
-  "map.trail.anonymousMeta": "ingen har gjort anspråk på den här turen"
+  "map.trail.anonymousMeta": "ingen har gjort anspråk på den här turen",
+  "map.upload.expiresChip": "Går ut om {n} h",
+  "map.trail.publicNote": "Vem som helst kan hitta det här spåret på kartan."
 }

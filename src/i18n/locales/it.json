@@ -290,14 +290,16 @@
   "map.panel.back": "Indietro",
   "map.panel.venue": "Su questo luogo",
   "map.upload.rename": "Rinomina",
-  "map.upload.confirm": "Conferma caricamento",
+  "map.upload.confirm": "Conferma",
   "map.upload.chooseAnother": "Scegli un altro file",
   "map.upload.ready": "Pronto per il caricamento",
-  "map.upload.privateNote": "Solo chi riceve il link vede questo percorso.",
-  "map.upload.shareHint": "Condividi il link: è l’unico modo per tornarci.",
+  "map.upload.privateNote": "Solo chi ha questo link può vederlo. Crea un profilo per rivendicarlo, poi rendilo pubblico.",
+  "map.upload.shareHint": "Condividi il link: l’unico ritorno.",
   "map.upload.verifying": "Verifica in corso…",
   "map.trail.visibleOnMap": "Sulla mappa pubblica",
   "map.trail.hiddenFromMap": "Non sulla mappa — solo link",
   "map.trail.anonymous": "Anonimo",
-  "map.trail.anonymousMeta": "nessuno ha ancora rivendicato questo giro"
+  "map.trail.anonymousMeta": "nessuno ha ancora rivendicato questo giro",
+  "map.upload.expiresChip": "Scade tra {n} h",
+  "map.trail.publicNote": "Chiunque può trovare questo percorso sulla mappa."
 }

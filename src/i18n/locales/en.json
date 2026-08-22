@@ -296,14 +296,16 @@
   "map.panel.back": "Back",
   "map.panel.venue": "About this place",
   "map.upload.rename": "Rename",
-  "map.upload.confirm": "Confirm upload",
+  "map.upload.confirm": "Confirm",
   "map.upload.chooseAnother": "Choose a different file",
   "map.upload.ready": "Ready to upload",
-  "map.upload.privateNote": "Only people you send the link to can see this trail.",
-  "map.upload.shareHint": "Share the link — it is the only way back to this trail.",
+  "map.upload.privateNote": "Only people with this link can view it. Claim it by setting up a profile, then turn it public.",
+  "map.upload.shareHint": "Share the link — the only way back.",
   "map.upload.verifying": "Checking you are human…",
   "map.trail.visibleOnMap": "On the public map",
   "map.trail.hiddenFromMap": "Not on the map — link only",
   "map.trail.anonymous": "Anonymous",
-  "map.trail.anonymousMeta": "nobody has claimed this ride"
+  "map.trail.anonymousMeta": "nobody has claimed this ride",
+  "map.upload.expiresChip": "Expires in {n} h",
+  "map.trail.publicNote": "Anyone can find this trail on the map."
 }

@@ -1162,7 +1162,9 @@ body.is-map-page .site-header__inner {
 .wm-panel__title-input {
   font-family: var(--font-display, 'Bricolage Grotesque', sans-serif);
   font-weight: 700;
-  font-size: 1.28rem;
+  /* Never below 16px: iOS zooms the whole page when a focused input is smaller, and
+     getting back to a centred map afterwards is a fight. */
+  font-size: max(16px, 1.28rem);
   line-height: 1.18;
   letter-spacing: -0.015em;
   width: 100%;
@@ -1193,20 +1195,67 @@ body.is-map-page .site-header__inner {
   margin-top: 16px;
 }
 
-/* On the map, or not. Sits in the byline where the rest of a trail's provenance lives. */
+/* On the map, or not. Sits at the trailing edge of the "uploaded by" line, and answers
+   for itself when tapped. */
 .wm-eye {
   flex: none;
   display: inline-grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
+  padding: 0;
   border-radius: 50%;
+  background: none;
   color: var(--wm-text-dim);
   border: 1px solid var(--wm-line);
+  cursor: pointer;
+  transition: color 160ms ease, border-color 160ms ease;
+}
+.wm-eye:hover,
+.wm-eye:focus-visible {
+  color: var(--wm-text);
+  border-color: var(--wm-line-strong);
 }
 .wm-eye--on {
   color: var(--wm-accent);
   border-color: var(--wm-accent);
+}
+.wm-panel__meta--note {
+  margin-top: 6px;
+  font-size: 0.82rem;
+}
+
+/* Provisional, and dressed as it: dashed, and dimmer than the chips that state what the
+   ride IS rather than what is about to happen to it. */
+.wm-chip--pending {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border-style: dashed;
+  color: var(--wm-text-faint, var(--wm-text-dim));
+  opacity: 0.78;
+}
+.wm-chip__icon {
+  display: inline-grid;
+  place-items: center;
+}
+
+/* The one control that keeps something. It beats every five seconds rather than shouting
+   once — the link is behind it and nowhere else on the sheet. */
+.wm-panel__share--pulse {
+  color: var(--wm-accent);
+  opacity: 1;
+  animation: wm-share-beat 5s ease-in-out infinite;
+}
+@keyframes wm-share-beat {
+  0%, 88%, 100% { transform: scale(1); }
+  92% { transform: scale(1.22); }
+  96% { transform: scale(1.06); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wm-panel__share--pulse {
+    animation: none;
+  }
 }
 
 /* The one line that says where the link went, now that it is behind a button. */
