@@ -1143,7 +1143,10 @@ export function createPanel(deps: PanelDeps) {
 
         const row = el('div', 'wm-panel__titlerow');
         const heading = el('h2', 'wm-panel__title', name);
-        const field = el('input', 'wm-panel__title wm-panel__title-input') as HTMLInputElement;
+        // NOT also .wm-panel__title: two elements answering to the sheet's title selector
+        // is ambiguous for anything reading the DOM, tests included. It borrows the type
+        // in CSS instead.
+        const field = el('input', 'wm-panel__title-input') as HTMLInputElement;
         field.type = 'text';
         field.maxLength = 120;
         field.hidden = true;

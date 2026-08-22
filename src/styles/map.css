@@ -1148,8 +1148,15 @@ body.is-map-page .site-header__inner {
   }
 }
 
-/* Renaming happens in place: the title becomes a field and goes back to being a title. */
+/* Renaming happens in place: the title becomes a field and goes back to being a title.
+   It borrows the title's type rather than its class — two elements answering to
+   .wm-panel__title would be ambiguous to anything reading the sheet. */
 .wm-panel__title-input {
+  font-family: var(--font-display, 'Bricolage Grotesque', sans-serif);
+  font-weight: 700;
+  font-size: 1.28rem;
+  line-height: 1.18;
+  letter-spacing: -0.015em;
   width: 100%;
   min-width: 0;
   padding: 0;
