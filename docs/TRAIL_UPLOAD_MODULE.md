@@ -190,6 +190,28 @@ which read as broken rather than as anonymous. Its share button hands over the t
 link, because a link-only trail has no `/share/` card and never will; suppressing it left
 an anonymous trail with no way to be passed on, which is the one thing it is for.
 
+## The device keeps its own uploads
+
+`localStorage['dbx-map-uploads']` holds the last eight uploads this browser made — id,
+title, claim URL, timestamp — and the map's upload control carries a count badge when it is
+not empty. Opening one re-shows the finished sheet; the list also offers **Claim** and
+**Delete**.
+
+Three decisions worth not relitigating:
+
+- **The claim code is never printed.** It lives inside the stored claim URL and only ever
+  becomes an `href`, on a tab the rider opened themselves. That keeps it off screenshots.
+- **Delete is authorised by the secret and by nothing else.** The secret is already the
+  whole read credential, so anyone who can call `DELETE /api/map/trail/<secret>` could
+  already see the trace. A device fingerprint on top would be forgeable by an attacker and
+  a lockout for the honest rider who cleared their browser; a cookie would create a
+  server-side record of who rides where on an origin that currently holds none.
+- **A claimed trail cannot be deleted this way** — 409. It belongs to a forum account by
+  then, and removing it is a moderation act with an audit trail.
+
+Reopening from the list skips the close guard: it cannot lose anything that is not already
+lost, because it came from the list it would fall back to.
+
 ## Turnstile is built and switched off
 
 `TURNSTILE_SITE_KEY` (a wrangler var, empty) and `TURNSTILE_SECRET_KEY` (a secret). **Both**
