@@ -605,12 +605,12 @@ export async function handleClaimResolve(request: Request, env: PagesEnv, code: 
   if (!pluginAuthorised(request, env)) return json(404, { error: 'not_found' });
   if (!env.SUBSCRIBERS_DB) return json(503, { error: 'service_misconfigured' });
   const row = await env.SUBSCRIBERS_DB.prepare(
-    `SELECT secret, gpx_url, gpx_short_url, title, distance_km, claimed_at, author_user_id, post_id
+    `SELECT id, secret, gpx_url, gpx_short_url, title, distance_km, claimed_at, author_user_id, post_id
        FROM trails
       WHERE claim_code = ? AND (expires_at IS NULL OR expires_at > datetime('now'))`,
   )
     .bind(code)
-    .first<{ secret: string; gpx_url: string; gpx_short_url: string | null; title: string | null; distance_km: number | null; claimed_at: string | null; author_user_id: number | null; post_id: number | null }>();
+    .first<{ id: string; secret: string; gpx_url: string; gpx_short_url: string | null; title: string | null; distance_km: number | null; claimed_at: string | null; author_user_id: number | null; post_id: number | null }>();
   if (!row) return json(404, { error: 'not_found' });
   // A spent code still resolves, and says so. The rider who taps their claim link a
   // second time is the common case, not the attack: 404 there sent them to an error page
@@ -618,6 +618,7 @@ export async function handleClaimResolve(request: Request, env: PagesEnv, code: 
   // code did not already reveal — and the caller is the plugin, which checks ownership
   // before it acts on `claimed_at`.
   return json(200, {
+    id: row.id,
     secret: row.secret,
     gpx_url: row.gpx_url,
     gpx_short_url: row.gpx_short_url,
