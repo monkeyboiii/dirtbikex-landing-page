@@ -175,6 +175,40 @@ Three rules follow from the secret being the whole access control:
   put the secret in every cached copy. For the same reason, **flipping a public trail back
   to private mints a new secret**: the old one is already out there.
 
+## The sheet, step by step
+
+| Step | What it is for |
+|---|---|
+| Intro | One sentence, and three drawn map fragments cross-fading every 5 s so "we will draw it" is shown rather than claimed. Inline SVG — a second MapLibre context to advertise the first one is not worth a WebGL context and a tile fetch |
+| Ready | **Nothing has been uploaded yet.** The file is measured and its NAME leads, editable behind a pencil. Recorders write `2026-05-17_08-00-00.gpx`, and that used to become the trail's name with no chance to change it |
+| Confirm | Trailing edge, accent orange. Where Turnstile fires, when configured |
+| Done | The trail's own sheet, with a rider-shaped hole where the byline goes |
+
+An **anonymous** trail sheet renders the same structure as any other — the byline section
+with an "Anonymous" placeholder, the eye, and a share button. It used to omit all three,
+which read as broken rather than as anonymous. Its share button hands over the trail's own
+link, because a link-only trail has no `/share/` card and never will; suppressing it left
+an anonymous trail with no way to be passed on, which is the one thing it is for.
+
+## Turnstile is built and switched off
+
+`TURNSTILE_SITE_KEY` (a wrangler var, empty) and `TURNSTILE_SECRET_KEY` (a secret). **Both**
+must be set or the challenge is skipped entirely: no script is fetched, and the worker does
+not verify. When it is on, verification **fails closed**.
+
+It is opt-in rather than default for two reasons, and neither is effort:
+
+- The widget loads `challenges.cloudflare.com/turnstile/v0/api.js`. This site's
+  no-external-assets rule has its own CI test, and the only standing exception — the tile
+  host — is documented as a fenced, temporary breach. A second one is a decision.
+- **The audience is mainland China.** Whether that host is reliably reachable there is not
+  something this codebase can assume, and a challenge nobody can load is not friction, it
+  is an outage of the whole upload path.
+
+`tests/no-external-assets.spec.ts` will need `challenges.cloudflare.com` added to the
+homepage allowlist **at the same time** as the key, or CI fails on the deploy that enables
+it.
+
 ## The pre-flight is gpx.studio's rules, not ours
 
 gpx.studio is a web app, not an API, so it cannot be asked to validate. But
