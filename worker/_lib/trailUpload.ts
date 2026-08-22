@@ -665,18 +665,16 @@ export async function handleTrailImport(request: Request, env: PagesEnv): Promis
 
   // The id is readable here rather than opaque, because it is derived from a public topic
   // title and sits alongside the operator's imports, which have always looked like this.
-  // A collision still has to give way to something — the secret, which cannot collide.
-  let id = wanted;
-  for (let attempt = 0; attempt < 3; attempt++) {
-    const clash = await env.SUBSCRIBERS_DB.prepare('SELECT 1 FROM trails WHERE id = ?')
-      .bind(id)
-      .first();
-    if (!clash) break;
-    id = attempt === 1 ? secret : `${wanted}-${token(3)}`;
-  }
-
-  try {
-    await env.SUBSCRIBERS_DB.prepare(
+  // A collision has to give way to something, and that something is the secret.
+  //
+  // Tried rather than checked. D1 writes go to the primary, and from a PoP on the far side
+  // of the world a round-trip is most of a second — so the first shape of this, which asked
+  // whether each candidate id was free BEFORE inserting, could spend five of them in a row
+  // and blow the forum's HTTP timeout on a call that had in fact succeeded. Let the UNIQUE
+  // constraint answer the question instead: one round-trip when the id is free, two when it
+  // is not, and the second attempt cannot collide.
+  const insert = (candidate: string) =>
+    env.SUBSCRIBERS_DB!.prepare(
       `INSERT INTO trails (id, secret, visibility, gpx_url, gpx_short_url, gpx_sha1, title,
                            distance_km, stats, post_id, post_url,
                            author_user_id, author_username, author_name, author_avatar,
@@ -684,7 +682,7 @@ export async function handleTrailImport(request: Request, env: PagesEnv): Promis
        VALUES (?, ?, 'private', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), NULL)`,
     )
       .bind(
-        id,
+        candidate,
         secret,
         gpxUrl,
         str(body.gpx_short_url, 200),
@@ -700,9 +698,22 @@ export async function handleTrailImport(request: Request, env: PagesEnv): Promis
         str(body.avatar, 200),
       )
       .run();
+
+  let id = wanted;
+  try {
+    await insert(id);
   } catch (err) {
-    console.error('trail:import_failed', { postId, err: String(err) });
-    return json(500, { error: 'store_failed' });
+    if (!String(err).includes('UNIQUE')) {
+      console.error('trail:import_failed', { postId, err: String(err) });
+      return json(500, { error: 'store_failed' });
+    }
+    id = secret;
+    try {
+      await insert(id);
+    } catch (retry) {
+      console.error('trail:import_failed', { postId, err: String(retry) });
+      return json(500, { error: 'store_failed' });
+    }
   }
 
   return json(201, { id, secret });
