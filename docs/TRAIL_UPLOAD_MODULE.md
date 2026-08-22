@@ -355,6 +355,31 @@ the map honest about where a trail can be discussed:
   it publicly would be a dead end for everyone else, so there is no link at all, and
   contact runs through the byline → `/s/u/<username>` → the rider's forum profile.
 
+### How many a rider may have on the map
+
+Three plugin settings, and the **largest applicable value wins**: a baseline
+(`dirtbikex_trail_public_limit`), a trust-level table, and a group table. Additive by
+construction — joining a group can only ever give somebody more room, never take it away —
+which keeps it a rule rather than a precedence puzzle. `0` means no limit, matching
+`dirtbikex_track_claim_max_*` in the same plugin; the worker's own caps spell `0` the other
+way round, which is exactly why both are written down rather than left to be inferred.
+
+Counted only on the way ON to the map. Taking a trail off is never refused: a rider over
+their allowance because it was lowered under them must always be able to reduce what they
+have out there. Staff are exempt.
+
+This is a **count**, and separate from the worker's `TRAIL_PUBLISH_CAP`, which is about the
+same GROUND — how many of your trails may overlap each other. A rider can be inside one and
+outside the other.
+
+### An imported trail keeps its name
+
+Going private collapses a trail's id to its secret, so a stale copy of `trails.json` cannot
+still name something that has gone private. An import is exempt, marked by `post_url`: its
+id comes from a public topic title and its post stays public whatever the map says, so
+collapsing protects nothing and costs the readable name the first time the rider toggles
+the trail off and on. The secret still rotates; only the name survives.
+
 ### Known gap
 
 The duplicate-file check only looks at D1. A trail already on the map through the **R2

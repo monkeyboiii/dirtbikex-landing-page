@@ -116,6 +116,34 @@ same map drives the cull's ownership test and hit-test layer selection.
 Every kind rides the single `tracks` GeoJSON source, so shops and trails inherit the
 declutter for free.
 
+## Three basemaps, and why not the fourth
+
+A `layers` button in the rail switches the ground; the choice is remembered per device.
+Only **DirtBikeX** follows the page theme — it is the light/dark pair built in
+`public/map/style-{light,dark}.json`. **Streets** and **Topographic** are single styles and
+ignore it, which is the honest behaviour: a topographic sheet has one look, and tinting it
+dark would misrepresent terrain shading. Pin colours follow the GROUND (`groundIsDark`),
+not the page, or dark pins land on a light topo sheet.
+
+| | source | cost |
+|---|---|---|
+| DirtBikeX | OpenFreeMap vector, styled here | none — already the map's tiles |
+| Streets | `tiles.openfreemap.org/styles/liberty` | none — same host |
+| Topographic | OpenTopoMap raster, styled here | one new tile host |
+
+**gpx.studio's Liberty Topo is not usable and cannot be made usable.** It is the style the
+embed shows, so it is the obvious thing to reach for — but `styles.gpx.studio`,
+`tiles.gpx.studio`, `fonts.gpx.studio` and `sprites.gpx.studio` all serve **no
+`access-control-allow-origin`**. Their embed works because it runs on their own origin. A
+browser on this one cannot fetch any of it, and proxying the whole tile stack through our
+worker would be both expensive and a way of freeloading on them quietly.
+
+Building the same look from a DEM is no easier: AWS terrarium
+(`elevation-tiles-prod`) sends no CORS either, and MapLibre's demo terrain covers a single
+square of the Alps. OpenTopoMap sends `*`, is global, and is the same
+contours-and-hillshade picture — at the cost of being raster, so it carries baked labels
+in its own language and stops at zoom 17. That trade is why it is the one that shipped.
+
 ## The map draws the viewport, not the catalog
 
 3,640 pins at every zoom made a dense country read as a blob. `renderVisible` ships only what
