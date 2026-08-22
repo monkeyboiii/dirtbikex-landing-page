@@ -394,23 +394,25 @@ function visibilityMark(onMap: boolean, strings: Record<string, string>): HTMLEl
  * permanently making the sheet taller than every other trail's. It is on demand because
  * most riders only need to ask once.
  */
-function uploadedByLine(host: HTMLElement, onMap: boolean, strings: Record<string, string>): void {
+function uploadedByLine(host: HTMLElement, onMap: boolean, strings: Record<string, string>): HTMLElement {
   const line = el('div', 'wm-panel__sectionrow');
   line.appendChild(el('h3', 'wm-panel__section', strings['map.trail.uploadedBy'] ?? 'Uploaded by'));
   const eye = visibilityMark(onMap, strings);
   line.appendChild(eye);
   host.appendChild(line);
 
+  // Returned rather than appended: the caller places it AFTER the byline, so the answer
+  // appears under the row it is about instead of pushing the rider down the sheet.
   const note = el('p', 'wm-panel__meta wm-panel__meta--note');
   note.hidden = true;
   note.textContent = onMap
     ? strings['map.trail.publicNote'] ?? 'Anyone can find this trail on the map.'
     : strings['map.upload.privateNote']
       ?? 'Only people with this link can view it. Claim it by setting up a profile, then turn it public.';
-  host.appendChild(note);
   eye.addEventListener('click', () => {
     note.hidden = !note.hidden;
   });
+  return note;
 }
 
 /**
@@ -1377,7 +1379,7 @@ export function createPanel(deps: PanelDeps) {
 
         trailFacts(host, trail, expiryChip(result.expires_in_hours, strings));
 
-        uploadedByLine(host, false, strings);
+        const note = uploadedByLine(host, false, strings);
 
         // The byline and the action share one row, exactly as a finished trail's byline
         // shares its row with the links out. The blank rider IS the prompt; the button
@@ -1397,6 +1399,7 @@ export function createPanel(deps: PanelDeps) {
         claim.textContent = strings['map.upload.claimShort'] ?? 'Claim';
         row.append(by, claim);
         host.appendChild(row);
+        host.appendChild(note);
 
         // One line, and it starts with the verb. Everything this sheet used to say in two
         // full-width paragraphs — what private means, when it expires — now lives in the
@@ -1485,8 +1488,9 @@ export function createPanel(deps: PanelDeps) {
           : anonBlock(strings);
         // A face and a name with nothing said about them read as the subject of the
         // sheet. The label is what makes them the author of it.
-        if (trail.visibility) uploadedByLine(host, trail.visibility === 'public', strings);
-        else host.appendChild(el('h3', 'wm-panel__section', strings['map.trail.uploadedBy'] ?? 'Uploaded by'));
+        const visNote = trail.visibility
+          ? uploadedByLine(host, trail.visibility === 'public', strings)
+          : (host.appendChild(el('h3', 'wm-panel__section', strings['map.trail.uploadedBy'] ?? 'Uploaded by')), null);
 
         // The two ways out of this trail sit on the uploader's row rather than in a
         // strip of their own: one line of who and where-next, not two of each.
@@ -1495,6 +1499,7 @@ export function createPanel(deps: PanelDeps) {
         byline.append(by);
         byline.append(row);
         host.appendChild(byline);
+        if (visNote) host.appendChild(visNote);
         const mark = (icon: string | null, href: string, label: string, svg?: string) => {
           const a = el('a', 'wm-social') as HTMLAnchorElement;
           a.href = href;
