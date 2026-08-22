@@ -319,6 +319,24 @@ async function addGlyph(
     retina phone; 48px upscaled to 35 CSS px is what made the old glyphs mushy. */
 /** Trail pins, minus the one whose trace is on the map: the line IS that trail, and a
     pin over it hides the very shape the visitor asked to see. */
+/**
+ * What a pin is called on the map, for this page's language.
+ *
+ * The catalog carries both a romanised `name` — which is what it is keyed and searched on
+ * — and the `name_local` that is actually written on the gate. Labelling every pin with
+ * the romanised one left a Chinese map reading "Tong Lu 73 Hao Yue Ye Zhu Ti Le Yuan",
+ * which is not what anybody calls it and not what any sign says.
+ *
+ * Only for scripts where the romanisation is a transliteration rather than the name: a
+ * German reader is better served by the form they can actually pronounce and search for.
+ */
+function labelField(lang: string): unknown {
+  const local = /^(zh|ja|ko)/.test(lang);
+  return local
+    ? ['coalesce', ['get', 'name_local'], ['get', 'name'], '']
+    : ['coalesce', ['get', 'name'], ''];
+}
+
 function trailPinFilter(drawn: string | null): unknown {
   const isTrail = ['==', ['get', 'kind'], 'trail'];
   return drawn ? ['all', isTrail, ['!=', ['get', 'slug'], drawn]] : isTrail;
@@ -712,7 +730,7 @@ class WorldMap {
       minzoom: 9,
       filter: withTop(IS_TRACK),
       layout: {
-        'text-field': ['coalesce', ['get', 'name'], ''] as never,
+        'text-field': labelField(this.cfg.lang) as never,
         'text-font': styleFont(map),
         'text-size': 11,
         'text-anchor': 'top',
@@ -773,7 +791,7 @@ class WorldMap {
       minzoom: 9.6,
       filter: withTop(shopFilter),
       layout: {
-        'text-field': ['coalesce', ['get', 'name'], ''] as never,
+        'text-field': labelField(this.cfg.lang) as never,
         'text-font': styleFont(map),
         'text-size': 11,
         'text-anchor': 'top',
@@ -883,7 +901,7 @@ class WorldMap {
       minzoom: 9.6,
       filter: withTop(trailFilter),
       layout: {
-        'text-field': ['coalesce', ['get', 'name'], ''] as never,
+        'text-field': labelField(this.cfg.lang) as never,
         'text-font': styleFont(map),
         'text-size': 11,
         'text-anchor': 'top',

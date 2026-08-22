@@ -939,14 +939,22 @@ export function createPanel(deps: PanelDeps) {
     // rather than on a label. Directions rides the address line it belongs to —
     // it acts on that address — instead of floating alone at the foot of the sheet.
     const meta = el('p', 'wm-panel__meta');
-    const bits = [track.locality, track.country_code].filter(Boolean) as string[];
-    // Whichever name the title did NOT take goes here, so both are always on the sheet and
-    // neither is printed twice.
-    const titled = preferLocal(track) ?? track.name;
-    const other = titled === track.name ? track.name_local : track.name;
-    meta.textContent = [other && other !== titled ? other : null, ...bits]
-      .filter(Boolean)
-      .join(' · ');
+    // The country is context for somebody far away. To a reader whose own locale names
+    // that country it is a tautology, and it was landing as a bare "CN" after a Chinese
+    // address. Region subtag rather than a lookup table: zh-CN and tr-TR carry theirs,
+    // bare `ja` and `de` do not and keep the code.
+    const home = lang.split('-')[1]?.toUpperCase();
+    const bits = [
+      track.locality,
+      track.country_code && track.country_code.toUpperCase() !== home ? track.country_code : null,
+    ].filter(Boolean) as string[];
+    // The romanised name is a TRANSLITERATION, not a second name. To a reader who already
+    // has the local one in the title it says nothing — "Qiu Long Ke Ji Hang Zhou Yue Ye Ji
+    // Di" under 虬龙科技杭州越野基地 is the title again, spelled out loud. It earns its place
+    // only the other way round, where the title is romanised and the local form is what is
+    // written on the gate.
+    const alt = preferLocal(track) ? null : track.name_local;
+    meta.textContent = [alt && alt !== track.name ? alt : null, ...bits].filter(Boolean).join(' · ');
     const go = directionsButton(track);
     if (go) {
       const row = el('div', 'wm-panel__metarow');
@@ -1581,7 +1589,10 @@ export function createPanel(deps: PanelDeps) {
           localized(trail.title, lang) ?? trail.id,
           { kind: 'route', key: trail.id },
           strings,
-          trail.visibility ? visibilityMark(onMap, strings) : null,
+          // Only the SHUT eye carries information. On a public map, "this is public" is
+          // the assumption every other pin already makes silently, so an open eye in
+          // front of the title is a mark that means nothing.
+          trail.visibility && !onMap ? visibilityMark(false, strings) : null,
         );
 
         trailFacts(host, trail);
