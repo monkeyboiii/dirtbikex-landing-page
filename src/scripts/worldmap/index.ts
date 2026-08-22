@@ -346,15 +346,20 @@ function labelField(lang: string): unknown {
  * otherwise by tinting it would misrepresent terrain shading.
  *
  * Liberty comes from tiles.openfreemap.org, which already serves every tile on this map, so
- * it costs no new dependency. Topo does NOT: style, tiles, fonts and sprites all live on
- * gpx.studio's servers. It is here because it is the one that shows the ground — hillshade
- * and contours — and that is what a trail map is for. See docs/MAP_MODULE.md for why that
- * is a deliberate, and temporary, exception.
+ * it costs no new dependency.
+ *
+ * Topo is OpenTopoMap raster, and it is NOT gpx.studio's Liberty Topo — that style, and
+ * every host it pulls from, serves no `access-control-allow-origin`, so a browser on this
+ * origin cannot fetch it at all. Their embed works because it runs on their origin. The
+ * free global DEMs that would let us build the same look ourselves are no better: AWS
+ * terrarium has no CORS either, and MapLibre's demo terrain covers one square of the Alps.
+ * OpenTopoMap sends `*`, is global, and is the same contours-and-hillshade picture — at
+ * the cost of being raster, so it carries its own baked labels and its own zoom ceiling.
  */
 const BASEMAPS = ['auto', 'topo', 'liberty'] as const;
 type Basemap = (typeof BASEMAPS)[number];
 const BASEMAP_URL: Record<Exclude<Basemap, 'auto'>, string> = {
-  topo: 'https://styles.gpx.studio/liberty-topo.json',
+  topo: '/map/style-topo.json',
   liberty: 'https://tiles.openfreemap.org/styles/liberty',
 };
 const BASEMAP_STORE = 'dbx-map-basemap';
@@ -517,6 +522,12 @@ class WorldMap {
   private get styleUrl() {
     if (this.basemap !== 'auto') return BASEMAP_URL[this.basemap];
     return this.dark ? this.cfg.styleDarkUrl : this.cfg.styleLightUrl;
+  }
+
+  /** Pins are coloured for the ground they sit on, which is only the page's theme while
+      the basemap is following it. Both chosen styles are light sheets. */
+  private get groundIsDark() {
+    return this.basemap === 'auto' && this.dark;
   }
 
   /** Kept from start(), so sheets the island builds itself can be localised too. */
@@ -686,7 +697,7 @@ class WorldMap {
 
   private async addLayers() {
     const map = this.map;
-    const c = palette(this.dark);
+    const c = palette(this.groundIsDark);
     // Starts empty; renderVisible() fills it from what's actually on screen.
     map.addSource('tracks', { type: 'geojson', data: EMPTY, promoteId: 'slug' });
 
@@ -889,7 +900,7 @@ class WorldMap {
   private addTrailLayers() {
     const map = this.map;
     if (map.getSource('trail-lines')) return;
-    const c = palette(this.dark);
+    const c = palette(this.groundIsDark);
 
     // A ride that has been measured but not sent. Its own source and its own layer so it
     // can never be mistaken for a trace that exists, and so clearing it is one call.
