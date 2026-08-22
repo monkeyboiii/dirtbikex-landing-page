@@ -17,6 +17,7 @@ import {
   handleUploadStatus,
   handleTrailsAdmin,
   trailForShare,
+  claimPreview,
   publicTrailEntries,
   sweepExpiredTrails,
   reconcileTrails,
@@ -823,6 +824,10 @@ interface ClaimCopy {
   cta: string;
   slowTitle: string;
   slowBody: string;
+  loop: string;
+  pointToPoint: string;
+  expires: string;
+  backToMap: string;
 }
 
 const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
@@ -832,6 +837,10 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
     cta: 'Claim it on the forum',
     slowTitle: 'Too many attempts',
     slowBody: 'Wait a few minutes, then open your link again. Nothing is lost — your trail is still here.',
+    loop: 'Loop',
+    pointToPoint: 'Point to point',
+    expires: 'expires in {n} h',
+    backToMap: 'See it on the map',
   },
   'zh-CN': {
     title: '认领你的轨迹',
@@ -839,6 +848,10 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
     cta: '前往论坛认领',
     slowTitle: '尝试次数过多',
     slowBody: '请稍等几分钟再打开你的链接。什么都没丢——轨迹还在。',
+    loop: '环线',
+    pointToPoint: '点到点',
+    expires: '{n} 小时后过期',
+    backToMap: '在地图上查看',
   },
   'zh-TW': {
     title: '認領你的軌跡',
@@ -846,10 +859,14 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
     cta: '前往論壇認領',
     slowTitle: '嘗試次數過多',
     slowBody: '請稍等幾分鐘再打開你的連結。什麼都沒丟——軌跡還在。',
+    loop: '環線',
+    pointToPoint: '點到點',
+    expires: '{n} 小時後過期',
+    backToMap: '在地圖上查看',
   },
 };
 
-function handleTrailClaim(request: Request, env: Env, code: string): Response {
+async function handleTrailClaim(request: Request, env: Env, code: string): Promise<Response> {
   const url = new URL(request.url);
   const locale = pickLocale(url, request.headers.get('accept-language'), request.headers.get('user-agent'));
   const copy = CLAIM_COPY[locale] ?? CLAIM_COPY.en!;
@@ -859,16 +876,33 @@ function handleTrailClaim(request: Request, env: Env, code: string): Response {
   // budget. This is still a lookup-free page: the flag is in the URL, not in the database.
   const slow = url.searchParams.get('e') === 'slow';
 
+  // Which trail this is. The card was stateless while the code was six digits, because at
+  // 10^6 an endpoint confirming a code exists is an afternoon's sweep. The code is 8 chars
+  // of 31 symbols again — 8.5e11 — so naming the trail is affordable, and it matters: a
+  // page that says only "claim your trail" cannot tell you WHICH, and this is the page
+  // somebody lands on after a login round-trip.
+  const trail = slow ? null : await claimPreview(env, code);
+  const facts = trail
+    ? [
+        trail.distanceKm ? `${trail.distanceKm} km` : null,
+        trail.shape === 'loop' ? copy.loop : trail.shape === 'point_to_point' ? copy.pointToPoint : null,
+        trail.hours != null && trail.hours > 0 ? copy.expires.replace('{n}', String(trail.hours)) : null,
+      ]
+        .filter(Boolean)
+        .join(' · ')
+    : '';
+
   return renderShareLanding(
     {
       kind: 'c',
       locale,
-      title: slow ? copy.slowTitle : copy.title,
-      subtitle: slow ? copy.slowBody : copy.body,
+      title: slow ? copy.slowTitle : trail?.title || copy.title,
+      subtitle: slow ? copy.slowBody : `${facts ? `${facts}\n\n` : ''}${copy.body}`,
       primaryCTA: {
         label: copy.cta,
         url: `${env.FORUM_BASE}/dbx/trails/claim?code=${encodeURIComponent(code)}`,
       },
+      secondaryLink: trail ? { label: copy.backToMap, url: `/?trail=${encodeURIComponent(trail.id)}` } : undefined,
       returnTapCopy: '',
       forumBase: env.FORUM_BASE ?? '',
     },
@@ -999,7 +1033,7 @@ export default {
     // Trail claim. Alphabet-scoped so a typo 404s at the router rather than in D1.
     const sc = url.pathname.match(/^\/s\/c\/([a-z0-9]{6,16})\/?$/);
     if (sc && request.method === 'GET') {
-      return handleTrailClaim(request, env, sc[1]!);
+      return await handleTrailClaim(request, env, sc[1]!);
     }
     const se = url.pathname.match(/^\/s\/e\/([^/]+)\/?$/);
     if (se && request.method === 'GET') {

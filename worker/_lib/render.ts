@@ -309,7 +309,7 @@ function isRTL(locale: Lang): boolean {
 const CARD_LOGO = `<img class="card-logo" src="/brand/logo-mark.svg" alt="DirtBikeX">`;
 
 function errorBody(props: ShareLandingProps): string {
-  const { title, subtitle, primaryCTA } = props;
+  const { title, subtitle, primaryCTA, secondaryLink } = props;
   // No inviter on error states — the avatar slot carries the app logo instead.
   // No "open in the app" path here: there's no valid invite key to funnel.
   return `
@@ -317,8 +317,9 @@ function errorBody(props: ShareLandingProps): string {
   ${CARD_LOGO}
   <div class="avatar"><img src="/icon-512.png" alt="DirtBikeX"></div>
   <h1 class="headline">${esc(title ?? 'DirtBikeX')}</h1>
-  ${subtitle ? `<p class="subtitle">${esc(subtitle)}</p>` : ''}
+  ${subtitle ? `<p class="subtitle">${subtitle.split('\n\n').map((para) => esc(para)).join('<br><br>')}</p>` : ''}
   <a class="cta" href="${esc(primaryCTA.url)}">${esc(primaryCTA.label)}</a>
+  ${secondaryLink ? `<a class="secondary" href="${esc(secondaryLink.url)}">${esc(secondaryLink.label)}</a>` : ''}
 </main>`;
 }
 

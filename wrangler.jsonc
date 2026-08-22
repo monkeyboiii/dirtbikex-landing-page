@@ -97,13 +97,13 @@
 		// Metres two traces may be apart and still be one ride. THE similarity threshold.
 		"TRAIL_OVERLAP_CORRIDOR_M": "60",
 		// Fraction of the SHORTER ride that must be shared.
-		"TRAIL_OVERLAP_SHARE_FRAC": "0.60",
+		"TRAIL_OVERLAP_SHARE_FRAC": "0.80",
 		// Absolute floor, so a car-park stub cannot claim a 50 km ride.
 		"TRAIL_OVERLAP_FLOOR_M": "300",
 		// Published trails one author may already have on the same ground. "0" DISABLES the cap
 		// — the opposite of OUTREACH_DAILY_CAP two lines up, where 0 is a hard stop. Stated
 		// because that exact ambiguity is what stalled the outreach drip.
-		"TRAIL_PUBLISH_CAP": "3"
+		"TRAIL_PUBLISH_CAP": "10"
 	},
 	"d1_databases": [
 		// `wrangler d1 create dbx-subscribers`, then paste the returned database_id.
@@ -180,13 +180,13 @@
 				// Metres two traces may be apart and still be one ride. THE similarity threshold.
 				"TRAIL_OVERLAP_CORRIDOR_M": "60",
 				// Fraction of the SHORTER ride that must be shared.
-				"TRAIL_OVERLAP_SHARE_FRAC": "0.60",
+				"TRAIL_OVERLAP_SHARE_FRAC": "0.80",
 				// Absolute floor, so a car-park stub cannot claim a 50 km ride.
 				"TRAIL_OVERLAP_FLOOR_M": "300",
 				// Published trails one author may already have on the same ground. "0" DISABLES the cap
 				// — the opposite of OUTREACH_DAILY_CAP two lines up, where 0 is a hard stop. Stated
 				// because that exact ambiguity is what stalled the outreach drip.
-				"TRAIL_PUBLISH_CAP": "3"
+				"TRAIL_PUBLISH_CAP": "10"
 			},
 			"assets": {
 				"directory": "./dist",

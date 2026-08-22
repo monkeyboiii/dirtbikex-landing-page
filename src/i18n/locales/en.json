@@ -303,5 +303,8 @@
   "map.trail.anonymous": "Anonymous",
   "map.trail.anonymousMeta": "nobody has claimed this ride",
   "map.upload.expiresChip": "Expires in {n} h",
-  "map.upload.callToClaim": "You did it. One more step to make it yours — right now nobody knows who uploaded it. You can share it already; it is only live for {n} hours."
+  "map.upload.callToClaim": "You did it. One more step to make it yours — right now nobody knows who uploaded it. You can share it already; it is only live for {n} hours.",
+  "map.upload.yours": "Your recent uploads",
+  "map.upload.reopen": "open",
+  "map.upload.confirmClose": "This link is shown once. Close without sharing or claiming?"
 }

@@ -297,5 +297,8 @@
   "map.trail.anonymous": "Anonim",
   "map.trail.anonymousMeta": "belum ada yang mengklaim perjalanan ini",
   "map.upload.expiresChip": "Kedaluwarsa dalam {n} j",
-  "map.upload.callToClaim": "Berhasil. Tinggal satu langkah agar jadi milikmu — sekarang tidak ada yang tahu siapa yang mengunggahnya. Kamu sudah bisa membagikannya; hanya bertahan {n} jam."
+  "map.upload.callToClaim": "Berhasil. Tinggal satu langkah agar jadi milikmu — sekarang tidak ada yang tahu siapa yang mengunggahnya. Kamu sudah bisa membagikannya; hanya bertahan {n} jam.",
+  "map.upload.yours": "Unggahan terbarumu",
+  "map.upload.reopen": "buka",
+  "map.upload.confirmClose": "Tautan ini hanya ditampilkan sekali. Tutup tanpa membagikan atau mengklaim?"
 }

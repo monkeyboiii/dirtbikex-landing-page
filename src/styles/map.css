@@ -675,7 +675,10 @@ body.is-map-page .site-header__inner {
 }
 .wm-panel__titlerow {
   display: flex;
-  align-items: flex-start;
+  /* Centred, not top-aligned: the marks beside a title are the same size as each other
+     and roughly half its height, so aligning them to its top left them dipping below the
+     text on every sheet. */
+  align-items: center;
   gap: 0.5rem;
 }
 
@@ -1258,6 +1261,63 @@ body.is-map-page .site-header__inner {
   }
 }
 
+/* A count of uploads this browser still has links for. The control is the way back. */
+.wm-rail__btn[data-count]:not([data-count=''])::after {
+  content: attr(data-count);
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 3px;
+  border-radius: 999px;
+  background: var(--wm-accent);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 15px;
+  text-align: center;
+}
+.wm-rail__btn {
+  position: relative;
+}
+
+.wm-recent {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.wm-recent__item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 0;
+  border: 0;
+  border-bottom: 1px solid var(--wm-line);
+  background: none;
+  color: var(--wm-text);
+  font: inherit;
+  font-size: 0.88rem;
+  text-align: left;
+  cursor: pointer;
+}
+.wm-recent__item:hover .wm-recent__name {
+  color: var(--wm-accent);
+}
+.wm-recent__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.wm-recent__meta {
+  flex: none;
+  font-size: 0.78rem;
+  color: var(--wm-text-dim);
+}
+
 /* The sentence the sheet exists to deliver, straight under the title. */
 .wm-panel__nudge {
   margin: 4px 0 12px;
@@ -1266,10 +1326,7 @@ body.is-map-page .site-header__inner {
   color: var(--wm-accent);
 }
 
-/* The mark reads with the title, so it sits on the title's baseline block. */
-.wm-panel__titlerow .wm-eye {
-  align-self: center;
-}
+
 
 /* The link, directly under the title: smaller than the body, monospaced so a URL reads as
    a URL, and the whole thing is the copy target. */

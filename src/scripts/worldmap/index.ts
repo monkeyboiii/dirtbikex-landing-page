@@ -115,6 +115,8 @@ const LAYERS: Record<LayerId, readonly string[]> = {
   riders: [],
 };
 const LAYER_STORE = 'dbx-map-layers';
+/** Uploads this browser made, so a closed sheet is not the end of the link. */
+const UPLOAD_STORE = 'dbx-map-uploads';
 /** Catalog kinds drawn from the shared `tracks` source, one per toggle. */
 const KIND_OF: Partial<Record<LayerId, string>> = { tracks: 'track', shops: 'shop', trails: 'trail' };
 /** Baked catalog rows carry no `kind` at all, so this coalesces rather than compares.
@@ -1611,6 +1613,42 @@ class WorldMap {
   }
 
   /**
+   * The uploads this browser has made, newest first.
+   *
+   * The link to an unclaimed trail exists in exactly one place — the sheet — and a stray
+   * close used to destroy it. This is the second place: local to the device, so it fixes
+   * the accident (closed the sheet, reopened the map) and honestly not the other case
+   * (a different phone). Kept small and dropped once a row is past its window.
+   */
+  private recentUploads(): { id: string; title: string; claim: string; at: number }[] {
+    try {
+      const raw = localStorage.getItem(UPLOAD_STORE);
+      const rows = raw ? (JSON.parse(raw) as { id: string; title: string; claim: string; at: number }[]) : [];
+      const cutoff = Date.now() - 72 * 3600_000;
+      return rows.filter((r) => r && typeof r.id === 'string' && r.at > cutoff).slice(0, 8);
+    } catch {
+      return [];
+    }
+  }
+
+  private rememberUpload(row: { id: string; title: string; claim: string }) {
+    try {
+      const rows = [{ ...row, at: Date.now() }, ...this.recentUploads().filter((r) => r.id !== row.id)];
+      localStorage.setItem(UPLOAD_STORE, JSON.stringify(rows.slice(0, 8)));
+    } catch {
+      /* private mode — the sheet still works for this visit */
+    }
+    this.syncUploadBadge();
+  }
+
+  syncUploadBadge() {
+    const button = this.root.querySelector<HTMLElement>('[data-upload]');
+    if (!button) return;
+    const n = this.recentUploads().length;
+    button.dataset.count = n ? String(n) : '';
+  }
+
+  /**
    * Asks the worker whether the door is open. Fire-and-forget at boot: the answer only
    * changes how a control LOOKS, and the worker refuses regardless, so nothing waits on it.
    */
@@ -1637,7 +1675,7 @@ class WorldMap {
       this.panel.showUploadOff();
       return;
     }
-    this.panel.showUploadIntro(pick);
+    this.panel.showUploadIntro(pick, this.recentUploads(), (id) => void this.openSecretTrail(id));
   }
 
   /**
@@ -1747,6 +1785,11 @@ class WorldMap {
     this.drawTrail(trail.id);
     const lines = this.trailGeometry.get(trail.id);
     if (lines?.length) this.fitTrail(lines);
+    this.rememberUpload({
+      id: result.id,
+      title: localizedName(trail.title, this.cfg.lang) ?? result.id,
+      claim: result.claim_url,
+    });
     // Last, so the claim is what is left on screen.
     this.panel.showUploadDone(result, trail);
   }
@@ -2078,6 +2121,7 @@ function wireRail(root: HTMLElement, world: WorldMap) {
   const drop = root.querySelector<HTMLElement>('[data-drop]');
   if (upload && picker) {
     void world.checkUploads(upload);
+    world.syncUploadBadge();
     upload.addEventListener('click', () => world.openUploadIntro(() => picker.click()));
     picker.addEventListener('change', () => {
       const file = picker.files?.[0];

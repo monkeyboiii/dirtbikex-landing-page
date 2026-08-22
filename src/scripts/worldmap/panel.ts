@@ -359,6 +359,24 @@ function liftForKeyboard(root: HTMLElement): void {
   };
 }
 
+/**
+ * Snaps the page back to 1x after an input closes.
+ *
+ * iOS leaves the page wherever the keyboard left it, and there is no API to set zoom. The
+ * one lever that works is the viewport meta: clamping maximum-scale forces a reset, and
+ * restoring it immediately keeps pinch-zoom available. Ugly, and the only thing that does
+ * it — a rider should not have to pinch their way back to a centred map after typing a name.
+ */
+function resetZoom(): void {
+  const meta = document.querySelector<HTMLMetaElement>('meta[name="viewport"]');
+  if (!meta) return;
+  const was = meta.content;
+  meta.content = 'width=device-width, initial-scale=1, maximum-scale=1';
+  window.setTimeout(() => {
+    meta.content = was;
+  }, 250);
+}
+
 function dropAfterKeyboard(root: HTMLElement): void {
   (root as unknown as { _wmKeyboardOff?: () => void })._wmKeyboardOff?.();
   delete root.dataset.keyboardWatch;
@@ -452,10 +470,15 @@ export function createPanel(deps: PanelDeps) {
    * the close button can.
    */
   let sticky = false;
+  /** Set by a sheet whose content cannot be recovered. Returns false to refuse the close. */
+  let guardClose: (() => boolean) | null = null;
 
   closeBtn.setAttribute('aria-label', strings['map.panel.close'] ?? 'Close');
   closeBtn.addEventListener('click', () => {
-    // Clicking the X IS the deliberate dismissal, so it lifts the guard first.
+    // Clicking the X is the deliberate dismissal — but on a sheet holding something shown
+    // once, "deliberate" and "intended" are not the same thing, so it asks.
+    if (guardClose && !guardClose()) return;
+    guardClose = null;
     sticky = false;
     deps.onClose();
   });
@@ -489,6 +512,7 @@ export function createPanel(deps: PanelDeps) {
   function open(build: (host: HTMLElement) => void, opts: { sticky?: boolean } = {}) {
     if (sticky && !opts.sticky) return;
     sticky = !!opts.sticky;
+    guardClose = null;
     if (pushNext) pushNext = false;
     else views.length = 0;
     views.push(build);
@@ -1147,6 +1171,8 @@ export function createPanel(deps: PanelDeps) {
 
     /** Lifts the guard. Only for a deliberate dismissal — Escape, and nothing else. */
     allowClose() {
+      if (guardClose && !guardClose()) return;
+      guardClose = null;
       sticky = false;
     },
 
@@ -1164,7 +1190,11 @@ export function createPanel(deps: PanelDeps) {
     },
 
     /** What the visitor is agreeing to before they hand over a trace of where they ride. */
-    showUploadIntro(pick: () => void) {
+    showUploadIntro(
+      pick: () => void,
+      recent: { id: string; title: string; claim: string }[] = [],
+      onOpen?: (id: string) => void,
+    ) {
       open((host) => {
         kicker(strings['map.upload.kicker'] ?? 'Your trail');
         titleRow(host, strings['map.upload.title'] ?? 'Put your ride on the map', null, strings);
@@ -1178,6 +1208,24 @@ export function createPanel(deps: PanelDeps) {
         button.textContent = strings['map.upload.pick'] ?? 'Choose a .gpx file';
         button.addEventListener('click', pick);
         host.appendChild(button);
+
+        // The way back to a link a closed sheet took away. This device only — it fixes
+        // the accident, and honestly not the case where the tab was on another phone.
+        if (recent.length && onOpen) {
+          host.appendChild(el('h3', 'wm-panel__section', strings['map.upload.yours'] ?? 'Your recent uploads'));
+          const list = el('div', 'wm-recent');
+          for (const row of recent) {
+            const item = el('button', 'wm-recent__item') as HTMLButtonElement;
+            item.type = 'button';
+            item.append(
+              el('span', 'wm-recent__name', row.title),
+              el('span', 'wm-recent__meta', strings['map.upload.reopen'] ?? 'open'),
+            );
+            item.addEventListener('click', () => onOpen(row.id));
+            list.appendChild(item);
+          }
+          host.appendChild(list);
+        }
       });
     },
 
@@ -1238,6 +1286,7 @@ export function createPanel(deps: PanelDeps) {
         field.addEventListener('blur', () => {
           commit();
           dropAfterKeyboard(root);
+          resetZoom();
         });
         field.addEventListener('keydown', (e) => {
           if (e.key === 'Enter') {
@@ -1407,9 +1456,16 @@ export function createPanel(deps: PanelDeps) {
 
         const claim = el('a', 'wm-panel__claim') as HTMLAnchorElement;
         claim.href = result.claim_url;
+        // A new tab, deliberately. This sheet is the only place the link exists, so
+        // navigating away from it to claim would destroy the thing the claim is for.
+        claim.target = '_blank';
+        claim.rel = 'noopener';
         claim.textContent = strings['map.upload.claimShort'] ?? 'Claim';
         row.append(by, claim);
         host.appendChild(row);
+        // From here the sheet is closable only on purpose, and only after a warning.
+        guardClose = () => window.confirm(strings['map.upload.confirmClose']
+          ?? 'This link is shown once. Close without sharing or claiming?');
       }, { sticky: true });
     },
 

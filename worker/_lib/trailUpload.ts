@@ -222,8 +222,11 @@ export async function handleTrailUpload(request: Request, env: PagesEnv): Promis
   }
 
   const ip = clientIp(request);
-  const perIp = await rateLimitConsume(env.RATELIMIT_KV, `trail:ip:${ip}:1h`, 6, 3600);
-  const global = await rateLimitConsume(env.RATELIMIT_KV, 'trail:all:1m', 8, 60);
+  // Raised from 6/hour and 8/minute, which were set before anyone had used this and were
+  // tight enough to catch a club on one office IP, or a rider trying three files. Still a
+  // real ceiling — the point is to stop a flood, not to ration ordinary use.
+  const perIp = await rateLimitConsume(env.RATELIMIT_KV, `trail:ip:${ip}:1h`, 30, 3600);
+  const global = await rateLimitConsume(env.RATELIMIT_KV, 'trail:all:1m', 30, 60);
   if (!perIp.allowed || !global.allowed) {
     return json(429, { error: 'rate_limited' }, { 'Retry-After': '60' });
   }
@@ -548,6 +551,42 @@ function pluginAuthorised(request: Request, env: PagesEnv): boolean {
   let diff = 0;
   for (let i = 0; i < presented.length; i++) diff |= presented.charCodeAt(i) ^ env.TRAILS_PLUGIN_TOKEN.charCodeAt(i);
   return diff === 0;
+}
+
+/**
+ * What the claim card shows about the trail behind a code.
+ *
+ * This DOES look the code up, which the card deliberately did not while the code was six
+ * digits — at 10^6 an endpoint that confirms a code exists is an afternoon's work to sweep.
+ * At 8 characters of the 31-symbol alphabet it is 8.5e11, and a rate limiter is enough. If
+ * the code is ever shortened again, this has to go back to being stateless.
+ */
+export async function claimPreview(
+  env: PagesEnv,
+  code: string,
+): Promise<{ id: string; title: string | null; distanceKm: number | null; shape: string | null; hours: number | null } | null> {
+  if (!env.SUBSCRIBERS_DB) return null;
+  try {
+    const row = await env.SUBSCRIBERS_DB.prepare(
+      `SELECT id, title, distance_km, stats,
+              CAST((julianday(expires_at) - julianday('now')) * 24 AS INTEGER) AS hours
+         FROM trails
+        WHERE claim_code = ? AND (expires_at IS NULL OR expires_at > datetime('now'))`,
+    )
+      .bind(code)
+      .first<{ id: string; title: string | null; distance_km: number | null; stats: string; hours: number | null }>();
+    if (!row) return null;
+    let shape: string | null = null;
+    try {
+      shape = (JSON.parse(row.stats) as { shape?: string }).shape ?? null;
+    } catch {
+      shape = null;
+    }
+    return { id: row.id, title: row.title, distanceKm: row.distance_km, shape, hours: row.hours };
+  } catch (err) {
+    console.error('trail:claim_preview_threw', { err: String(err) });
+    return null;
+  }
 }
 
 /**

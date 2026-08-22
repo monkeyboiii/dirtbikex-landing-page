@@ -174,6 +174,9 @@ export interface ShareLandingProps {
   returnTapCopy: string;
   /** Forum origin (e.g. `https://forum.dirtbikex.com`) — needed to resolve `avatar_template`. */
   forumBase: string;
+  /** One quiet text link under the primary action. Used by the claim card to offer the
+   *  map, so a visitor who is not ready to claim still has somewhere to go. */
+  secondaryLink?: { label: string; url: string };
   /** Error-state copy. Mutually exclusive with `invite`/`user`. */
   title?: string;
   subtitle?: string;

@@ -297,5 +297,8 @@
   "map.trail.anonymous": "Anonyme",
   "map.trail.anonymousMeta": "personne n’a encore revendiqué cette sortie",
   "map.upload.expiresChip": "Expire dans {n} h",
-  "map.upload.callToClaim": "C’est fait. Encore une étape pour qu’elle soit à vous — personne ne sait qui l’a envoyée. Vous pouvez déjà la partager ; elle ne vit que {n} heures."
+  "map.upload.callToClaim": "C’est fait. Encore une étape pour qu’elle soit à vous — personne ne sait qui l’a envoyée. Vous pouvez déjà la partager ; elle ne vit que {n} heures.",
+  "map.upload.yours": "Vos envois récents",
+  "map.upload.reopen": "ouvrir",
+  "map.upload.confirmClose": "Ce lien n’est montré qu’une fois. Fermer sans partager ni revendiquer ?"
 }

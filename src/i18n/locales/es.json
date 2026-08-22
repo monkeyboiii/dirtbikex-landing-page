@@ -297,5 +297,8 @@
   "map.trail.anonymous": "Anónimo",
   "map.trail.anonymousMeta": "nadie ha reclamado esta salida",
   "map.upload.expiresChip": "Caduca en {n} h",
-  "map.upload.callToClaim": "Lo lograste. Un paso más para que sea tuya: ahora mismo nadie sabe quién la subió. Ya puedes compartirla; solo vive {n} horas."
+  "map.upload.callToClaim": "Lo lograste. Un paso más para que sea tuya: ahora mismo nadie sabe quién la subió. Ya puedes compartirla; solo vive {n} horas.",
+  "map.upload.yours": "Tus subidas recientes",
+  "map.upload.reopen": "abrir",
+  "map.upload.confirmClose": "Este enlace se muestra una vez. ¿Cerrar sin compartir ni reclamar?"
 }

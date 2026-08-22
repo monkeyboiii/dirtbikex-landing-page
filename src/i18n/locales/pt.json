@@ -297,5 +297,8 @@
   "map.trail.anonymous": "Anónimo",
   "map.trail.anonymousMeta": "ninguém reivindicou este rolê",
   "map.upload.expiresChip": "Expira em {n} h",
-  "map.upload.callToClaim": "Conseguiu. Falta um passo para ser sua — neste momento ninguém sabe quem a enviou. Já pode partilhá-la; só vive {n} horas."
+  "map.upload.callToClaim": "Conseguiu. Falta um passo para ser sua — neste momento ninguém sabe quem a enviou. Já pode partilhá-la; só vive {n} horas.",
+  "map.upload.yours": "Os seus envios recentes",
+  "map.upload.reopen": "abrir",
+  "map.upload.confirmClose": "Este link é mostrado uma vez. Fechar sem partilhar nem reivindicar?"
 }

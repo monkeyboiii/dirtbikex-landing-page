@@ -297,5 +297,8 @@
   "map.trail.anonymous": "Anonym",
   "map.trail.anonymousMeta": "ingen har gjort krav på denne tur",
   "map.upload.expiresChip": "Udløber om {n} t",
-  "map.upload.callToClaim": "Det lykkedes. Ét skridt mere, så er det dit — lige nu ved ingen, hvem der uploadede det. Du kan allerede dele det; det lever kun {n} timer."
+  "map.upload.callToClaim": "Det lykkedes. Ét skridt mere, så er det dit — lige nu ved ingen, hvem der uploadede det. Du kan allerede dele det; det lever kun {n} timer.",
+  "map.upload.yours": "Dine seneste uploads",
+  "map.upload.reopen": "åbn",
+  "map.upload.confirmClose": "Dette link vises kun én gang. Luk uden at dele eller gøre krav?"
 }

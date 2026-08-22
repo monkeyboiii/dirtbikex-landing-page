@@ -297,5 +297,8 @@
   "map.trail.anonymous": "Anoniem",
   "map.trail.anonymousMeta": "niemand heeft deze rit opgeëist",
   "map.upload.expiresChip": "Verloopt over {n} u",
-  "map.upload.callToClaim": "Gelukt. Nog één stap en hij is van jou — nu weet niemand wie hem heeft geüpload. Delen kan al; hij leeft maar {n} uur."
+  "map.upload.callToClaim": "Gelukt. Nog één stap en hij is van jou — nu weet niemand wie hem heeft geüpload. Delen kan al; hij leeft maar {n} uur.",
+  "map.upload.yours": "Je recente uploads",
+  "map.upload.reopen": "openen",
+  "map.upload.confirmClose": "Deze link wordt één keer getoond. Sluiten zonder delen of opeisen?"
 }
