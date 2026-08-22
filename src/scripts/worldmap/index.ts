@@ -1720,6 +1720,12 @@ class WorldMap {
       const lines = this.trailGeometry.get(trail.id);
       if (lines?.length) this.fitTrail(lines);
     }
+    // Once it has a rider it is not an upload receipt any more — it is their trail, and
+    // showing "You / your name here" over a trail that now has a name is a small lie.
+    if (trail.author_username) {
+      this.panel.showTrail(trail);
+      return;
+    }
     const left = Math.max(0, 72 - Math.floor((Date.now() - saved.at) / 3600_000));
     this.panel.showUploadDone(
       { id, secret: id, claim_code: '', expires_in_hours: left, map_url: `/?trail=${id}`, claim_url: saved.claim },

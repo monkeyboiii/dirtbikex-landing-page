@@ -675,6 +675,7 @@ body.is-map-page .site-header__inner {
 }
 .wm-panel__titlerow {
   display: flex;
+  min-width: 0;
   /* Centred, not top-aligned: the marks beside a title are the same size as each other
      and roughly half its height, so aligning them to its top left them dipping below the
      text on every sheet. */
@@ -689,6 +690,16 @@ body.is-map-page .site-header__inner {
   line-height: 1.18;
   letter-spacing: -0.015em;
   margin: 0;
+  /* A filename is one unbroken token and recorders write long ones. Without this the sheet
+     grew sideways until the confirm button was off the screen. The sheet's width is fixed
+     and the title yields: it breaks anywhere and stops at two lines, and the full name is
+     one tap away in the rename field. */
+  min-width: 0;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
   flex: 1 1 auto;
   min-width: 0;
 }
