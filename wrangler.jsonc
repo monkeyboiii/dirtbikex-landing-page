@@ -82,6 +82,14 @@
 		// the map's upload control greys out. Opt-OUT on purpose — a missing or misspelled var
 		// must never take a shipped feature down on a deploy nobody thought was risky.
 		"TRAILS_UPLOAD_ENABLED": "1",
+		// Cloudflare Turnstile on the upload confirm. BOTH this site key and the
+		// TURNSTILE_SECRET_KEY wrangler secret must be set, or the challenge is skipped
+		// entirely and uploads work as before. EMPTY on purpose: the widget script comes
+		// from challenges.cloudflare.com — a third-party host on a site whose
+		// no-external-assets rule has its own CI test, and one whose reachability from
+		// mainland China, this product's main audience, is unproven. Turning it on is a
+		// decision about that, not a config tweak. See docs/TRAIL_UPLOAD_MODULE.md.
+		"TURNSTILE_SITE_KEY": "",
 		// What counts as "the same ground", and what to do about it. Every one is a string and
 		// is parsed behind a hard-coded fallback, so a typo degrades to the default rather than
 		// to NaN — NaN >= 0.6 is false, which would silently DISABLE the cap. Keep the values in
@@ -157,6 +165,14 @@
 				// the map's upload control greys out. Opt-OUT on purpose — a missing or misspelled var
 				// must never take a shipped feature down on a deploy nobody thought was risky.
 				"TRAILS_UPLOAD_ENABLED": "1",
+				// Cloudflare Turnstile on the upload confirm. BOTH this site key and the
+				// TURNSTILE_SECRET_KEY wrangler secret must be set, or the challenge is skipped
+				// entirely and uploads work as before. EMPTY on purpose: the widget script comes
+				// from challenges.cloudflare.com — a third-party host on a site whose
+				// no-external-assets rule has its own CI test, and one whose reachability from
+				// mainland China, this product's main audience, is unproven. Turning it on is a
+				// decision about that, not a config tweak. See docs/TRAIL_UPLOAD_MODULE.md.
+				"TURNSTILE_SITE_KEY": "",
 				// What counts as "the same ground", and what to do about it. Every one is a string and
 				// is parsed behind a hard-coded fallback, so a typo degrades to the default rather than
 				// to NaN — NaN >= 0.6 is false, which would silently DISABLE the cap. Keep the values in
