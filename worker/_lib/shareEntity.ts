@@ -128,10 +128,12 @@ export async function loadEntity(
   kind: EntityKind,
   key: string,
   locale: string,
+  /** A row the caller already has — the D1 fallback for a link-only trail. */
+  row?: Record<string, unknown> | null,
 ): Promise<EntityCard | null> {
   switch (kind) {
     case 'route':
-      return loadRoute(request, env, key, locale);
+      return loadRoute(request, env, key, locale, row);
     case 'shop':
       return loadShop(request, env, key);
     case 'challenge':
@@ -141,9 +143,16 @@ export async function loadEntity(
   }
 }
 
-async function loadRoute(request: Request, env: PagesEnv, id: string, locale: string): Promise<EntityCard | null> {
-  const doc = await mapDoc<{ trails?: Record<string, unknown>[] }>(request, env, 'trails');
-  const trail = doc?.trails?.find((t) => t.id === id);
+async function loadRoute(
+  request: Request,
+  env: PagesEnv,
+  id: string,
+  locale: string,
+  row?: Record<string, unknown> | null,
+): Promise<EntityCard | null> {
+  // A supplied row skips the document entirely: it is how a link-only trail — which is
+  // deliberately absent from the map document — still gets a card.
+  const trail = row ?? (await mapDoc<{ trails?: Record<string, unknown>[] }>(request, env, 'trails'))?.trails?.find((t) => t.id === id);
   if (!trail) return null;
 
   const stats = (trail.stats ?? {}) as Record<string, unknown>;

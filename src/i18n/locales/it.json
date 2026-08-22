@@ -274,8 +274,6 @@
   "map.upload.you": "Tu",
   "map.upload.yourNameHere": "il tuo nome qui",
   "map.upload.claimShort": "Rivendica",
-  "map.upload.copyLink": "Copia questo link",
-  "map.upload.copied": "Copiato",
   "map.upload.unavailable": "Il caricamento dei percorsi è disattivato al momento",
   "map.upload.unavailableBody": "Il caricamento è sospeso su questo sito. Quello che hai già condiviso non è toccato: i tuoi link funzionano ancora.",
   "map.upload.failed": "Impossibile aggiungere quel file",
@@ -293,13 +291,11 @@
   "map.upload.confirm": "Conferma",
   "map.upload.chooseAnother": "Scegli un altro file",
   "map.upload.ready": "Pronto per il caricamento",
-  "map.upload.privateNote": "Solo chi ha questo link può vederlo. Crea un profilo per rivendicarlo, poi rendilo pubblico.",
-  "map.upload.shareHint": "Condividi il link: l’unico ritorno.",
   "map.upload.verifying": "Verifica in corso…",
   "map.trail.visibleOnMap": "Sulla mappa pubblica",
   "map.trail.hiddenFromMap": "Non sulla mappa — solo link",
   "map.trail.anonymous": "Anonimo",
   "map.trail.anonymousMeta": "nessuno ha ancora rivendicato questo giro",
   "map.upload.expiresChip": "Scade tra {n} h",
-  "map.trail.publicNote": "Chiunque può trovare questo percorso sulla mappa."
+  "map.upload.callToClaim": "Fatto. Manca un passo perché sia tuo — al momento nessuno sa chi lo ha caricato. Puoi già condividerlo; vive solo {n} ore."
 }

@@ -274,8 +274,6 @@
   "map.upload.you": "Bạn",
   "map.upload.yourNameHere": "tên bạn ở đây",
   "map.upload.claimShort": "Nhận",
-  "map.upload.copyLink": "Sao chép liên kết này",
-  "map.upload.copied": "Đã sao chép",
   "map.upload.unavailable": "Việc tải cung đường hiện đang tắt",
   "map.upload.unavailableBody": "Tải lên đang tạm dừng trên trang này. Những gì bạn đã chia sẻ không bị ảnh hưởng — các liên kết của bạn vẫn hoạt động.",
   "map.upload.failed": "Không thể thêm tệp đó",
@@ -293,13 +291,11 @@
   "map.upload.confirm": "Xác nhận",
   "map.upload.chooseAnother": "Chọn tệp khác",
   "map.upload.ready": "Sẵn sàng tải lên",
-  "map.upload.privateNote": "Chỉ người có liên kết này mới xem được. Tạo hồ sơ để nhận nó, rồi công khai.",
-  "map.upload.shareHint": "Chia sẻ liên kết — lối về duy nhất.",
   "map.upload.verifying": "Đang kiểm tra…",
   "map.trail.visibleOnMap": "Trên bản đồ công khai",
   "map.trail.hiddenFromMap": "Không trên bản đồ — chỉ qua liên kết",
   "map.trail.anonymous": "Ẩn danh",
   "map.trail.anonymousMeta": "chưa ai nhận chuyến chạy này",
   "map.upload.expiresChip": "Hết hạn sau {n} giờ",
-  "map.trail.publicNote": "Ai cũng có thể tìm thấy cung đường này trên bản đồ."
+  "map.upload.callToClaim": "Xong rồi. Chỉ một bước nữa là của bạn — hiện chưa ai biết ai đã tải lên. Bạn có thể chia sẻ ngay; nó chỉ sống {n} giờ."
 }

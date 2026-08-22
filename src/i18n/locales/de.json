@@ -274,8 +274,6 @@
   "map.upload.you": "Du",
   "map.upload.yourNameHere": "hier steht dein Name",
   "map.upload.claimShort": "Übernehmen",
-  "map.upload.copyLink": "Diesen Link kopieren",
-  "map.upload.copied": "Kopiert",
   "map.upload.unavailable": "Das Hochladen von Strecken ist gerade abgeschaltet",
   "map.upload.unavailableBody": "Das Hochladen ist auf dieser Seite pausiert. Bereits Geteiltes ist nicht betroffen — deine Links funktionieren weiterhin.",
   "map.upload.failed": "Diese Datei konnte nicht hinzugefügt werden",
@@ -293,13 +291,11 @@
   "map.upload.confirm": "Bestätigen",
   "map.upload.chooseAnother": "Andere Datei wählen",
   "map.upload.ready": "Bereit zum Hochladen",
-  "map.upload.privateNote": "Nur wer diesen Link hat, sieht sie. Leg ein Profil an, um sie zu übernehmen, und mach sie dann öffentlich.",
-  "map.upload.shareHint": "Link teilen — der einzige Weg zurück.",
   "map.upload.verifying": "Prüfung läuft…",
   "map.trail.visibleOnMap": "Auf der öffentlichen Karte",
   "map.trail.hiddenFromMap": "Nicht auf der Karte — nur per Link",
   "map.trail.anonymous": "Anonym",
   "map.trail.anonymousMeta": "noch niemand hat diese Fahrt übernommen",
   "map.upload.expiresChip": "Läuft in {n} h ab",
-  "map.trail.publicNote": "Jeder kann diese Strecke auf der Karte finden."
+  "map.upload.callToClaim": "Geschafft. Noch ein Schritt, dann gehört sie dir — im Moment weiß niemand, wer sie hochgeladen hat. Teilen kannst du sie schon; sie lebt nur {n} Stunden."
 }

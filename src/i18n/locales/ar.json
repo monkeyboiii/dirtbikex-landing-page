@@ -274,8 +274,6 @@
   "map.upload.you": "أنت",
   "map.upload.yourNameHere": "اسمك هنا",
   "map.upload.claimShort": "طالب به",
-  "map.upload.copyLink": "انسخ هذا الرابط",
-  "map.upload.copied": "تم النسخ",
   "map.upload.unavailable": "رفع المسارات متوقف حاليًا",
   "map.upload.unavailableBody": "الرفع متوقف مؤقتًا على هذا الموقع. ما شاركته سابقًا لم يتأثر — روابطك لا تزال تعمل.",
   "map.upload.failed": "تعذّرت إضافة هذا الملف",
@@ -293,13 +291,11 @@
   "map.upload.confirm": "تأكيد",
   "map.upload.chooseAnother": "اختر ملفًا آخر",
   "map.upload.ready": "جاهز للرفع",
-  "map.upload.privateNote": "لا يراه إلا من لديه هذا الرابط. أنشئ ملفًا شخصيًا للمطالبة به، ثم اجعله عامًا.",
-  "map.upload.shareHint": "شارك الرابط — طريق العودة الوحيد.",
   "map.upload.verifying": "جارٍ التحقق…",
   "map.trail.visibleOnMap": "على الخريطة العامة",
   "map.trail.hiddenFromMap": "ليس على الخريطة — بالرابط فقط",
   "map.trail.anonymous": "مجهول",
   "map.trail.anonymousMeta": "لم يطالب أحد بهذه الجولة بعد",
   "map.upload.expiresChip": "ينتهي خلال {n} ساعة",
-  "map.trail.publicNote": "يستطيع أي شخص العثور على هذا المسار على الخريطة."
+  "map.upload.callToClaim": "أحسنت. خطوة واحدة ليصبح لك — لا أحد يعرف الآن من رفعه. يمكنك مشاركته بالفعل، لكنه يبقى {n} ساعة فقط."
 }

@@ -148,8 +148,11 @@ function titleRow(
     | { url: string; pulse?: boolean }
     | null,
   strings: Record<string, string>,
+  /** Sits before the title — the visibility mark, on the sheets that have one. */
+  lead?: HTMLElement | null,
 ): void {
   const row = el('div', 'wm-panel__titlerow');
+  if (lead) row.appendChild(lead);
   row.appendChild(el('h2', 'wm-panel__title', text));
 
   const target = share && ('url' in share ? share.url : share.key ? `${location.origin}/share/${share.kind}/${encodeURIComponent(share.key)}` : '');
@@ -331,6 +334,37 @@ function renderTurnstile(host: HTMLElement, siteKey: string): Promise<string> {
   );
 }
 
+/**
+ * Lifts the sheet clear of the on-screen keyboard while a field is focused.
+ *
+ * iOS does not reflow the layout viewport for the keyboard — it shrinks the VISUAL
+ * viewport and leaves everything else where it was, so a bottom-anchored sheet ends up
+ * underneath it. `visualViewport` is the only thing that reports the difference. Without
+ * this, renaming opened a keyboard over the field being renamed.
+ */
+function liftForKeyboard(root: HTMLElement): void {
+  const vv = window.visualViewport;
+  if (!vv) return;
+  const apply = () => {
+    const hidden = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+    root.style.setProperty('--wm-keyboard', `${Math.round(hidden)}px`);
+  };
+  apply();
+  vv.addEventListener('resize', apply);
+  vv.addEventListener('scroll', apply);
+  root.dataset.keyboardWatch = 'on';
+  (root as unknown as { _wmKeyboardOff?: () => void })._wmKeyboardOff = () => {
+    vv.removeEventListener('resize', apply);
+    vv.removeEventListener('scroll', apply);
+  };
+}
+
+function dropAfterKeyboard(root: HTMLElement): void {
+  (root as unknown as { _wmKeyboardOff?: () => void })._wmKeyboardOff?.();
+  delete root.dataset.keyboardWatch;
+  root.style.removeProperty('--wm-keyboard');
+}
+
 const CLOCK_FADING_SVG =
   '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2a10 10 0 0 1 7.38 16.75"/><path d="M12 6v6l4 2"/><path d="M2.5 8.875a10 10 0 0 0-.5 3"/><path d="M2.83 16a10 10 0 0 0 2.43 3.4"/><path d="M4.636 5.235a10 10 0 0 1 .891-.857"/><path d="M8.644 21.42a10 10 0 0 0 7.631-.38"/></svg>';
 
@@ -376,58 +410,17 @@ function anonBlock(strings: Record<string, string>): HTMLElement {
  * tooltip, because a sheet that has to explain its own icon has the wrong icon.
  */
 function visibilityMark(onMap: boolean, strings: Record<string, string>): HTMLElement {
-  const mark = el('button', `wm-eye${onMap ? ' wm-eye--on' : ''}`) as HTMLButtonElement;
-  mark.type = 'button';
+  // A statement, not a control. It used to open an explanation; the sheet now says the
+  // same thing in prose under the title, and two places saying it was one too many.
+  const mark = el('span', `wm-eye${onMap ? ' wm-eye--on' : ''}`);
   const label = onMap
     ? strings['map.trail.visibleOnMap'] ?? 'On the public map'
     : strings['map.trail.hiddenFromMap'] ?? 'Not on the map — link only';
   mark.title = label;
+  mark.setAttribute('role', 'img');
   mark.setAttribute('aria-label', label);
   mark.innerHTML = onMap ? EYE_SVG : EYE_OFF_SVG;
   return mark;
-}
-
-/**
- * The section line: a label, and the eye at its trailing edge.
- *
- * Tapping the eye reveals what the state means, rather than a sentence sitting there
- * permanently making the sheet taller than every other trail's. It is on demand because
- * most riders only need to ask once.
- */
-function uploadedByLine(host: HTMLElement, onMap: boolean, strings: Record<string, string>): HTMLElement {
-  const line = el('div', 'wm-panel__sectionrow');
-  line.appendChild(el('h3', 'wm-panel__section', strings['map.trail.uploadedBy'] ?? 'Uploaded by'));
-  const eye = visibilityMark(onMap, strings);
-  line.appendChild(eye);
-  host.appendChild(line);
-
-  // Returned rather than appended: the caller places it AFTER the byline, so the answer
-  // appears under the row it is about instead of pushing the rider down the sheet.
-  const note = el('p', 'wm-panel__meta wm-panel__meta--note');
-  note.hidden = true;
-  note.textContent = onMap
-    ? strings['map.trail.publicNote'] ?? 'Anyone can find this trail on the map.'
-    : strings['map.upload.privateNote']
-      ?? 'Only people with this link can view it. Claim it by setting up a profile, then turn it public.';
-  eye.addEventListener('click', () => {
-    note.hidden = !note.hidden;
-  });
-  return note;
-}
-
-/**
- * One quiet line pointing at the share button, shown once per visit.
- *
- * The link no longer sits on the sheet as text, so something has to say where it went.
- * Deliberately NOT a forced tap, and deliberately not an automatic clipboard write:
- * `navigator.clipboard.writeText` without a user gesture is refused outright by Safari,
- * which is most of this audience, so an auto-copy would silently do nothing on the phones
- * that matter most and leave the rider with no link at all.
- */
-function nudgeShare(host: HTMLElement, strings: Record<string, string>): void {
-  const hint = el('p', 'wm-panel__nudge', strings['map.upload.shareHint']
-    ?? 'Share the link — it is the only way back to this trail.');
-  host.appendChild(hint);
 }
 
 function markSvg(platform: string, uid: string, size = 20): string {
@@ -1235,13 +1228,17 @@ export function createPanel(deps: PanelDeps) {
           field.value = name;
           heading.hidden = true;
           field.hidden = false;
-          // preventScroll, and a >=16px font in the CSS: iOS zooms the page when a focused
-          // input is smaller than that, and getting back to a centred map afterwards is a
-          // fight the visitor should never have been given.
-          field.focus({ preventScroll: true });
+          // The 16px floor in the CSS is what stops iOS zooming; preventScroll was
+          // belt-and-braces and it cost more than it saved — the keyboard then covered
+          // the field it had just opened. Normal focus, and the sheet lifts itself.
+          field.focus();
           field.select();
+          liftForKeyboard(root);
         };
-        field.addEventListener('blur', commit);
+        field.addEventListener('blur', () => {
+          commit();
+          dropAfterKeyboard(root);
+        });
         field.addEventListener('keydown', (e) => {
           if (e.key === 'Enter') {
             e.preventDefault();
@@ -1370,16 +1367,30 @@ export function createPanel(deps: PanelDeps) {
      */
     showUploadDone(result: UploadResult, trail: Trail) {
       open((host) => {
-        const url = `${location.origin}${result.map_url}`;
+        const url = `${location.origin}/share/route/${encodeURIComponent(result.id)}`;
         kicker(strings['map.upload.kicker'] ?? 'Your trail');
         // The trail's own name leads, because by now it has one — the ready sheet made
         // sure of that. The share button sits where every other sheet keeps it, and what
         // it hands over is the secret link, the only address this trail has.
-        titleRow(host, localized(trail.title, lang) ?? result.id, { url, pulse: true }, strings);
+        titleRow(
+          host,
+          localized(trail.title, lang) ?? result.id,
+          { url, pulse: true },
+          strings,
+          visibilityMark(false, strings),
+        );
+
+        // Straight under the title, in the accent, because this is the sentence the whole
+        // sheet exists to deliver — not a footnote after the facts.
+        host.appendChild(
+          el('p', 'wm-panel__nudge', (strings['map.upload.callToClaim']
+            ?? 'You did it. One more step to make it yours — right now nobody knows who uploaded it. You can share it already; it is only live for {n} hours.')
+            .replace('{n}', String(result.expires_in_hours))),
+        );
 
         trailFacts(host, trail, expiryChip(result.expires_in_hours, strings));
 
-        const note = uploadedByLine(host, false, strings);
+        host.appendChild(el('h3', 'wm-panel__section', strings['map.trail.uploadedBy'] ?? 'Uploaded by'));
 
         // The byline and the action share one row, exactly as a finished trail's byline
         // shares its row with the links out. The blank rider IS the prompt; the button
@@ -1399,12 +1410,6 @@ export function createPanel(deps: PanelDeps) {
         claim.textContent = strings['map.upload.claimShort'] ?? 'Claim';
         row.append(by, claim);
         host.appendChild(row);
-        host.appendChild(note);
-
-        // One line, and it starts with the verb. Everything this sheet used to say in two
-        // full-width paragraphs — what private means, when it expires — now lives in the
-        // chip row and behind the eye, so the sheet is no taller than any other trail's.
-        nudgeShare(host, strings);
       }, { sticky: true });
     },
 
@@ -1462,14 +1467,17 @@ export function createPanel(deps: PanelDeps) {
         // card and never will — so it shares the only address it has, which is the link
         // the visitor is already holding. Suppressing the button here left an anonymous
         // trail with no way to pass it on at all.
+        // ALWAYS the /share/ card, even for a link-only trail: the worker resolves an
+        // unknown route id out of D1, so an unlisted trail unfurls with a real title and
+        // picture in a chat app instead of arriving as a bare URL. The secret is in the
+        // path either way — it is the same secret the visitor is already holding.
         const onMap = !trail.visibility || trail.visibility === 'public';
         titleRow(
           host,
           localized(trail.title, lang) ?? trail.id,
-          onMap
-            ? { kind: 'route', key: trail.id }
-            : { url: `${location.origin}/?trail=${encodeURIComponent(trail.id)}` },
+          { kind: 'route', key: trail.id },
           strings,
+          trail.visibility ? visibilityMark(onMap, strings) : null,
         );
 
         trailFacts(host, trail);
@@ -1488,9 +1496,7 @@ export function createPanel(deps: PanelDeps) {
           : anonBlock(strings);
         // A face and a name with nothing said about them read as the subject of the
         // sheet. The label is what makes them the author of it.
-        const visNote = trail.visibility
-          ? uploadedByLine(host, trail.visibility === 'public', strings)
-          : (host.appendChild(el('h3', 'wm-panel__section', strings['map.trail.uploadedBy'] ?? 'Uploaded by')), null);
+        host.appendChild(el('h3', 'wm-panel__section', strings['map.trail.uploadedBy'] ?? 'Uploaded by'));
 
         // The two ways out of this trail sit on the uploader's row rather than in a
         // strip of their own: one line of who and where-next, not two of each.
@@ -1499,7 +1505,6 @@ export function createPanel(deps: PanelDeps) {
         byline.append(by);
         byline.append(row);
         host.appendChild(byline);
-        if (visNote) host.appendChild(visNote);
         const mark = (icon: string | null, href: string, label: string, svg?: string) => {
           const a = el('a', 'wm-social') as HTMLAnchorElement;
           a.href = href;

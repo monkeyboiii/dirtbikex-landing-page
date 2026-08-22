@@ -1258,11 +1258,17 @@ body.is-map-page .site-header__inner {
   }
 }
 
-/* The one line that says where the link went, now that it is behind a button. */
+/* The sentence the sheet exists to deliver, straight under the title. */
 .wm-panel__nudge {
-  margin-top: 10px;
-  font-size: 0.82rem;
+  margin: 4px 0 12px;
+  font-size: 0.86rem;
+  line-height: 1.45;
   color: var(--wm-accent);
+}
+
+/* The mark reads with the title, so it sits on the title's baseline block. */
+.wm-panel__titlerow .wm-eye {
+  align-self: center;
 }
 
 /* The link, directly under the title: smaller than the body, monospaced so a URL reads as
@@ -1929,6 +1935,14 @@ body.is-map-page .site-header__inner {
   }
   .wm-panel.is-open {
     transform: none;
+  }
+  /* iOS shrinks the VISUAL viewport for the keyboard and leaves the layout viewport
+     alone, so a bottom-anchored sheet ends up underneath it. --wm-keyboard is set from
+     visualViewport while a field is focused; it is 0 the rest of the time. */
+  .wm-panel.is-open[data-keyboard-watch] {
+    transform: translateY(calc(var(--wm-keyboard, 0px) * -1));
+    max-height: calc(76dvh - var(--wm-keyboard, 0px));
+    transition: transform 180ms ease, max-height 180ms ease;
   }
   .wm-panel__body {
     padding-bottom: calc(24px + env(safe-area-inset-bottom));

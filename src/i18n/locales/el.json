@@ -274,8 +274,6 @@
   "map.upload.you": "Εσύ",
   "map.upload.yourNameHere": "το όνομά σου εδώ",
   "map.upload.claimShort": "Διεκδίκησέ τη",
-  "map.upload.copyLink": "Αντιγραφή συνδέσμου",
-  "map.upload.copied": "Αντιγράφηκε",
   "map.upload.unavailable": "Το ανέβασμα διαδρομών είναι απενεργοποιημένο αυτή τη στιγμή",
   "map.upload.unavailableBody": "Το ανέβασμα έχει τεθεί σε παύση σε αυτόν τον ιστότοπο. Ό,τι έχεις ήδη μοιραστεί δεν επηρεάζεται — οι σύνδεσμοί σου λειτουργούν.",
   "map.upload.failed": "Το αρχείο δεν μπόρεσε να προστεθεί",
@@ -293,13 +291,11 @@
   "map.upload.confirm": "Επιβεβαίωση",
   "map.upload.chooseAnother": "Επίλεξε άλλο αρχείο",
   "map.upload.ready": "Έτοιμο για αποστολή",
-  "map.upload.privateNote": "Μόνο όσοι έχουν αυτόν τον σύνδεσμο τη βλέπουν. Φτιάξε προφίλ για να τη διεκδικήσεις και μετά κάνε τη δημόσια.",
-  "map.upload.shareHint": "Μοιράσου τον σύνδεσμο — η μόνη επιστροφή.",
   "map.upload.verifying": "Γίνεται έλεγχος…",
   "map.trail.visibleOnMap": "Στον δημόσιο χάρτη",
   "map.trail.hiddenFromMap": "Εκτός χάρτη — μόνο με σύνδεσμο",
   "map.trail.anonymous": "Ανώνυμο",
   "map.trail.anonymousMeta": "κανείς δεν έχει διεκδικήσει αυτή τη βόλτα",
   "map.upload.expiresChip": "Λήγει σε {n} ώ",
-  "map.trail.publicNote": "Οποιοσδήποτε μπορεί να βρει αυτή τη διαδρομή στον χάρτη."
+  "map.upload.callToClaim": "Τα κατάφερες. Ένα βήμα ακόμα και είναι δική σου — αυτή τη στιγμή κανείς δεν ξέρει ποιος την ανέβασε. Μπορείς ήδη να τη μοιραστείς· ζει μόνο {n} ώρες."
 }

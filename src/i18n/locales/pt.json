@@ -274,8 +274,6 @@
   "map.upload.you": "Você",
   "map.upload.yourNameHere": "o seu nome aqui",
   "map.upload.claimShort": "Reivindicar",
-  "map.upload.copyLink": "Copiar este link",
-  "map.upload.copied": "Copiado",
   "map.upload.unavailable": "O envio de trilhas está desligado neste momento",
   "map.upload.unavailableBody": "O envio está pausado neste site. O que já partilhou não é afetado — os seus links continuam a funcionar.",
   "map.upload.failed": "Não foi possível adicionar esse ficheiro",
@@ -293,13 +291,11 @@
   "map.upload.confirm": "Confirmar",
   "map.upload.chooseAnother": "Escolher outro ficheiro",
   "map.upload.ready": "Pronto para enviar",
-  "map.upload.privateNote": "Só quem tem este link a vê. Crie um perfil para a reivindicar e depois torne-a pública.",
-  "map.upload.shareHint": "Partilhe o link — o único regresso.",
   "map.upload.verifying": "A verificar…",
   "map.trail.visibleOnMap": "No mapa público",
   "map.trail.hiddenFromMap": "Fora do mapa — só por link",
   "map.trail.anonymous": "Anónimo",
   "map.trail.anonymousMeta": "ninguém reivindicou este rolê",
   "map.upload.expiresChip": "Expira em {n} h",
-  "map.trail.publicNote": "Qualquer pessoa pode encontrar esta trilha no mapa."
+  "map.upload.callToClaim": "Conseguiu. Falta um passo para ser sua — neste momento ninguém sabe quem a enviou. Já pode partilhá-la; só vive {n} horas."
 }

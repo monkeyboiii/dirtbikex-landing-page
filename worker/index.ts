@@ -16,6 +16,7 @@ import {
   handleTrailGpx,
   handleUploadStatus,
   handleTrailsAdmin,
+  trailForShare,
   publicTrailEntries,
   sweepExpiredTrails,
   reconcileTrails,
@@ -653,7 +654,18 @@ async function handleEntity(request: Request, env: Env, kindCode: string, key: s
   const forumBase = env.FORUM_BASE ?? '';
   const kind = ENTITY_KINDS[kindCode]!;
 
-  const entity = await loadEntity(request, env, kind, key, locale);
+  let entity = await loadEntity(request, env, kind, key, locale);
+  // A link-only trail is not in the map document. Fall back to D1 so its card unfurls
+  // instead of rendering "not found" for the one kind of trail whose only address is the
+  // link somebody just pasted. Marked so the response can be kept out of every cache.
+  let fromD1 = false;
+  if (!entity && kind === 'route') {
+    const row = await trailForShare(env, key);
+    if (row) {
+      entity = await loadEntity(request, env, kind, key, locale, row);
+      fromD1 = !!entity;
+    }
+  }
   const base: Pick<ShareLandingProps, 'kind' | 'locale' | 'primaryCTA' | 'returnTapCopy' | 'forumBase'> = {
     kind: kindCode as ShareLandingProps['kind'],
     locale,
@@ -683,7 +695,14 @@ async function handleEntity(request: Request, env: Env, kindCode: string, key: s
   // asset test keeps these routes under the no-third-party-hosts rule instead of
   // following them into the map's tile host.
   const autoJump = url.searchParams.get('stay') !== '1';
-  return renderShareLanding({ ...base, entity, sharedBy: sender, autoJump }, request.url);
+  return renderShareLanding(
+    { ...base, entity, sharedBy: sender, autoJump },
+    request.url,
+    // A card built from D1 is a link-only trail's card, and the id in its URL is the
+    // secret. /share/* has no _headers rule, so it would otherwise fall to /*'s
+    // s-maxage=86400 and sit in a PoP for a day.
+    fromD1 ? { cacheControl: 'no-store' } : {},
+  );
 }
 
 /** The sharer's name and face, from the same anonymous profile read `/s/u` uses. */

@@ -276,8 +276,6 @@
   "map.upload.you": "Du",
   "map.upload.yourNameHere": "ditt namn här",
   "map.upload.claimShort": "Gör anspråk",
-  "map.upload.copyLink": "Kopiera länken",
-  "map.upload.copied": "Kopierad",
   "map.upload.unavailable": "Uppladdning av spår är avstängd just nu",
   "map.upload.unavailableBody": "Uppladdning är pausad på den här sajten. Det du redan delat påverkas inte — dina länkar fungerar fortfarande.",
   "map.upload.failed": "Filen kunde inte läggas till",
@@ -295,13 +293,11 @@
   "map.upload.confirm": "Bekräfta",
   "map.upload.chooseAnother": "Välj en annan fil",
   "map.upload.ready": "Redo att laddas upp",
-  "map.upload.privateNote": "Bara de med den här länken kan se det. Skapa en profil för att göra anspråk på det och gör det sedan offentligt.",
-  "map.upload.shareHint": "Dela länken — enda vägen tillbaka.",
   "map.upload.verifying": "Kontrollerar…",
   "map.trail.visibleOnMap": "På den offentliga kartan",
   "map.trail.hiddenFromMap": "Inte på kartan — endast länk",
   "map.trail.anonymous": "Anonym",
   "map.trail.anonymousMeta": "ingen har gjort anspråk på den här turen",
   "map.upload.expiresChip": "Går ut om {n} h",
-  "map.trail.publicNote": "Vem som helst kan hitta det här spåret på kartan."
+  "map.upload.callToClaim": "Du klarade det. Ett steg till så är det ditt — just nu vet ingen vem som laddade upp det. Du kan dela det redan; det lever bara {n} timmar."
 }

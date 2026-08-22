@@ -274,8 +274,6 @@
   "map.upload.you": "Sinä",
   "map.upload.yourNameHere": "nimesi tähän",
   "map.upload.claimShort": "Lunasta",
-  "map.upload.copyLink": "Kopioi tämä linkki",
-  "map.upload.copied": "Kopioitu",
   "map.upload.unavailable": "Reittien lähetys on nyt pois käytöstä",
   "map.upload.unavailableBody": "Lähetys on tauolla tällä sivustolla. Jo jaettuun ei kosketa — linkkisi toimivat yhä.",
   "map.upload.failed": "Tiedostoa ei voitu lisätä",
@@ -293,13 +291,11 @@
   "map.upload.confirm": "Vahvista",
   "map.upload.chooseAnother": "Valitse toinen tiedosto",
   "map.upload.ready": "Valmis lähetettäväksi",
-  "map.upload.privateNote": "Vain tämän linkin haltijat näkevät sen. Luo profiili lunastaaksesi sen, ja julkaise se sitten.",
-  "map.upload.shareHint": "Jaa linkki — ainoa tie takaisin.",
   "map.upload.verifying": "Tarkistetaan…",
   "map.trail.visibleOnMap": "Julkisella kartalla",
   "map.trail.hiddenFromMap": "Ei kartalla — vain linkillä",
   "map.trail.anonymous": "Nimetön",
   "map.trail.anonymousMeta": "kukaan ei ole lunastanut tätä ajoa",
   "map.upload.expiresChip": "Vanhenee {n} h kuluttua",
-  "map.trail.publicNote": "Kuka tahansa löytää tämän reitin kartalta."
+  "map.upload.callToClaim": "Onnistui. Enää askel, niin se on sinun — juuri nyt kukaan ei tiedä kuka sen latasi. Voit jo jakaa sen; se elää vain {n} tuntia."
 }

@@ -274,8 +274,6 @@
   "map.upload.you": "Sen",
   "map.upload.yourNameHere": "adın burada görünecek",
   "map.upload.claimShort": "Sahiplen",
-  "map.upload.copyLink": "Bu bağlantıyı kopyala",
-  "map.upload.copied": "Kopyalandı",
   "map.upload.unavailable": "Rota yükleme şu anda kapalı",
   "map.upload.unavailableBody": "Bu sitede yükleme duraklatıldı. Daha önce paylaştıkların etkilenmez — bağlantıların hâlâ çalışıyor.",
   "map.upload.failed": "Bu dosya eklenemedi",
@@ -293,13 +291,11 @@
   "map.upload.confirm": "Onayla",
   "map.upload.chooseAnother": "Başka dosya seç",
   "map.upload.ready": "Yüklemeye hazır",
-  "map.upload.privateNote": "Yalnızca bu bağlantıya sahip olanlar görebilir. Profil oluşturup sahiplen, sonra herkese aç.",
-  "map.upload.shareHint": "Bağlantıyı paylaş — tek dönüş yolu.",
   "map.upload.verifying": "Kontrol ediliyor…",
   "map.trail.visibleOnMap": "Herkese açık haritada",
   "map.trail.hiddenFromMap": "Haritada değil — yalnızca bağlantı",
   "map.trail.anonymous": "Anonim",
   "map.trail.anonymousMeta": "bu sürüşü henüz kimse sahiplenmedi",
   "map.upload.expiresChip": "{n} sa sonra dolar",
-  "map.trail.publicNote": "Bu rotayı haritada herkes bulabilir."
+  "map.upload.callToClaim": "Başardın. Senin olması için bir adım kaldı — şu anda kimse kimin yüklediğini bilmiyor. Şimdiden paylaşabilirsin; yalnızca {n} saat yaşar."
 }

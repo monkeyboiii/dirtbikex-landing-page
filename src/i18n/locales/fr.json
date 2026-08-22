@@ -274,8 +274,6 @@
   "map.upload.you": "Vous",
   "map.upload.yourNameHere": "votre nom ici",
   "map.upload.claimShort": "Revendiquer",
-  "map.upload.copyLink": "Copier ce lien",
-  "map.upload.copied": "Copié",
   "map.upload.unavailable": "L’envoi de traces est désactivé pour le moment",
   "map.upload.unavailableBody": "L’envoi est suspendu sur ce site. Ce que vous avez déjà partagé n’est pas affecté — vos liens fonctionnent toujours.",
   "map.upload.failed": "Ce fichier n’a pas pu être ajouté",
@@ -293,13 +291,11 @@
   "map.upload.confirm": "Confirmer",
   "map.upload.chooseAnother": "Choisir un autre fichier",
   "map.upload.ready": "Prêt à envoyer",
-  "map.upload.privateNote": "Seuls ceux qui ont ce lien peuvent la voir. Créez un profil pour la revendiquer, puis rendez-la publique.",
-  "map.upload.shareHint": "Partager le lien — le seul retour.",
   "map.upload.verifying": "Vérification…",
   "map.trail.visibleOnMap": "Sur la carte publique",
   "map.trail.hiddenFromMap": "Pas sur la carte — lien uniquement",
   "map.trail.anonymous": "Anonyme",
   "map.trail.anonymousMeta": "personne n’a encore revendiqué cette sortie",
   "map.upload.expiresChip": "Expire dans {n} h",
-  "map.trail.publicNote": "Tout le monde peut trouver cette trace sur la carte."
+  "map.upload.callToClaim": "C’est fait. Encore une étape pour qu’elle soit à vous — personne ne sait qui l’a envoyée. Vous pouvez déjà la partager ; elle ne vit que {n} heures."
 }

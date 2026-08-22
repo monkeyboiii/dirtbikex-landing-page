@@ -414,6 +414,35 @@ function toEntry(row: TrailRow, proxied: boolean): Record<string, unknown> {
   };
 }
 
+/**
+ * One uploaded trail by its id, for the share card, whatever its visibility.
+ *
+ * A link-only trail is not in the map document, so `/share/route/<id>` used to render
+ * "not found" for exactly the trails whose only address IS that link — and a rider
+ * pasting one into a chat app got a bare URL instead of a card. This is the fallback that
+ * makes it unfurl.
+ *
+ * It leaks nothing the link does not: the id of an unlisted trail IS its secret, so
+ * anyone who can call this already had it. The caller must serve it `no-store`.
+ */
+export async function trailForShare(env: PagesEnv, id: string): Promise<Record<string, unknown> | null> {
+  if (!env.SUBSCRIBERS_DB) return null;
+  try {
+    const row = await env.SUBSCRIBERS_DB.prepare(
+      `SELECT id, secret, visibility, gpx_url, title, distance_km, stats,
+              author_user_id, author_username, post_id
+         FROM trails
+        WHERE id = ? AND (expires_at IS NULL OR expires_at > datetime('now'))`,
+    )
+      .bind(id)
+      .first<TrailRow>();
+    return row ? toEntry(row, row.visibility !== 'public') : null;
+  } catch (err) {
+    console.error('trail:share_threw', { err: String(err) });
+    return null;
+  }
+}
+
 /** Public, unexpired uploads — merged into /api/map/trails.json beside the curated fixture. */
 export async function publicTrailEntries(env: PagesEnv): Promise<Record<string, unknown>[]> {
   if (!env.SUBSCRIBERS_DB) return [];

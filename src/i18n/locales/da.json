@@ -274,8 +274,6 @@
   "map.upload.you": "Dig",
   "map.upload.yourNameHere": "dit navn her",
   "map.upload.claimShort": "Gør krav",
-  "map.upload.copyLink": "Kopiér dette link",
-  "map.upload.copied": "Kopieret",
   "map.upload.unavailable": "Upload af spor er slået fra lige nu",
   "map.upload.unavailableBody": "Upload er sat på pause på dette site. Det, du allerede har delt, er upåvirket — dine links virker stadig.",
   "map.upload.failed": "Den fil kunne ikke tilføjes",
@@ -293,13 +291,11 @@
   "map.upload.confirm": "Bekræft",
   "map.upload.chooseAnother": "Vælg en anden fil",
   "map.upload.ready": "Klar til upload",
-  "map.upload.privateNote": "Kun dem med dette link kan se det. Opret en profil for at gøre krav på det, og gør det så offentligt.",
-  "map.upload.shareHint": "Del linket — den eneste vej tilbage.",
   "map.upload.verifying": "Kontrollerer…",
   "map.trail.visibleOnMap": "På det offentlige kort",
   "map.trail.hiddenFromMap": "Ikke på kortet — kun link",
   "map.trail.anonymous": "Anonym",
   "map.trail.anonymousMeta": "ingen har gjort krav på denne tur",
   "map.upload.expiresChip": "Udløber om {n} t",
-  "map.trail.publicNote": "Alle kan finde dette spor på kortet."
+  "map.upload.callToClaim": "Det lykkedes. Ét skridt mere, så er det dit — lige nu ved ingen, hvem der uploadede det. Du kan allerede dele det; det lever kun {n} timer."
 }

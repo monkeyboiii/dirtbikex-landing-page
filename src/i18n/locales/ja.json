@@ -277,8 +277,6 @@
   "map.upload.you": "あなた",
   "map.upload.yourNameHere": "ここに名前が入ります",
   "map.upload.claimShort": "受け取る",
-  "map.upload.copyLink": "このリンクをコピー",
-  "map.upload.copied": "コピーしました",
   "map.upload.unavailable": "ルートのアップロードは現在停止中です",
   "map.upload.unavailableBody": "このサイトではアップロードを一時停止しています。共有済みのものには影響しません。リンクは今も使えます。",
   "map.upload.failed": "このファイルは追加できません",
@@ -296,13 +294,11 @@
   "map.upload.confirm": "確認",
   "map.upload.chooseAnother": "別のファイルを選ぶ",
   "map.upload.ready": "アップロードの準備完了",
-  "map.upload.privateNote": "このリンクを持つ人だけが見られます。プロフィールを作れば受け取れ、その後で公開できます。",
-  "map.upload.shareHint": "リンクを共有 — 戻る唯一の道です。",
   "map.upload.verifying": "確認中…",
   "map.trail.visibleOnMap": "公開マップに掲載中",
   "map.trail.hiddenFromMap": "マップには出ません — リンクのみ",
   "map.trail.anonymous": "匿名",
   "map.trail.anonymousMeta": "まだ誰も受け取っていません",
   "map.upload.expiresChip": "{n} 時間で失効",
-  "map.trail.publicNote": "誰でも地図でこのルートを見つけられます。"
+  "map.upload.callToClaim": "できました。あと一歩であなたのものになります — 今は誰がアップロードしたか分かりません。共有はもうできますが、{n} 時間しか残りません。"
 }

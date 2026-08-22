@@ -274,8 +274,6 @@
   "map.upload.you": "Jij",
   "map.upload.yourNameHere": "hier komt je naam",
   "map.upload.claimShort": "Opeisen",
-  "map.upload.copyLink": "Kopieer deze link",
-  "map.upload.copied": "Gekopieerd",
   "map.upload.unavailable": "Route uploaden staat nu uit",
   "map.upload.unavailableBody": "Uploaden is op deze site gepauzeerd. Wat je al hebt gedeeld blijft ongemoeid — je links werken nog.",
   "map.upload.failed": "Dat bestand kon niet worden toegevoegd",
@@ -293,13 +291,11 @@
   "map.upload.confirm": "Bevestigen",
   "map.upload.chooseAnother": "Ander bestand kiezen",
   "map.upload.ready": "Klaar om te uploaden",
-  "map.upload.privateNote": "Alleen wie deze link heeft, ziet hem. Maak een profiel om hem op te eisen en zet hem daarna publiek.",
-  "map.upload.shareHint": "Deel de link — de enige weg terug.",
   "map.upload.verifying": "Controleren…",
   "map.trail.visibleOnMap": "Op de openbare kaart",
   "map.trail.hiddenFromMap": "Niet op de kaart — alleen via link",
   "map.trail.anonymous": "Anoniem",
   "map.trail.anonymousMeta": "niemand heeft deze rit opgeëist",
   "map.upload.expiresChip": "Verloopt over {n} u",
-  "map.trail.publicNote": "Iedereen kan deze route op de kaart vinden."
+  "map.upload.callToClaim": "Gelukt. Nog één stap en hij is van jou — nu weet niemand wie hem heeft geüpload. Delen kan al; hij leeft maar {n} uur."
 }

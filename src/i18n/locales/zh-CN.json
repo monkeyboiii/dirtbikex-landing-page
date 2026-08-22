@@ -276,8 +276,6 @@
   "map.upload.you": "你",
   "map.upload.yourNameHere": "这里显示你的名字",
   "map.upload.claimShort": "认领",
-  "map.upload.copyLink": "复制此链接",
-  "map.upload.copied": "已复制",
   "map.upload.unavailable": "轨迹上传当前已关闭",
   "map.upload.unavailableBody": "本站暂停上传功能。已分享的内容不受影响——你的链接仍然有效。",
   "map.upload.failed": "无法添加该文件",
@@ -296,13 +294,11 @@
   "map.upload.confirm": "确认",
   "map.upload.chooseAnother": "换一个文件",
   "map.upload.ready": "准备上传",
-  "map.upload.privateNote": "只有拿到这个链接的人才能查看。建立个人资料即可认领，然后可以设为公开。",
-  "map.upload.shareHint": "分享链接——唯一的回程。",
   "map.upload.verifying": "正在验证…",
   "map.trail.visibleOnMap": "已在公开地图上",
   "map.trail.hiddenFromMap": "不在地图上——仅限链接",
   "map.trail.anonymous": "匿名",
   "map.trail.anonymousMeta": "还没有人认领这次骑行",
   "map.upload.expiresChip": "{n} 小时后过期",
-  "map.trail.publicNote": "任何人都能在地图上找到这条轨迹。"
+  "map.upload.callToClaim": "上传成功！再一步就能把它变成你的——现在还没人知道是谁传的。你已经可以分享它了，不过它只保留 {n} 小时。"
 }

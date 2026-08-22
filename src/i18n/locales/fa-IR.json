@@ -274,8 +274,6 @@
   "map.upload.you": "تو",
   "map.upload.yourNameHere": "نامت اینجا می‌آید",
   "map.upload.claimShort": "از آنِ خود کن",
-  "map.upload.copyLink": "کپی این پیوند",
-  "map.upload.copied": "کپی شد",
   "map.upload.unavailable": "بارگذاری مسیر در حال حاضر خاموش است",
   "map.upload.unavailableBody": "بارگذاری در این سایت موقتاً متوقف است. آنچه پیش‌تر به اشتراک گذاشته‌ای دست‌نخورده است — پیوندهایت هنوز کار می‌کنند.",
   "map.upload.failed": "این فایل افزوده نشد",
@@ -293,13 +291,11 @@
   "map.upload.confirm": "تأیید",
   "map.upload.chooseAnother": "انتخاب فایل دیگر",
   "map.upload.ready": "آمادهٔ بارگذاری",
-  "map.upload.privateNote": "فقط کسانی که این لینک را دارند می‌بینند. برای از آنِ خود کردن، نمایه بساز و بعد عمومی‌اش کن.",
-  "map.upload.shareHint": "لینک را به اشتراک بگذار — تنها راه بازگشت.",
   "map.upload.verifying": "در حال بررسی…",
   "map.trail.visibleOnMap": "روی نقشهٔ عمومی",
   "map.trail.hiddenFromMap": "روی نقشه نیست — فقط با لینک",
   "map.trail.anonymous": "ناشناس",
   "map.trail.anonymousMeta": "هنوز کسی این رکاب‌زنی را از آنِ خود نکرده",
   "map.upload.expiresChip": "تا {n} ساعت دیگر منقضی می‌شود",
-  "map.trail.publicNote": "هر کسی می‌تواند این مسیر را روی نقشه پیدا کند."
+  "map.upload.callToClaim": "موفق شدی. یک قدم مانده تا مال تو شود — الان هیچ‌کس نمی‌داند چه کسی آن را بارگذاری کرده. همین حالا می‌توانی به اشتراکش بگذاری؛ فقط {n} ساعت زنده است."
 }
