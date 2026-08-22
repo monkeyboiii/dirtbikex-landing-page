@@ -300,7 +300,7 @@
   "map.trail.anonymous": "匿名",
   "map.trail.anonymousMeta": "還沒有人認領這次騎行",
   "map.upload.expiresChip": "{n} 小時後過期",
-  "map.upload.callToClaim": "上傳成功！再一步就能把它變成你的——現在還沒人知道是誰傳的。你已經可以分享它了；它只保留 {n} 小時，而且只存在這台裝置上。",
+  "map.upload.callToClaim": "上傳成功！想分享給誰都可以。再一步就能把它變成你的——現在還沒人知道是誰傳的。",
   "map.upload.yours": "你最近的上傳",
   "map.upload.reopen": "打開",
   "map.upload.confirmClose": "它只保存在這台裝置上。還沒分享或認領，確定要關閉嗎？",

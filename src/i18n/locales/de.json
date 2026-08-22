@@ -297,7 +297,7 @@
   "map.trail.anonymous": "Anonym",
   "map.trail.anonymousMeta": "noch niemand hat diese Fahrt übernommen",
   "map.upload.expiresChip": "Läuft in {n} h ab",
-  "map.upload.callToClaim": "Geschafft. Noch ein Schritt, dann gehört sie dir — noch weiß niemand, wer sie hochgeladen hat. Teilen kannst du sie schon; sie lebt {n} Stunden und liegt nur auf diesem Gerät.",
+  "map.upload.callToClaim": "Geschafft! Teile sie mit wem du willst. Noch ein Schritt, dann gehört sie dir — noch weiß niemand, wer sie hochgeladen hat.",
   "map.upload.yours": "Deine letzten Uploads",
   "map.upload.reopen": "öffnen",
   "map.upload.confirmClose": "Nur auf diesem Gerät gespeichert. Ohne Teilen oder Übernehmen schließen?",

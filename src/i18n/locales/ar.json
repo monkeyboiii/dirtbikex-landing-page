@@ -297,7 +297,7 @@
   "map.trail.anonymous": "مجهول",
   "map.trail.anonymousMeta": "لم يطالب أحد بهذه الجولة بعد",
   "map.upload.expiresChip": "ينتهي خلال {n} ساعة",
-  "map.upload.callToClaim": "أحسنت. خطوة واحدة ليصبح لك — لا أحد يعرف بعد من رفعه. شاركه الآن إن شئت؛ يبقى {n} ساعة وهو محفوظ على هذا الجهاز فقط.",
+  "map.upload.callToClaim": "أحسنت! شاركه مع من تشاء. خطوة واحدة ليصبح لك — لا أحد يعرف بعد من رفعه.",
   "map.upload.yours": "آخر ما رفعته",
   "map.upload.reopen": "فتح",
   "map.upload.confirmClose": "محفوظ على هذا الجهاز فقط. إغلاق دون مشاركة أو مطالبة؟",

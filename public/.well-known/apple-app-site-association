@@ -31,6 +31,10 @@
             "comment": "Event detail - native"
           },
           {
+            "/": "/s/c/*",
+            "comment": "Trail claim - native. Added 2026-08-22 in lockstep with the iOS release that handles it: a path here without a destination in the SHIPPED app makes it raise its invalid-link bubble on a good link."
+          },
+          {
             "/": "/s/*",
             "exclude": true,
             "comment": "Order matters: the first matching component wins, so this catch-all sits last. Everything else under /s/ stays on the web until the app ships a destination for it. Add that path ABOVE this rule when it does."

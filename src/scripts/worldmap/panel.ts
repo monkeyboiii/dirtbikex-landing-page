@@ -1452,9 +1452,8 @@ export function createPanel(deps: PanelDeps) {
         // Straight under the title, in the accent, because this is the sentence the whole
         // sheet exists to deliver — not a footnote after the facts.
         host.appendChild(
-          el('p', 'wm-panel__nudge', (strings['map.upload.callToClaim']
-            ?? 'You did it. One more step to make it yours — right now nobody knows who uploaded it. You can share it already; it is only live for {n} hours.')
-            .replace('{n}', String(result.expires_in_hours))),
+          el('p', 'wm-panel__nudge', strings['map.upload.callToClaim']
+            ?? 'You did it! Share it with anyone you like. One more step to make it yours — right now nobody knows who uploaded it.'),
         );
 
         trailFacts(host, trail, expiryChip(result.expires_in_hours, strings));

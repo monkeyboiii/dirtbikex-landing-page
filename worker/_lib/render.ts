@@ -319,7 +319,7 @@ function errorBody(props: ShareLandingProps): string {
   <h1 class="headline">${esc(title ?? 'DirtBikeX')}</h1>
   ${subtitle ? `<p class="subtitle">${subtitle.split('\n\n').map((para) => esc(para)).join('<br><br>')}</p>` : ''}
   <a class="cta" href="${esc(primaryCTA.url)}">${esc(primaryCTA.label)}</a>
-  ${secondaryLink ? `<a class="secondary" href="${esc(secondaryLink.url)}">${esc(secondaryLink.label)}</a>` : ''}
+  ${secondaryLink ? `<a class="card-link" href="${esc(secondaryLink.url)}">${esc(secondaryLink.label)}</a>` : ''}
 </main>`;
 }
 
@@ -1620,6 +1620,9 @@ a.meta-item:hover, a.meta-item:active { background: var(--clay-200); }
 .entity-kicker{margin:0 0 .35rem;font-weight:800;letter-spacing:.08em;font-size:.82rem;opacity:.6;text-transform:uppercase}
 /* One button per card. Anything else is a link, so it reads as an aside. */
 .card-link{display:inline-block;margin-top:.75rem;font-size:.9rem;opacity:.7;text-decoration:underline;text-underline-offset:3px}
+/* Alone under the button — on the entity card a "stay here" button sits between them and
+   supplies the gap. Here nothing does, and .75rem reads as part of the button. */
+.card:not(.entity-card) .card-link{margin-top:1.5rem}
 .card-link:hover,.card-link:focus-visible{opacity:1}
 
 .entity-facts{margin:.5rem 0 0;font-size:.95rem;opacity:.75}

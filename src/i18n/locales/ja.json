@@ -300,7 +300,7 @@
   "map.trail.anonymous": "匿名",
   "map.trail.anonymousMeta": "まだ誰も受け取っていません",
   "map.upload.expiresChip": "{n} 時間で失効",
-  "map.upload.callToClaim": "できました。あと一歩であなたのものになります — まだ誰がアップロードしたか分かりません。共有はもうできます。{n} 時間だけ残り、この端末にだけ保存されています。",
+  "map.upload.callToClaim": "できました！好きな相手に共有できます。あと一歩であなたのものに — まだ誰がアップロードしたか分かりません。",
   "map.upload.yours": "最近のアップロード",
   "map.upload.reopen": "開く",
   "map.upload.confirmClose": "この端末にだけ保存されています。共有も受け取りもせずに閉じますか？",

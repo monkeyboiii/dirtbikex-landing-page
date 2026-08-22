@@ -10,6 +10,7 @@
  * referencing it, so Discourse's own CleanUpUploads reaps the file — the row's `expires_at`
  * and the file's reaping are the same deadline, expressed twice.
  */
+import { purgeMapDoc } from './mapData';
 import { rateLimitConsume } from './rateLimit';
 import { COARSE_SPACING_M, SIG_VERSION, compareSignatures, thresholds } from './trailOverlap';
 import type { PagesEnv } from './types';
@@ -781,7 +782,9 @@ export async function handleTrailState(request: Request, env: PagesEnv, secret: 
 
   if (want === 'gone') {
     const gone = await env.SUBSCRIBERS_DB.prepare('DELETE FROM trails WHERE secret = ?').bind(secret).run();
-    return gone.meta?.changes ? json(200, { visibility: 'gone' }) : json(404, { error: 'not_found' });
+    if (!gone.meta?.changes) return json(404, { error: 'not_found' });
+    await purgeMapDoc(request, 'trails');
+    return json(200, { visibility: 'gone' });
   }
 
   const current = await env.SUBSCRIBERS_DB.prepare(
@@ -879,6 +882,9 @@ export async function handleTrailState(request: Request, env: PagesEnv, secret: 
     // The only unique columns here are `id` and `secret`, and the secret is freshly minted.
     return json(409, { error: 'id_taken' });
   }
+  // The map document just changed. Without dropping the cached copy the rider waits out
+  // s-maxage before their own trail appears, which reads as "the toggle did nothing".
+  await purgeMapDoc(request, 'trails');
   return json(200, { visibility: want, id: nextId, secret: nextSecret, overlaps });
 }
 

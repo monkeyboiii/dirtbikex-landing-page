@@ -297,7 +297,7 @@
   "map.trail.anonymous": "Nimetön",
   "map.trail.anonymousMeta": "kukaan ei ole lunastanut tätä ajoa",
   "map.upload.expiresChip": "Vanhenee {n} h kuluttua",
-  "map.upload.callToClaim": "Onnistui. Enää askel, niin se on sinun — kukaan ei vielä tiedä kuka sen latasi. Jaa se vaikka heti; se elää {n} tuntia ja säilyy vain tällä laitteella.",
+  "map.upload.callToClaim": "Onnistui! Jaa se kenelle haluat. Enää askel, niin se on sinun — kukaan ei vielä tiedä kuka sen latasi.",
   "map.upload.yours": "Viimeisimmät lähetyksesi",
   "map.upload.reopen": "avaa",
   "map.upload.confirmClose": "Tallennettu vain tälle laitteelle. Suljetaanko jakamatta ja lunastamatta?",

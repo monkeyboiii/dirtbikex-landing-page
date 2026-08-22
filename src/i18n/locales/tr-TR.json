@@ -297,7 +297,7 @@
   "map.trail.anonymous": "Anonim",
   "map.trail.anonymousMeta": "bu sürüşü henüz kimse sahiplenmedi",
   "map.upload.expiresChip": "{n} sa sonra dolar",
-  "map.upload.callToClaim": "Başardın. Senin olması için bir adım kaldı — kimin yüklediğini henüz kimse bilmiyor. İstersen şimdi paylaş; {n} saat yaşar ve yalnızca bu cihazda saklanır.",
+  "map.upload.callToClaim": "Başardın! İstediğinle paylaş. Senin olması için bir adım kaldı — kimin yüklediğini henüz kimse bilmiyor.",
   "map.upload.yours": "Son yüklemelerin",
   "map.upload.reopen": "aç",
   "map.upload.confirmClose": "Yalnızca bu cihazda saklanıyor. Paylaşmadan ve sahiplenmeden kapatılsın mı?",

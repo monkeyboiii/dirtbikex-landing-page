@@ -297,7 +297,7 @@
   "map.trail.anonymous": "Ẩn danh",
   "map.trail.anonymousMeta": "chưa ai nhận chuyến chạy này",
   "map.upload.expiresChip": "Hết hạn sau {n} giờ",
-  "map.upload.callToClaim": "Xong rồi. Chỉ một bước nữa là của bạn — chưa ai biết ai đã tải lên. Cứ chia sẻ nếu muốn; nó sống {n} giờ và chỉ được lưu trên thiết bị này.",
+  "map.upload.callToClaim": "Xong rồi! Chia sẻ với bất kỳ ai bạn muốn. Chỉ một bước nữa là của bạn — chưa ai biết ai đã tải lên.",
   "map.upload.yours": "Các lần tải lên gần đây",
   "map.upload.reopen": "mở",
   "map.upload.confirmClose": "Chỉ lưu trên thiết bị này. Đóng mà không chia sẻ hay nhận?",

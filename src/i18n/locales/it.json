@@ -297,7 +297,7 @@
   "map.trail.anonymous": "Anonimo",
   "map.trail.anonymousMeta": "nessuno ha ancora rivendicato questo giro",
   "map.upload.expiresChip": "Scade tra {n} h",
-  "map.upload.callToClaim": "Fatto. Manca un passo perché sia tuo — nessuno sa ancora chi lo ha caricato. Condividilo pure; vive {n} ore ed è tenuto solo su questo dispositivo.",
+  "map.upload.callToClaim": "Fatto! Condividilo con chi vuoi. Manca un passo perché sia tuo — nessuno sa ancora chi lo ha caricato.",
   "map.upload.yours": "I tuoi caricamenti recenti",
   "map.upload.reopen": "apri",
   "map.upload.confirmClose": "Tenuto solo su questo dispositivo. Chiudere senza condividere né rivendicare?",

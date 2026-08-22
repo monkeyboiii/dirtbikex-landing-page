@@ -15,7 +15,13 @@ import type { PagesEnv } from './types';
 const EDGE_TTL = 300;
 const CACHE_CONTROL = `public, max-age=60, s-maxage=${EDGE_TTL}`;
 
-declare const caches: { default: { match(r: Request): Promise<Response | undefined>; put(r: Request, resp: Response): Promise<void> } };
+declare const caches: {
+  default: {
+    match(r: Request): Promise<Response | undefined>;
+    put(r: Request, resp: Response): Promise<void>;
+    delete(r: Request): Promise<boolean>;
+  };
+};
 
 export interface WaitUntil {
   waitUntil(promise: Promise<unknown>): void;
@@ -53,6 +59,21 @@ export async function readMapDocBody(request: Request, env: PagesEnv, doc: strin
  * document. Keeping them out of R2 is deliberate: the curated file stays an artifact one
  * person edits and pushes, and no visitor write can corrupt it.
  */
+/**
+ * Drops the cached copy of one map document.
+ *
+ * Publishing a trail changes what /api/map/trails.json says, and without this the change
+ * waits out `s-maxage` — five minutes during which a rider toggles "show on the map",
+ * looks, sees nothing, and toggles back. The cache key is the request URL, so the purge
+ * has to name it: this covers the plain URL, which is what the island fetches.
+ */
+export async function purgeMapDoc(request: Request, doc: string): Promise<void> {
+  const url = new URL(request.url);
+  url.pathname = `/api/map/${doc}.json`;
+  url.search = '';
+  await caches.default.delete(new Request(url.toString())).catch(() => {});
+}
+
 export async function handleMapDoc(
   request: Request,
   env: PagesEnv,

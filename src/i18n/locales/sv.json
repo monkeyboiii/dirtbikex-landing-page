@@ -299,7 +299,7 @@
   "map.trail.anonymous": "Anonym",
   "map.trail.anonymousMeta": "ingen har gjort anspråk på den här turen",
   "map.upload.expiresChip": "Går ut om {n} h",
-  "map.upload.callToClaim": "Du klarade det. Ett steg till så är det ditt — ingen vet ännu vem som laddade upp det. Dela gärna; det lever {n} timmar och sparas bara på den här enheten.",
+  "map.upload.callToClaim": "Du klarade det! Dela det med vem du vill. Ett steg till så är det ditt — ingen vet ännu vem som laddade upp det.",
   "map.upload.yours": "Dina senaste uppladdningar",
   "map.upload.reopen": "öppna",
   "map.upload.confirmClose": "Sparat bara på den här enheten. Stänga utan att dela eller göra anspråk?",
