@@ -176,7 +176,14 @@ async function loadRoute(
     title: pickText(trail.title, locale) ?? id,
     subtitle: null,
     facts,
-    mapURL: `/?layers=tracks,trails&t=${encodeURIComponent(id)}`,
+    // ?t= looks a slug up in the CATALOG. A link-only trail is deliberately not in it, so
+    // the jump landed on a map with nothing open — the one kind of trail whose card is
+    // most likely to be followed. It is addressed by its secret instead, which for a
+    // link-only trail is also its id.
+    mapURL:
+      typeof trail.visibility === 'string' && trail.visibility !== 'public'
+        ? `/?layers=tracks,trails&trail=${encodeURIComponent(id)}`
+        : `/?layers=tracks,trails&t=${encodeURIComponent(id)}`,
     sourceURL: typeof trail.post_url === 'string' ? trail.post_url : null,
     author: username
       ? {
