@@ -296,6 +296,72 @@ Two things had to be verified on staging before this worked at all, both on 2026
   registers nothing — measured: `upload_references` stayed at 0 with the bare form and went
   to 1 with the link form. That is why D1 carries `gpx_short_url` at all.
 
+## Importing a public post — the other upload route
+
+A ride posted to the forum first could only reach the map through an operator running
+`import-forum-trail.mjs`. That is not self-service, and it made the forum the wrong place
+to post a ride if you wanted it mapped. `POST /dbx/trails/import.json` closes it.
+
+**There is no claim code and no personal message**, because a public post has already
+answered everything the code exists to establish: who the rider is, that the file is
+theirs, and that they meant it to be seen. The post is the receipt — the same role it
+plays for a claimed upload — so this writes the same `TrailClaim` row and the same eye
+toggle appears on it.
+
+The plugin owns the parts only it can know:
+
+| | | |
+|---|---|---|
+| ownership | `post.user_id == current_user.id` | the worker cannot read a post |
+| the file | the post's own `uploads`, matched by `sha1_from_short_url` | an `upload_reference` proves it belongs to THIS post, and is what stops `CleanUpUploads` reaping it |
+| refusal | more than one `.gpx` | picking the first would silently map the wrong ride, and the rider cannot see which was chosen |
+| the numbers | `GpxStats`, a port of `scripts/lib/gpx-trail.mjs` | so an import is indistinguishable from the operator's import of the same post |
+
+### The signature is deliberately not computed here
+
+`sig` is a **matching key**. A second implementation of it — in Ruby, or vendored into a
+Discourse theme — would disagree with this one on some input, and nothing would catch it:
+overlap detection would just quietly stop working for imported trails.
+
+So `encodeSig` stays in exactly one place. The row lands unsigned and `signPendingTrails`
+fills it in on the next cron tick, one trail per tick, where fetching and resampling a
+whole ride fits in a cron invocation's CPU allowance instead of a rider's request. The
+cost is that an imported trail sits out overlap checks for up to a minute.
+
+Measured on staging 2026-08-22: Ruby computed 2.9 km from the file and the worker's
+independent resample recorded `sig_len_m = 2898`. The two readers agree.
+
+### Publishing is still a separate call
+
+The import always lands `private` and the plugin then calls `set_visibility!`. That is the
+one path applying the duplicate-file check, the overlap measure and the publish cap, and a
+second implementation of a cap is how a cap stops being one. A refusal is not a failure:
+the trail is on the index and owned, it is simply not drawn, and the toggle is the way
+through.
+
+This is also why `TrailWorker.request` now returns a 4xx body carrying a named `error`
+instead of `nil`. Collapsing refusals and unreachability together made hitting the publish
+cap say *"that did not go through — try again"*, which is neither true nor actionable —
+the way out is to unpublish one of the named trails.
+
+### post_url, and the two kinds of trail
+
+An import stores `post_url`; a claimed upload does not. That single column is what keeps
+the map honest about where a trail can be discussed:
+
+- **imported** — the post is public, so the sheet's *Forum thread* link goes somewhere
+  everybody can read.
+- **uploaded** — the post is a personal message between the system and its owner. Linking
+  it publicly would be a dead end for everyone else, so there is no link at all, and
+  contact runs through the byline → `/s/u/<username>` → the rider's forum profile.
+
+### Known gap
+
+The duplicate-file check only looks at D1. A trail already on the map through the **R2
+bundle** — an operator import — can be imported again from its post, producing two entries
+for the same ride. Rare by construction (the operator import exists for posts nobody has
+claimed) and visible to a moderator, but not currently refused.
+
 ## The byline is cached at claim time
 
 The worker holds one Discourse scope, `uploads:create`. It cannot read a user, so if the
