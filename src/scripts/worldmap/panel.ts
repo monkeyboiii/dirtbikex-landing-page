@@ -201,18 +201,27 @@ function uploadPeek(): HTMLElement {
 
   // Each scene: background streets, then one trace. Coordinates are hand-placed on a
   // 320x150 canvas; the shapes are meant to read as somewhere, not as anywhere real.
+  // Each scene: a block of built-up ground, a couple of main roads, a scatter of minor
+  // ones, then the ride. Irregular on purpose — a regular grid reads as a chart, which is
+  // what the first version of this looked like.
   const scenes = [
     {
-      roads: ['M-10 44 H330', 'M-10 104 H330', 'M84 -10 V160', 'M212 -10 V160', 'M-10 74 H330', 'M148 -10 V160'],
-      trail: 'M40 130 C70 118 78 96 104 88 S150 92 168 74 196 44 226 40 268 52 292 34',
+      blocks: ['M0 0 H126 V58 H0 Z', 'M196 92 H320 V150 H196 Z'],
+      major: ['M-10 66 C60 62 96 78 150 76 214 74 260 58 330 62', 'M118 -10 C124 40 108 74 116 108 122 134 116 148 118 160'],
+      minor: ['M-10 30 H132', 'M150 -10 V60', 'M186 26 H330', 'M40 96 H330', 'M62 60 V160', 'M244 -10 V72', 'M-10 122 H160', 'M282 62 V160'],
+      trail: 'M34 128 C58 112 52 92 74 84 96 76 108 92 128 86 152 79 158 56 182 52 208 48 214 66 240 60 262 55 268 36 292 32',
     },
     {
-      roads: ['M-10 30 C60 34 120 60 190 58 260 56 300 40 330 44', 'M-10 96 C70 90 130 112 200 108 270 104 310 118 330 114', 'M56 -10 V160', 'M244 -10 V160'],
-      trail: 'M60 24 C74 60 58 82 76 104 S128 132 156 116 178 74 208 68 250 88 276 122',
+      blocks: ['M0 96 C60 90 120 112 190 108 250 105 300 118 320 114 V150 H0 Z'],
+      major: ['M-10 28 C60 32 120 58 190 56 260 54 300 38 330 42', 'M-10 100 C70 94 130 116 200 112 270 108 310 122 330 118'],
+      minor: ['M46 -10 V150', 'M232 -10 V150', 'M96 12 L140 92', 'M270 20 L246 130', 'M-10 62 H120', 'M170 70 H330'],
+      trail: 'M56 22 C72 54 54 78 74 100 92 120 124 130 152 118 174 108 176 78 200 70 226 62 244 84 262 106 272 118 280 126 288 132',
     },
     {
-      roads: ['M-10 62 L120 20 L230 66 L330 26', 'M-10 118 L110 80 L240 126 L330 92', 'M120 -10 L120 160', 'M240 -10 L240 160'],
-      trail: 'M44 100 C88 96 96 58 132 48 S186 66 206 92 254 116 288 96',
+      blocks: ['M148 0 L320 44 V0 Z', 'M0 118 L112 84 L0 150 Z'],
+      major: ['M-10 60 L118 18 L232 64 L330 24', 'M-10 120 L108 82 L242 128 L330 94'],
+      minor: ['M118 18 V160', 'M232 64 V160', 'M60 -10 L74 150', 'M290 -10 L276 150', 'M-10 90 H330'],
+      trail: 'M40 104 C74 100 84 66 116 54 144 44 168 60 188 82 208 104 236 116 268 100 280 94 288 88 296 82',
     },
   ];
 
@@ -222,11 +231,19 @@ function uploadPeek(): HTMLElement {
     svg.setAttribute('viewBox', '0 0 320 150');
     svg.setAttribute('class', `wm-peek__frame${i === 0 ? ' is-on' : ''}`);
     svg.setAttribute('preserveAspectRatio', 'xMidYMid slice');
-    for (const d of scene.roads) {
-      const road = document.createElementNS(svgNS, 'path');
-      road.setAttribute('d', d);
-      road.setAttribute('class', 'wm-peek__road');
-      svg.appendChild(road);
+    for (const d of scene.blocks) {
+      const block = document.createElementNS(svgNS, 'path');
+      block.setAttribute('d', d);
+      block.setAttribute('class', 'wm-peek__block');
+      svg.appendChild(block);
+    }
+    for (const [cls, list] of [['wm-peek__road', scene.minor], ['wm-peek__road wm-peek__road--major', scene.major]] as const) {
+      for (const d of list) {
+        const road = document.createElementNS(svgNS, 'path');
+        road.setAttribute('d', d);
+        road.setAttribute('class', cls);
+        svg.appendChild(road);
+      }
     }
     const trail = document.createElementNS(svgNS, 'path');
     trail.setAttribute('d', scene.trail);

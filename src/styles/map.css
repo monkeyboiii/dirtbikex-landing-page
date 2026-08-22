@@ -1128,12 +1128,20 @@ body.is-map-page .site-header__inner {
 .wm-peek__frame.is-on {
   opacity: 1;
 }
+.wm-peek__block {
+  fill: var(--wm-line);
+  opacity: 0.5;
+}
 .wm-peek__road {
   fill: none;
   stroke: var(--wm-line-strong);
-  stroke-width: 2;
+  stroke-width: 1.2;
   stroke-linecap: round;
-  opacity: 0.55;
+  opacity: 0.5;
+}
+.wm-peek__road--major {
+  stroke-width: 2.6;
+  opacity: 0.75;
 }
 .wm-peek__trail {
   fill: none;
