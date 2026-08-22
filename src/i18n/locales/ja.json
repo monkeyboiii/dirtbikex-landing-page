@@ -300,8 +300,10 @@
   "map.trail.anonymous": "匿名",
   "map.trail.anonymousMeta": "まだ誰も受け取っていません",
   "map.upload.expiresChip": "{n} 時間で失効",
-  "map.upload.callToClaim": "できました。あと一歩であなたのものになります — 今は誰がアップロードしたか分かりません。共有はもうできますが、{n} 時間しか残りません。",
+  "map.upload.callToClaim": "できました。あと一歩であなたのものになります — まだ誰がアップロードしたか分かりません。共有はもうできます。{n} 時間だけ残り、この端末にだけ保存されています。",
   "map.upload.yours": "最近のアップロード",
   "map.upload.reopen": "開く",
-  "map.upload.confirmClose": "このリンクは一度しか表示されません。共有も受け取りもせずに閉じますか？"
+  "map.upload.confirmClose": "この端末にだけ保存されています。共有も受け取りもせずに閉じますか？",
+  "map.upload.delete": "削除",
+  "map.upload.confirmDelete": "このルートを削除しますか？リンクを持つ人も見られなくなり、取り消せません。"
 }

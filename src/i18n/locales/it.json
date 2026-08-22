@@ -297,8 +297,10 @@
   "map.trail.anonymous": "Anonimo",
   "map.trail.anonymousMeta": "nessuno ha ancora rivendicato questo giro",
   "map.upload.expiresChip": "Scade tra {n} h",
-  "map.upload.callToClaim": "Fatto. Manca un passo perché sia tuo — al momento nessuno sa chi lo ha caricato. Puoi già condividerlo; vive solo {n} ore.",
+  "map.upload.callToClaim": "Fatto. Manca un passo perché sia tuo — nessuno sa ancora chi lo ha caricato. Condividilo pure; vive {n} ore ed è tenuto solo su questo dispositivo.",
   "map.upload.yours": "I tuoi caricamenti recenti",
   "map.upload.reopen": "apri",
-  "map.upload.confirmClose": "Questo link è mostrato una volta sola. Chiudere senza condividere né rivendicare?"
+  "map.upload.confirmClose": "Tenuto solo su questo dispositivo. Chiudere senza condividere né rivendicare?",
+  "map.upload.delete": "Elimina",
+  "map.upload.confirmDelete": "Eliminare questo percorso? Lo perde anche chi ha il link, e non si torna indietro."
 }

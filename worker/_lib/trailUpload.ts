@@ -883,6 +883,40 @@ export async function handleTrailState(request: Request, env: PagesEnv, secret: 
 }
 
 /**
+ * DELETE /api/map/trail/<secret> — the uploader changing their mind.
+ *
+ * Authorised by possession of the secret, and by nothing else. That is not a weak check:
+ * the secret is 8 characters of a 31-symbol alphabet and it is already the whole of the
+ * read credential, so anyone who can call this could already see the trace. A device
+ * fingerprint on top would be worse than nothing — forgeable by an attacker and a lockout
+ * for the honest rider who cleared their browser.
+ *
+ * A CLAIMED trail is refused. Once a trail is bound to a forum account its removal is a
+ * moderation act with an audit trail, and it happens by deleting the post.
+ */
+export async function handleTrailDelete(request: Request, env: PagesEnv, secret: string): Promise<Response> {
+  if (!env.SUBSCRIBERS_DB) return json(503, { error: 'service_misconfigured' });
+  if (env.RATELIMIT_KV) {
+    const ip = clientIp(request);
+    const limit = await rateLimitConsume(env.RATELIMIT_KV, `traildel:ip:${ip}:1h`, 60, 3600);
+    if (!limit.allowed) return json(429, { error: 'rate_limited' }, { 'Retry-After': '60' });
+  }
+
+  const row = await env.SUBSCRIBERS_DB.prepare(
+    `SELECT author_user_id FROM trails
+      WHERE secret = ? AND (expires_at IS NULL OR expires_at > datetime('now'))`,
+  )
+    .bind(secret)
+    .first<{ author_user_id: number | null }>();
+  // A miss and an expiry answer identically, as everywhere else on this surface.
+  if (!row) return json(404, { error: 'not_found' });
+  if (row.author_user_id != null) return json(409, { error: 'claimed' });
+
+  await env.SUBSCRIBERS_DB.prepare('DELETE FROM trails WHERE secret = ?').bind(secret).run();
+  return json(200, { deleted: true });
+}
+
+/**
  * GET /api/map/trail/<secret>.gpx — streams the file from the uploads CDN.
  *
  * The point is that the client never learns the durable URL. Discourse keeps a deleted

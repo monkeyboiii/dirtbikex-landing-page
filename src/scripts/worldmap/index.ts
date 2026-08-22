@@ -1675,7 +1675,86 @@ class WorldMap {
       this.panel.showUploadOff();
       return;
     }
-    this.panel.showUploadIntro(pick, this.recentUploads(), (id) => void this.openSecretTrail(id));
+    this.panel.showUploadIntro(pick, this.recentUploads(), {
+      open: (id) => void this.reopenUpload(id),
+      remove: (id) => void this.deleteUpload(id),
+    });
+  }
+
+  /**
+   * Reopens an upload from this device's own list, as the sheet it had when it finished.
+   *
+   * Same sheet, minus the close guard: the first showing warns because the link is new and
+   * unshared, and this one cannot lose anything that is not already lost — it came FROM
+   * the list it would fall back to.
+   */
+  private async reopenUpload(id: string): Promise<void> {
+    const saved = this.recentUploads().find((r) => r.id === id);
+    let trail: Trail | null = null;
+    try {
+      const doc = (await fetch(`/api/map/trail/${encodeURIComponent(id)}.json`).then((r) =>
+        r.ok ? r.json() : null,
+      )) as { trail?: Trail } | null;
+      trail = doc?.trail ?? null;
+    } catch {
+      trail = null;
+    }
+    if (!trail?.stats?.centre || !saved) {
+      // Gone from the server: expired, claimed elsewhere, or deleted. Drop it here too
+      // rather than leaving a row that opens nothing.
+      this.forgetUpload(id);
+      this.panel.showMissingTrail();
+      return;
+    }
+
+    this.trailsById.set(trail.id, trail);
+    this.clearSelection();
+    this.selected = trail.id;
+    this.selectedTrail = trail.id;
+    this.setSelected(trail.id);
+    this.setDimmed(true);
+    this.renderVisible();
+    await this.traceTrail(trail);
+    if (this.selectedTrail === trail.id) {
+      this.drawTrail(trail.id);
+      const lines = this.trailGeometry.get(trail.id);
+      if (lines?.length) this.fitTrail(lines);
+    }
+    const left = Math.max(0, 72 - Math.floor((Date.now() - saved.at) / 3600_000));
+    this.panel.showUploadDone(
+      { id, secret: id, claim_code: '', expires_in_hours: left, map_url: `/?trail=${id}`, claim_url: saved.claim },
+      trail,
+      { guardClose: false },
+    );
+  }
+
+  private async deleteUpload(id: string): Promise<void> {
+    let ok = false;
+    try {
+      const res = await fetch(`/api/map/trail/${encodeURIComponent(id)}`, { method: 'DELETE' });
+      // A 404 means it is already gone, which is the outcome asked for.
+      ok = res.ok || res.status === 404;
+    } catch {
+      ok = false;
+    }
+    if (!ok) {
+      this.panel.showUploadError('failed');
+      return;
+    }
+    this.forgetUpload(id);
+    if (this.selectedTrail === id) this.clearPendingTrail();
+    this.panel.allowClose();
+    this.clearSelection();
+    this.openUploadIntro(() => this.root.querySelector<HTMLInputElement>('[data-upload-input]')?.click());
+  }
+
+  private forgetUpload(id: string) {
+    try {
+      localStorage.setItem(UPLOAD_STORE, JSON.stringify(this.recentUploads().filter((r) => r.id !== id)));
+    } catch {
+      /* private mode */
+    }
+    this.syncUploadBadge();
   }
 
   /**

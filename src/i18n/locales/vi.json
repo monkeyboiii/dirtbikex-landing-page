@@ -297,8 +297,10 @@
   "map.trail.anonymous": "Ẩn danh",
   "map.trail.anonymousMeta": "chưa ai nhận chuyến chạy này",
   "map.upload.expiresChip": "Hết hạn sau {n} giờ",
-  "map.upload.callToClaim": "Xong rồi. Chỉ một bước nữa là của bạn — hiện chưa ai biết ai đã tải lên. Bạn có thể chia sẻ ngay; nó chỉ sống {n} giờ.",
+  "map.upload.callToClaim": "Xong rồi. Chỉ một bước nữa là của bạn — chưa ai biết ai đã tải lên. Cứ chia sẻ nếu muốn; nó sống {n} giờ và chỉ được lưu trên thiết bị này.",
   "map.upload.yours": "Các lần tải lên gần đây",
   "map.upload.reopen": "mở",
-  "map.upload.confirmClose": "Liên kết này chỉ hiện một lần. Đóng mà không chia sẻ hay nhận?"
+  "map.upload.confirmClose": "Chỉ lưu trên thiết bị này. Đóng mà không chia sẻ hay nhận?",
+  "map.upload.delete": "Xoá",
+  "map.upload.confirmDelete": "Xoá cung đường này? Người có liên kết cũng mất nó, và không thể hoàn tác."
 }

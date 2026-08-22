@@ -300,8 +300,10 @@
   "map.trail.anonymous": "匿名",
   "map.trail.anonymousMeta": "还没有人认领这次骑行",
   "map.upload.expiresChip": "{n} 小时后过期",
-  "map.upload.callToClaim": "上传成功！再一步就能把它变成你的——现在还没人知道是谁传的。你已经可以分享它了，不过它只保留 {n} 小时。",
+  "map.upload.callToClaim": "上传成功！再一步就能把它变成你的——现在还没人知道是谁传的。你已经可以分享它了；它只保留 {n} 小时，而且只存在这台设备上。",
   "map.upload.yours": "你最近的上传",
   "map.upload.reopen": "打开",
-  "map.upload.confirmClose": "这个链接只显示一次。还没分享或认领，确定要关闭吗？"
+  "map.upload.confirmClose": "它只保存在这台设备上。还没分享或认领，确定要关闭吗？",
+  "map.upload.delete": "删除",
+  "map.upload.confirmDelete": "删除这条轨迹？拿到链接的人也会失去它，且无法撤销。"
 }

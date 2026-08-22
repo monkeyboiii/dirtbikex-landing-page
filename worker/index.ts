@@ -14,6 +14,7 @@ import {
   handleTrailUpload,
   handleTrailResolve,
   handleTrailGpx,
+  handleTrailDelete,
   handleUploadStatus,
   handleTrailsAdmin,
   trailForShare,
@@ -1149,6 +1150,13 @@ export default {
     }
     if (url.pathname === '/api/outreach/webhook' && request.method === 'POST') {
       return handleWebhook(request, env);
+    }
+
+    // The uploader changing their mind, authorised by the secret alone — see
+    // handleTrailDelete for why that is the right credential and a fingerprint is not.
+    if (request.method === 'DELETE') {
+      const gone = url.pathname.match(/^\/api\/map\/trail\/([a-z0-9]{6,16})$/);
+      if (gone) return handleTrailDelete(request, env, gone[1]!);
     }
 
     // Visitor trail upload — the one unauthenticated write on this worker.

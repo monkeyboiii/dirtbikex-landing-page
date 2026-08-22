@@ -297,8 +297,10 @@
   "map.trail.anonymous": "Anonyme",
   "map.trail.anonymousMeta": "personne n’a encore revendiqué cette sortie",
   "map.upload.expiresChip": "Expire dans {n} h",
-  "map.upload.callToClaim": "C’est fait. Encore une étape pour qu’elle soit à vous — personne ne sait qui l’a envoyée. Vous pouvez déjà la partager ; elle ne vit que {n} heures.",
+  "map.upload.callToClaim": "C’est fait. Encore une étape pour qu’elle soit à vous — personne ne sait encore qui l’a envoyée. Partagez-la si vous voulez ; elle vit {n} heures et n’est gardée que sur cet appareil.",
   "map.upload.yours": "Vos envois récents",
   "map.upload.reopen": "ouvrir",
-  "map.upload.confirmClose": "Ce lien n’est montré qu’une fois. Fermer sans partager ni revendiquer ?"
+  "map.upload.confirmClose": "Gardée sur cet appareil seulement. Fermer sans partager ni revendiquer ?",
+  "map.upload.delete": "Supprimer",
+  "map.upload.confirmDelete": "Supprimer cette trace ? Ceux qui ont le lien la perdent aussi, et c’est irréversible."
 }

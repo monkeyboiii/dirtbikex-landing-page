@@ -297,8 +297,10 @@
   "map.trail.anonymous": "익명",
   "map.trail.anonymousMeta": "아직 아무도 이 라이딩을 가져가지 않았습니다",
   "map.upload.expiresChip": "{n}시간 후 만료",
-  "map.upload.callToClaim": "해냈습니다. 한 걸음만 더 하면 당신의 것이 됩니다 — 지금은 누가 올렸는지 아무도 모릅니다. 이미 공유할 수 있지만 {n}시간만 유지됩니다.",
+  "map.upload.callToClaim": "해냈습니다. 한 걸음만 더 하면 당신의 것이 됩니다 — 아직 누가 올렸는지 아무도 모릅니다. 지금 공유해도 됩니다. {n}시간만 유지되고, 이 기기에만 저장됩니다.",
   "map.upload.yours": "최근 업로드",
   "map.upload.reopen": "열기",
-  "map.upload.confirmClose": "이 링크는 한 번만 표시됩니다. 공유도 가져가기도 하지 않고 닫을까요?"
+  "map.upload.confirmClose": "이 기기에만 저장됩니다. 공유도 가져가기도 하지 않고 닫을까요?",
+  "map.upload.delete": "삭제",
+  "map.upload.confirmDelete": "이 트레일을 삭제할까요? 링크를 가진 사람도 볼 수 없게 되며 되돌릴 수 없습니다."
 }

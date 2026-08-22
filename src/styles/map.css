@@ -1290,32 +1290,48 @@ body.is-map-page .site-header__inner {
 .wm-recent__item {
   display: flex;
   align-items: baseline;
-  justify-content: space-between;
   gap: 10px;
   width: 100%;
   padding: 8px 0;
-  border: 0;
   border-bottom: 1px solid var(--wm-line);
+  font-size: 0.88rem;
+}
+.wm-recent__name {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0;
+  border: 0;
   background: none;
   color: var(--wm-text);
   font: inherit;
-  font-size: 0.88rem;
+  font-size: inherit;
   text-align: left;
-  cursor: pointer;
-}
-.wm-recent__item:hover .wm-recent__name {
-  color: var(--wm-accent);
-}
-.wm-recent__name {
-  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  cursor: pointer;
 }
-.wm-recent__meta {
+.wm-recent__name:hover,
+.wm-recent__name:focus-visible {
+  color: var(--wm-accent);
+}
+.wm-recent__act {
   flex: none;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--wm-accent);
+  font: inherit;
   font-size: 0.78rem;
+  text-decoration: none;
+  cursor: pointer;
+}
+.wm-recent__act--drop {
   color: var(--wm-text-dim);
+}
+.wm-recent__act--drop:hover,
+.wm-recent__act--drop:focus-visible {
+  color: var(--wm-danger, #dc2626);
 }
 
 /* The sentence the sheet exists to deliver, straight under the title. */

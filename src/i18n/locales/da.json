@@ -297,8 +297,10 @@
   "map.trail.anonymous": "Anonym",
   "map.trail.anonymousMeta": "ingen har gjort krav på denne tur",
   "map.upload.expiresChip": "Udløber om {n} t",
-  "map.upload.callToClaim": "Det lykkedes. Ét skridt mere, så er det dit — lige nu ved ingen, hvem der uploadede det. Du kan allerede dele det; det lever kun {n} timer.",
+  "map.upload.callToClaim": "Det lykkedes. Ét skridt mere, så er det dit — ingen ved endnu, hvem der uploadede det. Del det bare; det lever {n} timer og gemmes kun på denne enhed.",
   "map.upload.yours": "Dine seneste uploads",
   "map.upload.reopen": "åbn",
-  "map.upload.confirmClose": "Dette link vises kun én gang. Luk uden at dele eller gøre krav?"
+  "map.upload.confirmClose": "Kun gemt på denne enhed. Luk uden at dele eller gøre krav?",
+  "map.upload.delete": "Slet",
+  "map.upload.confirmDelete": "Slet dette spor? De, der har linket, mister det også, og det kan ikke fortrydes."
 }

@@ -1193,7 +1193,7 @@ export function createPanel(deps: PanelDeps) {
     showUploadIntro(
       pick: () => void,
       recent: { id: string; title: string; claim: string }[] = [],
-      onOpen?: (id: string) => void,
+      acts?: { open: (id: string) => void; remove: (id: string) => void },
     ) {
       open((host) => {
         kicker(strings['map.upload.kicker'] ?? 'Your trail');
@@ -1211,17 +1211,37 @@ export function createPanel(deps: PanelDeps) {
 
         // The way back to a link a closed sheet took away. This device only — it fixes
         // the accident, and honestly not the case where the tab was on another phone.
-        if (recent.length && onOpen) {
+        if (recent.length && acts) {
           host.appendChild(el('h3', 'wm-panel__section', strings['map.upload.yours'] ?? 'Your recent uploads'));
           const list = el('div', 'wm-recent');
           for (const row of recent) {
-            const item = el('button', 'wm-recent__item') as HTMLButtonElement;
-            item.type = 'button';
-            item.append(
-              el('span', 'wm-recent__name', row.title),
-              el('span', 'wm-recent__meta', strings['map.upload.reopen'] ?? 'open'),
-            );
-            item.addEventListener('click', () => onOpen(row.id));
+            const item = el('div', 'wm-recent__item');
+
+            const name = el('button', 'wm-recent__name') as HTMLButtonElement;
+            name.type = 'button';
+            name.textContent = row.title;
+            name.title = strings['map.upload.reopen'] ?? 'Open';
+            name.addEventListener('click', () => acts.open(row.id));
+
+            // The claim URL carries the code, so it is never printed — it only ever
+            // becomes an href on a tab the rider opened themselves.
+            const claim = el('a', 'wm-recent__act') as HTMLAnchorElement;
+            claim.href = row.claim;
+            claim.target = '_blank';
+            claim.rel = 'noopener';
+            claim.textContent = strings['map.upload.claimShort'] ?? 'Claim';
+
+            const drop = el('button', 'wm-recent__act wm-recent__act--drop') as HTMLButtonElement;
+            drop.type = 'button';
+            drop.textContent = strings['map.upload.delete'] ?? 'Delete';
+            drop.addEventListener('click', () => {
+              if (window.confirm(strings['map.upload.confirmDelete']
+                ?? 'Delete this trail? Anyone holding the link loses it too, and this cannot be undone.')) {
+                acts.remove(row.id);
+              }
+            });
+
+            item.append(name, claim, drop);
             list.appendChild(item);
           }
           host.appendChild(list);
@@ -1414,7 +1434,7 @@ export function createPanel(deps: PanelDeps) {
      * copy button for one would put a string on the clipboard that cannot be pasted
      * anywhere. The trail link is here too, but as something to share rather than to keep.
      */
-    showUploadDone(result: UploadResult, trail: Trail) {
+    showUploadDone(result: UploadResult, trail: Trail, opts: { guardClose?: boolean } = {}) {
       open((host) => {
         const url = `${location.origin}/share/route/${encodeURIComponent(result.id)}`;
         kicker(strings['map.upload.kicker'] ?? 'Your trail');
@@ -1463,9 +1483,12 @@ export function createPanel(deps: PanelDeps) {
         claim.textContent = strings['map.upload.claimShort'] ?? 'Claim';
         row.append(by, claim);
         host.appendChild(row);
-        // From here the sheet is closable only on purpose, and only after a warning.
-        guardClose = () => window.confirm(strings['map.upload.confirmClose']
-          ?? 'This link is shown once. Close without sharing or claiming?');
+        // Only on the first showing. Reopened from the device's own list, closing cannot
+        // lose anything that is not already lost — it came from the list it falls back to.
+        if (opts.guardClose !== false) {
+          guardClose = () => window.confirm(strings['map.upload.confirmClose']
+            ?? 'Kept on this device only. Close without sharing or claiming?');
+        }
       }, { sticky: true });
     },
 

@@ -297,8 +297,10 @@
   "map.trail.anonymous": "Anonym",
   "map.trail.anonymousMeta": "noch niemand hat diese Fahrt übernommen",
   "map.upload.expiresChip": "Läuft in {n} h ab",
-  "map.upload.callToClaim": "Geschafft. Noch ein Schritt, dann gehört sie dir — im Moment weiß niemand, wer sie hochgeladen hat. Teilen kannst du sie schon; sie lebt nur {n} Stunden.",
+  "map.upload.callToClaim": "Geschafft. Noch ein Schritt, dann gehört sie dir — noch weiß niemand, wer sie hochgeladen hat. Teilen kannst du sie schon; sie lebt {n} Stunden und liegt nur auf diesem Gerät.",
   "map.upload.yours": "Deine letzten Uploads",
   "map.upload.reopen": "öffnen",
-  "map.upload.confirmClose": "Dieser Link wird nur einmal gezeigt. Ohne Teilen oder Übernehmen schließen?"
+  "map.upload.confirmClose": "Nur auf diesem Gerät gespeichert. Ohne Teilen oder Übernehmen schließen?",
+  "map.upload.delete": "Löschen",
+  "map.upload.confirmDelete": "Diese Strecke löschen? Auch wer den Link hat, verliert sie — das lässt sich nicht rückgängig machen."
 }
