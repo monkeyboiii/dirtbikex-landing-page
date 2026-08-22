@@ -61,6 +61,12 @@ export interface PagesEnv {
    *  including absent, leaves it on — a kill switch must never be armed by a typo, and a
    *  missing var must never silently disable a shipped feature. */
   TRAILS_UPLOAD_ENABLED?: string;
+  /** Cloudflare Turnstile. BOTH must be set or the challenge is skipped entirely — the
+   *  widget's script is third-party and its reachability from mainland China is unproven,
+   *  so this is opt-in per environment. The site key is public; the secret is a wrangler
+   *  secret and never reaches a browser. */
+  TURNSTILE_SITE_KEY?: string;
+  TURNSTILE_SECRET_KEY?: string;
   /** Overlap thresholds and the publish cap. Strings, parsed behind hard-coded fallbacks —
    *  see worker/_lib/trailOverlap.ts and wrangler.jsonc, where they live in BOTH blocks. */
   TRAIL_OVERLAP_CORRIDOR_M?: string;

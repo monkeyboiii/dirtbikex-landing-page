@@ -261,7 +261,7 @@
   "map.upload.open": "Rotanı ekle",
   "map.upload.kicker": "Senin rotan",
   "map.upload.title": "Sürüşünü haritaya koy",
-  "map.upload.body": "Bir .gpx dosyası bırak, çizelim. Başka kimse görmez: özel bir bağlantı alırsın ve forumda sahiplenmezsen rota 72 saat içinde silinir.",
+  "map.upload.body": "Bir .gpx dosyası bırak, çizelim. Herkese açmaya karar verene kadar yalnızca sana ait.",
   "map.upload.pick": ".gpx dosyası seç",
   "map.upload.drop": ".gpx dosyanı buraya bırak",
   "map.upload.working": "Yükleniyor…",
@@ -288,5 +288,16 @@
   "map.control.locate": "Nerede olduğumu göster",
   "map.control.locateDenied": "Konum tarayıcı ayarlarında engellenmiş",
   "map.panel.back": "Geri",
-  "map.panel.venue": "Bu yer hakkında"
+  "map.panel.venue": "Bu yer hakkında",
+  "map.upload.rename": "Yeniden adlandır",
+  "map.upload.confirm": "Yüklemeyi onayla",
+  "map.upload.chooseAnother": "Başka dosya seç",
+  "map.upload.ready": "Yüklemeye hazır",
+  "map.upload.privateNote": "Bu rotayı yalnızca bağlantıyı gönderdiğin kişiler görebilir.",
+  "map.upload.shareHint": "Bağlantıyı paylaş — buraya dönmenin tek yolu bu.",
+  "map.upload.verifying": "Kontrol ediliyor…",
+  "map.trail.visibleOnMap": "Herkese açık haritada",
+  "map.trail.hiddenFromMap": "Haritada değil — yalnızca bağlantı",
+  "map.trail.anonymous": "Anonim",
+  "map.trail.anonymousMeta": "bu sürüşü henüz kimse sahiplenmedi"
 }

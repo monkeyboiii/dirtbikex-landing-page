@@ -263,7 +263,7 @@
   "map.upload.open": "上传你的轨迹",
   "map.upload.kicker": "你的轨迹",
   "map.upload.title": "把你的骑行放上地图",
-  "map.upload.body": "拖入一个 .gpx 文件，我们会把它画出来。其他人看不到它：你会拿到一个私密链接，若不在论坛认领，轨迹将在 72 小时后删除。",
+  "map.upload.body": "拖入一个 .gpx 文件，我们会把它画出来。在你决定公开之前，它只属于你。",
   "map.upload.pick": "选择 .gpx 文件",
   "map.upload.drop": "把 .gpx 拖到这里",
   "map.upload.working": "上传中…",
@@ -291,5 +291,16 @@
   "map.control.locateDenied": "浏览器设置中已禁止定位",
   "map.panel.back": "返回",
   "map.panel.venue": "关于这个地点",
-  "map.trail.uploadedBy": "上传者"
+  "map.trail.uploadedBy": "上传者",
+  "map.upload.rename": "重命名",
+  "map.upload.confirm": "确认上传",
+  "map.upload.chooseAnother": "换一个文件",
+  "map.upload.ready": "准备上传",
+  "map.upload.privateNote": "只有收到链接的人才能看到这条轨迹。",
+  "map.upload.shareHint": "分享这个链接——这是回到这条轨迹的唯一方式。",
+  "map.upload.verifying": "正在验证…",
+  "map.trail.visibleOnMap": "已在公开地图上",
+  "map.trail.hiddenFromMap": "不在地图上——仅限链接",
+  "map.trail.anonymous": "匿名",
+  "map.trail.anonymousMeta": "还没有人认领这次骑行"
 }

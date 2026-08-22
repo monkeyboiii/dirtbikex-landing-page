@@ -264,7 +264,7 @@
   "map.upload.open": "ルートを追加",
   "map.upload.kicker": "あなたのルート",
   "map.upload.title": "走行を地図に載せる",
-  "map.upload.body": ".gpx ファイルをドロップすると描画します。他の人には見えません。専用リンクをお渡ししますが、フォーラムで受け取らないと 72 時間で削除されます。",
+  "map.upload.body": ".gpx ファイルをドロップすると描画します。公開すると決めるまで、あなただけのものです。",
   "map.upload.pick": ".gpx ファイルを選ぶ",
   "map.upload.drop": "ここに .gpx をドロップ",
   "map.upload.working": "アップロード中…",
@@ -291,5 +291,16 @@
   "map.control.locate": "現在地を表示",
   "map.control.locateDenied": "ブラウザの設定で位置情報がブロックされています",
   "map.panel.back": "戻る",
-  "map.panel.venue": "この場所について"
+  "map.panel.venue": "この場所について",
+  "map.upload.rename": "名前を変更",
+  "map.upload.confirm": "アップロードする",
+  "map.upload.chooseAnother": "別のファイルを選ぶ",
+  "map.upload.ready": "アップロードの準備完了",
+  "map.upload.privateNote": "リンクを送った相手だけがこのルートを見られます。",
+  "map.upload.shareHint": "リンクを共有してください。ここへ戻る唯一の方法です。",
+  "map.upload.verifying": "確認中…",
+  "map.trail.visibleOnMap": "公開マップに掲載中",
+  "map.trail.hiddenFromMap": "マップには出ません — リンクのみ",
+  "map.trail.anonymous": "匿名",
+  "map.trail.anonymousMeta": "まだ誰も受け取っていません"
 }

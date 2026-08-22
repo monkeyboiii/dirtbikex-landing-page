@@ -261,7 +261,7 @@
   "map.upload.open": "내 트레일 올리기",
   "map.upload.kicker": "내 트레일",
   "map.upload.title": "내 라이딩을 지도에 올리기",
-  "map.upload.body": ".gpx 파일을 끌어다 놓으면 그려 드립니다. 다른 사람에게는 보이지 않습니다. 비공개 링크를 받게 되며, 포럼에서 소유권을 확인하지 않으면 72시간 뒤 삭제됩니다.",
+  "map.upload.body": ".gpx 파일을 끌어다 놓으면 그려 드립니다. 공개하기로 결정하기 전까지는 당신만의 것입니다.",
   "map.upload.pick": ".gpx 파일 선택",
   "map.upload.drop": "여기에 .gpx 놓기",
   "map.upload.working": "업로드 중…",
@@ -288,5 +288,16 @@
   "map.control.locate": "내 위치 표시",
   "map.control.locateDenied": "브라우저 설정에서 위치 정보가 차단되어 있습니다",
   "map.panel.back": "뒤로",
-  "map.panel.venue": "이 장소에 대하여"
+  "map.panel.venue": "이 장소에 대하여",
+  "map.upload.rename": "이름 바꾸기",
+  "map.upload.confirm": "업로드 확인",
+  "map.upload.chooseAnother": "다른 파일 선택",
+  "map.upload.ready": "업로드 준비됨",
+  "map.upload.privateNote": "링크를 보낸 사람만 이 트레일을 볼 수 있습니다.",
+  "map.upload.shareHint": "링크를 공유하세요. 이 트레일로 돌아오는 유일한 방법입니다.",
+  "map.upload.verifying": "확인 중…",
+  "map.trail.visibleOnMap": "공개 지도에 표시됨",
+  "map.trail.hiddenFromMap": "지도에 없음 — 링크 전용",
+  "map.trail.anonymous": "익명",
+  "map.trail.anonymousMeta": "아직 아무도 이 라이딩을 가져가지 않았습니다"
 }

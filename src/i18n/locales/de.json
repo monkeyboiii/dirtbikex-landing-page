@@ -261,7 +261,7 @@
   "map.upload.open": "Deine Strecke hinzufügen",
   "map.upload.kicker": "Deine Strecke",
   "map.upload.title": "Bring deine Fahrt auf die Karte",
-  "map.upload.body": "Zieh eine .gpx-Datei hierher und wir zeichnen sie. Niemand sonst sieht sie: Du bekommst einen privaten Link, und die Strecke wird nach 72 Stunden gelöscht, wenn du sie im Forum nicht übernimmst.",
+  "map.upload.body": "Zieh eine .gpx-Datei hierher und wir zeichnen sie. Sie bleibt privat, bis du sie veröffentlichst.",
   "map.upload.pick": ".gpx-Datei wählen",
   "map.upload.drop": "Zieh deine .gpx hierher",
   "map.upload.working": "Wird hochgeladen…",
@@ -288,5 +288,16 @@
   "map.control.locate": "Zeig, wo ich bin",
   "map.control.locateDenied": "Standort ist in deinen Browsereinstellungen blockiert",
   "map.panel.back": "Zurück",
-  "map.panel.venue": "Über diesen Ort"
+  "map.panel.venue": "Über diesen Ort",
+  "map.upload.rename": "Umbenennen",
+  "map.upload.confirm": "Hochladen",
+  "map.upload.chooseAnother": "Andere Datei wählen",
+  "map.upload.ready": "Bereit zum Hochladen",
+  "map.upload.privateNote": "Nur wer den Link von dir bekommt, sieht diese Strecke.",
+  "map.upload.shareHint": "Teile den Link — er ist der einzige Weg zurück.",
+  "map.upload.verifying": "Prüfung läuft…",
+  "map.trail.visibleOnMap": "Auf der öffentlichen Karte",
+  "map.trail.hiddenFromMap": "Nicht auf der Karte — nur per Link",
+  "map.trail.anonymous": "Anonym",
+  "map.trail.anonymousMeta": "noch niemand hat diese Fahrt übernommen"
 }

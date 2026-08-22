@@ -261,7 +261,7 @@
   "map.upload.open": "Adicionar a sua trilha",
   "map.upload.kicker": "A sua trilha",
   "map.upload.title": "Ponha o seu rolê no mapa",
-  "map.upload.body": "Solte um ficheiro .gpx e nós o desenhamos. Mais ninguém o vê: você recebe um link privado, e a trilha é apagada em 72 horas se não a reivindicar no fórum.",
+  "map.upload.body": "Solte um ficheiro .gpx e nós o desenhamos. Fica só seu até decidir torná-lo público.",
   "map.upload.pick": "Escolher ficheiro .gpx",
   "map.upload.drop": "Solte o seu .gpx aqui",
   "map.upload.working": "A enviar…",
@@ -288,5 +288,16 @@
   "map.control.locate": "Mostrar onde estou",
   "map.control.locateDenied": "A localização está bloqueada nas definições do navegador",
   "map.panel.back": "Voltar",
-  "map.panel.venue": "Sobre este local"
+  "map.panel.venue": "Sobre este local",
+  "map.upload.rename": "Renomear",
+  "map.upload.confirm": "Confirmar envio",
+  "map.upload.chooseAnother": "Escolher outro ficheiro",
+  "map.upload.ready": "Pronto para enviar",
+  "map.upload.privateNote": "Só quem receber o link vê esta trilha.",
+  "map.upload.shareHint": "Partilhe o link — é a única forma de voltar.",
+  "map.upload.verifying": "A verificar…",
+  "map.trail.visibleOnMap": "No mapa público",
+  "map.trail.hiddenFromMap": "Fora do mapa — só por link",
+  "map.trail.anonymous": "Anónimo",
+  "map.trail.anonymousMeta": "ninguém reivindicou este rolê"
 }

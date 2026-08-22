@@ -261,7 +261,7 @@
   "map.upload.open": "Ajouter votre trace",
   "map.upload.kicker": "Votre trace",
   "map.upload.title": "Mettez votre sortie sur la carte",
-  "map.upload.body": "Déposez un fichier .gpx et nous le tracerons. Personne d’autre ne le voit : vous recevez un lien privé, et la trace est supprimée sous 72 heures si vous ne la revendiquez pas sur le forum.",
+  "map.upload.body": "Déposez un fichier .gpx et nous le tracerons. Il reste privé jusqu’à ce que vous décidiez de le publier.",
   "map.upload.pick": "Choisir un fichier .gpx",
   "map.upload.drop": "Déposez votre .gpx ici",
   "map.upload.working": "Envoi en cours…",
@@ -288,5 +288,16 @@
   "map.control.locate": "Montrer où je suis",
   "map.control.locateDenied": "La localisation est bloquée dans les réglages du navigateur",
   "map.panel.back": "Retour",
-  "map.panel.venue": "À propos de ce lieu"
+  "map.panel.venue": "À propos de ce lieu",
+  "map.upload.rename": "Renommer",
+  "map.upload.confirm": "Confirmer l’envoi",
+  "map.upload.chooseAnother": "Choisir un autre fichier",
+  "map.upload.ready": "Prêt à envoyer",
+  "map.upload.privateNote": "Seules les personnes à qui vous envoyez le lien voient cette trace.",
+  "map.upload.shareHint": "Partagez le lien — c’est le seul moyen d’y revenir.",
+  "map.upload.verifying": "Vérification…",
+  "map.trail.visibleOnMap": "Sur la carte publique",
+  "map.trail.hiddenFromMap": "Pas sur la carte — lien uniquement",
+  "map.trail.anonymous": "Anonyme",
+  "map.trail.anonymousMeta": "personne n’a encore revendiqué cette sortie"
 }

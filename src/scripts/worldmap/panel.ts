@@ -74,6 +74,8 @@ export interface PanelDeps {
   contactUrl: string;
   forumBase: string;
   onClose(): void;
+  /** Hands the island a Turnstile token to send with the next upload. */
+  setTurnstileToken(token: string): void;
   /** Bottom-trailing arrows: -1 = previous episode, +1 = next. */
   onStep(delta: number): void;
   /** Episode sheet -> venue sheet, pushed onto the view stack. */
@@ -184,6 +186,180 @@ function titleRow(
   }
 
   host.appendChild(row);
+}
+
+/**
+ * Three map fragments, each with a ride across it, cross-fading every five seconds.
+ *
+ * The roads are deliberately unlabelled and unplaceable: this says "your trail will look
+ * like this", not "your trail will be here". Drawn rather than screenshotted so it inherits
+ * the page's own colours in both themes and weighs nothing.
+ */
+function uploadPeek(): HTMLElement {
+  const wrap = el('div', 'wm-peek');
+  wrap.setAttribute('aria-hidden', 'true');
+
+  // Each scene: background streets, then one trace. Coordinates are hand-placed on a
+  // 320x150 canvas; the shapes are meant to read as somewhere, not as anywhere real.
+  const scenes = [
+    {
+      roads: ['M-10 44 H330', 'M-10 104 H330', 'M84 -10 V160', 'M212 -10 V160', 'M-10 74 H330', 'M148 -10 V160'],
+      trail: 'M40 130 C70 118 78 96 104 88 S150 92 168 74 196 44 226 40 268 52 292 34',
+    },
+    {
+      roads: ['M-10 30 C60 34 120 60 190 58 260 56 300 40 330 44', 'M-10 96 C70 90 130 112 200 108 270 104 310 118 330 114', 'M56 -10 V160', 'M244 -10 V160'],
+      trail: 'M60 24 C74 60 58 82 76 104 S128 132 156 116 178 74 208 68 250 88 276 122',
+    },
+    {
+      roads: ['M-10 62 L120 20 L230 66 L330 26', 'M-10 118 L110 80 L240 126 L330 92', 'M120 -10 L120 160', 'M240 -10 L240 160'],
+      trail: 'M44 100 C88 96 96 58 132 48 S186 66 206 92 254 116 288 96',
+    },
+  ];
+
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const frames = scenes.map((scene, i) => {
+    const svg = document.createElementNS(svgNS, 'svg');
+    svg.setAttribute('viewBox', '0 0 320 150');
+    svg.setAttribute('class', `wm-peek__frame${i === 0 ? ' is-on' : ''}`);
+    svg.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+    for (const d of scene.roads) {
+      const road = document.createElementNS(svgNS, 'path');
+      road.setAttribute('d', d);
+      road.setAttribute('class', 'wm-peek__road');
+      svg.appendChild(road);
+    }
+    const trail = document.createElementNS(svgNS, 'path');
+    trail.setAttribute('d', scene.trail);
+    trail.setAttribute('class', 'wm-peek__trail');
+    svg.appendChild(trail);
+    wrap.appendChild(svg);
+    return svg;
+  });
+
+  // Reduced motion keeps the first frame and never swaps: the point is made by one.
+  if (!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+    let at = 0;
+    const timer = window.setInterval(() => {
+      frames[at]!.classList.remove('is-on');
+      at = (at + 1) % frames.length;
+      frames[at]!.classList.add('is-on');
+      // The sheet is rebuilt on every open, so the old interval has to die with its DOM
+      // or they accumulate one per visit to this sheet.
+      if (!wrap.isConnected) window.clearInterval(timer);
+    }, 5000);
+  }
+  return wrap;
+}
+
+const PENCIL_SVG =
+  '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>';
+
+const EYE_SVG =
+  '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>';
+
+const EYE_OFF_SVG =
+  '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"/><path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/><path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"/><path d="m2 2 20 20"/></svg>';
+
+/**
+ * Loads Turnstile on demand and resolves with its token.
+ *
+ * On demand, and only when a site key exists, because the script comes from
+ * challenges.cloudflare.com — a third-party host on a site whose no-external-assets rule
+ * has its own CI test, and one whose reachability from mainland China is not something
+ * this codebase can assume. With no key configured nothing is fetched at all.
+ */
+function renderTurnstile(host: HTMLElement, siteKey: string): Promise<string> {
+  interface TurnstileApi {
+    render(el: HTMLElement, opts: Record<string, unknown>): void;
+  }
+  const api = () => (window as unknown as { turnstile?: TurnstileApi }).turnstile;
+
+  const script = (): Promise<void> => {
+    if (api()) return Promise.resolve();
+    const existing = document.querySelector<HTMLScriptElement>('script[data-turnstile]');
+    if (existing) {
+      return new Promise((done, fail) => {
+        existing.addEventListener('load', () => done(), { once: true });
+        existing.addEventListener('error', () => fail(new Error('turnstile')), { once: true });
+      });
+    }
+    return new Promise((done, fail) => {
+      const tag = document.createElement('script');
+      tag.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+      tag.async = true;
+      tag.defer = true;
+      tag.dataset.turnstile = 'true';
+      tag.addEventListener('load', () => done(), { once: true });
+      tag.addEventListener('error', () => fail(new Error('turnstile')), { once: true });
+      document.head.appendChild(tag);
+    });
+  };
+
+  return script().then(
+    () =>
+      new Promise<string>((done, fail) => {
+        const turnstile = api();
+        if (!turnstile) return fail(new Error('turnstile'));
+        host.textContent = '';
+        turnstile.render(host, {
+          sitekey: siteKey,
+          callback: (token: string) => done(token),
+          'error-callback': () => fail(new Error('turnstile')),
+          'timeout-callback': () => fail(new Error('turnstile')),
+        });
+      }),
+  );
+}
+
+/**
+ * The rider who has not signed for this trail yet.
+ *
+ * Same geometry as a real byline and deliberately not a link — it is the shape of the
+ * missing person, not a person. Used on any trail with no author: the anonymous sheet a
+ * link opens, and the rider's own sheet the moment after they upload.
+ */
+function anonBlock(strings: Record<string, string>): HTMLElement {
+  const by = el('div', 'wm-by wm-by--empty');
+  by.appendChild(el('span', 'wm-by__avatar', '?'));
+  const idBlock = el('span', 'wm-by__id');
+  idBlock.append(
+    el('span', 'wm-by__name', strings['map.trail.anonymous'] ?? 'Anonymous'),
+    el('span', 'wm-by__meta', strings['map.trail.anonymousMeta'] ?? 'nobody has claimed this ride'),
+  );
+  by.appendChild(idBlock);
+  return by;
+}
+
+/**
+ * Whether this trail is on the public map, said once, in the byline where the rest of its
+ * provenance lives. An eye that is open or shut is the whole message; the text is the
+ * tooltip, because a sheet that has to explain its own icon has the wrong icon.
+ */
+function visibilityMark(onMap: boolean, strings: Record<string, string>): HTMLElement {
+  const mark = el('span', `wm-eye${onMap ? ' wm-eye--on' : ''}`);
+  const label = onMap
+    ? strings['map.trail.visibleOnMap'] ?? 'On the public map'
+    : strings['map.trail.hiddenFromMap'] ?? 'Not on the map — link only';
+  mark.title = label;
+  mark.setAttribute('aria-label', label);
+  mark.setAttribute('role', 'img');
+  mark.innerHTML = onMap ? EYE_SVG : EYE_OFF_SVG;
+  return mark;
+}
+
+/**
+ * One quiet line pointing at the share button, shown once per visit.
+ *
+ * The link no longer sits on the sheet as text, so something has to say where it went.
+ * Deliberately NOT a forced tap, and deliberately not an automatic clipboard write:
+ * `navigator.clipboard.writeText` without a user gesture is refused outright by Safari,
+ * which is most of this audience, so an auto-copy would silently do nothing on the phones
+ * that matter most and leave the rider with no link at all.
+ */
+function nudgeShare(host: HTMLElement, strings: Record<string, string>): void {
+  const hint = el('p', 'wm-panel__nudge', strings['map.upload.shareHint']
+    ?? 'Share the link — it is the only way back to this trail.');
+  host.appendChild(hint);
 }
 
 function markSvg(platform: string, uid: string, size = 20): string {
@@ -930,15 +1106,125 @@ export function createPanel(deps: PanelDeps) {
       open((host) => {
         kicker(strings['map.upload.kicker'] ?? 'Your trail');
         titleRow(host, strings['map.upload.title'] ?? 'Put your ride on the map', null, strings);
+        host.appendChild(uploadPeek());
         host.appendChild(
           el('p', 'wm-panel__meta', strings['map.upload.body']
-            ?? 'Drop a .gpx file and we will draw it. Nobody else sees it: you get a private link and a code, and the trail is deleted in 72 hours unless you claim it on the forum.'),
+            ?? 'Drop a .gpx file and we will draw it. It stays private to you until you decide to make it public.'),
         );
         const button = el('button', 'wm-panel__cta') as HTMLButtonElement;
         button.type = 'button';
         button.textContent = strings['map.upload.pick'] ?? 'Choose a .gpx file';
         button.addEventListener('click', pick);
         host.appendChild(button);
+      });
+    },
+
+    /**
+     * The file is chosen and measured; nothing has left the browser yet.
+     *
+     * This step exists for the name. A recorder writes files called
+     * "2026-05-17_08-00-00.gpx", and that string used to become the trail's name with no
+     * chance to change it — so the sheet leads with the name, editable in place, and the
+     * upload does not start until somebody says so.
+     *
+     * The confirm button is where the Turnstile challenge fires, if one is configured.
+     */
+    showUploadReady(opts: {
+      name: string;
+      facts: string;
+      turnstileSiteKey: string | null;
+      onRename: (name: string) => void;
+      onConfirm: () => void;
+      onRepick: () => void;
+    }) {
+      open((host) => {
+        let name = opts.name;
+        kicker(strings['map.upload.ready'] ?? 'Ready to upload');
+
+        const row = el('div', 'wm-panel__titlerow');
+        const heading = el('h2', 'wm-panel__title', name);
+        const field = el('input', 'wm-panel__title wm-panel__title-input') as HTMLInputElement;
+        field.type = 'text';
+        field.maxLength = 120;
+        field.hidden = true;
+
+        const commit = () => {
+          const next = field.value.trim().slice(0, 120);
+          // An empty name is worse than a bad one — keep the last good value.
+          if (next) {
+            name = next;
+            opts.onRename(name);
+          }
+          heading.textContent = name;
+          field.hidden = true;
+          heading.hidden = false;
+        };
+        const edit = () => {
+          field.value = name;
+          heading.hidden = true;
+          field.hidden = false;
+          field.focus();
+          field.select();
+        };
+        field.addEventListener('blur', commit);
+        field.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            field.blur();
+          } else if (e.key === 'Escape') {
+            field.value = name;
+            field.blur();
+          }
+        });
+
+        const pencil = el('button', 'wm-panel__share') as HTMLButtonElement;
+        pencil.type = 'button';
+        const renameLabel = strings['map.upload.rename'] ?? 'Rename';
+        pencil.title = renameLabel;
+        pencil.setAttribute('aria-label', renameLabel);
+        pencil.innerHTML = PENCIL_SVG;
+        pencil.addEventListener('click', edit);
+
+        row.append(heading, field, pencil);
+        host.appendChild(row);
+        host.appendChild(el('p', 'wm-panel__meta', opts.facts));
+
+        // Turnstile mounts here when a site key is configured. With none, the container
+        // stays empty and confirm works immediately — the feature is off, not broken.
+        const gate = el('div', 'wm-panel__gate');
+        host.appendChild(gate);
+
+        const actions = el('div', 'wm-panel__actions wm-panel__actions--end');
+        const again = el('button', 'wm-panel__link') as HTMLButtonElement;
+        again.type = 'button';
+        again.textContent = strings['map.upload.chooseAnother'] ?? 'Choose a different file';
+        again.addEventListener('click', opts.onRepick);
+
+        const confirm = el('button', 'wm-panel__claim') as HTMLButtonElement;
+        confirm.type = 'button';
+        confirm.textContent = strings['map.upload.confirm'] ?? 'Confirm upload';
+        confirm.addEventListener('click', () => {
+          // Commit an open rename first, or the edit is silently discarded by the upload.
+          if (!field.hidden) commit();
+          if (!opts.turnstileSiteKey) {
+            opts.onConfirm();
+            return;
+          }
+          confirm.disabled = true;
+          gate.textContent = strings['map.upload.verifying'] ?? 'Checking you are human…';
+          void renderTurnstile(gate, opts.turnstileSiteKey)
+            .then((token) => {
+              deps.setTurnstileToken(token);
+              opts.onConfirm();
+            })
+            .catch(() => {
+              gate.textContent = strings['map.upload.errFailed'] ?? 'That did not go through. Try again.';
+              confirm.disabled = false;
+            });
+        });
+
+        actions.append(again, confirm);
+        host.appendChild(actions);
       });
     },
 
@@ -1011,25 +1297,10 @@ export function createPanel(deps: PanelDeps) {
       open((host) => {
         const url = `${location.origin}${result.map_url}`;
         kicker(strings['map.upload.kicker'] ?? 'Your trail');
-        // The share button sits where every other sheet keeps it. What it shares is the
-        // secret link, because that is the only address this trail has.
-        titleRow(host, strings['map.upload.doneTitle'] ?? 'One more step to go public!', { url }, strings);
-
-        // Directly under the title: the thing to hand around, before the facts about it.
-        // Tap anywhere on it — a URL is an awkward thing to select by hand on a phone.
-        const link = el('button', 'wm-panel__link-copy') as HTMLButtonElement;
-        link.type = 'button';
-        link.textContent = url;
-        link.title = strings['map.upload.copyLink'] ?? 'Copy this link';
-        link.addEventListener('click', () => {
-          void navigator.clipboard?.writeText(url).then(() => {
-            link.textContent = strings['map.upload.copied'] ?? 'Copied';
-            window.setTimeout(() => {
-              link.textContent = url;
-            }, 1400);
-          });
-        });
-        host.appendChild(link);
+        // The trail's own name leads, because by now it has one — the ready sheet made
+        // sure of that. The share button sits where every other sheet keeps it, and what
+        // it hands over is the secret link, the only address this trail has.
+        titleRow(host, localized(trail.title, lang) ?? result.id, { url }, strings);
 
         trailFacts(host, trail);
 
@@ -1051,13 +1322,21 @@ export function createPanel(deps: PanelDeps) {
         const claim = el('a', 'wm-panel__claim') as HTMLAnchorElement;
         claim.href = result.claim_url;
         claim.textContent = strings['map.upload.claimShort'] ?? 'Claim';
-        row.append(by, claim);
+        row.append(by, visibilityMark(false, strings), claim);
         host.appendChild(row);
 
+        // What "private" actually means, said where the rider is looking — under the face
+        // that is not theirs yet. The URL is not repeated here: the share button owns it.
+        host.appendChild(
+          el('p', 'wm-panel__meta', strings['map.upload.privateNote']
+            ?? 'Only people you send the link to can see this trail.'),
+        );
         host.appendChild(
           el('p', 'wm-panel__meta', (strings['map.upload.expires'] ?? 'Unclaimed, it is deleted in {n} hours.')
             .replace('{n}', String(result.expires_in_hours))),
         );
+        // The link is now behind one button, so it is worth pointing at it once.
+        nudgeShare(host, strings);
       }, { sticky: true });
     },
 
@@ -1110,19 +1389,27 @@ export function createPanel(deps: PanelDeps) {
         // /share/route/<id> reads the public map document, which a link-only trail is
         // deliberately not in. Sharing one means passing on its secret link, which the
         // upload sheet hands over explicitly — so this card simply has no share button.
-        const shareable = !trail.visibility || trail.visibility === 'public';
+        // Every trail sheet can be shared; what differs is WHAT gets shared. A public
+        // trail has a /share/ card that reads the map document. A link-only one has no
+        // card and never will — so it shares the only address it has, which is the link
+        // the visitor is already holding. Suppressing the button here left an anonymous
+        // trail with no way to pass it on at all.
+        const onMap = !trail.visibility || trail.visibility === 'public';
         titleRow(
           host,
           localized(trail.title, lang) ?? trail.id,
-          shareable ? { kind: 'route', key: trail.id } : null,
+          onMap
+            ? { kind: 'route', key: trail.id }
+            : { url: `${location.origin}/?trail=${encodeURIComponent(trail.id)}` },
           strings,
         );
 
         trailFacts(host, trail);
 
-        // An uploaded trail has no author until somebody claims it. Rendering an empty
-        // face there would invent a person; rendering the service account would name the
-        // wrong one. So an unclaimed trail simply has no byline, and its links stand alone.
+        // An uploaded trail has no author until somebody claims it — but the section still
+        // renders. Dropping it left the sheet ending mid-thought after the chips, which
+        // reads as broken rather than as anonymous. The placeholder says the true thing:
+        // somebody rode this and has not put their name to it.
         const by = trail.author_username
           ? personBlock(
               trail.author_username,
@@ -1130,16 +1417,20 @@ export function createPanel(deps: PanelDeps) {
               trail.author_avatar ?? null,
               strings['map.trail.rider'] ?? 'Rider',
             )
-          : null;
+          : anonBlock(strings);
         // A face and a name with nothing said about them read as the subject of the
         // sheet. The label is what makes them the author of it.
-        if (by) host.appendChild(el('h3', 'wm-panel__section', strings['map.trail.uploadedBy'] ?? 'Uploaded by'));
+        host.appendChild(el('h3', 'wm-panel__section', strings['map.trail.uploadedBy'] ?? 'Uploaded by'));
 
         // The two ways out of this trail sit on the uploader's row rather than in a
         // strip of their own: one line of who and where-next, not two of each.
         const row = el('div', 'wm-panel__socials');
         const byline = el('div', 'wm-panel__byline');
-        if (by) byline.append(by);
+        byline.append(by);
+        // A trail that knows its own visibility says so here. An operator import has no
+        // `visibility` at all and is public by definition, so it gets no mark — the eye
+        // is only interesting where it could have been the other way.
+        if (trail.visibility) byline.append(visibilityMark(trail.visibility === 'public', strings));
         byline.append(row);
         host.appendChild(byline);
         const mark = (icon: string | null, href: string, label: string, svg?: string) => {

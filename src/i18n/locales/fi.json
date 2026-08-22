@@ -261,7 +261,7 @@
   "map.upload.open": "Lisää reittisi",
   "map.upload.kicker": "Sinun reittisi",
   "map.upload.title": "Vie ajosi kartalle",
-  "map.upload.body": "Pudota .gpx-tiedosto, niin piirrämme sen. Kukaan muu ei näe sitä: saat yksityisen linkin, ja reitti poistetaan 72 tunnissa, ellet lunasta sitä foorumilla.",
+  "map.upload.body": "Pudota .gpx-tiedosto, niin piirrämme sen. Se on vain sinun, kunnes päätät julkaista sen.",
   "map.upload.pick": "Valitse .gpx-tiedosto",
   "map.upload.drop": "Pudota .gpx tähän",
   "map.upload.working": "Lähetetään…",
@@ -288,5 +288,16 @@
   "map.control.locate": "Näytä missä olen",
   "map.control.locateDenied": "Sijainti on estetty selaimen asetuksissa",
   "map.panel.back": "Takaisin",
-  "map.panel.venue": "Tietoa tästä paikasta"
+  "map.panel.venue": "Tietoa tästä paikasta",
+  "map.upload.rename": "Nimeä uudelleen",
+  "map.upload.confirm": "Vahvista lähetys",
+  "map.upload.chooseAnother": "Valitse toinen tiedosto",
+  "map.upload.ready": "Valmis lähetettäväksi",
+  "map.upload.privateNote": "Vain ne, joille lähetät linkin, näkevät tämän reitin.",
+  "map.upload.shareHint": "Jaa linkki — se on ainoa tie takaisin.",
+  "map.upload.verifying": "Tarkistetaan…",
+  "map.trail.visibleOnMap": "Julkisella kartalla",
+  "map.trail.hiddenFromMap": "Ei kartalla — vain linkillä",
+  "map.trail.anonymous": "Nimetön",
+  "map.trail.anonymousMeta": "kukaan ei ole lunastanut tätä ajoa"
 }

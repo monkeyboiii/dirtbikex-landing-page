@@ -261,7 +261,7 @@
   "map.upload.open": "Tambahkan jalurmu",
   "map.upload.kicker": "Jalurmu",
   "map.upload.title": "Taruh perjalananmu di peta",
-  "map.upload.body": "Lepas berkas .gpx dan kami akan menggambarnya. Tidak ada orang lain yang melihatnya: kamu dapat tautan pribadi, dan jalur ini dihapus dalam 72 jam kecuali kamu mengklaimnya di forum.",
+  "map.upload.body": "Lepas berkas .gpx dan kami akan menggambarnya. Tetap milikmu sampai kamu memutuskan membukanya.",
   "map.upload.pick": "Pilih berkas .gpx",
   "map.upload.drop": "Lepas .gpx kamu di sini",
   "map.upload.working": "Mengunggah…",
@@ -288,5 +288,16 @@
   "map.control.locate": "Tunjukkan lokasi saya",
   "map.control.locateDenied": "Lokasi diblokir di pengaturan peramban",
   "map.panel.back": "Kembali",
-  "map.panel.venue": "Tentang tempat ini"
+  "map.panel.venue": "Tentang tempat ini",
+  "map.upload.rename": "Ganti nama",
+  "map.upload.confirm": "Konfirmasi unggah",
+  "map.upload.chooseAnother": "Pilih berkas lain",
+  "map.upload.ready": "Siap diunggah",
+  "map.upload.privateNote": "Hanya orang yang kamu kirimi tautan yang bisa melihat jalur ini.",
+  "map.upload.shareHint": "Bagikan tautannya — itu satu-satunya jalan kembali.",
+  "map.upload.verifying": "Memeriksa…",
+  "map.trail.visibleOnMap": "Di peta publik",
+  "map.trail.hiddenFromMap": "Tidak di peta — hanya tautan",
+  "map.trail.anonymous": "Anonim",
+  "map.trail.anonymousMeta": "belum ada yang mengklaim perjalanan ini"
 }

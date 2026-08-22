@@ -261,7 +261,7 @@
   "map.upload.open": "مسیرت را اضافه کن",
   "map.upload.kicker": "مسیر تو",
   "map.upload.title": "رکاب‌زنی‌ات را روی نقشه بگذار",
-  "map.upload.body": "یک فایل ‎.gpx‎ رها کن تا آن را رسم کنیم. کس دیگری آن را نمی‌بیند: یک پیوند خصوصی می‌گیری و اگر در انجمن آن را از آنِ خود نکنی، مسیر تا ۷۲ ساعت دیگر حذف می‌شود.",
+  "map.upload.body": "یک فایل ‎.gpx‎ رها کن تا آن را رسم کنیم. تا وقتی خودت نخواهی عمومی شود، فقط مال توست.",
   "map.upload.pick": "انتخاب فایل ‎.gpx‎",
   "map.upload.drop": "فایل ‎.gpx‎ را اینجا رها کن",
   "map.upload.working": "در حال بارگذاری…",
@@ -288,5 +288,16 @@
   "map.control.locate": "موقعیتم را نشان بده",
   "map.control.locateDenied": "موقعیت مکانی در تنظیمات مرورگر مسدود است",
   "map.panel.back": "بازگشت",
-  "map.panel.venue": "دربارهٔ این مکان"
+  "map.panel.venue": "دربارهٔ این مکان",
+  "map.upload.rename": "تغییر نام",
+  "map.upload.confirm": "تأیید بارگذاری",
+  "map.upload.chooseAnother": "انتخاب فایل دیگر",
+  "map.upload.ready": "آمادهٔ بارگذاری",
+  "map.upload.privateNote": "فقط کسانی که لینک را برایشان می‌فرستی این مسیر را می‌بینند.",
+  "map.upload.shareHint": "لینک را به اشتراک بگذار — تنها راه بازگشت همین است.",
+  "map.upload.verifying": "در حال بررسی…",
+  "map.trail.visibleOnMap": "روی نقشهٔ عمومی",
+  "map.trail.hiddenFromMap": "روی نقشه نیست — فقط با لینک",
+  "map.trail.anonymous": "ناشناس",
+  "map.trail.anonymousMeta": "هنوز کسی این رکاب‌زنی را از آنِ خود نکرده"
 }

@@ -28,6 +28,7 @@ const RICH_LIMIT = 80_000;
 
 export type UploadReason =
   | 'uploads_disabled'
+  | 'challenge_failed'
   | 'too_large'
   | 'no_track'
   | 'route_points'
@@ -310,6 +311,7 @@ export function uploadTrail(
   file: File,
   pre: Preflight,
   onProgress?: (phase: UploadPhase, ratio: number | null) => void,
+  turnstileToken?: string | null,
 ): Promise<UploadResult | UploadReason> {
   const body = new FormData();
   body.set('file', file, file.name || 'ride.gpx');
@@ -326,6 +328,9 @@ export function uploadTrail(
       sig_coarse: pre.sigCoarse,
     }),
   );
+  // Absent unless the operator configured Turnstile. The worker skips verification when
+  // it has no secret, so an absent token is a working upload, not a rejected one.
+  if (turnstileToken) body.set('turnstile', turnstileToken);
 
   return new Promise((resolve) => {
     const xhr = new XMLHttpRequest();
@@ -343,6 +348,7 @@ export function uploadTrail(
       // The kill switch, learned the hard way: the button may have been drawn before the
       // door shut, so the answer has to come back through this path too.
       if (xhr.status === 503) return resolve('uploads_disabled');
+      if (xhr.status === 403) return resolve('challenge_failed');
       if (xhr.status === 413) return resolve('too_large');
       if (xhr.status < 200 || xhr.status >= 300) return resolve('failed');
       try {

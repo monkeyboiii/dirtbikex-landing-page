@@ -14,7 +14,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 // the hashed, same-origin URL.
 import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import { fetchGpx, parseGpx } from './gpx';
-import { preflight, uploadTrail } from './upload';
+import { preflight, uploadTrail, type Preflight } from './upload';
 import { createPanel, type Panel } from './panel';
 import { wireSearch } from './search';
 import { createHud, type Hud } from './hud';
@@ -435,11 +435,15 @@ class WorldMap {
     return this.dark ? this.cfg.styleDarkUrl : this.cfg.styleLightUrl;
   }
 
+  /** Kept from start(), so sheets the island builds itself can be localised too. */
+  private strings: Strings = {};
+
   async start(
     canvas: HTMLElement,
     strings: Strings,
     hooks: { onStyle?: () => void; onBasemap?: (seconds: number) => void; onReveal?: () => void } = {},
   ) {
+    this.strings = strings;
     for (const feature of this.tracks.features) {
       const props = feature.properties as TrackProps | null;
       if (!props?.slug) continue;
@@ -1534,6 +1538,13 @@ class WorldMap {
    */
   /** Null until the status lands. Absent is treated as ON, matching the worker. */
   private uploadsOn: boolean | null = null;
+  /** Both null unless the operator configured Turnstile; see /api/map/upload.json. */
+  private turnstileSiteKey: string | null = null;
+  private turnstileToken: string | null = null;
+
+  setTurnstileToken(token: string) {
+    this.turnstileToken = token;
+  }
 
   /**
    * Asks the worker whether the door is open. Fire-and-forget at boot: the answer only
@@ -1543,8 +1554,9 @@ class WorldMap {
     try {
       const res = (await fetch('/api/map/upload.json', { cache: 'no-store' }).then((r) =>
         r.ok ? r.json() : null,
-      )) as { enabled?: boolean } | null;
+      )) as { enabled?: boolean; turnstile_site_key?: string | null } | null;
       this.uploadsOn = res?.enabled !== false;
+      this.turnstileSiteKey = res?.turnstile_site_key || null;
     } catch {
       // A failed probe must not grey out a working button.
       this.uploadsOn = true;
@@ -1564,7 +1576,15 @@ class WorldMap {
     this.panel.showUploadIntro(pick);
   }
 
-  async uploadTrail(file: File): Promise<void> {
+  /**
+   * A file was chosen. Measure it, then STOP and show what we found.
+   *
+   * The upload used to start here. It does not any more, for one reason: a recorder writes
+   * files called "2026-05-17_08-00-00.gpx" and that string became the trail's name with no
+   * chance to change it. Now the name is the first thing on screen and editable, and
+   * nothing leaves the browser until somebody presses confirm.
+   */
+  async offerUpload(file: File, repick: () => void): Promise<void> {
     const progress = this.panel.showUploadBusy();
     let text: string;
     try {
@@ -1582,8 +1602,43 @@ class WorldMap {
       this.panel.showUploadError(pre);
       return;
     }
+
+    const ready = { ...pre };
+    this.panel.showUploadReady({
+      name: ready.title || file.name.replace(/\.gpx$/i, ''),
+      facts: this.uploadFacts(ready),
+      turnstileSiteKey: this.turnstileSiteKey,
+      onRename: (name) => {
+        ready.title = name;
+      },
+      onRepick: repick,
+      onConfirm: () => void this.sendUpload(file, text, ready),
+    });
+  }
+
+  /** Distance, shape and date in one line — enough to recognise the right file. */
+  private uploadFacts(pre: Preflight): string {
+    const unit = (v: number, u: string, extra: Intl.NumberFormatOptions = {}) =>
+      new Intl.NumberFormat(this.cfg.lang, { style: 'unit', unit: u, unitDisplay: 'short', ...extra }).format(v);
+    const bits: string[] = [];
+    if (pre.distance_km) bits.push(unit(pre.distance_km, 'kilometer', { maximumFractionDigits: 1 }));
+    const shape = pre.stats.shape;
+    if (shape === 'loop') bits.push(this.strings['map.trail.loop'] ?? 'Loop');
+    else if (shape === 'point_to_point') bits.push(this.strings['map.trail.pointToPoint'] ?? 'Point to point');
+    const when = pre.stats.time?.recorded_at;
+    if (when) {
+      const at = new Date(when);
+      if (!Number.isNaN(at.valueOf())) {
+        bits.push(at.toLocaleDateString(this.cfg.lang, { year: 'numeric', month: 'short', day: 'numeric' }));
+      }
+    }
+    return bits.join(' · ');
+  }
+
+  private async sendUpload(file: File, text: string, pre: Preflight): Promise<void> {
+    const progress = this.panel.showUploadBusy();
     progress('sending', 0);
-    const result = await uploadTrail(file, pre, progress);
+    const result = await uploadTrail(file, pre, progress, this.turnstileToken);
     if (result === 'uploads_disabled') {
       this.uploadsOn = false;
       const button = this.root.querySelector<HTMLElement>('[data-upload]');
@@ -1949,7 +2004,7 @@ function wireRail(root: HTMLElement, world: WorldMap) {
       const file = picker.files?.[0];
       // Cleared before the await, or picking the same file twice fires no second change.
       picker.value = '';
-      if (file) void world.uploadTrail(file);
+      if (file) void world.offerUpload(file, () => picker.click());
     });
   }
   if (picker && drop) {
@@ -1980,7 +2035,7 @@ function wireRail(root: HTMLElement, world: WorldMap) {
         world.openUploadIntro(() => picker.click());
         return;
       }
-      void world.uploadTrail(file);
+      void world.offerUpload(file, () => picker.click());
     });
   }
 
@@ -2092,6 +2147,7 @@ export async function bootWorldMap() {
       forumBase: cfg.forumBase,
       isVerified: (slug, hasTopic) => world.verdict(slug, hasTopic),
       onClose: () => world.clearSelection(),
+      setTurnstileToken: (token) => world.setTurnstileToken(token),
       onVenue: (track) => world.openVenue(track),
       onStep: (delta) => world.stepEntry(delta),
     });

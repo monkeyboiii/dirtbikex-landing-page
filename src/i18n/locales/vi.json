@@ -261,7 +261,7 @@
   "map.upload.open": "Thêm cung đường của bạn",
   "map.upload.kicker": "Cung đường của bạn",
   "map.upload.title": "Đưa chuyến chạy của bạn lên bản đồ",
-  "map.upload.body": "Thả một tệp .gpx và chúng tôi sẽ vẽ nó. Không ai khác thấy được: bạn nhận một liên kết riêng, và cung đường sẽ bị xoá sau 72 giờ nếu bạn không nhận nó trên diễn đàn.",
+  "map.upload.body": "Thả một tệp .gpx và chúng tôi sẽ vẽ nó. Nó là của riêng bạn cho đến khi bạn quyết định công khai.",
   "map.upload.pick": "Chọn tệp .gpx",
   "map.upload.drop": "Thả tệp .gpx vào đây",
   "map.upload.working": "Đang tải lên…",
@@ -288,5 +288,16 @@
   "map.control.locate": "Hiện vị trí của tôi",
   "map.control.locateDenied": "Vị trí đang bị chặn trong cài đặt trình duyệt",
   "map.panel.back": "Quay lại",
-  "map.panel.venue": "Về địa điểm này"
+  "map.panel.venue": "Về địa điểm này",
+  "map.upload.rename": "Đổi tên",
+  "map.upload.confirm": "Xác nhận tải lên",
+  "map.upload.chooseAnother": "Chọn tệp khác",
+  "map.upload.ready": "Sẵn sàng tải lên",
+  "map.upload.privateNote": "Chỉ những người bạn gửi liên kết mới thấy cung đường này.",
+  "map.upload.shareHint": "Hãy chia sẻ liên kết — đó là cách duy nhất quay lại.",
+  "map.upload.verifying": "Đang kiểm tra…",
+  "map.trail.visibleOnMap": "Trên bản đồ công khai",
+  "map.trail.hiddenFromMap": "Không trên bản đồ — chỉ qua liên kết",
+  "map.trail.anonymous": "Ẩn danh",
+  "map.trail.anonymousMeta": "chưa ai nhận chuyến chạy này"
 }

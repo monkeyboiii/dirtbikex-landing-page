@@ -1104,6 +1104,103 @@ body.is-map-page .site-header__inner {
   }
 }
 
+/* Three drawn map fragments, cross-fading. Not a live map: a second WebGL context to sell
+   the first one would cost a tile fetch and a frame budget to say what a drawing says at
+   once. Inline SVG, so it themes with the page and cannot fail to load. */
+.wm-peek {
+  position: relative;
+  width: 100%;
+  height: 132px;
+  margin: 10px 0 14px;
+  overflow: hidden;
+  border-radius: 10px;
+  border: 1px solid var(--wm-line);
+  background: rgba(var(--wm-veil), 0.35);
+}
+.wm-peek__frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 900ms ease;
+}
+.wm-peek__frame.is-on {
+  opacity: 1;
+}
+.wm-peek__road {
+  fill: none;
+  stroke: var(--wm-line-strong);
+  stroke-width: 2;
+  stroke-linecap: round;
+  opacity: 0.55;
+}
+.wm-peek__trail {
+  fill: none;
+  stroke: var(--wm-trail, #22c55e);
+  stroke-width: 3.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+@media (prefers-reduced-motion: reduce) {
+  .wm-peek__frame {
+    transition: none;
+  }
+}
+
+/* Renaming happens in place: the title becomes a field and goes back to being a title. */
+.wm-panel__title-input {
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid var(--wm-accent);
+  border-radius: 0;
+  background: none;
+  color: var(--wm-text);
+  font: inherit;
+  outline: none;
+}
+
+/* Turnstile mounts here, and only when a site key exists. Empty otherwise — zero height,
+   no border, nothing to explain. */
+.wm-panel__gate:not(:empty) {
+  margin-top: 12px;
+  min-height: 1.5em;
+  font-size: 0.84rem;
+  color: var(--wm-text-dim);
+}
+
+/* Confirm sits at the trailing edge with the quiet re-pick beside it. */
+.wm-panel__actions--end {
+  justify-content: flex-end;
+  gap: 14px;
+  margin-top: 16px;
+}
+
+/* On the map, or not. Sits in the byline where the rest of a trail's provenance lives. */
+.wm-eye {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  color: var(--wm-text-dim);
+  border: 1px solid var(--wm-line);
+}
+.wm-eye--on {
+  color: var(--wm-accent);
+  border-color: var(--wm-accent);
+}
+
+/* The one line that says where the link went, now that it is behind a button. */
+.wm-panel__nudge {
+  margin-top: 10px;
+  font-size: 0.82rem;
+  color: var(--wm-accent);
+}
+
 /* The link, directly under the title: smaller than the body, monospaced so a URL reads as
    a URL, and the whole thing is the copy target. */
 .wm-panel__link-copy {

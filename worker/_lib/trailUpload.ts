@@ -164,7 +164,42 @@ export function uploadsEnabled(env: PagesEnv): boolean {
  * lets the control tell the truth before somebody has picked a file.
  */
 export function handleUploadStatus(env: PagesEnv): Response {
-  return json(200, { enabled: uploadsEnabled(env) });
+  return json(200, {
+    enabled: uploadsEnabled(env),
+    // The SITE key is public by design — it identifies the widget, not the account. The
+    // secret never leaves the worker. Null means Turnstile is not configured, and the
+    // client then never fetches challenges.cloudflare.com at all.
+    turnstile_site_key: env.TURNSTILE_SITE_KEY || null,
+  });
+}
+
+/**
+ * Verifies a Turnstile token, if Turnstile is configured at all.
+ *
+ * Off by default and off unless BOTH keys are set. Two reasons this is not simply always
+ * on: the widget's script comes from a third-party host on a site whose no-external-assets
+ * rule has its own CI test, and this product's audience is mainland China, where
+ * challenges.cloudflare.com's reachability is not something this codebase can assume. A
+ * challenge nobody can load is not friction, it is an outage.
+ */
+async function turnstileOk(request: Request, env: PagesEnv, form: FormData, ip: string): Promise<boolean> {
+  if (!env.TURNSTILE_SECRET_KEY || !env.TURNSTILE_SITE_KEY) return true;
+  const token = String(form.get('turnstile') ?? '');
+  if (!token) return false;
+  try {
+    const resp = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ secret: env.TURNSTILE_SECRET_KEY, response: token, remoteip: ip }),
+    });
+    const body = (await resp.json()) as { success?: boolean };
+    return body.success === true;
+  } catch (err) {
+    // Fails CLOSED. The limiter above already refuses when its own dependency is missing,
+    // and a challenge that silently passes when its verifier is unreachable is not one.
+    console.error('trail:turnstile_threw', { err: String(err) });
+    return false;
+  }
 }
 
 /** POST /api/map/trail — the whole visitor-facing write surface. */
@@ -199,6 +234,8 @@ export async function handleTrailUpload(request: Request, env: PagesEnv): Promis
   } catch {
     return json(400, { error: 'invalid_form' });
   }
+
+  if (!(await turnstileOk(request, env, form, ip))) return json(403, { error: 'challenge_failed' });
 
   const file = form.get('file');
   if (!(file instanceof File) || file.size === 0) return json(400, { error: 'no_file' });

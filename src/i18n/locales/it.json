@@ -261,7 +261,7 @@
   "map.upload.open": "Aggiungi il tuo percorso",
   "map.upload.kicker": "Il tuo percorso",
   "map.upload.title": "Metti il tuo giro sulla mappa",
-  "map.upload.body": "Trascina un file .gpx e lo disegniamo. Nessun altro lo vede: ricevi un link privato, e il percorso viene cancellato dopo 72 ore se non lo rivendichi sul forum.",
+  "map.upload.body": "Trascina un file .gpx e lo disegniamo. Resta privato finché non decidi di pubblicarlo.",
   "map.upload.pick": "Scegli un file .gpx",
   "map.upload.drop": "Trascina qui il tuo .gpx",
   "map.upload.working": "Caricamento…",
@@ -288,5 +288,16 @@
   "map.control.locate": "Mostra dove sono",
   "map.control.locateDenied": "La posizione è bloccata nelle impostazioni del browser",
   "map.panel.back": "Indietro",
-  "map.panel.venue": "Su questo luogo"
+  "map.panel.venue": "Su questo luogo",
+  "map.upload.rename": "Rinomina",
+  "map.upload.confirm": "Conferma caricamento",
+  "map.upload.chooseAnother": "Scegli un altro file",
+  "map.upload.ready": "Pronto per il caricamento",
+  "map.upload.privateNote": "Solo chi riceve il link vede questo percorso.",
+  "map.upload.shareHint": "Condividi il link: è l’unico modo per tornarci.",
+  "map.upload.verifying": "Verifica in corso…",
+  "map.trail.visibleOnMap": "Sulla mappa pubblica",
+  "map.trail.hiddenFromMap": "Non sulla mappa — solo link",
+  "map.trail.anonymous": "Anonimo",
+  "map.trail.anonymousMeta": "nessuno ha ancora rivendicato questo giro"
 }

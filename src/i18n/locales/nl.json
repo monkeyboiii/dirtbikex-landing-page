@@ -261,7 +261,7 @@
   "map.upload.open": "Voeg je route toe",
   "map.upload.kicker": "Jouw route",
   "map.upload.title": "Zet je rit op de kaart",
-  "map.upload.body": "Sleep een .gpx-bestand hierheen en we tekenen het. Niemand anders ziet het: je krijgt een privélink, en de route wordt na 72 uur verwijderd als je hem niet op het forum opeist.",
+  "map.upload.body": "Sleep een .gpx-bestand hierheen en we tekenen het. Het blijft privé tot jij het publiek maakt.",
   "map.upload.pick": "Kies een .gpx-bestand",
   "map.upload.drop": "Sleep je .gpx hierheen",
   "map.upload.working": "Uploaden…",
@@ -288,5 +288,16 @@
   "map.control.locate": "Laat zien waar ik ben",
   "map.control.locateDenied": "Locatie is geblokkeerd in je browserinstellingen",
   "map.panel.back": "Terug",
-  "map.panel.venue": "Over deze plek"
+  "map.panel.venue": "Over deze plek",
+  "map.upload.rename": "Naam wijzigen",
+  "map.upload.confirm": "Uploaden bevestigen",
+  "map.upload.chooseAnother": "Ander bestand kiezen",
+  "map.upload.ready": "Klaar om te uploaden",
+  "map.upload.privateNote": "Alleen wie de link van jou krijgt, ziet deze route.",
+  "map.upload.shareHint": "Deel de link — het is de enige weg terug.",
+  "map.upload.verifying": "Controleren…",
+  "map.trail.visibleOnMap": "Op de openbare kaart",
+  "map.trail.hiddenFromMap": "Niet op de kaart — alleen via link",
+  "map.trail.anonymous": "Anoniem",
+  "map.trail.anonymousMeta": "niemand heeft deze rit opgeëist"
 }

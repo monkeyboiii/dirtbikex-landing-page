@@ -261,7 +261,7 @@
   "map.upload.open": "Tilføj dit spor",
   "map.upload.kicker": "Dit spor",
   "map.upload.title": "Sæt din tur på kortet",
-  "map.upload.body": "Slip en .gpx-fil, så tegner vi den. Ingen andre ser den: du får et privat link, og sporet slettes efter 72 timer, medmindre du gør krav på det i forummet.",
+  "map.upload.body": "Slip en .gpx-fil, så tegner vi den. Den er kun din, indtil du vælger at gøre den offentlig.",
   "map.upload.pick": "Vælg en .gpx-fil",
   "map.upload.drop": "Slip din .gpx her",
   "map.upload.working": "Uploader…",
@@ -288,5 +288,16 @@
   "map.control.locate": "Vis hvor jeg er",
   "map.control.locateDenied": "Placering er blokeret i dine browserindstillinger",
   "map.panel.back": "Tilbage",
-  "map.panel.venue": "Om dette sted"
+  "map.panel.venue": "Om dette sted",
+  "map.upload.rename": "Omdøb",
+  "map.upload.confirm": "Bekræft upload",
+  "map.upload.chooseAnother": "Vælg en anden fil",
+  "map.upload.ready": "Klar til upload",
+  "map.upload.privateNote": "Kun dem, du sender linket til, kan se dette spor.",
+  "map.upload.shareHint": "Del linket — det er den eneste vej tilbage.",
+  "map.upload.verifying": "Kontrollerer…",
+  "map.trail.visibleOnMap": "På det offentlige kort",
+  "map.trail.hiddenFromMap": "Ikke på kortet — kun link",
+  "map.trail.anonymous": "Anonym",
+  "map.trail.anonymousMeta": "ingen har gjort krav på denne tur"
 }

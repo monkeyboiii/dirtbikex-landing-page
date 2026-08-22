@@ -261,7 +261,7 @@
   "map.upload.open": "เพิ่มเส้นทางของคุณ",
   "map.upload.kicker": "เส้นทางของคุณ",
   "map.upload.title": "นำการขี่ของคุณขึ้นแผนที่",
-  "map.upload.body": "วางไฟล์ .gpx แล้วเราจะวาดให้ ไม่มีใครอื่นเห็น คุณจะได้ลิงก์ส่วนตัว และเส้นทางจะถูกลบใน 72 ชั่วโมงหากคุณไม่รับสิทธิ์ในฟอรัม",
+  "map.upload.body": "วางไฟล์ .gpx แล้วเราจะวาดให้ เป็นของคุณคนเดียวจนกว่าคุณจะตัดสินใจเผยแพร่",
   "map.upload.pick": "เลือกไฟล์ .gpx",
   "map.upload.drop": "วางไฟล์ .gpx ตรงนี้",
   "map.upload.working": "กำลังอัปโหลด…",
@@ -288,5 +288,16 @@
   "map.control.locate": "แสดงตำแหน่งของฉัน",
   "map.control.locateDenied": "ตำแหน่งถูกบล็อกในการตั้งค่าเบราว์เซอร์",
   "map.panel.back": "ย้อนกลับ",
-  "map.panel.venue": "เกี่ยวกับสถานที่นี้"
+  "map.panel.venue": "เกี่ยวกับสถานที่นี้",
+  "map.upload.rename": "เปลี่ยนชื่อ",
+  "map.upload.confirm": "ยืนยันการอัปโหลด",
+  "map.upload.chooseAnother": "เลือกไฟล์อื่น",
+  "map.upload.ready": "พร้อมอัปโหลด",
+  "map.upload.privateNote": "เฉพาะคนที่คุณส่งลิงก์ให้เท่านั้นที่เห็นเส้นทางนี้",
+  "map.upload.shareHint": "แชร์ลิงก์นี้ — เป็นทางเดียวที่จะกลับมา",
+  "map.upload.verifying": "กำลังตรวจสอบ…",
+  "map.trail.visibleOnMap": "อยู่บนแผนที่สาธารณะ",
+  "map.trail.hiddenFromMap": "ไม่อยู่บนแผนที่ — เฉพาะลิงก์",
+  "map.trail.anonymous": "ไม่ระบุชื่อ",
+  "map.trail.anonymousMeta": "ยังไม่มีใครรับสิทธิ์การขี่ครั้งนี้"
 }

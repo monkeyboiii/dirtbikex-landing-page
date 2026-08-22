@@ -261,7 +261,7 @@
   "map.upload.open": "أضف مسارك",
   "map.upload.kicker": "مسارك",
   "map.upload.title": "ضع جولتك على الخريطة",
-  "map.upload.body": "أفلت ملف ‎.gpx‎ وسنرسمه. لا يراه أحد غيرك: تحصل على رابط خاص، ويُحذف المسار خلال 72 ساعة ما لم تطالب به في المنتدى.",
+  "map.upload.body": "أفلت ملف ‎.gpx‎ وسنرسمه. يبقى خاصًا بك حتى تقرر نشره.",
   "map.upload.pick": "اختر ملف ‎.gpx‎",
   "map.upload.drop": "أفلت ملف ‎.gpx‎ هنا",
   "map.upload.working": "جارٍ الرفع…",
@@ -288,5 +288,16 @@
   "map.control.locate": "أظهر موقعي",
   "map.control.locateDenied": "الموقع محظور في إعدادات المتصفح",
   "map.panel.back": "رجوع",
-  "map.panel.venue": "عن هذا المكان"
+  "map.panel.venue": "عن هذا المكان",
+  "map.upload.rename": "إعادة تسمية",
+  "map.upload.confirm": "تأكيد الرفع",
+  "map.upload.chooseAnother": "اختر ملفًا آخر",
+  "map.upload.ready": "جاهز للرفع",
+  "map.upload.privateNote": "لا يرى هذا المسار إلا من ترسل له الرابط.",
+  "map.upload.shareHint": "شارك الرابط — فهو الطريق الوحيد للعودة.",
+  "map.upload.verifying": "جارٍ التحقق…",
+  "map.trail.visibleOnMap": "على الخريطة العامة",
+  "map.trail.hiddenFromMap": "ليس على الخريطة — بالرابط فقط",
+  "map.trail.anonymous": "مجهول",
+  "map.trail.anonymousMeta": "لم يطالب أحد بهذه الجولة بعد"
 }

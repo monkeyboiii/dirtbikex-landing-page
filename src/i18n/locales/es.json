@@ -261,7 +261,7 @@
   "map.upload.open": "Añade tu ruta",
   "map.upload.kicker": "Tu ruta",
   "map.upload.title": "Pon tu salida en el mapa",
-  "map.upload.body": "Suelta un archivo .gpx y lo dibujaremos. Nadie más lo ve: recibes un enlace privado, y la ruta se borra en 72 horas si no la reclamas en el foro.",
+  "map.upload.body": "Suelta un archivo .gpx y lo dibujaremos. Es solo tuyo hasta que decidas hacerlo público.",
   "map.upload.pick": "Elegir archivo .gpx",
   "map.upload.drop": "Suelta tu .gpx aquí",
   "map.upload.working": "Subiendo…",
@@ -288,5 +288,16 @@
   "map.control.locate": "Mostrar dónde estoy",
   "map.control.locateDenied": "La ubicación está bloqueada en los ajustes del navegador",
   "map.panel.back": "Atrás",
-  "map.panel.venue": "Sobre este lugar"
+  "map.panel.venue": "Sobre este lugar",
+  "map.upload.rename": "Renombrar",
+  "map.upload.confirm": "Confirmar subida",
+  "map.upload.chooseAnother": "Elegir otro archivo",
+  "map.upload.ready": "Listo para subir",
+  "map.upload.privateNote": "Solo quien reciba el enlace puede ver esta ruta.",
+  "map.upload.shareHint": "Comparte el enlace: es la única forma de volver.",
+  "map.upload.verifying": "Comprobando…",
+  "map.trail.visibleOnMap": "En el mapa público",
+  "map.trail.hiddenFromMap": "Fuera del mapa: solo por enlace",
+  "map.trail.anonymous": "Anónimo",
+  "map.trail.anonymousMeta": "nadie ha reclamado esta salida"
 }
