@@ -267,9 +267,23 @@ query string and all, in `cookies[:destination_url]`, and the session controller
 it after sign-in — so the code is not lost. The reason the plugin has to call it by hand
 is that core only calls it automatically when `login_required` is on, and it is not.
 
-The code is single-use: the worker clears `claim_code` in the same statement that clears
-`expires_at`, because a claimed trail is permanent and its code is spent, and neither
-should be able to be true without the other. Arriving twice lands on the message.
+**The code is spent, not deleted.** `claimed_at` is what spends it; the bind guard is
+`claimed_at IS NULL`, so it cannot be bound twice. Deleting it — the first shape — meant
+`resolve_claim` found nothing on the second visit and the rider got a 404 instead of the
+message holding their own trail. Now resolve returns the claimed row, `claim!` recognises
+the owner through the existing `TrailClaim`, and the controller redirects to their post.
+
+The ownership test on that branch is load-bearing: without it, anyone landing on a live
+code is handed the existing claim and redirected into a stranger's personal message.
+Discourse's guardian would stop them reading it, but they would have confirmed a real code
+against a real account for free. A spent code with no local claim, and anybody else's
+code, both still 404. Verified on staging 2026-08-22: replay by the owner returns the same
+claim and writes no second post; the same code from another account raises `not_found`.
+
+**The message links back.** `/share/route/<id>`, not `/?trail=<secret>` — the share card
+resolves a private trail out of D1 as well as a public one, and it is keyed on the public
+id, which survives the secret rotation that going public and then private performs. A
+baked-in secret would be a link that quietly stops working.
 
 Two things had to be verified on staging before this worked at all, both on 2026-08-21:
 
@@ -281,6 +295,32 @@ Two things had to be verified on staging before this worked at all, both on 2026
   `[name|attachment](upload://…gpx)`.** The bare short URL cooks to plain text and
   registers nothing — measured: `upload_references` stayed at 0 with the bare form and went
   to 1 with the link form. That is why D1 carries `gpx_short_url` at all.
+
+## The byline is cached at claim time
+
+The worker holds one Discourse scope, `uploads:create`. It cannot read a user, so if the
+display name and avatar template are not handed to it they are never known — which is why
+every claimed trail rendered its byline as a bare letter tile while the curated ones, whose
+rows are pushed with the byline already on them, showed a face.
+
+`bind_claim` now carries `name` and `avatar`, and so does the reconcile payload: a claim
+written while the worker was unreachable would otherwise reach the map with no byline at
+all. D1 caches both on the row (`0012_trails_author_profile`) and `toEntry` emits them.
+
+It is a cache, and it goes stale — a rider who changes their avatar keeps the old one on
+the map until something rewrites the row. That is the right trade for a document served to
+anonymous visitors: the alternative is the map fetching a forum profile per trail.
+
+## Deleting a claimed trail, from the device that uploaded it
+
+`DELETE /api/map/trail/<secret>` refuses a claimed trail with 409, and should: the secret
+is no longer the authority over something that belongs to a forum post. What was wrong was
+that the browser reported the refusal as a failed delete and left the row in its own
+recent-uploads list forever, with no way to clear it.
+
+The row is the one thing in that exchange that *can* go, and losing it loses nothing — a
+claimed trail is reachable from its message. So 409 now forgets the row locally and says
+where the trail went, with a link to the post.
 
 ## Push for latency, pull for correctness
 

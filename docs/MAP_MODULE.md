@@ -113,20 +113,47 @@ Written as negations — "not a shop, not a trail" — is how shops, and later t
 into the track layers twice. One toggle owns exactly one kind through `KIND_OF`, and that
 same map drives the cull's ownership test and hit-test layer selection.
 
-Every kind rides the single `tracks` GeoJSON source, so shops and trails inherit the viewport
-cull and the per-kind budget for free.
+Every kind rides the single `tracks` GeoJSON source, so shops and trails inherit the
+declutter for free.
 
 ## The map draws the viewport, not the catalog
 
-3,640 pins at every zoom made a dense country read as a blob. The cull keeps only what is in
-view, capped per kind, spread over a ~116px grid, with the budget scaling to viewport size.
+3,640 pins at every zoom made a dense country read as a blob. `renderVisible` ships only what
+is in view and decides, per pin, whether it gets artwork or stays a dot.
+
+Nothing is dropped from the source. A pin that loses its slot ships with `top: 0` and draws as
+a dot; every artwork layer — glyph, blip, glow, seal, label — filters on `top`. That two-tier
+result is the whole design: the winners are readable, the losers are density, and pulling the
+map back thins the artwork out instead of emptying the country.
+
+**`pinPitch` sizes the grid, not a constant.** Icons scale with zoom, so the spacing that keeps
+two of them apart has to scale with them. 1.35 × the artwork box, floored at 44 px, which lands
+on 117 px at street zoom — the number the old fixed grid used. Pins that merely fail to overlap
+still read as a clump, which is why the factor is above 1.
+
+**Every layer that is switched on keeps a guaranteed share** (12% of the cap, minimum 4) before
+the general fill. One shared grid without it lets 3,600 tracks take every cell in the country
+and leaves the rider trails with none — a layer you deliberately switched on rendering as
+nothing at all.
+
+**Challenge badges are DOM markers**, outside the source and outside MapLibre's symbol placer,
+so nothing was keeping two of them apart at any zoom. They are placed into the same grid first,
+because a badge is the headline of whatever it is pinned to, and lose to `.is-crowded`.
 
 **No clustering.** Graduated radius plus a low-zoom bloom reads as density and is far less
 code; the plan's orange count bubbles were never built. Revisit only if a dense region looks
 like a blob again.
 
-The selected pin and every episode venue are exempt from culling — culling the feature the
-panel is describing strands its halo and its sheet.
+The selected pin and every episode venue are exempt — culling the feature the panel is
+describing strands its halo and its sheet.
+
+### The scar: minzoom 8
+
+Every artwork layer used to carry `minzoom: 8`, so below it a trail or a shop was not a smaller
+mark, it was *nothing* — tracks kept their dot layer and the other two kinds had none. Combined
+with a cull that deleted losers outright, a pulled-back map was a handful of dots on an empty
+continent. Both halves had to change together: lowering the minzoom alone would have drawn
+overlapping artwork, and marking losers alone would have kept them invisible.
 
 ## Verified is earned, not inherited from the catalog
 
