@@ -92,7 +92,10 @@ function pinPitch(map: MapLibreMap): number {
     if (z <= z0) break;
     k = z >= z1 ? k1 : k0 + ((k1 - k0) * (z - z0)) / (z1 - z0);
   }
-  return Math.max(26, BLIP_PX * k * 0.9);
+  // 1.35 of the artwork box, not 1.0: pins that merely fail to overlap still read as a
+  // clump. At street zoom this lands on 117 px, which is what the old fixed grid used —
+  // the change is that it now shrinks with the artwork instead of staying there.
+  return Math.max(44, BLIP_PX * k * 1.35);
 }
 
 const EMPTY: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: [] };
@@ -1169,7 +1172,7 @@ class WorldMap {
     const rows = Math.max(1, Math.ceil(canvas.clientHeight / pitch));
     // The grid is the real ceiling; this is a drawing budget on top of it, not a design
     // opinion about how full a map should look.
-    const cap = Math.min(cols * rows, isNarrow() ? 160 : 460);
+    const cap = Math.min(cols * rows, isNarrow() ? 90 : 240);
     const stride = cols + 3;
 
     const taken = new Set<number>();
