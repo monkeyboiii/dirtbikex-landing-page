@@ -337,6 +337,40 @@ function labelField(lang: string): unknown {
     : ['coalesce', ['get', 'name'], ''];
 }
 
+/**
+ * The basemaps a visitor can choose between.
+ *
+ * `auto` is the pair this map has always shipped — a light and a dark style built here, so
+ * the ground follows the page's theme. The others are single styles and therefore ignore
+ * the theme, which is the honest behaviour: a topographic map has one look, and pretending
+ * otherwise by tinting it would misrepresent terrain shading.
+ *
+ * Liberty comes from tiles.openfreemap.org, which already serves every tile on this map, so
+ * it costs no new dependency. Topo does NOT: style, tiles, fonts and sprites all live on
+ * gpx.studio's servers. It is here because it is the one that shows the ground — hillshade
+ * and contours — and that is what a trail map is for. See docs/MAP_MODULE.md for why that
+ * is a deliberate, and temporary, exception.
+ */
+const BASEMAPS = ['auto', 'topo', 'liberty'] as const;
+type Basemap = (typeof BASEMAPS)[number];
+const BASEMAP_URL: Record<Exclude<Basemap, 'auto'>, string> = {
+  topo: 'https://styles.gpx.studio/liberty-topo.json',
+  liberty: 'https://tiles.openfreemap.org/styles/liberty',
+};
+const BASEMAP_STORE = 'dbx-map-basemap';
+const LAYERS_SVG =
+  '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z"/><path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12"/><path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17"/></svg>';
+
+function storedBasemap(): Basemap {
+  try {
+    const saved = localStorage.getItem(BASEMAP_STORE);
+    if (saved && (BASEMAPS as readonly string[]).includes(saved)) return saved as Basemap;
+  } catch {
+    /* private mode */
+  }
+  return 'auto';
+}
+
 function trailPinFilter(drawn: string | null): unknown {
   const isTrail = ['==', ['get', 'kind'], 'trail'];
   return drawn ? ['all', isTrail, ['!=', ['get', 'slug'], drawn]] : isTrail;
@@ -478,7 +512,10 @@ class WorldMap {
     private trailsDoc: Promise<unknown>,
   ) {}
 
+  private basemap: Basemap = storedBasemap();
+
   private get styleUrl() {
+    if (this.basemap !== 'auto') return BASEMAP_URL[this.basemap];
     return this.dark ? this.cfg.styleDarkUrl : this.cfg.styleLightUrl;
   }
 
@@ -590,12 +627,32 @@ class WorldMap {
   private watchTheme() {
     new MutationObserver(() => {
       const dark = isDarkTheme();
-      if (dark !== this.dark) void this.applyTheme(dark);
+      // A chosen basemap is a chosen basemap. Only `auto` tracks the page, and reloading a
+      // single-look style on every theme flip would throw the visitor's view away to
+      // arrive at the same tiles.
+      if (dark === this.dark) return;
+      this.dark = dark;
+      if (this.basemap === 'auto') void this.restyle();
     }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
   }
 
-  private async applyTheme(dark: boolean) {
-    this.dark = dark;
+  /** Switches the ground under everything, keeping what the visitor was looking at. */
+  async setBasemap(next: Basemap) {
+    if (next === this.basemap) return;
+    this.basemap = next;
+    try {
+      localStorage.setItem(BASEMAP_STORE, next);
+    } catch {
+      /* private mode */
+    }
+    await this.restyle();
+  }
+
+  get currentBasemap(): Basemap {
+    return this.basemap;
+  }
+
+  private async restyle() {
     await new Promise<void>((resolve) => {
       this.map.once('style.load', () => resolve());
       this.map.setStyle(this.styleUrl);
@@ -2308,7 +2365,7 @@ function paintRail(root: HTMLElement, state: Record<LayerId, boolean>) {
   }
 }
 
-function wireRail(root: HTMLElement, world: WorldMap) {
+function wireRail(root: HTMLElement, world: WorldMap, strings: Strings) {
   for (const button of root.querySelectorAll<HTMLButtonElement>('[data-layer]')) {
     const id = button.dataset.layer as LayerId;
     const sync = () => button.setAttribute('aria-pressed', String(world.layerState(id)));
@@ -2354,6 +2411,57 @@ function wireRail(root: HTMLElement, world: WorldMap) {
       locate.dataset.state = 'busy';
       locate.dataset.state = await world.locate();
       world.syncControls();
+    });
+  }
+
+  // Which ground the map draws on. A menu rather than a cycling button: three named looks
+  // with different reasons to want them is a choice, and a button that silently advances
+  // through them makes the visitor hunt for the one they had.
+  const basemapBtn = root.querySelector<HTMLButtonElement>('[data-basemap]');
+  if (basemapBtn) {
+    let menu: HTMLElement | null = null;
+    const close = () => {
+      menu?.remove();
+      menu = null;
+      basemapBtn.setAttribute('aria-expanded', 'false');
+    };
+    const open = () => {
+      menu = document.createElement('div');
+      menu.className = 'wm-basemaps';
+      menu.setAttribute('role', 'radiogroup');
+      menu.setAttribute('aria-label', strings['map.basemap.title'] ?? 'Map style');
+      for (const id of BASEMAPS) {
+        const row = document.createElement('button');
+        row.type = 'button';
+        row.className = 'wm-basemaps__row';
+        row.setAttribute('role', 'radio');
+        row.setAttribute('aria-checked', String(id === world.currentBasemap));
+        const name = document.createElement('span');
+        name.className = 'wm-basemaps__name';
+        name.textContent = strings[`map.basemap.${id}`] ?? id;
+        const note = document.createElement('span');
+        note.className = 'wm-basemaps__note';
+        note.textContent = strings[`map.basemap.${id}Note`] ?? '';
+        row.append(name, note);
+        row.addEventListener('click', () => {
+          close();
+          void world.setBasemap(id);
+        });
+        menu.appendChild(row);
+      }
+      basemapBtn.setAttribute('aria-expanded', 'true');
+      basemapBtn.insertAdjacentElement('afterend', menu);
+    };
+    basemapBtn.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      if (menu) close();
+      else open();
+    });
+    document.addEventListener('click', (ev) => {
+      if (menu && !menu.contains(ev.target as Node)) close();
+    });
+    document.addEventListener('keydown', (ev) => {
+      if (ev.key === 'Escape' && menu) close();
     });
   }
 
@@ -2542,7 +2650,7 @@ export async function bootWorldMap() {
       world.placementIndex,
     );
     world.attach(panel, hud);
-    wireRail(root, world);
+    wireRail(root, world, strings);
     wireSearch(root, {
       strings,
       rows: () => world.catalogRows,

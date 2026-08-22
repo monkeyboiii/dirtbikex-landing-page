@@ -1715,6 +1715,63 @@ body.is-map-page .site-header__inner {
   gap: 8px;
   margin-top: 12px;
 }
+/* The style menu. Opens to the LEFT of the rail, which is pinned to the right edge —
+   anywhere else and it would open off-screen on a phone. */
+.wm-basemaps {
+  position: absolute;
+  top: 0;
+  right: calc(100% + 10px);
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  min-width: 178px;
+  padding: 6px;
+  border-radius: 14px;
+  border: 1px solid var(--wm-line);
+  background: var(--wm-surface-solid, #fff);
+  box-shadow: 0 12px 32px rgb(0 0 0 / 18%);
+}
+.wm-basemaps__row {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.wm-basemaps__row:hover,
+.wm-basemaps__row:focus-visible {
+  background: color-mix(in srgb, currentColor 8%, transparent);
+}
+.wm-basemaps__row[aria-checked='true'] .wm-basemaps__name::after {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-inline-start: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  vertical-align: middle;
+}
+.wm-basemaps__name {
+  font-size: 13px;
+  font-weight: 600;
+}
+.wm-basemaps__note {
+  font-size: 11px;
+  opacity: 0.62;
+}
+@media (max-width: 767px) {
+  .wm-basemaps {
+    right: calc(100% + 8px);
+    min-width: 156px;
+  }
+}
 .wm-rail__actions::before {
   content: '';
   position: absolute;

@@ -80,6 +80,13 @@ const DEFAULTS: Record<string, string> = {
   'map.upload.errBusy': 'Too many uploads from here just now. Try again in a few minutes.',
   'map.upload.errFailed': 'That did not go through. Try again.',
   'map.trail.goneTitle': 'This trail is no longer here',
+  'map.basemap.title': 'Map style',
+  'map.basemap.auto': 'DirtBikeX',
+  'map.basemap.autoNote': 'Follows the page theme',
+  'map.basemap.topo': 'Topographic',
+  'map.basemap.topoNote': 'Hillshade and contours',
+  'map.basemap.liberty': 'Streets',
+  'map.basemap.libertyNote': 'Plain and fast',
   'map.upload.claimedTitle': 'This one is yours now',
   'map.upload.claimedBody':
     'It is signed, so it no longer needs this list to survive — your message on the forum holds the file and decides whether it shows on the map. Removed from this device.',
@@ -250,6 +257,10 @@ const config = {
       <button type="button" class="wm-rail__btn wm-rail__btn--action" data-search-toggle aria-expanded="false" title={s('map.search.open')} aria-label={s('map.search.open')}>
         <span class="wm-rail__on" set:html={`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>`} />
         <span class="wm-rail__label">{s('map.search.open')}</span>
+      </button>
+      <button type="button" class="wm-rail__btn wm-rail__btn--action" data-basemap aria-expanded="false" title={s('map.basemap.title')} aria-label={s('map.basemap.title')}>
+        <span class="wm-rail__on" set:html={`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z"/><path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12"/><path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17"/></svg>`} />
+        <span class="wm-rail__label">{s('map.basemap.title')}</span>
       </button>
       <button type="button" class="wm-rail__btn wm-rail__btn--action" data-recenter title={s('map.control.recenter')} aria-label={s('map.control.recenter')}>
         <span class="wm-rail__on" set:html={`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="2" x2="5" y1="12" y2="12"/><line x1="19" x2="22" y1="12" y2="12"/><line x1="12" x2="12" y1="2" y2="5"/><line x1="12" x2="12" y1="19" y2="22"/><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/></svg>`} />
