@@ -821,6 +821,9 @@ async function handleLineagePage(request: Request, env: Env, ref: string, route:
  */
 interface ClaimCopy {
   title: string;
+  /** Second visit: the code is spent, so the page stops asking and starts pointing. */
+  claimedBody: string;
+  claimedCta: string;
   body: string;
   cta: string;
   slowTitle: string;
@@ -834,6 +837,8 @@ interface ClaimCopy {
 const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
   en: {
     title: 'This link is your secret',
+    claimedBody: 'This one is already yours. Your message on the forum holds the file and the switch that puts it on the public map.',
+    claimedCta: 'Open my message',
     body: 'One more step: set up a quick profile so we know who rode it. Your trail can stay private — we only want to put your name on it.',
     cta: 'Set up my profile',
     slowTitle: 'Too many attempts',
@@ -845,6 +850,8 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
   },
   'zh-CN': {
     title: '这是你的专属链接',
+    claimedBody: '这条轨迹已经是你的了。论坛上的私信里存着文件，也有把它放上公开地图的开关。',
+    claimedCta: '打开我的私信',
     body: '只差一步：简单建个资料，让我们知道这是谁骑的。轨迹可以继续保持私密——我们只是想给它署上你的名字。',
     cta: '建立我的资料',
     slowTitle: '尝试次数过多',
@@ -856,6 +863,8 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
   },
   'zh-TW': {
     title: '這是你的專屬連結',
+    claimedBody: '這條路線已經是你的了。論壇上的私訊裡存著檔案，也有把它放上公開地圖的開關。',
+    claimedCta: '開啟我的私訊',
     body: '只差一步：簡單建個檔案，讓我們知道這是誰騎的。軌跡可以繼續保持私密——我們只是想給它署上你的名字。',
     cta: '建立我的檔案',
     slowTitle: '嘗試次數過多',
@@ -867,6 +876,8 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
   },
   ja: {
     title: 'これはあなただけのリンクです',
+    claimedBody: 'このルートはすでにあなたのものです。フォーラムのメッセージにファイルと、公開マップに載せるスイッチがあります。',
+    claimedCta: 'メッセージを開く',
     body: 'あと一歩。かんたんなプロフィールを作って、誰が走ったのか教えてください。ルートは非公開のままで大丈夫です — 名前をつけたいだけです。',
     cta: 'プロフィールを作る',
     slowTitle: '試行が多すぎます',
@@ -878,6 +889,8 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
   },
   ko: {
     title: '이 링크는 당신만의 것입니다',
+    claimedBody: '이 경로는 이미 회원님의 것입니다. 포럼 메시지에 파일과 공개 지도에 올리는 스위치가 있습니다.',
+    claimedCta: '내 메시지 열기',
     body: '한 걸음만 더. 간단한 프로필을 만들어 누가 탔는지 알려주세요. 트레일은 계속 비공개여도 됩니다 — 이름만 붙이려는 것입니다.',
     cta: '프로필 만들기',
     slowTitle: '시도가 너무 많습니다',
@@ -889,6 +902,8 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
   },
   de: {
     title: 'Dieser Link ist dein Geheimnis',
+    claimedBody: 'Diese Route gehört bereits dir. In deiner Nachricht im Forum liegen die Datei und der Schalter für die öffentliche Karte.',
+    claimedCta: 'Meine Nachricht öffnen',
     body: 'Nur noch ein Schritt: leg ein kurzes Profil an, damit wir wissen, wer gefahren ist. Die Strecke darf privat bleiben — wir wollen nur deinen Namen darauf.',
     cta: 'Profil anlegen',
     slowTitle: 'Zu viele Versuche',
@@ -900,6 +915,8 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
   },
   fr: {
     title: 'Ce lien est votre secret',
+    claimedBody: 'Cette trace est déjà la vôtre. Votre message sur le forum contient le fichier et le bouton qui la met sur la carte publique.',
+    claimedCta: 'Ouvrir mon message',
     body: 'Encore une étape : créez un profil rapide pour qu’on sache qui a roulé. La trace peut rester privée — on veut seulement y mettre votre nom.',
     cta: 'Créer mon profil',
     slowTitle: 'Trop de tentatives',
@@ -911,6 +928,8 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
   },
   es: {
     title: 'Este enlace es tu secreto',
+    claimedBody: 'Esta ruta ya es tuya. Tu mensaje en el foro guarda el archivo y el interruptor que la pone en el mapa público.',
+    claimedCta: 'Abrir mi mensaje',
     body: 'Un paso más: crea un perfil rápido para saber quién la rodó. La ruta puede seguir siendo privada: solo queremos ponerle tu nombre.',
     cta: 'Crear mi perfil',
     slowTitle: 'Demasiados intentos',
@@ -922,6 +941,8 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
   },
   pt: {
     title: 'Este link é o seu segredo',
+    claimedBody: 'Este trajeto já é seu. A sua mensagem no fórum guarda o ficheiro e o botão que o coloca no mapa público.',
+    claimedCta: 'Abrir a minha mensagem',
     body: 'Falta um passo: crie um perfil rápido para sabermos quem andou. A trilha pode continuar privada — só queremos pôr o seu nome nela.',
     cta: 'Criar o meu perfil',
     slowTitle: 'Demasiadas tentativas',
@@ -933,6 +954,8 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
   },
   it: {
     title: 'Questo link è il tuo segreto',
+    claimedBody: 'Questo percorso è già tuo. Il messaggio sul forum contiene il file e l\'interruttore che lo mette sulla mappa pubblica.',
+    claimedCta: 'Apri il mio messaggio',
     body: 'Manca un passo: crea un profilo veloce così sappiamo chi ha guidato. Il percorso può restare privato — vogliamo solo metterci il tuo nome.',
     cta: 'Crea il mio profilo',
     slowTitle: 'Troppi tentativi',
@@ -944,6 +967,8 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
   },
   nl: {
     title: 'Deze link is van jou alleen',
+    claimedBody: 'Deze route is al van jou. In je bericht op het forum staan het bestand en de schakelaar voor de openbare kaart.',
+    claimedCta: 'Mijn bericht openen',
     body: 'Nog één stap: maak snel een profiel zodat we weten wie er reed. De route mag privé blijven — we willen er alleen je naam bij.',
     cta: 'Mijn profiel maken',
     slowTitle: 'Te veel pogingen',
@@ -955,6 +980,8 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
   },
   da: {
     title: 'Dette link er din hemmelighed',
+    claimedBody: 'Denne rute er allerede din. Din besked på forummet indeholder filen og kontakten, der sætter den på det offentlige kort.',
+    claimedCta: 'Åbn min besked',
     body: 'Ét skridt mere: lav en hurtig profil, så vi ved, hvem der kørte. Sporet må gerne forblive privat — vi vil bare sætte dit navn på.',
     cta: 'Opret min profil',
     slowTitle: 'For mange forsøg',
@@ -966,6 +993,8 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
   },
   sv: {
     title: 'Den här länken är din hemlighet',
+    claimedBody: 'Den här rutten är redan din. Ditt meddelande på forumet har filen och reglaget som lägger den på den publika kartan.',
+    claimedCta: 'Öppna mitt meddelande',
     body: 'Ett steg till: skapa en snabb profil så vi vet vem som körde. Spåret får gärna förbli privat — vi vill bara sätta ditt namn på det.',
     cta: 'Skapa min profil',
     slowTitle: 'För många försök',
@@ -977,6 +1006,8 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
   },
   fi: {
     title: 'Tämä linkki on sinun salaisuutesi',
+    claimedBody: 'Tämä reitti on jo sinun. Foorumin viestissäsi on tiedosto ja kytkin, joka vie sen julkiselle kartalle.',
+    claimedCta: 'Avaa viestini',
     body: 'Enää askel: tee nopea profiili, jotta tiedämme kuka ajoi. Reitti saa pysyä yksityisenä — haluamme vain nimesi siihen.',
     cta: 'Luo profiilini',
     slowTitle: 'Liikaa yrityksiä',
@@ -988,6 +1019,8 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
   },
   el: {
     title: 'Αυτός ο σύνδεσμος είναι δικός σου',
+    claimedBody: 'Αυτή η διαδρομή είναι ήδη δική σου. Το μήνυμά σου στο φόρουμ έχει το αρχείο και τον διακόπτη για τον δημόσιο χάρτη.',
+    claimedCta: 'Άνοιγμα του μηνύματός μου',
     body: 'Ένα βήμα ακόμα: φτιάξε ένα σύντομο προφίλ για να ξέρουμε ποιος οδήγησε. Η διαδρομή μπορεί να μείνει ιδιωτική — θέλουμε μόνο να βάλουμε το όνομά σου.',
     cta: 'Φτιάξε το προφίλ μου',
     slowTitle: 'Πάρα πολλές προσπάθειες',
@@ -999,6 +1032,8 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
   },
   'tr-TR': {
     title: 'Bu bağlantı sana özel',
+    claimedBody: 'Bu rota zaten senin. Forumdaki mesajında dosya ve onu herkese açık haritaya koyan anahtar var.',
+    claimedCta: 'Mesajımı aç',
     body: 'Bir adım kaldı: kısa bir profil oluştur da kimin sürdüğünü bilelim. Rota gizli kalabilir — sadece adını yazmak istiyoruz.',
     cta: 'Profilimi oluştur',
     slowTitle: 'Çok fazla deneme',
@@ -1010,6 +1045,8 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
   },
   id: {
     title: 'Tautan ini rahasiamu',
+    claimedBody: 'Rute ini sudah milikmu. Pesanmu di forum menyimpan berkasnya dan sakelar untuk menaruhnya di peta publik.',
+    claimedCta: 'Buka pesan saya',
     body: 'Tinggal satu langkah: buat profil singkat agar kami tahu siapa yang berkendara. Jalurnya boleh tetap privat — kami hanya ingin mencantumkan namamu.',
     cta: 'Buat profil saya',
     slowTitle: 'Terlalu banyak percobaan',
@@ -1021,6 +1058,8 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
   },
   vi: {
     title: 'Liên kết này là bí mật của bạn',
+    claimedBody: 'Cung đường này đã là của bạn. Tin nhắn trên diễn đàn giữ tệp và nút đưa nó lên bản đồ công khai.',
+    claimedCta: 'Mở tin nhắn của tôi',
     body: 'Chỉ một bước nữa: tạo hồ sơ nhanh để chúng tôi biết ai đã chạy. Cung đường vẫn có thể riêng tư — chúng tôi chỉ muốn ghi tên bạn lên đó.',
     cta: 'Tạo hồ sơ của tôi',
     slowTitle: 'Quá nhiều lần thử',
@@ -1032,6 +1071,8 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
   },
   th: {
     title: 'ลิงก์นี้เป็นความลับของคุณ',
+    claimedBody: 'เส้นทางนี้เป็นของคุณแล้ว ข้อความในฟอรัมเก็บไฟล์และสวิตช์ที่นำขึ้นแผนที่สาธารณะไว้',
+    claimedCta: 'เปิดข้อความของฉัน',
     body: 'อีกขั้นเดียว: สร้างโปรไฟล์สั้น ๆ เพื่อให้เรารู้ว่าใครขี่ เส้นทางจะเป็นส่วนตัวต่อไปก็ได้ — เราแค่อยากใส่ชื่อคุณลงไป',
     cta: 'สร้างโปรไฟล์ของฉัน',
     slowTitle: 'พยายามมากเกินไป',
@@ -1043,6 +1084,8 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
   },
   ar: {
     title: 'هذا الرابط سرّك',
+    claimedBody: 'هذا المسار لك بالفعل. رسالتك في المنتدى تحتوي على الملف وعلى المفتاح الذي يضعه على الخريطة العامة.',
+    claimedCta: 'افتح رسالتي',
     body: 'خطوة واحدة: أنشئ ملفًا سريعًا لنعرف من قاد. يمكن أن يبقى المسار خاصًا — نريد فقط أن نضع اسمك عليه.',
     cta: 'إنشاء ملفي',
     slowTitle: 'محاولات كثيرة',
@@ -1054,6 +1097,8 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
   },
   'fa-IR': {
     title: 'این لینک راز توست',
+    claimedBody: 'این مسیر همین حالا مال شماست. پیام شما در انجمن فایل و کلید قرار دادن آن روی نقشهٔ عمومی را دارد.',
+    claimedCta: 'پیام من را باز کن',
     body: 'یک قدم مانده: نمایهٔ کوتاهی بساز تا بدانیم چه کسی رکاب زده. مسیر می‌تواند خصوصی بماند — فقط می‌خواهیم نامت روی آن باشد.',
     cta: 'ساختن نمایه',
     slowTitle: 'تلاش‌های زیاد',
@@ -1096,9 +1141,13 @@ async function handleTrailClaim(request: Request, env: Env, code: string): Promi
       kind: 'c',
       locale,
       title: slow ? copy.slowTitle : trail?.title || copy.title,
-      subtitle: slow ? copy.slowBody : `${facts ? `${facts}\n\n` : ''}${copy.body}`,
+      subtitle: slow
+        ? copy.slowBody
+        : `${facts ? `${facts}\n\n` : ''}${trail?.claimed ? copy.claimedBody : copy.body}`,
       primaryCTA: {
-        label: copy.cta,
+        // Same destination either way — the forum knows who is asking and routes an owner
+        // to their message. Only the promise on the button changes.
+        label: trail?.claimed ? copy.claimedCta : copy.cta,
         url: `${env.FORUM_BASE}/dbx/trails/claim?code=${encodeURIComponent(code)}`,
       },
       secondaryLink: trail ? { label: copy.backToMap, url: `/?trail=${encodeURIComponent(trail.id)}` } : undefined,

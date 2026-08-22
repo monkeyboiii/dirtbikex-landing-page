@@ -387,6 +387,8 @@ export interface TrailRow {
   stats: string;
   author_user_id: number | null;
   author_username: string | null;
+  author_name: string | null;
+  author_avatar: string | null;
   post_id: number | null;
 }
 
@@ -413,6 +415,8 @@ function toEntry(row: TrailRow, proxied: boolean): Record<string, unknown> {
     stats,
     author_user_id: row.author_user_id,
     author_username: row.author_username,
+    author_name: row.author_name,
+    author_avatar: row.author_avatar,
     visibility: row.visibility,
     post_id: row.post_id,
   };
@@ -434,7 +438,7 @@ export async function trailForShare(env: PagesEnv, id: string): Promise<Record<s
   try {
     const row = await env.SUBSCRIBERS_DB.prepare(
       `SELECT id, secret, visibility, gpx_url, title, distance_km, stats,
-              author_user_id, author_username, post_id
+              author_user_id, author_username, author_name, author_avatar, post_id
          FROM trails
         WHERE id = ? AND (expires_at IS NULL OR expires_at > datetime('now'))`,
     )
@@ -453,7 +457,7 @@ export async function publicTrailEntries(env: PagesEnv): Promise<Record<string, 
   try {
     const { results } = await env.SUBSCRIBERS_DB.prepare(
       `SELECT id, secret, visibility, gpx_url, title, distance_km, stats,
-              author_user_id, author_username, post_id
+              author_user_id, author_username, author_name, author_avatar, post_id
          FROM trails
         WHERE visibility = 'public'
           AND (expires_at IS NULL OR expires_at > datetime('now'))`,
@@ -475,7 +479,7 @@ export async function handleTrailResolve(env: PagesEnv, secret: string): Promise
   if (!env.SUBSCRIBERS_DB) return json(503, { error: 'service_misconfigured' });
   const row = await env.SUBSCRIBERS_DB.prepare(
     `SELECT id, secret, visibility, gpx_url, title, distance_km, stats,
-            author_user_id, author_username, post_id
+            author_user_id, author_username, author_name, author_avatar, post_id
        FROM trails
       WHERE secret = ?
         AND (expires_at IS NULL OR expires_at > datetime('now'))`,
@@ -565,17 +569,17 @@ function pluginAuthorised(request: Request, env: PagesEnv): boolean {
 export async function claimPreview(
   env: PagesEnv,
   code: string,
-): Promise<{ id: string; title: string | null; distanceKm: number | null; shape: string | null; hours: number | null } | null> {
+): Promise<{ id: string; title: string | null; distanceKm: number | null; shape: string | null; hours: number | null; claimed: boolean } | null> {
   if (!env.SUBSCRIBERS_DB) return null;
   try {
     const row = await env.SUBSCRIBERS_DB.prepare(
-      `SELECT id, title, distance_km, stats,
+      `SELECT id, title, distance_km, stats, claimed_at,
               CAST((julianday(expires_at) - julianday('now')) * 24 AS INTEGER) AS hours
          FROM trails
         WHERE claim_code = ? AND (expires_at IS NULL OR expires_at > datetime('now'))`,
     )
       .bind(code)
-      .first<{ id: string; title: string | null; distance_km: number | null; stats: string; hours: number | null }>();
+      .first<{ id: string; title: string | null; distance_km: number | null; stats: string; hours: number | null; claimed_at: string | null }>();
     if (!row) return null;
     let shape: string | null = null;
     try {
@@ -583,7 +587,7 @@ export async function claimPreview(
     } catch {
       shape = null;
     }
-    return { id: row.id, title: row.title, distanceKm: row.distance_km, shape, hours: row.hours };
+    return { id: row.id, title: row.title, distanceKm: row.distance_km, shape, hours: row.hours, claimed: row.claimed_at != null };
   } catch (err) {
     console.error('trail:claim_preview_threw', { err: String(err) });
     return null;
@@ -601,34 +605,43 @@ export async function handleClaimResolve(request: Request, env: PagesEnv, code: 
   if (!pluginAuthorised(request, env)) return json(404, { error: 'not_found' });
   if (!env.SUBSCRIBERS_DB) return json(503, { error: 'service_misconfigured' });
   const row = await env.SUBSCRIBERS_DB.prepare(
-    `SELECT secret, gpx_url, gpx_short_url, title, distance_km, claimed_at
+    `SELECT secret, gpx_url, gpx_short_url, title, distance_km, claimed_at, author_user_id, post_id
        FROM trails
       WHERE claim_code = ? AND (expires_at IS NULL OR expires_at > datetime('now'))`,
   )
     .bind(code)
-    .first<{ secret: string; gpx_url: string; gpx_short_url: string | null; title: string | null; distance_km: number | null; claimed_at: string | null }>();
-  if (!row || row.claimed_at) return json(404, { error: 'not_found' });
+    .first<{ secret: string; gpx_url: string; gpx_short_url: string | null; title: string | null; distance_km: number | null; claimed_at: string | null; author_user_id: number | null; post_id: number | null }>();
+  if (!row) return json(404, { error: 'not_found' });
+  // A spent code still resolves, and says so. The rider who taps their claim link a
+  // second time is the common case, not the attack: 404 there sent them to an error page
+  // instead of the message holding their own trail. Nothing is revealed by this that the
+  // code did not already reveal — and the caller is the plugin, which checks ownership
+  // before it acts on `claimed_at`.
   return json(200, {
     secret: row.secret,
     gpx_url: row.gpx_url,
     gpx_short_url: row.gpx_short_url,
     title: row.title,
     distance_km: row.distance_km,
+    claimed_at: row.claimed_at,
+    author_user_id: row.author_user_id,
+    post_id: row.post_id,
   });
 }
 
 /**
  * POST /api/map/trail/claim/<code> — the post exists, so the trail stops expiring.
  *
- * Clearing `expires_at` and clearing `claim_code` are the same statement: a claimed trail
- * is permanent and its code is spent, and neither should be able to be true without the
- * other. Visibility stays `private` — publishing is a separate, deliberate act.
+ * `claimed_at` is what spends the code, not deleting it. The code is kept so that the
+ * rider who opens their claim link again can be recognised and sent to the message that
+ * already holds their trail; `claimed_at IS NULL` in the guard below is what stops it
+ * being bound twice. Visibility stays `private` — publishing is a separate act.
  */
 export async function handleClaimBind(request: Request, env: PagesEnv, code: string): Promise<Response> {
   if (!pluginAuthorised(request, env)) return json(404, { error: 'not_found' });
   if (!env.SUBSCRIBERS_DB) return json(503, { error: 'service_misconfigured' });
 
-  let body: { user_id?: unknown; username?: unknown; post_id?: unknown };
+  let body: { user_id?: unknown; username?: unknown; post_id?: unknown; name?: unknown; avatar?: unknown };
   try {
     body = (await request.json()) as typeof body;
   } catch {
@@ -637,19 +650,21 @@ export async function handleClaimBind(request: Request, env: PagesEnv, code: str
   const userId = Number(body.user_id);
   const postId = Number(body.post_id);
   const username = typeof body.username === 'string' ? body.username.slice(0, 60) : '';
+  const name = typeof body.name === 'string' && body.name.trim() ? body.name.trim().slice(0, 80) : null;
+  const avatar = typeof body.avatar === 'string' && body.avatar.startsWith('/') ? body.avatar.slice(0, 200) : null;
   if (!Number.isInteger(userId) || !Number.isInteger(postId) || !username) {
     return json(400, { error: 'invalid_body' });
   }
 
   const result = await env.SUBSCRIBERS_DB.prepare(
     `UPDATE trails
-        SET author_user_id = ?, author_username = ?, post_id = ?,
-            visibility = 'private', claimed_at = datetime('now'),
-            claim_code = NULL, expires_at = NULL
+        SET author_user_id = ?, author_username = ?, author_name = ?, author_avatar = ?,
+            post_id = ?, visibility = 'private', claimed_at = datetime('now'),
+            expires_at = NULL
       WHERE claim_code = ? AND claimed_at IS NULL
         AND (expires_at IS NULL OR expires_at > datetime('now'))`,
   )
-    .bind(userId, username, postId, code)
+    .bind(userId, username, name, avatar, postId, code)
     .run();
   if (!result.meta?.changes) return json(404, { error: 'not_found' });
 
@@ -975,6 +990,8 @@ interface ReconcileRow {
   post_id?: unknown;
   user_id?: unknown;
   username?: unknown;
+  name?: unknown;
+  avatar?: unknown;
   visibility?: unknown;
   gone?: unknown;
 }
@@ -1028,11 +1045,21 @@ export async function reconcileTrails(env: PagesEnv): Promise<number> {
       const result = await env.SUBSCRIBERS_DB.prepare(
         `UPDATE trails
             SET visibility = ?, id = ?, post_id = ?, author_user_id = ?, author_username = ?,
-                claim_code = NULL, expires_at = NULL,
+                author_name = COALESCE(?, author_name), author_avatar = COALESCE(?, author_avatar),
+                expires_at = NULL,
                 claimed_at = COALESCE(claimed_at, datetime('now'))
           WHERE secret = ?`,
       )
-        .bind(visibility, id, postId, userId, typeof row.username === 'string' ? row.username : null, secret)
+        .bind(
+          visibility,
+          id,
+          postId,
+          userId,
+          typeof row.username === 'string' ? row.username : null,
+          typeof row.name === 'string' && row.name ? row.name.slice(0, 80) : null,
+          typeof row.avatar === 'string' && row.avatar.startsWith('/') ? row.avatar.slice(0, 200) : null,
+          secret,
+        )
         .run();
       applied += result.meta?.changes ?? 0;
     } catch (err) {

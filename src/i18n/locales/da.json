@@ -282,6 +282,8 @@
   "map.upload.errBusy": "For mange uploads herfra lige nu. Prøv igen om et par minutter.",
   "map.upload.errFailed": "Det gik ikke igennem. Prøv igen.",
   "map.trail.goneTitle": "Dette spor er her ikke længere",
+  "map.upload.claimedTitle": "Denne er din nu",
+  "map.upload.claimedBody": "Den er underskrevet og har ikke længere brug for denne liste — din besked på forummet indeholder filen og afgør, om den vises på kortet. Fjernet fra denne enhed.",
   "map.trail.goneBody": "Et delt spor lever et par dage, medmindre køreren gør krav på det. Dette link er udløbet eller pegede aldrig nogen steder hen.",
   "map.control.locate": "Vis hvor jeg er",
   "map.control.locateDenied": "Placering er blokeret i dine browserindstillinger",

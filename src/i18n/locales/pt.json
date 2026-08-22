@@ -282,6 +282,8 @@
   "map.upload.errBusy": "Demasiados envios daqui agora. Tente de novo daqui a uns minutos.",
   "map.upload.errFailed": "Não foi enviado. Tente de novo.",
   "map.trail.goneTitle": "Esta trilha já não está aqui",
+  "map.upload.claimedTitle": "Este já é seu",
+  "map.upload.claimedBody": "Está assinado, por isso já não precisa desta lista. A sua mensagem no fórum guarda o ficheiro e decide se aparece no mapa. Removido deste dispositivo.",
   "map.trail.goneBody": "Uma trilha partilhada dura alguns dias se o piloto não a reivindicar. Este link expirou, ou nunca apontou para nada.",
   "map.control.locate": "Mostrar onde estou",
   "map.control.locateDenied": "A localização está bloqueada nas definições do navegador",

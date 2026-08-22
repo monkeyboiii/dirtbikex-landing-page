@@ -282,6 +282,8 @@
   "map.upload.errBusy": "Op dit moment te veel uploads vanaf hier. Probeer het over een paar minuten opnieuw.",
   "map.upload.errFailed": "Dat is niet gelukt. Probeer het opnieuw.",
   "map.trail.goneTitle": "Deze route is er niet meer",
+  "map.upload.claimedTitle": "Deze is nu van jou",
+  "map.upload.claimedBody": "Hij is ondertekend en heeft deze lijst niet meer nodig — je bericht op het forum bevat het bestand en bepaalt of hij op de kaart staat. Verwijderd van dit apparaat.",
   "map.trail.goneBody": "Een gedeelde route leeft een paar dagen tenzij de rijder hem opeist. Deze link is verlopen, of wees nooit ergens heen.",
   "map.control.locate": "Laat zien waar ik ben",
   "map.control.locateDenied": "Locatie is geblokkeerd in je browserinstellingen",

@@ -282,6 +282,8 @@
   "map.upload.errBusy": "Liikaa lähetyksiä täältä juuri nyt. Yritä muutaman minuutin kuluttua.",
   "map.upload.errFailed": "Lähetys ei onnistunut. Yritä uudelleen.",
   "map.trail.goneTitle": "Tätä reittiä ei enää ole",
+  "map.upload.claimedTitle": "Tämä on nyt sinun",
+  "map.upload.claimedBody": "Se on allekirjoitettu eikä enää tarvitse tätä listaa — foorumin viestissäsi on tiedosto, ja se ratkaisee näkyykö reitti kartalla. Poistettu tältä laitteelta.",
   "map.trail.goneBody": "Jaettu reitti elää muutaman päivän, ellei kuljettaja lunasta sitä. Linkki on vanhentunut tai ei osoittanut koskaan mihinkään.",
   "map.control.locate": "Näytä missä olen",
   "map.control.locateDenied": "Sijainti on estetty selaimen asetuksissa",

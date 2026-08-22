@@ -474,6 +474,13 @@ body.is-map-page .site-header__inner {
   appearance: none;
   transition: transform 160ms var(--ease-spring, ease);
 }
+/* Lost the declutter: another badge already owns this patch of screen. Hidden rather
+   than removed, because the marker is still live and comes straight back on zoom.
+   `visibility` and not `display` — the ride toggle owns `display`. */
+.wm-ep.is-crowded {
+  visibility: hidden;
+  pointer-events: none;
+}
 /* Solo: nothing is drawn underneath, so the number IS the marker. */
 .wm-ep.is-solo {
   background: none;

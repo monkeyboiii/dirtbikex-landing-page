@@ -285,6 +285,8 @@
   "map.upload.errBusy": "目前上傳次數過多，請幾分鐘後再試。",
   "map.upload.errFailed": "上傳未成功，請重試。",
   "map.trail.goneTitle": "這條軌跡已不在了",
+  "map.upload.claimedTitle": "這條已經屬於你了",
+  "map.upload.claimedBody": "它已經署名，不再需要靠這個列表留存——論壇上的私訊裡存著檔案，也由它決定是否顯示在地圖上。已從這台裝置移除。",
   "map.trail.goneBody": "分享的軌跡只保留幾天，除非騎手認領它。此連結已過期，或從未指向任何軌跡。",
   "map.control.locate": "顯示我的位置",
   "map.control.locateDenied": "瀏覽器設定中已停用定位",

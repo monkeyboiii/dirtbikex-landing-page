@@ -1530,6 +1530,32 @@ export function createPanel(deps: PanelDeps) {
     },
 
     /**
+     * Removing a claimed trail from this device's list.
+     *
+     * The server refuses to delete it — a claimed trail belongs to a forum post now, and
+     * the anonymous secret is no longer the authority over it. That refusal used to reach
+     * the rider as a failed delete and a row that could never be cleared, which is exactly
+     * backwards: the row is the one thing here that CAN go, and losing it loses nothing.
+     */
+    showUploadClaimed(postUrl: string | null) {
+      open((host) => {
+        kicker(strings['map.trail.kicker'] ?? 'Rider trail');
+        titleRow(host, strings['map.upload.claimedTitle'] ?? 'This one is yours now', null, strings);
+        host.appendChild(
+          el('p', 'wm-panel__meta', strings['map.upload.claimedBody']
+            ?? 'It is signed, so it no longer needs this list to survive — your message on the forum holds the file and decides whether it shows on the map. Removed from this device.'),
+        );
+        if (postUrl) {
+          const link = el('a', 'wm-panel__link', strings['map.trail.thread'] ?? 'Forum thread') as HTMLAnchorElement;
+          link.href = postUrl;
+          link.target = '_blank';
+          link.rel = 'noopener';
+          host.appendChild(link);
+        }
+      });
+    },
+
+    /**
      * A ride somebody recorded. The trace is the subject: its numbers sit under the
      * title, the file's provenance reads as chips, and the rider is a byline — an
      * avatar at attribution scale, not a profile header.

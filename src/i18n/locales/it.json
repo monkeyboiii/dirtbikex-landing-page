@@ -282,6 +282,8 @@
   "map.upload.errBusy": "Troppi caricamenti da qui in questo momento. Riprova tra qualche minuto.",
   "map.upload.errFailed": "Non è andata a buon fine. Riprova.",
   "map.trail.goneTitle": "Questo percorso non c’è più",
+  "map.upload.claimedTitle": "Questo ora è tuo",
+  "map.upload.claimedBody": "È firmato, quindi non ha più bisogno di questo elenco: il messaggio sul forum contiene il file e decide se compare sulla mappa. Rimosso da questo dispositivo.",
   "map.trail.goneBody": "Un percorso condiviso dura qualche giorno se il suo pilota non lo rivendica. Questo link è scaduto, o non ha mai puntato a nulla.",
   "map.control.locate": "Mostra dove sono",
   "map.control.locateDenied": "La posizione è bloccata nelle impostazioni del browser",

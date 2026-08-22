@@ -282,6 +282,8 @@
   "map.upload.errBusy": "Demasiadas subidas desde aquí ahora mismo. Inténtalo en unos minutos.",
   "map.upload.errFailed": "No se completó. Inténtalo de nuevo.",
   "map.trail.goneTitle": "Esta ruta ya no está aquí",
+  "map.upload.claimedTitle": "Esta ya es tuya",
+  "map.upload.claimedBody": "Está firmada, así que ya no necesita esta lista. Tu mensaje en el foro guarda el archivo y decide si aparece en el mapa. Eliminada de este dispositivo.",
   "map.trail.goneBody": "Una ruta compartida dura unos días si su piloto no la reclama. Este enlace ha caducado, o nunca apuntó a nada.",
   "map.control.locate": "Mostrar dónde estoy",
   "map.control.locateDenied": "La ubicación está bloqueada en los ajustes del navegador",

@@ -76,17 +76,23 @@ function palette(dark: boolean) {
 }
 
 const DIM = 0.22;
-/** Pins of one kind drawn at once. A dense region has to stay readable, and this
-    also bounds the work MapLibre redoes on every pan. Scales with the viewport. */
-const RENDER_CELL_PX = 116;
-/** Desktop and phone get their own ceilings. One shared area formula floored the phone
-    at 50 pins in a quarter of the area — roughly 4x desktop's density — which is the
-    surface least able to carry the bigger blips. */
-function renderBudget(map: MapLibreMap): number {
-  const c = map.getCanvas();
-  const cells = (c.clientWidth * c.clientHeight) / (RENDER_CELL_PX * RENDER_CELL_PX);
-  const [floor, ceil] = isNarrow() ? [14, 30] : [40, 120];
-  return Math.max(floor, Math.min(ceil, Math.round(cells * 0.55)));
+/**
+ * Screen space one pin needs at the current zoom, in CSS px.
+ *
+ * Artwork scales with zoom, so the spacing that keeps two pins from touching has to scale
+ * with it. A single fixed number cannot do both jobs: at street zoom it thins the map out
+ * for no reason, and pulled back it is the reason a province shows four pins.
+ */
+function pinPitch(map: MapLibreMap): number {
+  const z = map.getZoom();
+  let k = BLIP_RAMP[0]![1];
+  for (let i = 1; i < BLIP_RAMP.length; i++) {
+    const [z0, k0] = BLIP_RAMP[i - 1]!;
+    const [z1, k1] = BLIP_RAMP[i]!;
+    if (z <= z0) break;
+    k = z >= z1 ? k1 : k0 + ((k1 - k0) * (z - z0)) / (z1 - z0);
+  }
+  return Math.max(26, BLIP_PX * k * 0.9);
 }
 
 const EMPTY: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: [] };
@@ -319,10 +325,21 @@ const BLIP_PX = 96;
 /** Blip artwork scale by zoom, and the step up the selection takes. With no bloom
     behind it the pin itself has to say which one the sheet is about. */
 const BLIP_RAMP: [number, number][] = [
+  [3, 0.3],
+  [6, 0.38],
   [8.4, 0.5],
   [10, 0.72],
   [14, 0.9],
 ];
+/** Icons are drawn from world zoom now, so they fade in rather than appearing at 8.4.
+    Below that the pin is smaller, not absent — a continent with nothing on it was the
+    whole complaint. */
+const BLIP_FADE = ['interpolate', ['linear'], ['zoom'], 3, 0.82, 6, 0.92, 9.4, 1] as never;
+/** The bloom is a street-zoom flourish; at world zoom it would smear the pins together. */
+const GLOW_FADE = ['interpolate', ['linear'], ['zoom'], 6, 0, 8.4, 0.12, 9.6, 0.32] as never;
+/** Only the winners of the declutter carry artwork. Everything else in view stays a dot. */
+const TOP = ['==', ['get', 'top'], 1];
+const withTop = (base: unknown): never => ['all', base, TOP] as never;
 const SELECTED_SCALE = 1.3;
 function blipSize(selected: string | null): unknown {
   const ramp = (k: number) => [
@@ -369,9 +386,10 @@ function radiusExpr(): unknown {
 }
 
 function opacityExpr(factor: number): unknown {
-  // A row is a dot until its blip fades in, then hands over completely: past 9.4 exactly
-  // one of the two is drawn, never both. The tier split survives only at world zoom,
-  // where it is what keeps a dense country readable.
+  // Two states, decided by the declutter rather than by zoom. A pin that won a slot is
+  // drawn as artwork and its dot is suppressed, so the two never stack. A pin that lost
+  // one stays a dot at every zoom — that is the density texture, and dropping it was what
+  // made a pulled-back map read as empty. The tier split rides both.
   const tier = (verified: number, breadth: number) => [
     'case',
     ['==', ['get', 'tier'], 'verified'],
@@ -379,11 +397,16 @@ function opacityExpr(factor: number): unknown {
     breadth * factor,
   ];
   return [
-    'interpolate', ['linear'], ['zoom'],
-    1, tier(0.78, 0.48),
-    5, tier(0.9, 0.62),
-    8.4, tier(0.9, 0.7),
-    9.4, 0,
+    'case',
+    TOP,
+    0,
+    [
+      'interpolate', ['linear'], ['zoom'],
+      1, tier(0.78, 0.48),
+      5, tier(0.9, 0.62),
+      8.4, tier(0.9, 0.7),
+      12, tier(0.7, 0.5),
+    ],
   ];
 }
 
@@ -403,7 +426,7 @@ class WorldMap {
   private dark = isDarkTheme();
   private placements = new Map<SeriesEntry, EntryPlacement>();
   private ordered: SeriesEntry[] = [];
-  private episodeMarkers: { el: HTMLElement; entry: SeriesEntry }[] = [];
+  private episodeMarkers: { el: HTMLElement; entry: SeriesEntry; at: [number, number] }[] = [];
   private riderMarkers: { el: HTMLElement }[] = [];
   private riders: RiderPin[] | null = null;
   private ridersLoad: Promise<boolean> | null = null;
@@ -418,6 +441,7 @@ class WorldMap {
   /** Memoised as a promise, not a result: two concurrent callers would otherwise both
       push a full copy of every trail into the shared source. */
   private trailsLoad: Promise<boolean> | null = null;
+  private trailsAt = 0;
   /** A deep-linked episode whose venue had not loaded yet when the link was applied. */
   private pendingEntry: SeriesEntry | null = null;
   private current: SeriesEntry | null = null;
@@ -606,13 +630,13 @@ class WorldMap {
       id: 'tracks-glow',
       type: 'circle',
       source: 'tracks',
-      minzoom: 8,
-      filter: IS_TRACK,
+      minzoom: 6,
+      filter: withTop(IS_TRACK),
       paint: {
         'circle-color': c.track,
         'circle-blur': 0.85,
-        'circle-radius': ['interpolate', ['linear'], ['zoom'], 8.4, 12, 10, 21, 14, 27] as never,
-        'circle-opacity': ['interpolate', ['linear'], ['zoom'], 8.4, 0, 9.6, 0.32] as never,
+        'circle-radius': ['interpolate', ['linear'], ['zoom'], 6, 7, 8.4, 12, 10, 21, 14, 27] as never,
+        'circle-opacity': GLOW_FADE,
       },
     });
 
@@ -653,15 +677,14 @@ class WorldMap {
       id: 'tracks-glyph',
       type: 'symbol',
       source: 'tracks',
-      minzoom: 8,
-      filter: IS_TRACK,
+      filter: withTop(IS_TRACK),
       layout: {
         'icon-image': 'blip-track',
         'icon-size': blipSize(this.selected) as never,
         'icon-allow-overlap': true,
         'icon-ignore-placement': true,
       },
-      paint: { 'icon-opacity': ['interpolate', ['linear'], ['zoom'], 8.4, 0, 9.4, 1] as never },
+      paint: { 'icon-opacity': BLIP_FADE },
     });
 
     map.addLayer({
@@ -669,7 +692,7 @@ class WorldMap {
       type: 'symbol',
       source: 'tracks',
       minzoom: 7.5,
-      filter: ['==', ['get', 'claimed'], true],
+      filter: withTop(['==', ['get', 'claimed'], true]),
       layout: {
         'icon-image': 'claim-seal',
         'icon-size': 0.28,
@@ -684,7 +707,7 @@ class WorldMap {
       type: 'symbol',
       source: 'tracks',
       minzoom: 9,
-      filter: IS_TRACK,
+      filter: withTop(IS_TRACK),
       layout: {
         'text-field': ['coalesce', ['get', 'name'], ''] as never,
         'text-font': styleFont(map),
@@ -718,35 +741,34 @@ class WorldMap {
       id: 'shops-glow',
       type: 'circle',
       source: 'tracks',
-      minzoom: 8,
-      filter: shopFilter,
+      minzoom: 6,
+      filter: withTop(shopFilter),
       paint: {
         'circle-color': c.shop,
         'circle-blur': 0.85,
-        'circle-radius': ['interpolate', ['linear'], ['zoom'], 8.4, 12, 10, 21, 14, 27] as never,
-        'circle-opacity': ['interpolate', ['linear'], ['zoom'], 8.4, 0, 9.6, 0.32] as never,
+        'circle-radius': ['interpolate', ['linear'], ['zoom'], 6, 7, 8.4, 12, 10, 21, 14, 27] as never,
+        'circle-opacity': GLOW_FADE,
       },
     });
     map.addLayer({
       id: 'shops-blip',
       type: 'symbol',
       source: 'tracks',
-      minzoom: 8,
-      filter: shopFilter,
+      filter: withTop(shopFilter),
       layout: {
         'icon-image': 'blip-shop',
         'icon-size': blipSize(this.selected) as never,
         'icon-allow-overlap': true,
         'icon-ignore-placement': true,
       },
-      paint: { 'icon-opacity': ['interpolate', ['linear'], ['zoom'], 8.4, 0, 9.4, 1] as never },
+      paint: { 'icon-opacity': BLIP_FADE },
     });
     map.addLayer({
       id: 'shops-label',
       type: 'symbol',
       source: 'tracks',
       minzoom: 9.6,
-      filter: shopFilter,
+      filter: withTop(shopFilter),
       layout: {
         'text-field': ['coalesce', ['get', 'name'], ''] as never,
         'text-font': styleFont(map),
@@ -829,35 +851,34 @@ class WorldMap {
       id: 'trails-glow',
       type: 'circle',
       source: 'tracks',
-      minzoom: 8,
-      filter: trailFilter,
+      minzoom: 6,
+      filter: withTop(trailFilter),
       paint: {
         'circle-color': c.trail,
         'circle-blur': 0.85,
-        'circle-radius': ['interpolate', ['linear'], ['zoom'], 8.4, 12, 10, 21, 14, 27] as never,
-        'circle-opacity': ['interpolate', ['linear'], ['zoom'], 8.4, 0, 9.6, 0.32] as never,
+        'circle-radius': ['interpolate', ['linear'], ['zoom'], 6, 7, 8.4, 12, 10, 21, 14, 27] as never,
+        'circle-opacity': GLOW_FADE,
       },
     });
     map.addLayer({
       id: 'trails-blip',
       type: 'symbol',
       source: 'tracks',
-      minzoom: 8,
-      filter: trailFilter,
+      filter: withTop(trailFilter),
       layout: {
         'icon-image': 'blip-trail',
         'icon-size': blipSize(this.selected) as never,
         'icon-allow-overlap': true,
         'icon-ignore-placement': true,
       },
-      paint: { 'icon-opacity': ['interpolate', ['linear'], ['zoom'], 8.4, 0, 9.4, 1] as never },
+      paint: { 'icon-opacity': BLIP_FADE },
     });
     map.addLayer({
       id: 'trails-label',
       type: 'symbol',
       source: 'tracks',
       minzoom: 9.6,
-      filter: trailFilter,
+      filter: withTop(trailFilter),
       layout: {
         'text-field': ['coalesce', ['get', 'name'], ''] as never,
         'text-font': styleFont(map),
@@ -893,7 +914,7 @@ class WorldMap {
     this.tracedTrail = lines?.length ? id : null;
     for (const layer of ['trails-glow', 'trails-blip', 'trails-label'] as const) {
       if (this.map.getLayer(layer)) {
-        this.map.setFilter(layer, trailPinFilter(this.tracedTrail) as never);
+        this.map.setFilter(layer, withTop(trailPinFilter(this.tracedTrail)));
       }
     }
     source.setData(
@@ -1049,9 +1070,27 @@ class WorldMap {
     return this.trailsLoad;
   }
 
-  private async fetchTrails(): Promise<boolean> {
+  /**
+   * Same document, fetched again if this copy has gone stale.
+   *
+   * Publishing a trail happens on the forum, in another tab, and the map's copy of
+   * trails.json is a page-load-lifetime memo — so a rider who published and came back to
+   * search for their own ride could not find it until a hard reload. Sixty seconds is the
+   * document's own browser max-age: past that a refetch is going to the network anyway.
+   */
+  private refreshTrails(): Promise<boolean> {
+    if (Date.now() - this.trailsAt < 60_000) return this.loadTrails();
+    this.trailsLoad = this.fetchTrails(true);
+    return this.trailsLoad;
+  }
+
+  private async fetchTrails(bustCache = false): Promise<boolean> {
+    this.trailsAt = Date.now();
     try {
-      const doc = (await fetchJson(this.cfg.trailsUrl).catch(() =>
+      const url = bustCache
+        ? `${this.cfg.trailsUrl}${this.cfg.trailsUrl.includes('?') ? '&' : '?'}r=${Date.now()}`
+        : this.cfg.trailsUrl;
+      const doc = (await fetchJson(url).catch(() =>
         fetchJson('/map/trails.seed.json'),
       )) as TrailsDoc;
       this.trails = Array.isArray(doc?.trails) ? doc.trails.filter((t) => t.stats?.centre) : [];
@@ -1078,7 +1117,20 @@ class WorldMap {
         lng,
         lat,
       };
+      // Idempotent: a refetch re-ingests the whole document, and pushing a second feature
+      // for a trail already in the catalog would double its pin and its search row.
+      const seen = this.tracksBySlug.get(trail.id);
       this.tracksBySlug.set(trail.id, props);
+      if (seen) {
+        const feature = this.tracks.features.find(
+          (f) => (f.properties as TrackProps | null)?.slug === trail.id,
+        );
+        if (feature) {
+          feature.geometry = { type: 'Point', coordinates: [lng, lat] };
+          feature.properties = props;
+          continue;
+        }
+      }
       this.tracks.features.push({
         type: 'Feature',
         geometry: { type: 'Point', coordinates: [lng, lat] },
@@ -1092,79 +1144,136 @@ class WorldMap {
   }
 
   /**
-   * Draws only what is in view, capped per kind and spread over a grid so a dense
-   * country doesn't collapse into a blob. Runs on every settled move, so panning
-   * fills in incrementally rather than shipping the whole world at once.
+   * Decides what the current viewport can show without pins landing on each other.
    *
-   * The selected pin and every episode venue are always kept — culling the one the
-   * panel is describing would strand the halo and the sheet.
+   * Two things changed here and they belong together. Nothing is dropped from the source
+   * any more — a pin that loses a slot ships anyway with `top: 0` and draws as a dot, so
+   * pulling the map back thins the artwork out instead of emptying the country. And the
+   * grid that decides the winners is sized to the artwork at the current zoom rather than
+   * to a fixed 116 px, which is what "as many as this area can actually show" means.
+   *
+   * Order is priority: challenge badges, then the pins the interface has already promised
+   * (the open sheet's subject, every episode venue), then a guaranteed share for each
+   * layer that is switched on, then whatever else fits. The per-layer share is not a
+   * nicety — one shared grid without it lets three and a half thousand tracks take every
+   * cell in the country and leaves the rider trails with none, which renders a layer you
+   * deliberately switched on as nothing at all.
    */
   private renderVisible() {
     if (!this.map.getSource('tracks')) return;
     const map = this.map;
     const bounds = map.getBounds();
-    const budget = renderBudget(map);
     const canvas = map.getCanvas();
-    const cols = Math.max(1, Math.ceil(canvas.clientWidth / RENDER_CELL_PX));
-    const rows = Math.max(1, Math.ceil(canvas.clientHeight / RENDER_CELL_PX));
+    const pitch = pinPitch(map);
+    const cols = Math.max(1, Math.ceil(canvas.clientWidth / pitch));
+    const rows = Math.max(1, Math.ceil(canvas.clientHeight / pitch));
+    // The grid is the real ceiling; this is a drawing budget on top of it, not a design
+    // opinion about how full a map should look.
+    const cap = Math.min(cols * rows, isNarrow() ? 160 : 460);
+    const stride = cols + 3;
+
+    const taken = new Set<number>();
+    let used = 0;
+
+    /** Grid cell for a screen point, or null if it is too far outside to compete. One
+        pitch of margin, so a pin just off the edge does not pop in mid-pan. */
+    const cellAt = (lng: number, lat: number): number | null => {
+      const at = map.project([lng, lat]);
+      if (
+        at.x < -pitch ||
+        at.y < -pitch ||
+        at.x > canvas.clientWidth + pitch ||
+        at.y > canvas.clientHeight + pitch
+      ) {
+        return null;
+      }
+      return (Math.floor(at.y / pitch) + 1) * stride + Math.floor(at.x / pitch) + 1;
+    };
+
+    // Challenge badges are DOM markers: they sit outside the source and outside
+    // MapLibre's symbol placer, so nothing at all was keeping two of them apart. Pull the
+    // viewport back far enough and two episodes in the same province drew on top of each
+    // other. They go first because a badge is the headline of whatever it is pinned to.
+    for (const marker of this.episodeMarkers) {
+      const cell = this.visible.ride ? cellAt(marker.at[0], marker.at[1]) : null;
+      const crowded = cell != null && taken.has(cell);
+      if (cell != null && !crowded) taken.add(cell);
+      marker.el.classList.toggle('is-crowded', crowded);
+    }
 
     const pinned = new Set<string>();
     if (this.selected) pinned.add(this.selected);
     for (const entry of this.series.entries) if (entry.track_slug) pinned.add(entry.track_slug);
 
     const rank = (p: TrackProps) => (p.claimed ? 3 : p.tier === 'verified' ? 2 : 1);
-    const kept: GeoJSON.Feature[] = [];
-    const candidates = new Map<string, { feature: GeoJSON.Feature; cell: number; rank: number }[]>();
+    type Candidate = { feature: GeoJSON.Feature; slug: string; cell: number; rank: number };
+    const inView: GeoJSON.Feature[] = [];
+    const top = new Set<string>();
+    const byKind = new Map<string, Candidate[]>();
 
     for (const feature of this.tracks.features) {
       const props = feature.properties as TrackProps | null;
       if (!props?.slug) continue;
-      if (pinned.has(props.slug)) {
-        kept.push(feature);
-        continue;
-      }
-      if (feature.geometry.type !== 'Point') continue;
-      const [lng, lat] = feature.geometry.coordinates as [number, number];
-      if (!bounds.contains([lng, lat])) continue;
-      const at = map.project([lng, lat]);
-      const cx = Math.min(cols - 1, Math.max(0, Math.floor(at.x / RENDER_CELL_PX)));
-      const cy = Math.min(rows - 1, Math.max(0, Math.floor(at.y / RENDER_CELL_PX)));
       const kind = props.kind ?? 'track';
       // Each toggle owns one kind: turning tracks off must not also blank the shops.
       const owner = LAYER_IDS.find((l) => KIND_OF[l] === kind);
       if (owner && !this.visible[owner]) continue;
-      const bucket = candidates.get(kind) ?? [];
-      bucket.push({ feature, cell: cy * cols + cx, rank: rank(props) });
-      if (bucket.length === 1) candidates.set(kind, bucket);
+
+      const point = feature.geometry.type === 'Point';
+      const cell = point ? cellAt(...(feature.geometry.coordinates as [number, number])) : null;
+
+      if (pinned.has(props.slug)) {
+        if (cell != null && !taken.has(cell)) {
+          taken.add(cell);
+          used++;
+        }
+        top.add(props.slug);
+        inView.push(feature);
+        continue;
+      }
+      if (!point || cell == null) continue;
+      if (!bounds.contains(feature.geometry.coordinates as [number, number])) {
+        // Outside the viewport but inside the margin: eligible for a cell so the pan is
+        // smooth, but it must not be the reason a visible pin loses one.
+        inView.push(feature);
+        continue;
+      }
+      const candidate: Candidate = { feature, slug: props.slug, cell, rank: rank(props) };
+      const bucket = byKind.get(kind);
+      if (bucket) bucket.push(candidate);
+      else byKind.set(kind, [candidate]);
+      inView.push(feature);
     }
 
-    for (const bucket of candidates.values()) {
-      // Best pin per grid cell first — that is what spreads them — then fill any
-      // remaining budget with the next best wherever they fall.
+    const place = (c: Candidate): boolean => {
+      if (used >= cap || taken.has(c.cell)) return false;
+      taken.add(c.cell);
+      used++;
+      top.add(c.slug);
+      return true;
+    };
+
+    const share = Math.max(4, Math.round(cap * 0.12));
+    const rest: Candidate[] = [];
+    for (const bucket of byKind.values()) {
       bucket.sort((a, b) => b.rank - a.rank);
-      const taken = new Set<number>();
-      const leftovers: GeoJSON.Feature[] = [];
-      let used = 0;
+      let mine = 0;
       for (const c of bucket) {
-        if (used >= budget) break;
-        if (taken.has(c.cell)) {
-          leftovers.push(c.feature);
-          continue;
-        }
-        taken.add(c.cell);
-        kept.push(c.feature);
-        used++;
-      }
-      for (const feature of leftovers) {
-        if (used >= budget) break;
-        kept.push(feature);
-        used++;
+        if (mine < share && place(c)) mine++;
+        else rest.push(c);
       }
     }
+    rest.sort((a, b) => b.rank - a.rank);
+    for (const c of rest) place(c);
 
     (map.getSource('tracks') as { setData(d: GeoJSON.FeatureCollection): void }).setData({
       type: 'FeatureCollection',
-      features: kept,
+      // Copied rather than mutated: `properties` is the same object the catalog and the
+      // search index hold, and stamping a render decision onto it would leak into both.
+      features: inView.map((f) => ({
+        ...f,
+        properties: { ...(f.properties as object), top: top.has((f.properties as TrackProps).slug) ? 1 : 0 },
+      })),
     });
   }
 
@@ -1192,7 +1301,7 @@ class WorldMap {
         this.selectEntry(entry, { fly: true });
       });
       new Marker({ element: el, anchor: 'center' }).setLngLat(placement.lngLat).addTo(this.map);
-      this.episodeMarkers.push({ el, entry });
+      this.episodeMarkers.push({ el, entry, at: placement.lngLat });
     }
   }
 
@@ -1736,12 +1845,27 @@ class WorldMap {
 
   private async deleteUpload(id: string): Promise<void> {
     let ok = false;
+    let claimed = false;
     try {
       const res = await fetch(`/api/map/trail/${encodeURIComponent(id)}`, { method: 'DELETE' });
       // A 404 means it is already gone, which is the outcome asked for.
       ok = res.ok || res.status === 404;
+      // A 409 means somebody signed it, and the server is right to refuse: the secret is
+      // no longer the authority over a trail that belongs to a forum post. What was wrong
+      // was reporting that refusal as a failed delete, which left a row on this device
+      // that could never be cleared. The row goes; the trail stays where it now lives.
+      claimed = res.status === 409;
     } catch {
       ok = false;
+    }
+    if (claimed) {
+      const post = await this.postUrlFor(id);
+      this.forgetUpload(id);
+      if (this.selectedTrail === id) this.clearPendingTrail();
+      this.panel.allowClose();
+      this.clearSelection();
+      this.panel.showUploadClaimed(post);
+      return;
     }
     if (!ok) {
       this.panel.showUploadError('failed');
@@ -1752,6 +1876,20 @@ class WorldMap {
     this.panel.allowClose();
     this.clearSelection();
     this.openUploadIntro(() => this.root.querySelector<HTMLInputElement>('[data-upload-input]')?.click());
+  }
+
+  /** Where a claimed trail went. `/p/<id>` is Discourse's own post permalink, which
+      resolves inside a personal message as well as a public topic. */
+  private async postUrlFor(id: string): Promise<string | null> {
+    try {
+      const doc = (await fetch(`/api/map/trail/${encodeURIComponent(id)}.json`).then((r) =>
+        r.ok ? r.json() : null,
+      )) as { trail?: Trail } | null;
+      const postId = doc?.trail?.post_id;
+      return postId && this.cfg.forumBase ? `${this.cfg.forumBase}/p/${postId}` : null;
+    } catch {
+      return null;
+    }
   }
 
   private forgetUpload(id: string) {
@@ -2127,7 +2265,7 @@ class WorldMap {
 
   /** Trails sit behind their rail toggle; search wants them in regardless. */
   ensureTrails(): Promise<unknown> {
-    return this.loadTrails();
+    return this.refreshTrails();
   }
 
   get placementIndex() {
