@@ -289,6 +289,7 @@
   "map.upload.errFailed": "That did not go through. Try again.",
   "map.trail.goneTitle": "This trail is no longer here",
   "map.basemap.title": "Map style",
+  "map.control.title": "Map controls",
   "map.basemap.auto": "DirtBikeX",
   "map.basemap.autoNote": "Follows the page theme",
   "map.basemap.topo": "Topographic",

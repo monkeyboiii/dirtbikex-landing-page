@@ -286,6 +286,7 @@
   "map.upload.errFailed": "送信できませんでした。もう一度お試しください。",
   "map.trail.goneTitle": "このルートはもうありません",
   "map.basemap.title": "地図スタイル",
+  "map.control.title": "地図の操作",
   "map.basemap.auto": "DirtBikeX",
   "map.basemap.autoNote": "ページのテーマに合わせる",
   "map.basemap.topo": "地形図",

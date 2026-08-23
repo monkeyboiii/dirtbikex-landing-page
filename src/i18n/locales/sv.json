@@ -285,6 +285,7 @@
   "map.upload.errFailed": "Det gick inte. Försök igen.",
   "map.trail.goneTitle": "Det här spåret finns inte längre",
   "map.basemap.title": "Kartstil",
+  "map.control.title": "Kartkontroller",
   "map.basemap.auto": "DirtBikeX",
   "map.basemap.autoNote": "Följer sidans tema",
   "map.basemap.topo": "Topografisk",

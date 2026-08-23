@@ -283,6 +283,7 @@
   "map.upload.errFailed": "Gönderilemedi. Tekrar dene.",
   "map.trail.goneTitle": "Bu rota artık burada değil",
   "map.basemap.title": "Harita stili",
+  "map.control.title": "Harita denetimleri",
   "map.basemap.auto": "DirtBikeX",
   "map.basemap.autoNote": "Sayfa temasını izler",
   "map.basemap.topo": "Topoğrafik",

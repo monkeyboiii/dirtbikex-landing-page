@@ -283,6 +283,7 @@
   "map.upload.errFailed": "لم تتم العملية. حاول مجددًا.",
   "map.trail.goneTitle": "لم يعد هذا المسار موجودًا",
   "map.basemap.title": "نمط الخريطة",
+  "map.control.title": "عناصر التحكم في الخريطة",
   "map.basemap.auto": "DirtBikeX",
   "map.basemap.autoNote": "يتبع مظهر الصفحة",
   "map.basemap.topo": "طبوغرافية",

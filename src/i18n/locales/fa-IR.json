@@ -283,6 +283,7 @@
   "map.upload.errFailed": "ارسال نشد. دوباره تلاش کن.",
   "map.trail.goneTitle": "این مسیر دیگر اینجا نیست",
   "map.basemap.title": "سبک نقشه",
+  "map.control.title": "کنترل‌های نقشه",
   "map.basemap.auto": "DirtBikeX",
   "map.basemap.autoNote": "از پوستهٔ صفحه پیروی می‌کند",
   "map.basemap.topo": "توپوگرافی",

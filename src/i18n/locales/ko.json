@@ -283,6 +283,7 @@
   "map.upload.errFailed": "전송되지 않았습니다. 다시 시도하세요.",
   "map.trail.goneTitle": "이 트레일은 더 이상 없습니다",
   "map.basemap.title": "지도 스타일",
+  "map.control.title": "지도 컨트롤",
   "map.basemap.auto": "DirtBikeX",
   "map.basemap.autoNote": "페이지 테마를 따름",
   "map.basemap.topo": "지형도",

@@ -283,6 +283,7 @@
   "map.upload.errFailed": "ส่งไม่สำเร็จ ลองอีกครั้ง",
   "map.trail.goneTitle": "เส้นทางนี้ไม่อยู่แล้ว",
   "map.basemap.title": "รูปแบบแผนที่",
+  "map.control.title": "การควบคุมแผนที่",
   "map.basemap.auto": "DirtBikeX",
   "map.basemap.autoNote": "ตามธีมของหน้า",
   "map.basemap.topo": "ภูมิประเทศ",

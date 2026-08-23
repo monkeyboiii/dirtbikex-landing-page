@@ -511,6 +511,9 @@ class WorldMap {
       push a full copy of every trail into the shared source. */
   private trailsLoad: Promise<boolean> | null = null;
   private trailsAt = 0;
+  /** Last render's artwork winners, and the zoom they were chosen at. See renderVisible. */
+  private stickyTop = new Set<string>();
+  private stickyZoom = Number.NaN;
   /** A deep-linked episode whose venue had not loaded yet when the link was applied. */
   private pendingEntry: SeriesEntry | null = null;
   private current: SeriesEntry | null = null;
@@ -1303,6 +1306,21 @@ class WorldMap {
     if (this.selected) pinned.add(this.selected);
     for (const entry of this.series.entries) if (entry.track_slug) pinned.add(entry.track_slug);
 
+    // Panning must not reshuffle the map. A grid recomputed from scratch on every settled
+    // move gives a different set of winners each time, so icons blink out from under the
+    // cursor while the visitor is still reading them — the map churns as you cross it.
+    //
+    // So last render's winners are re-placed FIRST and keep their cells; newcomers only
+    // ever fill what is left. Zoom is the one thing that clears that memory, because zoom
+    // is when the answer genuinely changes: pins that were crowded out deserve their turn
+    // at the closer spacing, and the visitor asked for a different view rather than the
+    // same one from a step sideways.
+    const zoomNow = Math.round(map.getZoom() * 100) / 100;
+    if (zoomNow !== this.stickyZoom) {
+      this.stickyTop.clear();
+      this.stickyZoom = zoomNow;
+    }
+
     const rank = (p: TrackProps) => (p.claimed ? 3 : p.tier === 'verified' ? 2 : 1);
     type Candidate = { feature: GeoJSON.Feature; slug: string; cell: number; rank: number };
     const inView: GeoJSON.Feature[] = [];
@@ -1351,18 +1369,29 @@ class WorldMap {
       return true;
     };
 
+    // Held over from the last render at this zoom: whatever is still in view keeps drawing.
+    for (const bucket of byKind.values()) {
+      for (const c of bucket) if (this.stickyTop.has(c.slug)) place(c);
+    }
+
     const share = Math.max(4, Math.round(cap * 0.12));
     const rest: Candidate[] = [];
     for (const bucket of byKind.values()) {
       bucket.sort((a, b) => b.rank - a.rank);
       let mine = 0;
       for (const c of bucket) {
+        if (top.has(c.slug)) {
+          mine++;
+          continue;
+        }
         if (mine < share && place(c)) mine++;
         else rest.push(c);
       }
     }
     rest.sort((a, b) => b.rank - a.rank);
     for (const c of rest) place(c);
+
+    this.stickyTop = top;
 
     (map.getSource('tracks') as { setData(d: GeoJSON.FeatureCollection): void }).setData({
       type: 'FeatureCollection',
@@ -1601,6 +1630,12 @@ class WorldMap {
    * "you are already there", which is the difference between a button worth pressing
    * and one that would do nothing.
    */
+  /** Anything that means "the visitor is looking at the map now", which is when a folded
+      control should get out of the way. */
+  onMapInteraction(fn: () => void) {
+    for (const ev of ['dragstart', 'zoomstart', 'click'] as const) this.map.on(ev, fn);
+  }
+
   syncControls() {
     const mark = (selector: string, on: boolean) => {
       const button = this.root.querySelector<HTMLElement>(selector);
@@ -2391,6 +2426,15 @@ function paintRail(root: HTMLElement, state: Record<LayerId, boolean>) {
     const id = button.dataset.layer as LayerId;
     if (id in state) button.setAttribute('aria-pressed', String(state[id]));
   }
+  paintLayerCount(root, state);
+}
+
+/** The number on the folded button. Blank at zero — an empty map says that by itself. */
+function paintLayerCount(root: HTMLElement, state: Record<LayerId, boolean>) {
+  const badge = root.querySelector<HTMLElement>('[data-layer-count]');
+  if (!badge) return;
+  const on = LAYER_IDS.filter((id) => state[id]).length;
+  badge.textContent = on ? String(on) : '';
 }
 
 function wireRail(root: HTMLElement, world: WorldMap, strings: Strings) {
@@ -2434,12 +2478,45 @@ function wireRail(root: HTMLElement, world: WorldMap, strings: Strings) {
       })
       .catch(() => undefined);
 
+    // Only `busy` refuses a tap. `denied` used to as well, and that made the slashed
+    // state a dead end: whatever put it there — a mis-tap on the prompt, a permission
+    // changed in settings since, a browser that only denied for the session — the control
+    // that would fix it had switched itself off. Asking again costs one call and
+    // sometimes works; refusing to ask never does.
     locate.addEventListener('click', async () => {
-      if (locate.dataset.state === 'denied' || locate.dataset.state === 'busy') return;
+      if (locate.dataset.state === 'busy') return;
       locate.dataset.state = 'busy';
       locate.dataset.state = await world.locate();
       world.syncControls();
     });
+  }
+
+  // The fold. Open shows the five kind toggles and stands the button down, so the column
+  // is the same length either way — which is the point: nine buttons in one rail ran most
+  // of the height of a phone.
+  const group = root.querySelector<HTMLElement>('[data-layer-group]');
+  const fold = root.querySelector<HTMLButtonElement>('[data-layers-toggle]');
+  if (group && fold) {
+    const setOpen = (open: boolean) => {
+      group.classList.toggle('is-open', open);
+      fold.setAttribute('aria-expanded', String(open));
+    };
+    fold.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      setOpen(true);
+      // Focus moves to the first toggle, or the fold button vanishing takes the focus
+      // ring with it and a keyboard visitor is left nowhere.
+      group.querySelector<HTMLButtonElement>('.wm-rail__btn--layer')?.focus();
+    });
+    // Folding back is "look away": tapping the map, or anywhere off the group. There is
+    // no close button because the five toggles ARE the six-button budget.
+    document.addEventListener('click', (ev) => {
+      if (!group.contains(ev.target as Node)) setOpen(false);
+    });
+    document.addEventListener('keydown', (ev) => {
+      if (ev.key === 'Escape') setOpen(false);
+    });
+    world.onMapInteraction(() => setOpen(false));
   }
 
   // Which ground the map draws on. A menu rather than a cycling button: three named looks

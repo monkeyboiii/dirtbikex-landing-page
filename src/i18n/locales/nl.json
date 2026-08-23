@@ -283,6 +283,7 @@
   "map.upload.errFailed": "Dat is niet gelukt. Probeer het opnieuw.",
   "map.trail.goneTitle": "Deze route is er niet meer",
   "map.basemap.title": "Kaartstijl",
+  "map.control.title": "Kaartbediening",
   "map.basemap.auto": "DirtBikeX",
   "map.basemap.autoNote": "Volgt het paginathema",
   "map.basemap.topo": "Topografisch",

@@ -81,6 +81,7 @@ const DEFAULTS: Record<string, string> = {
   'map.upload.errFailed': 'That did not go through. Try again.',
   'map.trail.goneTitle': 'This trail is no longer here',
   'map.basemap.title': 'Map style',
+  'map.control.title': 'Map controls',
   'map.basemap.auto': 'DirtBikeX',
   'map.basemap.autoNote': 'Follows the page theme',
   'map.basemap.topo': 'Topographic',
@@ -237,60 +238,72 @@ const config = {
     </div>
   </div>
 
-  <nav class="wm-rail" data-rail aria-label={s('map.layer.title')}>
-    {RAIL.map((item) => (
+  {/* Two rails, split by what they do. LEFT changes what the map is made of — which
+      kinds of pin, and the ground under them — and stays folded until asked, because
+      nine buttons in one column is most of a phone's height. RIGHT is the four things
+      you DO to the map, always out. */}
+  <nav class="wm-rail wm-rail--left" data-rail aria-label={s('map.layer.title')}>
+    <div class="wm-rail__group" data-layer-group>
       <button
         type="button"
-        class="wm-rail__btn"
-        data-layer={item.layer}
-        aria-pressed={String(item.pressed)}
+        class="wm-rail__btn wm-rail__btn--action wm-rail__btn--fold"
+        data-layers-toggle
+        aria-expanded="false"
+        title={s('map.layer.title')}
+        aria-label={s('map.layer.title')}
       >
-        <span class="wm-rail__on" set:html={item.on} />
-        <span class="wm-rail__off" set:html={item.off} />
-        <span class="wm-rail__label">{item.label}</span>
+        <span class="wm-rail__on" set:html={`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15.536 11.293a1 1 0 0 0 0 1.414l2.376 2.377a1 1 0 0 0 1.414 0l2.377-2.377a1 1 0 0 0 0-1.414l-2.377-2.377a1 1 0 0 0-1.414 0z"/><path d="M2.297 11.293a1 1 0 0 0 0 1.414l2.377 2.377a1 1 0 0 0 1.414 0l2.377-2.377a1 1 0 0 0 0-1.414L6.088 8.916a1 1 0 0 0-1.414 0z"/><path d="M8.916 17.912a1 1 0 0 0 0 1.415l2.377 2.376a1 1 0 0 0 1.414 0l2.377-2.376a1 1 0 0 0 0-1.415l-2.377-2.376a1 1 0 0 0-1.414 0z"/><path d="M8.916 4.674a1 1 0 0 0 0 1.414l2.377 2.376a1 1 0 0 0 1.414 0l2.377-2.376a1 1 0 0 0 0-1.414l-2.377-2.377a1 1 0 0 0-1.414 0z"/></svg>`} />
+        {/* The count is the whole point of folding: you can see what is on without
+            unfolding it. */}
+        <span class="wm-rail__badge" data-layer-count aria-hidden="true"></span>
+        <span class="wm-rail__label">{s('map.layer.title')}</span>
       </button>
-    ))}
-    {/* Not layers, but they belong with them: everything in this rail changes what
-        you are looking at. They used to sit in the zoom stack, which is chrome. One
-        hairline separates the pair from the toggles — not one per button. */}
-    <div class="wm-rail__actions">
-      <button type="button" class="wm-rail__btn wm-rail__btn--action" data-search-toggle aria-expanded="false" title={s('map.search.open')} aria-label={s('map.search.open')}>
-        <span class="wm-rail__on" set:html={`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>`} />
-        <span class="wm-rail__label">{s('map.search.open')}</span>
-      </button>
+      {RAIL.map((item) => (
+        <button
+          type="button"
+          class="wm-rail__btn wm-rail__btn--layer"
+          data-layer={item.layer}
+          aria-pressed={String(item.pressed)}
+        >
+          <span class="wm-rail__on" set:html={item.on} />
+          <span class="wm-rail__off" set:html={item.off} />
+          <span class="wm-rail__label">{item.label}</span>
+        </button>
+      ))}
+    </div>
+    <div class="wm-rail__group">
       <button type="button" class="wm-rail__btn wm-rail__btn--action" data-basemap aria-expanded="false" title={s('map.basemap.title')} aria-label={s('map.basemap.title')}>
         <span class="wm-rail__on" set:html={`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z"/><path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12"/><path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17"/></svg>`} />
         <span class="wm-rail__label">{s('map.basemap.title')}</span>
       </button>
-      <button type="button" class="wm-rail__btn wm-rail__btn--action" data-recenter title={s('map.control.recenter')} aria-label={s('map.control.recenter')}>
-        <span class="wm-rail__on" set:html={`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="2" x2="5" y1="12" y2="12"/><line x1="19" x2="22" y1="12" y2="12"/><line x1="12" x2="12" y1="2" y2="5"/><line x1="12" x2="12" y1="19" y2="22"/><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/></svg>`} />
-        <span class="wm-rail__label">{s('map.control.recenter')}</span>
-      </button>
     </div>
-    {/* Standalone, and its own hairline: this is the only control that asks the
-        visitor for something rather than moving the camera on its own authority. */}
-    <div class="wm-rail__actions">
-      <button
-        type="button"
-        class="wm-rail__btn wm-rail__btn--action wm-rail__btn--locate"
-        data-locate
-        data-state="idle"
-        title={s('map.control.locate')}
-        aria-label={s('map.control.locate')}
-      >
-        <span class="wm-rail__on" set:html={`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>`} />
-        <span class="wm-rail__off" set:html={`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.43 8.43 3 11l8 2 2 8 2.57-5.43"/><path d="M17.39 11.73 22 2l-9.73 4.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>`} />
-        <span class="wm-rail__label">{s('map.control.locate')}</span>
-      </button>
-    </div>
-    {/* Third block, third hairline: this is the only control that puts something INTO
-        the map rather than changing what you see of it. */}
-    <div class="wm-rail__actions">
-      <button type="button" class="wm-rail__btn wm-rail__btn--action" data-upload title={s('map.upload.open')} aria-label={s('map.upload.open')}>
-        <span class="wm-rail__on" set:html={`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>`} />
-        <span class="wm-rail__label">{s('map.upload.open')}</span>
-      </button>
-    </div>
+  </nav>
+
+  <nav class="wm-rail wm-rail--right" aria-label={s('map.control.title')}>
+    <button type="button" class="wm-rail__btn wm-rail__btn--action" data-search-toggle aria-expanded="false" title={s('map.search.open')} aria-label={s('map.search.open')}>
+      <span class="wm-rail__on" set:html={`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>`} />
+      <span class="wm-rail__label">{s('map.search.open')}</span>
+    </button>
+    <button type="button" class="wm-rail__btn wm-rail__btn--action" data-upload title={s('map.upload.open')} aria-label={s('map.upload.open')}>
+      <span class="wm-rail__on" set:html={`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>`} />
+      <span class="wm-rail__label">{s('map.upload.open')}</span>
+    </button>
+    <button type="button" class="wm-rail__btn wm-rail__btn--action" data-recenter title={s('map.control.recenter')} aria-label={s('map.control.recenter')}>
+      <span class="wm-rail__on" set:html={`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="2" x2="5" y1="12" y2="12"/><line x1="19" x2="22" y1="12" y2="12"/><line x1="12" x2="12" y1="2" y2="5"/><line x1="12" x2="12" y1="19" y2="22"/><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/></svg>`} />
+      <span class="wm-rail__label">{s('map.control.recenter')}</span>
+    </button>
+    <button
+      type="button"
+      class="wm-rail__btn wm-rail__btn--action wm-rail__btn--locate"
+      data-locate
+      data-state="idle"
+      title={s('map.control.locate')}
+      aria-label={s('map.control.locate')}
+    >
+      <span class="wm-rail__on" set:html={`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>`} />
+      <span class="wm-rail__off" set:html={`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.43 8.43 3 11l8 2 2 8 2.57-5.43"/><path d="M17.39 11.73 22 2l-9.73 4.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>`} />
+      <span class="wm-rail__label">{s('map.control.locate')}</span>
+    </button>
   </nav>
 
   {/* Only rendered while a file is over the map — see .wm__drop. */}

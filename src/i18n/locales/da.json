@@ -283,6 +283,7 @@
   "map.upload.errFailed": "Det gik ikke igennem. Prøv igen.",
   "map.trail.goneTitle": "Dette spor er her ikke længere",
   "map.basemap.title": "Kortstil",
+  "map.control.title": "Kortkontroller",
   "map.basemap.auto": "DirtBikeX",
   "map.basemap.autoNote": "Følger sidens tema",
   "map.basemap.topo": "Topografisk",

@@ -285,6 +285,7 @@
   "map.upload.errFailed": "上传未成功，请重试。",
   "map.trail.goneTitle": "这条轨迹已不在了",
   "map.basemap.title": "地图样式",
+  "map.control.title": "地图控件",
   "map.basemap.auto": "DirtBikeX",
   "map.basemap.autoNote": "跟随页面主题",
   "map.basemap.topo": "地形图",

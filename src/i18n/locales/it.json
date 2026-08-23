@@ -283,6 +283,7 @@
   "map.upload.errFailed": "Non è andata a buon fine. Riprova.",
   "map.trail.goneTitle": "Questo percorso non c’è più",
   "map.basemap.title": "Stile mappa",
+  "map.control.title": "Comandi mappa",
   "map.basemap.auto": "DirtBikeX",
   "map.basemap.autoNote": "Segue il tema della pagina",
   "map.basemap.topo": "Topografica",

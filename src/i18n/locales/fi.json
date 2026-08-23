@@ -283,6 +283,7 @@
   "map.upload.errFailed": "Lähetys ei onnistunut. Yritä uudelleen.",
   "map.trail.goneTitle": "Tätä reittiä ei enää ole",
   "map.basemap.title": "Kartan tyyli",
+  "map.control.title": "Kartan säätimet",
   "map.basemap.auto": "DirtBikeX",
   "map.basemap.autoNote": "Seuraa sivun teemaa",
   "map.basemap.topo": "Topografinen",

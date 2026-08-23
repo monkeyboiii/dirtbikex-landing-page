@@ -1296,6 +1296,63 @@ body.is-map-page .site-header__inner {
   line-height: 15px;
   text-align: center;
 }
+/* Two rails. Left is what the map is MADE of and folds; right is what you DO to it
+   and does not. Nine buttons in one column ran most of the height of a phone. */
+.wm-rail--left {
+  right: auto;
+  left: var(--space-5, 20px);
+}
+.wm-rail__group {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.wm-rail__group + .wm-rail__group {
+  margin-top: 12px;
+}
+.wm-rail__group + .wm-rail__group::before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: 8px;
+  right: 8px;
+  height: 1px;
+  background: var(--wm-line);
+}
+/* Folded is the resting state: the toggles are out only while the group is open, and
+   the fold button steps aside for them so the column stays the same length either way. */
+.wm-rail__btn--layer {
+  display: none;
+}
+[data-layer-group].is-open .wm-rail__btn--layer {
+  display: grid;
+}
+[data-layer-group].is-open .wm-rail__btn--fold {
+  display: none;
+}
+/* How many kinds are on, readable without unfolding — which is the whole point of
+   folding. Hidden at zero: an empty map needs no number to say so. */
+.wm-rail__badge {
+  position: absolute;
+  top: -5px;
+  inset-inline-end: -5px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  background: var(--wm-accent, #ed6b00);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  pointer-events: none;
+}
+.wm-rail__badge:empty {
+  display: none;
+}
 .wm-rail__btn {
   position: relative;
 }
@@ -1720,7 +1777,7 @@ body.is-map-page .site-header__inner {
 .wm-basemaps {
   position: absolute;
   top: 0;
-  right: calc(100% + 10px);
+  left: calc(100% + 10px);
   z-index: 6;
   display: flex;
   flex-direction: column;
@@ -1768,7 +1825,7 @@ body.is-map-page .site-header__inner {
 }
 @media (max-width: 767px) {
   .wm-basemaps {
-    right: calc(100% + 8px);
+    left: calc(100% + 8px);
     min-width: 156px;
   }
 }
@@ -1804,9 +1861,7 @@ body.is-map-page .site-header__inner {
   color: var(--wm-text-faint);
   background: rgba(var(--wm-veil), 0.5);
 }
-.wm-rail__btn--locate[data-state='denied'] {
-  cursor: default;
-}
+/* Still a button. The slash says "not showing you", not "nothing will happen". */
 .wm-rail__btn--locate[data-state='denied'] .wm-rail__on {
   display: none;
 }

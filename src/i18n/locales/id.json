@@ -283,6 +283,7 @@
   "map.upload.errFailed": "Gagal terkirim. Coba lagi.",
   "map.trail.goneTitle": "Jalur ini sudah tidak ada",
   "map.basemap.title": "Gaya peta",
+  "map.control.title": "Kontrol peta",
   "map.basemap.auto": "DirtBikeX",
   "map.basemap.autoNote": "Mengikuti tema halaman",
   "map.basemap.topo": "Topografi",

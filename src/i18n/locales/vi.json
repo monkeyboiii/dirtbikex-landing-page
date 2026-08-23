@@ -283,6 +283,7 @@
   "map.upload.errFailed": "Không gửi được. Thử lại nhé.",
   "map.trail.goneTitle": "Cung đường này không còn ở đây",
   "map.basemap.title": "Kiểu bản đồ",
+  "map.control.title": "Điều khiển bản đồ",
   "map.basemap.auto": "DirtBikeX",
   "map.basemap.autoNote": "Theo giao diện trang",
   "map.basemap.topo": "Địa hình",

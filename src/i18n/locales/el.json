@@ -283,6 +283,7 @@
   "map.upload.errFailed": "Δεν ολοκληρώθηκε. Δοκίμασε ξανά.",
   "map.trail.goneTitle": "Αυτή η διαδρομή δεν είναι πια εδώ",
   "map.basemap.title": "Στυλ χάρτη",
+  "map.control.title": "Χειριστήρια χάρτη",
   "map.basemap.auto": "DirtBikeX",
   "map.basemap.autoNote": "Ακολουθεί το θέμα της σελίδας",
   "map.basemap.topo": "Τοπογραφικός",
