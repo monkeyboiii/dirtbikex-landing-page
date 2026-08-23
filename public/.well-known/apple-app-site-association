@@ -32,8 +32,7 @@
           },
           {
             "/": "/s/c/*",
-            "exclude": true,
-            "comment": "Trail claim - WEB ONLY, deliberately. Claimed here on 2026-08-22 for an iOS release that never shipped a destination: ShareKind has no `c` case, so DeepLinkHandler.classify returns nil and a good claim link opens the app straight into its invalid-link bubble. Excluded again 2026-08-23 until iOS can actually complete the claim. Un-exclude in the SAME release that adds it."
+            "comment": "Trail claim - native. Excluded 2026-08-22..23 because the app had no destination; re-claimed 2026-08-23 alongside ShareKind.trailClaim, the /dbx/trails/claim.json verb and TrailClaimCardBody. If the app ever loses that destination this MUST go back to exclude:true — a claimed path with nothing behind it answers a good link with the invalid-link bubble."
           },
           {
             "/": "/s/*",

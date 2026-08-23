@@ -380,25 +380,36 @@ id comes from a public topic title and its post stays public whatever the map sa
 collapsing protects nothing and costs the readable name the first time the rider toggles
 the trail off and on. The secret still rotates; only the name survives.
 
-### The claim link is web-only, and that is deliberate
+### Claiming in the app
 
-`/s/c/<code>` is **excluded** in `public/.well-known/apple-app-site-association`, so tapping
-a claim link opens the interstitial in a browser even on a device with the app installed.
+`/s/c/<code>` is claimed in AASA again, and the app now has somewhere to put it. Two
+endpoints exist for it, and the split matters:
 
-It was claimed on 2026-08-22 in anticipation of an iOS release that would handle it. That
-release never shipped a destination: `ShareKind` has no `c` case, `DeepLinkHandler.classify`
-returns nil for the path, and the app answers a perfectly good claim link with its
-invalid-link bubble. A claimed path with no destination is strictly worse than an
-unclaimed one, so it went back behind the exclude on 2026-08-23.
+| | Route | Auth | For |
+|---|---|---|---|
+| Preview | `GET /api/map/claim/<code>.json` (worker) | none | naming the ride *before* asking for an account |
+| Claim | `POST /dbx/trails/claim.json` (plugin) | session | the write, returning the message's coordinates |
 
-**Un-exclude it in the same release that adds the destination, not before.** What that
-destination needs is more than an enum case: the claim is completed by
-`GET /dbx/trails/claim?code=…` on the forum, which writes and then redirects to the
-rider's personal message, and the app has no generic surface for "open this forum path
-in the authenticated web view" — every web view it has is bound to a topic, a chat or the
-composer. See `iOS/docs/SHARING_MODULE.md`.
+The preview is unauthenticated on purpose: a prompt that says "sign up to claim your 6.3 km
+loop" is a different proposition from one that asks on faith. It reveals nothing the
+`/s/c/` page does not already show the same holder of the same code — it *is* that page's
+body, as JSON — but it is rate-limited, because a JSON endpoint is the machine-friendly
+shape of an oracle. (The HTML page still has no limiter of its own; that gap predates this.)
 
-### Known gap
+The claim is a POST while the browser arm stays a GET-that-writes. That asymmetry is not
+untidiness: the GET exists only because no POST survives a login round-trip, and a native
+client authenticates before it asks. It also matters for correctness — the GET arm answers
+a rate limit by **redirecting to the landing site's card**, which a client following
+redirects would read as success. Nothing on the POST arm redirects. Both arms share
+`TrailClaims.claim!`, so they cannot drift on who may claim what.
+
+`not_found` still covers spent, expired and somebody-else's alike, so neither endpoint can
+be asked who owns a trail.
+
+See `iOS/docs/SHARING_MODULE.md` § "Trail-claim kind" for the state matrix and the
+onboarding sequencing.
+
+### Known gap### Known gap
 
 The duplicate-file check only looks at D1. A trail already on the map through the **R2
 bundle** — an operator import — can be imported again from its post, producing two entries
