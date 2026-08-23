@@ -2166,14 +2166,6 @@ body.is-map-page .site-header__inner {
   .wm .maplibregl-ctrl-group:not(.wm-ctrl-recenter) {
     display: none;
   }
-  /* And because that stack is gone, the right rail sits lower here than on a desktop —
-     the same distance above the attribution rather than the same number from the floor. */
-  .wm-rail--right {
-    bottom: calc(92px + env(safe-area-inset-bottom));
-  }
-  .wm-rail--left {
-    bottom: calc(20px + env(safe-area-inset-bottom));
-  }
   .wm .wm-ctrl-recenter button {
     width: 46px;
     height: 46px;
@@ -2208,6 +2200,21 @@ body.is-map-page .site-header__inner {
     top: calc(58px + var(--space-3, 12px));
     right: 12px;
     gap: 6px;
+  }
+  /* After .wm-rail, because that rule re-declares `top` inside this very media query and
+     would otherwise win on source order and stretch both rails the height of the map.
+     The right rail sits lower here than on a desktop: the zoom stack it has to clear is
+     hidden on a phone, so it clears the attribution alone. */
+  .wm-rail--left {
+    top: auto;
+    right: auto;
+    left: 12px;
+    bottom: calc(20px + env(safe-area-inset-bottom));
+  }
+  .wm-rail--right {
+    top: auto;
+    right: 12px;
+    bottom: calc(92px + env(safe-area-inset-bottom));
   }
   .wm-rail__btn {
     width: 38px;
