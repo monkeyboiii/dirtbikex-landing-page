@@ -1299,8 +1299,17 @@ body.is-map-page .site-header__inner {
 /* Two rails. Left is what the map is MADE of and folds; right is what you DO to it
    and does not. Nine buttons in one column ran most of the height of a phone. */
 .wm-rail--left {
+  top: auto;
+  bottom: calc(26px + env(safe-area-inset-bottom));
   right: auto;
   left: var(--space-5, 20px);
+}
+/* Anchored by its BOTTOM edge, so unfolding grows the column upward into empty map
+   rather than pushing the buttons off the foot of the screen. */
+.wm-rail--right {
+  top: auto;
+  /* Clear of MapLibre's own stack: the zoom group, then the attribution strip. */
+  bottom: calc(152px + env(safe-area-inset-bottom));
 }
 .wm-rail__group {
   position: relative;
@@ -1309,16 +1318,7 @@ body.is-map-page .site-header__inner {
   gap: 8px;
 }
 .wm-rail__group + .wm-rail__group {
-  margin-top: 12px;
-}
-.wm-rail__group + .wm-rail__group::before {
-  content: '';
-  position: absolute;
-  top: -10px;
-  left: 8px;
-  right: 8px;
-  height: 1px;
-  background: var(--wm-line);
+  margin-top: 8px;
 }
 /* Folded is the resting state: the toggles are out only while the group is open, and
    the fold button steps aside for them so the column stays the same length either way. */
@@ -1330,7 +1330,39 @@ body.is-map-page .site-header__inner {
 [data-layer-group].is-open .wm-rail__btn--layer {
   display: grid;
 }
-[data-layer-group].is-open .wm-rail__btn--fold {
+/* Rising into place, bottom-most first, so the eye follows the stack upward instead of
+   finding five buttons already there. */
+@keyframes wm-rail-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.94);
+  }
+}
+[data-layer-group].is-open .wm-rail__btn--layer {
+  animation: wm-rail-rise 200ms var(--ease-spring, cubic-bezier(0.2, 0.9, 0.3, 1.2)) both;
+}
+[data-layer-group].is-open .wm-rail__btn--layer:nth-of-type(5) { animation-delay: 20ms; }
+[data-layer-group].is-open .wm-rail__btn--layer:nth-of-type(4) { animation-delay: 45ms; }
+[data-layer-group].is-open .wm-rail__btn--layer:nth-of-type(3) { animation-delay: 70ms; }
+[data-layer-group].is-open .wm-rail__btn--layer:nth-of-type(2) { animation-delay: 95ms; }
+[data-layer-group].is-open .wm-rail__btn--layer:nth-of-type(1) { animation-delay: 120ms; }
+@media (prefers-reduced-motion: reduce) {
+  [data-layer-group].is-open .wm-rail__btn--layer {
+    animation: none;
+  }
+}
+/* The chevron IS the fold button, turned over. It stays because it is now the only way
+   back — nothing else dismisses the group. */
+[data-layer-group].is-open .wm-rail__fold-open {
+  display: none;
+}
+.wm-rail__fold-close {
+  display: none;
+}
+[data-layer-group].is-open .wm-rail__fold-close {
+  display: grid;
+}
+[data-layer-group].is-open .wm-rail__badge {
   display: none;
 }
 /* How many kinds are on, readable without unfolding — which is the whole point of
@@ -1921,6 +1953,18 @@ body.is-map-page .site-header__inner {
   opacity: 1;
   transform: translate(0, -50%);
 }
+/* The left rail's labels open away from the edge they are pinned to. Opening left from
+   a left-hand rail puts the text off-screen, which is where it was. */
+.wm-rail--left .wm-rail__label {
+  right: auto;
+  left: calc(100% + 8px);
+  transform: translate(-6px, -50%);
+}
+.wm-rail--left .wm-rail__btn:hover .wm-rail__label,
+.wm-rail--left .wm-rail__btn:focus-visible .wm-rail__label,
+.wm-rail--left .wm-rail__btn[data-hint] .wm-rail__label {
+  transform: translate(0, -50%);
+}
 
 /* Where you are — the blue dot everybody already knows. Not a pin: a pin marks a place
    in the catalog, and this is not one, so it never takes a kind colour or a glyph. */
@@ -2121,6 +2165,14 @@ body.is-map-page .site-header__inner {
   /* Pinch-zoom makes +/- redundant; recenter stays, it has no gesture equivalent. */
   .wm .maplibregl-ctrl-group:not(.wm-ctrl-recenter) {
     display: none;
+  }
+  /* And because that stack is gone, the right rail sits lower here than on a desktop —
+     the same distance above the attribution rather than the same number from the floor. */
+  .wm-rail--right {
+    bottom: calc(92px + env(safe-area-inset-bottom));
+  }
+  .wm-rail--left {
+    bottom: calc(20px + env(safe-area-inset-bottom));
   }
   .wm .wm-ctrl-recenter button {
     width: 46px;

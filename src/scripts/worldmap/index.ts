@@ -1630,12 +1630,6 @@ class WorldMap {
    * "you are already there", which is the difference between a button worth pressing
    * and one that would do nothing.
    */
-  /** Anything that means "the visitor is looking at the map now", which is when a folded
-      control should get out of the way. */
-  onMapInteraction(fn: () => void) {
-    for (const ev of ['dragstart', 'zoomstart', 'click'] as const) this.map.on(ev, fn);
-  }
-
   syncControls() {
     const mark = (selector: string, on: boolean) => {
       const button = this.root.querySelector<HTMLElement>(selector);
@@ -2501,22 +2495,18 @@ function wireRail(root: HTMLElement, world: WorldMap, strings: Strings) {
       group.classList.toggle('is-open', open);
       fold.setAttribute('aria-expanded', String(open));
     };
+    // The button is the toggle, both ways. Nothing else closes the group — not a tap on
+    // the map, not panning, not opening a sheet: choosing which kinds to see is a job you
+    // do WHILE reading the map, and a panel that folded itself the moment you touched
+    // anything made you re-open it for every second choice.
     fold.addEventListener('click', (ev) => {
       ev.stopPropagation();
-      setOpen(true);
-      // Focus moves to the first toggle, or the fold button vanishing takes the focus
-      // ring with it and a keyboard visitor is left nowhere.
-      group.querySelector<HTMLButtonElement>('.wm-rail__btn--layer')?.focus();
+      setOpen(fold.getAttribute('aria-expanded') !== 'true');
     });
-    // Folding back is "look away": tapping the map, or anywhere off the group. There is
-    // no close button because the five toggles ARE the six-button budget.
-    document.addEventListener('click', (ev) => {
-      if (!group.contains(ev.target as Node)) setOpen(false);
-    });
+    // Escape stays, because a keyboard visitor needs a way out that is not a mouse.
     document.addEventListener('keydown', (ev) => {
       if (ev.key === 'Escape') setOpen(false);
     });
-    world.onMapInteraction(() => setOpen(false));
   }
 
   // Which ground the map draws on. A menu rather than a cycling button: three named looks
