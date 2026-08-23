@@ -1801,17 +1801,12 @@ body.is-map-page .site-header__inner {
 /* A bar, not another icon tile. Every other button in this rail acts on the map; this
    one opens a drawer, and the shape says that before the icon does. Doubled class: the
    base .wm-rail__btn sizing sits at the same specificity and would win on order. */
-/* Taller than the others on purpose: the chevron and the component mark are ONE control,
-   stacked — the chevron says which way it moves, the mark says what it opens. */
-.wm-rail__btn.wm-rail__btn--fold {
-  height: 58px;
-  grid-auto-flow: row;
-  gap: 1px;
-  align-content: center;
-}
-.wm-rail__btn--fold .wm-rail__chev svg {
-  width: 14px;
-  height: 14px;
+/* Square while folded — it is a button like any other, and the component mark is the
+   affordance. Open, it is a thin bar carrying only the chevron: a lid over the stack
+   rather than a sixth tile in it. */
+[data-layer-group].is-open .wm-rail__btn.wm-rail__btn--fold {
+  height: 24px;
+  border-radius: var(--radius-sm, 6px);
 }
 .wm-rail__btn:hover {
   border-color: var(--wm-line-strong);
@@ -2250,8 +2245,8 @@ body.is-map-page .site-header__inner {
     width: 38px;
     height: 38px;
   }
-  .wm-rail__btn.wm-rail__btn--fold {
-    height: 52px;
+  [data-layer-group].is-open .wm-rail__btn.wm-rail__btn--fold {
+    height: 22px;
   }
   .wm-rail__actions {
     gap: 6px;

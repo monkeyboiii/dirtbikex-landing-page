@@ -117,7 +117,7 @@ interface ShopDoc {
 const LAYERS: Record<LayerId, readonly string[]> = {
   tracks: ['tracks-glow', 'tracks-dot', 'tracks-glyph', 'tracks-seal', 'tracks-label'],
   shops: ['shops-glow', 'shops-blip', 'shops-label'],
-  trails: ['trails-line', 'trails-glow', 'trails-blip', 'trails-label'],
+  trails: ['trails-line-halo', 'trails-line', 'trails-glow', 'trails-blip', 'trails-label'],
   ride: ['journey-line'],
   // DOM markers, not style layers: a Marker survives setStyle, so this layer
   // never has to be replayed through addLayers() the way the others are.
@@ -542,6 +542,12 @@ class WorldMap {
     return this.basemap === 'auto' && this.dark;
   }
 
+  /** A basemap that is already a drawing rather than a backdrop. Only the topo sheet is
+      busy enough to need the trace lifted off it. */
+  private get rasterGround() {
+    return this.basemap === 'topo';
+  }
+
   /** Kept from start(), so sheets the island builds itself can be localised too. */
   private strings: Strings = {};
 
@@ -918,6 +924,30 @@ class WorldMap {
     // can never be mistaken for a trace that exists, and so clearing it is one call.
     map.addSource('trail-pending', { type: 'geojson', data: EMPTY });
     map.addSource('trail-lines', { type: 'geojson', data: EMPTY });
+    // A feathered wash directly under the trace, and ONLY on the raster sheets.
+    //
+    // OpenTopoMap is already a drawing — contours, forest fill, hillshade, its own roads —
+    // and a 3px line laid over it reads as one more contour. The vector styles are quiet
+    // enough that the line carries itself, and a halo there would just look smudged.
+    //
+    // Blur, not a solid casing: a hard outline would be a second line to read. This is
+    // held tight to the trace (a little over twice its width) so it lifts the stroke off
+    // the ground without becoming a glow of its own.
+    map.addLayer(
+      {
+        id: 'trails-line-halo',
+        type: 'line',
+        source: 'trail-lines',
+        layout: { 'line-cap': 'round', 'line-join': 'round' },
+        paint: {
+          'line-color': this.groundIsDark ? '#0b0b0c' : '#ffffff',
+          'line-width': ['interpolate', ['linear'], ['zoom'], 6, 4.5, 11, 8, 14, 12] as never,
+          'line-blur': ['interpolate', ['linear'], ['zoom'], 6, 2, 11, 3.5, 14, 5] as never,
+          'line-opacity': this.rasterGround ? 0.85 : 0,
+        },
+      },
+      map.getLayer('tracks-glow') ? 'tracks-glow' : undefined,
+    );
     map.addLayer(
       {
         id: 'trails-line',
@@ -1565,7 +1595,12 @@ class WorldMap {
 
   private syncTrailLine() {
     if (!this.map.getLayer('trails-line')) return;
-    this.map.setLayoutProperty('trails-line', 'visibility', this.trailLineOn() ? 'visible' : 'none');
+    const on = this.trailLineOn() ? 'visible' : 'none';
+    this.map.setLayoutProperty('trails-line', 'visibility', on);
+    // The halo follows the trace it sits under, always — it is part of the same stroke.
+    if (this.map.getLayer('trails-line-halo')) {
+      this.map.setLayoutProperty('trails-line-halo', 'visibility', on);
+    }
   }
 
   private applyLayers() {
