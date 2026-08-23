@@ -1740,13 +1740,15 @@ body.is-map-page .site-header__inner {
 }
 /* The chevron IS the fold button, turned over. It stays because it is now the only way
    back — nothing else dismisses the group. */
-[data-layer-group].is-open .wm-rail__fold-open {
+[data-layer-group].is-open .wm-rail__on.wm-rail__fold-open {
   display: none;
 }
-.wm-rail__fold-close {
+/* Doubled with .wm-rail__on, which both faces carry and which sets display later in this
+   file — the single-class form lost and drew the chevron twice. */
+.wm-rail__on.wm-rail__fold-close {
   display: none;
 }
-[data-layer-group].is-open .wm-rail__fold-close {
+[data-layer-group].is-open .wm-rail__on.wm-rail__fold-close {
   display: grid;
 }
 [data-layer-group].is-open .wm-rail__badge {
