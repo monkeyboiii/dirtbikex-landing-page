@@ -720,6 +720,45 @@ export async function handleTrailImport(request: Request, env: PagesEnv): Promis
 }
 
 /**
+ * GET /api/map/claim/<code>.json — the same card the interstitial draws, as data.
+ *
+ * Unauthenticated on purpose: the app shows this to a rider who has not signed in yet, so
+ * that the prompt to sign up can name the ride instead of asking for an account on faith.
+ * It reveals nothing the HTML page at /s/c/<code> does not already reveal to the same
+ * holder of the same code — this is that page's body, in JSON.
+ *
+ * Rate limited even so, because a JSON endpoint is the machine-friendly shape of an
+ * oracle and the code is only 8 characters of a 31-symbol alphabet. (The HTML page has no
+ * limiter of its own yet; that gap predates this and is worth closing separately.)
+ */
+export async function handleClaimPeek(request: Request, env: PagesEnv, code: string): Promise<Response> {
+  if (env.RATELIMIT_KV) {
+    const ip = clientIp(request);
+    const ok = await rateLimitConsume(env.RATELIMIT_KV, `claimpeek:ip:${ip}:1h`, 120, 3600);
+    if (!ok.allowed) return json(429, { error: 'rate_limited' }, { 'Retry-After': '60' });
+  }
+
+  const trail = await claimPreview(env, code);
+  if (!trail) return json(404, { error: 'not_found' });
+
+  return json(
+    200,
+    {
+      id: trail.id,
+      title: trail.title,
+      distance_km: trail.distanceKm,
+      shape: trail.shape,
+      expires_in_hours: trail.hours,
+      // Already signed for. The app uses this to open on a receipt rather than on a
+      // "claim it" button the rider has already pressed once.
+      claimed: trail.claimed,
+    },
+    // The answer changes the moment somebody claims it, and it is addressed by a secret.
+    { 'Cache-Control': 'no-store' },
+  );
+}
+
+/**
  * GET /api/map/trail/claim/<code> — what the plugin needs to write the post.
  *
  * Read-only on purpose. The claim is only recorded once the post exists, because the post

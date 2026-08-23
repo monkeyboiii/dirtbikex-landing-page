@@ -24,6 +24,7 @@ import {
   reconcileTrails,
   signPendingTrails,
   handleTrailImport,
+  handleClaimPeek,
   handleClaimResolve,
   handleClaimBind,
   handleTrailState,
@@ -1406,6 +1407,12 @@ export default {
     if (request.method === 'DELETE') {
       const gone = url.pathname.match(/^\/api\/map\/trail\/([a-z0-9]{6,16})$/);
       if (gone) return handleTrailDelete(request, env, gone[1]!);
+    }
+
+    // The claim card as data, for the app. Unauthenticated like the page it mirrors.
+    {
+      const peek = url.pathname.match(/^\/api\/map\/claim\/([a-z0-9]{6,16})\.json$/);
+      if (peek && request.method === 'GET') return handleClaimPeek(request, env, peek[1]!);
     }
 
     // Visitor trail upload — the one unauthenticated write on this worker.
