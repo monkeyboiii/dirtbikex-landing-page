@@ -108,8 +108,10 @@
   "founders.calvin.role": "Grundlægger, CEO & CTO",
   "founders.calvin.bio": "Rytter om dagen, koder om natten — DirtBikeX bygges fra sadlen og tastaturet.",
   "founders.calvin.photo_alt": "Zenkai Rubio, grundlægger af DirtBikeX",
-  "founders.rebecca.role": "Lead UX/UI-designer",
+  "founders.rebecca.role": "CUXO",
+  "founders.rebecca.photo_alt": "Rebecca, CUXO hos DirtBikeX",
   "founders.cici.role": "CPO",
+  "founders.cici.photo_alt": "Cici, CPO hos DirtBikeX",
   "founders.secret.name": "Hemmelig person",
   "founders.secret.role": "Endnu ikke afsløret",
   "contact.title": "Kom i kontakt",
@@ -314,5 +316,6 @@
   "map.upload.reopen": "åbn",
   "map.upload.confirmClose": "Kun gemt på denne enhed. Luk uden at dele eller gøre krav?",
   "map.upload.delete": "Slet",
+  "map.upload.forget": "Glem",
   "map.upload.confirmDelete": "Slet dette spor? De, der har linket, mister det også, og det kan ikke fortrydes."
 }

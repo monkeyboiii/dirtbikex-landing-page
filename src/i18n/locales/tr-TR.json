@@ -108,8 +108,10 @@
   "founders.calvin.role": "Kurucu, CEO ve CTO",
   "founders.calvin.bio": "Gündüz pilot, gece kodcu — DirtBikeX'i hem selenin hem klavyenin başından kuruyor.",
   "founders.calvin.photo_alt": "DirtBikeX'in kurucusu Zenkai Rubio",
-  "founders.rebecca.role": "Baş UX/UI Tasarımcısı",
+  "founders.rebecca.role": "CUXO",
+  "founders.rebecca.photo_alt": "Rebecca, DirtBikeX CUXO",
   "founders.cici.role": "CPO",
+  "founders.cici.photo_alt": "Cici, DirtBikeX CPO",
   "founders.secret.name": "Gizemli kişi",
   "founders.secret.role": "Yakında açıklanacak",
   "contact.title": "İletişime geç",
@@ -314,5 +316,6 @@
   "map.upload.reopen": "aç",
   "map.upload.confirmClose": "Yalnızca bu cihazda saklanıyor. Paylaşmadan ve sahiplenmeden kapatılsın mı?",
   "map.upload.delete": "Sil",
+  "map.upload.forget": "Unut",
   "map.upload.confirmDelete": "Bu rota silinsin mi? Bağlantıya sahip olanlar da kaybeder ve geri alınamaz."
 }

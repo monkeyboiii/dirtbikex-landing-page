@@ -108,8 +108,10 @@
   "founders.calvin.role": "Pendiri, CEO & CTO",
   "founders.calvin.bio": "Siang ngegas, malam ngoding — membangun DirtBikeX dari atas sadel dan papan ketik.",
   "founders.calvin.photo_alt": "Zenkai Rubio, pendiri DirtBikeX",
-  "founders.rebecca.role": "Lead Desainer UX/UI",
+  "founders.rebecca.role": "CUXO",
+  "founders.rebecca.photo_alt": "Rebecca, CUXO DirtBikeX",
   "founders.cici.role": "CPO",
+  "founders.cici.photo_alt": "Cici, CPO DirtBikeX",
   "founders.secret.name": "Sosok Misterius",
   "founders.secret.role": "Belum Terungkap",
   "contact.title": "Hubungi kami",
@@ -314,5 +316,6 @@
   "map.upload.reopen": "buka",
   "map.upload.confirmClose": "Hanya disimpan di perangkat ini. Tutup tanpa membagikan atau mengklaim?",
   "map.upload.delete": "Hapus",
+  "map.upload.forget": "Lupakan",
   "map.upload.confirmDelete": "Hapus jalur ini? Yang punya tautannya juga kehilangan, dan tidak bisa dibatalkan."
 }

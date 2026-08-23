@@ -108,8 +108,10 @@
   "founders.calvin.role": "Fondatore, CEO & CTO",
   "founders.calvin.bio": "Di giorno in sella, di notte sul codice — DirtBikeX nasce così, tra manubrio e tastiera.",
   "founders.calvin.photo_alt": "Zenkai Rubio, fondatore di DirtBikeX",
-  "founders.rebecca.role": "Lead Designer UX/UI",
+  "founders.rebecca.role": "CUXO",
+  "founders.rebecca.photo_alt": "Rebecca, CUXO di DirtBikeX",
   "founders.cici.role": "CPO",
+  "founders.cici.photo_alt": "Cici, CPO di DirtBikeX",
   "founders.secret.name": "Persona misteriosa",
   "founders.secret.role": "Da svelare",
   "contact.title": "Mettiti in contatto",
@@ -314,5 +316,6 @@
   "map.upload.reopen": "apri",
   "map.upload.confirmClose": "Tenuto solo su questo dispositivo. Chiudere senza condividere né rivendicare?",
   "map.upload.delete": "Elimina",
+  "map.upload.forget": "Dimentica",
   "map.upload.confirmDelete": "Eliminare questo percorso? Lo perde anche chi ha il link, e non si torna indietro."
 }

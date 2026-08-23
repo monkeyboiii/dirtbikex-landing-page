@@ -108,8 +108,10 @@
   "founders.calvin.role": "المؤسّس والرئيس التنفيذي ومدير التكنولوجيا (CEO و CTO)",
   "founders.calvin.bio": "راكبٌ في النهار، مبرمجٌ في الليل — أبني DirtBikeX من فوق السّرج ومن خلف لوحة المفاتيح.",
   "founders.calvin.photo_alt": "Zenkai Rubio، مؤسّس DirtBikeX",
-  "founders.rebecca.role": "مديرة تصميم UX/UI",
+  "founders.rebecca.role": "مديرة تجربة المستخدم (CUXO)",
+  "founders.rebecca.photo_alt": "Rebecca، مديرة تجربة المستخدم في DirtBikeX",
   "founders.cici.role": "مديرة المنتج (CPO)",
+  "founders.cici.photo_alt": "Cici، مديرة المنتج في DirtBikeX",
   "founders.secret.name": "شخصٌ غامض",
   "founders.secret.role": "لم يُكشف بعد",
   "contact.title": "تواصل معنا",
@@ -314,5 +316,6 @@
   "map.upload.reopen": "فتح",
   "map.upload.confirmClose": "محفوظ على هذا الجهاز فقط. إغلاق دون مشاركة أو مطالبة؟",
   "map.upload.delete": "حذف",
+  "map.upload.forget": "إزالة من القائمة",
   "map.upload.confirmDelete": "حذف هذا المسار؟ سيفقده أيضًا من لديه الرابط، ولا يمكن التراجع."
 }

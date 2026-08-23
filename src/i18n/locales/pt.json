@@ -108,8 +108,10 @@
   "founders.calvin.role": "Fundador, CEO & CTO",
   "founders.calvin.bio": "Piloto de dia, programador de noite — construindo o DirtBikeX entre a sela e o teclado.",
   "founders.calvin.photo_alt": "Zenkai Rubio, fundador do DirtBikeX",
-  "founders.rebecca.role": "Designer UX/UI Principal",
+  "founders.rebecca.role": "CUXO",
+  "founders.rebecca.photo_alt": "Rebecca, CUXO da DirtBikeX",
   "founders.cici.role": "CPO",
+  "founders.cici.photo_alt": "Cici, CPO da DirtBikeX",
   "founders.secret.name": "Pessoa misteriosa",
   "founders.secret.role": "Ainda em segredo",
   "contact.title": "Entre em contato",
@@ -314,5 +316,6 @@
   "map.upload.reopen": "abrir",
   "map.upload.confirmClose": "Guardada só neste dispositivo. Fechar sem partilhar nem reivindicar?",
   "map.upload.delete": "Eliminar",
+  "map.upload.forget": "Esquecer",
   "map.upload.confirmDelete": "Eliminar esta trilha? Quem tiver o link também a perde, e não dá para desfazer."
 }

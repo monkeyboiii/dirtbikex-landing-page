@@ -108,8 +108,10 @@
   "founders.calvin.role": "Gründer, CEO & CTO",
   "founders.calvin.bio": "Tagsüber im Sattel, nachts an der Tastatur — DirtBikeX entsteht zwischen Felgen und Code.",
   "founders.calvin.photo_alt": "Zenkai Rubio, Gründer von DirtBikeX",
-  "founders.rebecca.role": "Lead UX/UI Designerin",
+  "founders.rebecca.role": "CUXO",
+  "founders.rebecca.photo_alt": "Rebecca, CUXO von DirtBikeX",
   "founders.cici.role": "CPO",
+  "founders.cici.photo_alt": "Cici, CPO von DirtBikeX",
   "founders.secret.name": "Geheimperson",
   "founders.secret.role": "Noch geheim",
   "contact.title": "Kontakt aufnehmen",
@@ -314,5 +316,6 @@
   "map.upload.reopen": "öffnen",
   "map.upload.confirmClose": "Nur auf diesem Gerät gespeichert. Ohne Teilen oder Übernehmen schließen?",
   "map.upload.delete": "Löschen",
+  "map.upload.forget": "Vergessen",
   "map.upload.confirmDelete": "Diese Strecke löschen? Auch wer den Link hat, verliert sie — das lässt sich nicht rückgängig machen."
 }

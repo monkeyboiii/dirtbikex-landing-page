@@ -108,8 +108,10 @@
   "founders.calvin.role": "بنیان‌گذار، مدیرعامل و مدیر فنی",
   "founders.calvin.bio": "روزها سوار بر زین، شب‌ها پشت کیبورد — DirtBikeX را از روی زین و صفحه‌کلید می‌سازم.",
   "founders.calvin.photo_alt": "Zenkai Rubio، بنیان‌گذار DirtBikeX",
-  "founders.rebecca.role": "طراح ارشد UX/UI",
+  "founders.rebecca.role": "مدیر ارشد تجربهٔ کاربری",
+  "founders.rebecca.photo_alt": "Rebecca، مدیر ارشد تجربهٔ کاربری DirtBikeX",
   "founders.cici.role": "مدیر ارشد محصول",
+  "founders.cici.photo_alt": "Cici، مدیر ارشد محصول DirtBikeX",
   "founders.secret.name": "فرد مرموز",
   "founders.secret.role": "هنوز فاش نشده",
   "contact.title": "تماس با ما",
@@ -314,5 +316,6 @@
   "map.upload.reopen": "باز کردن",
   "map.upload.confirmClose": "فقط روی همین دستگاه نگهداری می‌شود. بدون اشتراک‌گذاری یا از آنِ خود کردن ببندم؟",
   "map.upload.delete": "حذف",
+  "map.upload.forget": "فراموش کن",
   "map.upload.confirmDelete": "این مسیر حذف شود؟ هرکس لینک را دارد هم آن را از دست می‌دهد و برگشتی نیست."
 }

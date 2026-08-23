@@ -1201,7 +1201,7 @@ export function createPanel(deps: PanelDeps) {
     showUploadIntro(
       pick: () => void,
       recent: { id: string; title: string; claim: string }[] = [],
-      acts?: { open: (id: string) => void; remove: (id: string) => void },
+      acts?: { open: (id: string) => void; remove: (id: string) => void; forget: (id: string) => void },
     ) {
       open((host) => {
         kicker(strings['map.upload.kicker'] ?? 'Your trail');
@@ -1231,25 +1231,41 @@ export function createPanel(deps: PanelDeps) {
             name.title = strings['map.upload.reopen'] ?? 'Open';
             name.addEventListener('click', () => acts.open(row.id));
 
-            // The claim URL carries the code, so it is never printed — it only ever
-            // becomes an href on a tab the rider opened themselves.
-            const claim = el('a', 'wm-recent__act') as HTMLAnchorElement;
-            claim.href = row.claim;
-            claim.target = '_blank';
-            claim.rel = 'noopener';
-            claim.textContent = strings['map.upload.claimShort'] ?? 'Claim';
+            // A row with no code came from somebody else's link: it is a bookmark, not a
+            // possession. Offering Claim would invite signing for another rider's ride,
+            // and Delete would actually work — the secret IS the authority on that
+            // endpoint — so a recipient could destroy the uploader's trail from a list
+            // they never asked to be in. Both are withheld; Forget is local only.
+            const mine = !!row.claim;
 
             const drop = el('button', 'wm-recent__act wm-recent__act--drop') as HTMLButtonElement;
             drop.type = 'button';
-            drop.textContent = strings['map.upload.delete'] ?? 'Delete';
+            drop.textContent = mine
+              ? strings['map.upload.delete'] ?? 'Delete'
+              : strings['map.upload.forget'] ?? 'Forget';
             drop.addEventListener('click', () => {
+              if (!mine) {
+                acts.forget(row.id);
+                return;
+              }
               if (window.confirm(strings['map.upload.confirmDelete']
                 ?? 'Delete this trail? Anyone holding the link loses it too, and this cannot be undone.')) {
                 acts.remove(row.id);
               }
             });
 
-            item.append(name, claim, drop);
+            if (mine) {
+              // The claim URL carries the code, so it is never printed — it only ever
+              // becomes an href on a tab the rider opened themselves.
+              const claim = el('a', 'wm-recent__act') as HTMLAnchorElement;
+              claim.href = row.claim;
+              claim.target = '_blank';
+              claim.rel = 'noopener';
+              claim.textContent = strings['map.upload.claimShort'] ?? 'Claim';
+              item.append(name, claim, drop);
+            } else {
+              item.append(name, drop);
+            }
             list.appendChild(item);
           }
           host.appendChild(list);

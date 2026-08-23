@@ -400,6 +400,7 @@ export interface TrailRow {
   author_avatar: string | null;
   post_id: number | null;
   post_url: string | null;
+  expires_at: string | null;
 }
 
 /** The map entry shape, identical to what an operator import emits. */
@@ -428,6 +429,9 @@ function toEntry(row: TrailRow, proxied: boolean): Record<string, unknown> {
     author_name: row.author_name,
     author_avatar: row.author_avatar,
     ...(row.post_url ? { post_url: row.post_url } : {}),
+    // Null once claimed — a signed trail is permanent. A holder of the link needs this
+    // to know whether remembering it on their device is worth anything.
+    expires_at: row.expires_at,
     visibility: row.visibility,
     post_id: row.post_id,
   };
@@ -449,7 +453,7 @@ export async function trailForShare(env: PagesEnv, id: string): Promise<Record<s
   try {
     const row = await env.SUBSCRIBERS_DB.prepare(
       `SELECT id, secret, visibility, gpx_url, title, distance_km, stats,
-              author_user_id, author_username, author_name, author_avatar, post_id, post_url
+              author_user_id, author_username, author_name, author_avatar, post_id, post_url, expires_at
          FROM trails
         WHERE id = ? AND (expires_at IS NULL OR expires_at > datetime('now'))`,
     )
@@ -468,7 +472,7 @@ export async function publicTrailEntries(env: PagesEnv): Promise<Record<string, 
   try {
     const { results } = await env.SUBSCRIBERS_DB.prepare(
       `SELECT id, secret, visibility, gpx_url, title, distance_km, stats,
-              author_user_id, author_username, author_name, author_avatar, post_id, post_url
+              author_user_id, author_username, author_name, author_avatar, post_id, post_url, expires_at
          FROM trails
         WHERE visibility = 'public'
           AND (expires_at IS NULL OR expires_at > datetime('now'))`,
@@ -490,7 +494,7 @@ export async function handleTrailResolve(env: PagesEnv, secret: string): Promise
   if (!env.SUBSCRIBERS_DB) return json(503, { error: 'service_misconfigured' });
   const row = await env.SUBSCRIBERS_DB.prepare(
     `SELECT id, secret, visibility, gpx_url, title, distance_km, stats,
-            author_user_id, author_username, author_name, author_avatar, post_id, post_url
+            author_user_id, author_username, author_name, author_avatar, post_id, post_url, expires_at
        FROM trails
       WHERE secret = ?
         AND (expires_at IS NULL OR expires_at > datetime('now'))`,

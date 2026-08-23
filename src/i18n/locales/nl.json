@@ -108,8 +108,10 @@
   "founders.calvin.role": "Oprichter, CEO & CTO",
   "founders.calvin.bio": "Overdag op de motor, 's nachts achter het toetsenbord — DirtBikeX bouwen vanuit het zadel én het keyboard.",
   "founders.calvin.photo_alt": "Zenkai Rubio, oprichter van DirtBikeX",
-  "founders.rebecca.role": "Lead UX/UI-ontwerper",
+  "founders.rebecca.role": "CUXO",
+  "founders.rebecca.photo_alt": "Rebecca, CUXO van DirtBikeX",
   "founders.cici.role": "CPO",
+  "founders.cici.photo_alt": "Cici, CPO van DirtBikeX",
   "founders.secret.name": "Mysterieuze figuur",
   "founders.secret.role": "Nog geheim",
   "contact.title": "Neem contact op",
@@ -314,5 +316,6 @@
   "map.upload.reopen": "openen",
   "map.upload.confirmClose": "Alleen op dit apparaat bewaard. Sluiten zonder delen of opeisen?",
   "map.upload.delete": "Verwijderen",
+  "map.upload.forget": "Vergeten",
   "map.upload.confirmDelete": "Deze route verwijderen? Wie de link heeft, raakt hem ook kwijt, en dit is onomkeerbaar."
 }

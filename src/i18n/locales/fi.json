@@ -108,8 +108,10 @@
   "founders.calvin.role": "Perustaja, CEO & CTO",
   "founders.calvin.bio": "Päivisin kuskina, öisin koodarina — rakennan DirtBikeX:ää satulasta ja näppäimistöltä käsin.",
   "founders.calvin.photo_alt": "Zenkai Rubio, DirtBikeX:n perustaja",
-  "founders.rebecca.role": "Johtava UX/UI-suunnittelija",
+  "founders.rebecca.role": "CUXO",
+  "founders.rebecca.photo_alt": "Rebecca, DirtBikeX:n CUXO",
   "founders.cici.role": "CPO",
+  "founders.cici.photo_alt": "Cici, DirtBikeX:n CPO",
   "founders.secret.name": "Salaperäinen henkilö",
   "founders.secret.role": "Paljastetaan myöhemmin",
   "contact.title": "Ota yhteyttä",
@@ -314,5 +316,6 @@
   "map.upload.reopen": "avaa",
   "map.upload.confirmClose": "Tallennettu vain tälle laitteelle. Suljetaanko jakamatta ja lunastamatta?",
   "map.upload.delete": "Poista",
+  "map.upload.forget": "Unohda",
   "map.upload.confirmDelete": "Poistetaanko tämä reitti? Myös linkin haltijat menettävät sen, eikä tätä voi perua."
 }

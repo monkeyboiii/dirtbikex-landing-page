@@ -111,8 +111,10 @@
   "founders.calvin.role": "創設者・CEO 兼 CTO",
   "founders.calvin.bio": "昼はライダー、夜はコーダー——サドルとキーボードから DirtBikeX を駆る。",
   "founders.calvin.photo_alt": "DirtBikeX 創設者 ゼンカイ・ルビオ",
-  "founders.rebecca.role": "UX/UI デザインリード",
+  "founders.rebecca.role": "CUXO",
+  "founders.rebecca.photo_alt": "DirtBikeX CUXO レベッカ",
   "founders.cici.role": "CPO",
+  "founders.cici.photo_alt": "DirtBikeX CPO シシ",
   "founders.secret.name": "謎の人物",
   "founders.secret.role": "近日公開",
   "contact.title": "お問い合わせ",
@@ -317,5 +319,6 @@
   "map.upload.reopen": "開く",
   "map.upload.confirmClose": "この端末にだけ保存されています。共有も受け取りもせずに閉じますか？",
   "map.upload.delete": "削除",
+  "map.upload.forget": "履歴から削除",
   "map.upload.confirmDelete": "このルートを削除しますか？リンクを持つ人も見られなくなり、取り消せません。"
 }

@@ -104,6 +104,8 @@ export interface Trail {
   /** The forum post whose upload reference keeps the file alive. */
   post_id?: number | null;
   post_url?: string | null;
+  /** ISO, or null once claimed — a signed trail is permanent. */
+  expires_at?: string | null;
   gpx_url?: string | null;
   /** Cached from the forum so the profile link keeps working between imports. */
   author_name?: string | null;

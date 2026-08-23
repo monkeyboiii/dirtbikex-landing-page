@@ -16,7 +16,7 @@ type Founder = {
 };
 
 type SocialLink = {
-  platform: 'x' | 'instagram' | 'facebook';
+  platform: 'x' | 'instagram' | 'facebook' | 'tiktok';
   labelKey: string;
   url: string;
 };
@@ -30,6 +30,7 @@ const lead = {
   socials: [
     { platform: 'facebook', labelKey: 'contact.social.facebook', url: FOUNDER_FACEBOOK },
     { platform: 'instagram', labelKey: 'contact.social.instagram', url: SOCIALS.instagram },
+    { platform: 'tiktok', labelKey: 'contact.social.tiktok', url: SOCIALS.tiktok },
     { platform: 'x', labelKey: 'contact.social.x', url: SOCIALS.x },
   ],
 };
@@ -40,16 +41,20 @@ const team: Founder[] = [
   {
     nameKey: 'founders.rebecca.name',
     roleKey: 'founders.rebecca.role',
-    initials: 'R',
+    photo: { src: '/founders/rebecca.jpg', altKey: 'founders.rebecca.photo_alt' },
+    // The `#` placeholder for X is gone rather than kept: a link that goes nowhere is
+    // worse than an absent one, and there is no account behind it.
     socials: [
-      { platform: 'x', labelKey: 'contact.social.x', url: '#' },
-      { platform: 'instagram', labelKey: 'contact.social.instagram', url: '#' },
+      { platform: 'instagram', labelKey: 'contact.social.instagram', url: 'https://www.instagram.com/rebeccaliii_' },
     ],
   },
   {
     nameKey: 'founders.cici.name',
     roleKey: 'founders.cici.role',
-    initials: 'C',
+    photo: { src: '/founders/cici.jpg', altKey: 'founders.cici.photo_alt' },
+    socials: [
+      { platform: 'instagram', labelKey: 'contact.social.instagram', url: 'https://www.instagram.com/cici_xuh1' },
+    ],
   },
   { nameKey: 'founders.secret.name', roleKey: 'founders.secret.role', tba: true },
 ];

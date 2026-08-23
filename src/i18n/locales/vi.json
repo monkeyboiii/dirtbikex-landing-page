@@ -108,8 +108,10 @@
   "founders.calvin.role": "Nhà sáng lập, CEO & CTO",
   "founders.calvin.bio": "Ngày cầm lái, đêm gõ phím — dựng nên DirtBikeX từ yên xe và bàn phím.",
   "founders.calvin.photo_alt": "Zenkai Rubio, nhà sáng lập DirtBikeX",
-  "founders.rebecca.role": "Trưởng nhóm Thiết kế UX/UI",
+  "founders.rebecca.role": "CUXO",
+  "founders.rebecca.photo_alt": "Rebecca, CUXO của DirtBikeX",
   "founders.cici.role": "CPO",
+  "founders.cici.photo_alt": "Cici, CPO của DirtBikeX",
   "founders.secret.name": "Nhân vật bí ẩn",
   "founders.secret.role": "Sắp hé lộ",
   "contact.title": "Liên hệ",
@@ -314,5 +316,6 @@
   "map.upload.reopen": "mở",
   "map.upload.confirmClose": "Chỉ lưu trên thiết bị này. Đóng mà không chia sẻ hay nhận?",
   "map.upload.delete": "Xoá",
+  "map.upload.forget": "Bỏ nhớ",
   "map.upload.confirmDelete": "Xoá cung đường này? Người có liên kết cũng mất nó, và không thể hoàn tác."
 }

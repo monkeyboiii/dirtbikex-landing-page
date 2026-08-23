@@ -86,9 +86,11 @@
   "founders.calvin.bio": "白天骑车,夜里写代码——在车座与键盘之间打磨 DirtBikeX。",
   "founders.calvin.photo_alt": "DirtBikeX 创始人 鲁比奥（全开版）",
   "founders.rebecca.name": "Rebecca",
-  "founders.rebecca.role": "首席 UX/UI 设计师",
+  "founders.rebecca.role": "首席用户体验官",
+  "founders.rebecca.photo_alt": "DirtBikeX 首席用户体验官 Rebecca",
   "founders.cici.name": "Cici",
   "founders.cici.role": "首席产品官",
+  "founders.cici.photo_alt": "DirtBikeX 首席产品官 Cici",
   "founders.secret.name": "神秘人物",
   "founders.secret.role": "暂未公布",
   "sponsorship.eyebrow": "品牌合作",
@@ -317,5 +319,6 @@
   "map.upload.reopen": "打开",
   "map.upload.confirmClose": "它只保存在这台设备上。还没分享或认领，确定要关闭吗？",
   "map.upload.delete": "删除",
+  "map.upload.forget": "不再记住",
   "map.upload.confirmDelete": "删除这条轨迹？拿到链接的人也会失去它，且无法撤销。"
 }

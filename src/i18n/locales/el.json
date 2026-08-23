@@ -108,8 +108,10 @@
   "founders.calvin.role": "Ιδρυτής, CEO & CTO",
   "founders.calvin.bio": "Αναβάτης τη μέρα, προγραμματιστής τη νύχτα — χτίζω το DirtBikeX από τη σέλα και το πληκτρολόγιο.",
   "founders.calvin.photo_alt": "Zenkai Rubio, ιδρυτής του DirtBikeX",
-  "founders.rebecca.role": "Επικεφαλής Σχεδιάστρια UX/UI",
+  "founders.rebecca.role": "CUXO",
+  "founders.rebecca.photo_alt": "Rebecca, CUXO της DirtBikeX",
   "founders.cici.role": "CPO",
+  "founders.cici.photo_alt": "Cici, CPO της DirtBikeX",
   "founders.secret.name": "Μυστηριώδες πρόσωπο",
   "founders.secret.role": "Έρχεται σύντομα",
   "contact.title": "Επικοινωνία",
@@ -314,5 +316,6 @@
   "map.upload.reopen": "άνοιγμα",
   "map.upload.confirmClose": "Φυλάσσεται μόνο σε αυτή τη συσκευή. Κλείσιμο χωρίς κοινοποίηση ή διεκδίκηση;",
   "map.upload.delete": "Διαγραφή",
+  "map.upload.forget": "Διαγραφή από τη λίστα",
   "map.upload.confirmDelete": "Διαγραφή αυτής της διαδρομής; Τη χάνουν και όσοι έχουν τον σύνδεσμο, και δεν αναιρείται."
 }

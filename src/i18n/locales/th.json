@@ -108,8 +108,10 @@
   "founders.calvin.role": "ผู้ก่อตั้ง CEO และ CTO",
   "founders.calvin.bio": "กลางวันลุยสนาม กลางคืนลุยโค้ด — ปั้น DirtBikeX ขึ้นมาจากอานรถและแป้นคีย์บอร์ด",
   "founders.calvin.photo_alt": "Zenkai Rubio ผู้ก่อตั้ง DirtBikeX",
-  "founders.rebecca.role": "หัวหน้าทีมออกแบบ UX/UI",
+  "founders.rebecca.role": "CUXO",
+  "founders.rebecca.photo_alt": "Rebecca, CUXO ของ DirtBikeX",
   "founders.cici.role": "CPO",
+  "founders.cici.photo_alt": "Cici, CPO ของ DirtBikeX",
   "founders.secret.name": "บุคคลปริศนา",
   "founders.secret.role": "รอเปิดเผย",
   "contact.title": "ติดต่อเรา",
@@ -314,5 +316,6 @@
   "map.upload.reopen": "เปิด",
   "map.upload.confirmClose": "เก็บไว้เฉพาะบนเครื่องนี้ ปิดโดยไม่แชร์หรือรับสิทธิ์?",
   "map.upload.delete": "ลบ",
+  "map.upload.forget": "ลืมรายการนี้",
   "map.upload.confirmDelete": "ลบเส้นทางนี้? คนที่มีลิงก์ก็จะเสียไปด้วย และย้อนกลับไม่ได้"
 }

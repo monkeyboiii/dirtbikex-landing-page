@@ -125,6 +125,17 @@ const LAYERS: Record<LayerId, readonly string[]> = {
 };
 const LAYER_STORE = 'dbx-map-layers';
 /** Uploads this browser made, so a closed sheet is not the end of the link. */
+/** A trail this device knows the secret for — uploaded here, or opened from a link. */
+interface RecentTrail {
+  id: string;
+  title: string;
+  /** The one-time claim code. Empty for a trail somebody shared with you. */
+  claim: string;
+  at: number;
+  /** Epoch ms the trail itself dies, or 0 for never. Absent on pre-`exp` rows. */
+  exp?: number;
+}
+
 const UPLOAD_STORE = 'dbx-map-uploads';
 /** Catalog kinds drawn from the shared `tracks` source, one per toggle. */
 const KIND_OF: Partial<Record<LayerId, string>> = { tracks: 'track', shops: 'shop', trails: 'trail' };
@@ -252,6 +263,12 @@ function hasWebGL2(): boolean {
 }
 
 const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+/** iPhone, iPod, and iPad — which reports itself as a Mac, and is told apart by the fact
+    that no desktop Safari has a touch screen. */
+const isApplePortable = () =>
+  /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+  (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
+
 const isNarrow = () => window.matchMedia('(max-width: 767px)').matches;
 const isDarkTheme = () => document.documentElement.classList.contains('dark');
 const cityZoom = () => (isNarrow() ? CITY_ZOOM_NARROW : CITY_ZOOM);
@@ -1905,18 +1922,42 @@ class WorldMap {
    * the accident (closed the sheet, reopened the map) and honestly not the other case
    * (a different phone). Kept small and dropped once a row is past its window.
    */
-  private recentUploads(): { id: string; title: string; claim: string; at: number }[] {
+  private recentUploads(): RecentTrail[] {
     try {
       const raw = localStorage.getItem(UPLOAD_STORE);
-      const rows = raw ? (JSON.parse(raw) as { id: string; title: string; claim: string; at: number }[]) : [];
-      const cutoff = Date.now() - 72 * 3600_000;
-      return rows.filter((r) => r && typeof r.id === 'string' && r.at > cutoff).slice(0, 8);
+      const rows = raw ? (JSON.parse(raw) as RecentTrail[]) : [];
+      const now = Date.now();
+      // `exp` is the trail's OWN death, not this row's age: 0 means it has none, because
+      // a claimed trail is permanent and a blanket 72-hour sweep would forget one that is
+      // still perfectly good. Rows written before `exp` existed keep the old rule.
+      const alive = (r: RecentTrail) =>
+        typeof r.exp === 'number' ? r.exp === 0 || r.exp > now : r.at > now - 72 * 3600_000;
+      return rows.filter((r) => r && typeof r.id === 'string' && alive(r)).slice(0, 8);
     } catch {
       return [];
     }
   }
 
-  private rememberUpload(row: { id: string; title: string; claim: string }) {
+  /**
+   * A trail somebody sent you, remembered on this device.
+   *
+   * The link to a private or unlisted trail exists in exactly one place — the address bar
+   * — and dismissing the sheet used to strand the holder with no way back short of finding
+   * the message again. Recording it here is the same courtesy the uploader already gets,
+   * minus the claim code: a recipient holds no code, and the row must not imply they can
+   * sign for somebody else's ride.
+   */
+  private rememberSharedTrail(trail: Trail) {
+    const expiry = trail.expires_at ? Date.parse(trail.expires_at) : Number.NaN;
+    this.rememberUpload({
+      id: trail.id,
+      title: localizedName(trail.title, this.cfg.lang) ?? trail.id,
+      claim: '',
+      exp: Number.isFinite(expiry) ? expiry : 0,
+    });
+  }
+
+  private rememberUpload(row: { id: string; title: string; claim: string; exp?: number }) {
     try {
       const rows = [{ ...row, at: Date.now() }, ...this.recentUploads().filter((r) => r.id !== row.id)];
       localStorage.setItem(UPLOAD_STORE, JSON.stringify(rows.slice(0, 8)));
@@ -1963,6 +2004,11 @@ class WorldMap {
     this.panel.showUploadIntro(pick, this.recentUploads(), {
       open: (id) => void this.reopenUpload(id),
       remove: (id) => void this.deleteUpload(id),
+      // Somebody else's trail: drop the bookmark, never the trail.
+      forget: (id) => {
+        this.forgetUpload(id);
+        this.openUploadIntro(pick);
+      },
     });
   }
 
@@ -2214,6 +2260,7 @@ class WorldMap {
       return;
     }
     this.trailsById.set(trail.id, trail);
+    this.rememberSharedTrail(trail);
     this.clearSelection();
     this.selected = trail.id;
     this.selectedTrail = trail.id;
@@ -2613,6 +2660,18 @@ function wireRail(root: HTMLElement, world: WorldMap, strings: Strings) {
   const picker = root.querySelector<HTMLInputElement>('[data-upload-input]');
   const drop = root.querySelector<HTMLElement>('[data-drop]');
   if (upload && picker) {
+    // iOS resolves every `accept` token to a Uniform Type Identifier and greys out
+    // anything it cannot map. GPX has no system-declared UTI unless some installed app
+    // declares `com.topografix.gpx`, and `application/gpx+xml` is not a type iOS knows
+    // either — so on a phone with no such app the picker opens with the rider's own .gpx
+    // unselectable. iOS 18 was lenient about unmatched tokens and iOS 26 is not, which is
+    // why the same file on the same phone stopped working after an update.
+    //
+    // No attribute at all means no UTI resolution, so everything is pickable. Nothing is
+    // lost by it: `preflight()` reads the file and refuses anything that is not a track,
+    // with a better message than a greyed-out row gives.
+    if (isApplePortable()) picker.removeAttribute('accept');
+
     void world.checkUploads(upload);
     world.syncUploadBadge();
     upload.addEventListener('click', () => world.openUploadIntro(() => picker.click()));

@@ -86,9 +86,11 @@
   "founders.calvin.bio": "白天騎車,夜裡寫程式——在車座與鍵盤之間打磨 DirtBikeX。",
   "founders.calvin.photo_alt": "DirtBikeX 創辦人 魯比奧（全開版）",
   "founders.rebecca.name": "Rebecca",
-  "founders.rebecca.role": "首席 UX/UI 設計師",
+  "founders.rebecca.role": "首席使用者體驗官",
+  "founders.rebecca.photo_alt": "DirtBikeX 首席使用者體驗官 Rebecca",
   "founders.cici.name": "Cici",
   "founders.cici.role": "首席產品官",
+  "founders.cici.photo_alt": "DirtBikeX 首席產品官 Cici",
   "founders.secret.name": "神秘人物",
   "founders.secret.role": "尚未公開",
   "sponsorship.eyebrow": "品牌合作",
@@ -317,5 +319,6 @@
   "map.upload.reopen": "打開",
   "map.upload.confirmClose": "它只保存在這台裝置上。還沒分享或認領，確定要關閉嗎？",
   "map.upload.delete": "刪除",
+  "map.upload.forget": "不再記住",
   "map.upload.confirmDelete": "刪除這條軌跡？拿到連結的人也會失去它，且無法復原。"
 }

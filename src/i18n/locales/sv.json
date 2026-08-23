@@ -105,6 +105,7 @@
   "sponsorship.fit.note": "Letar du efter den självbetjänade avatar-platsen i stället? Den är ett köp i appen — hämta en under fliken Sponsorships i appen.",
   "founders.title": "Grundare",
   "founders.cici.role": "CPO",
+  "founders.cici.photo_alt": "Cici, CPO på DirtBikeX",
   "founders.secret.name": "Hemlig person",
   "founders.secret.role": "Avslöjas snart",
   "founders.intro": "Teamet bakom DirtBikeX.",
@@ -113,7 +114,8 @@
   "founders.calvin.bio": "Förare på dagen, kodare på natten – bygger DirtBikeX från sadeln och tangentbordet.",
   "founders.calvin.photo_alt": "Zenkai Rubio, grundare av DirtBikeX",
   "founders.rebecca.name": "Rebecca",
-  "founders.rebecca.role": "Ledande UX/UI-designer",
+  "founders.rebecca.role": "CUXO",
+  "founders.rebecca.photo_alt": "Rebecca, CUXO på DirtBikeX",
   "contact.title": "Kontakta oss",
   "contact.subtitle": "Forumet är det snabbaste stället för community-frågor. För allt annat fungerar e-post bäst.",
   "contact.forum.title": "Bästa stället: forumet",
@@ -316,5 +318,6 @@
   "map.upload.reopen": "öppna",
   "map.upload.confirmClose": "Sparat bara på den här enheten. Stänga utan att dela eller göra anspråk?",
   "map.upload.delete": "Radera",
+  "map.upload.forget": "Glöm",
   "map.upload.confirmDelete": "Radera det här spåret? De som har länken förlorar det också, och det går inte att ångra."
 }
