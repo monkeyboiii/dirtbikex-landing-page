@@ -1296,97 +1296,6 @@ body.is-map-page .site-header__inner {
   line-height: 15px;
   text-align: center;
 }
-/* Two rails. Left is what the map is MADE of and folds; right is what you DO to it
-   and does not. Nine buttons in one column ran most of the height of a phone. */
-.wm-rail--left {
-  top: auto;
-  bottom: calc(26px + env(safe-area-inset-bottom));
-  right: auto;
-  left: var(--space-5, 20px);
-}
-/* Anchored by its BOTTOM edge, so unfolding grows the column upward into empty map
-   rather than pushing the buttons off the foot of the screen. */
-.wm-rail--right {
-  top: auto;
-  /* Clear of MapLibre's own stack: the zoom group, then the attribution strip. */
-  bottom: calc(152px + env(safe-area-inset-bottom));
-}
-.wm-rail__group {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.wm-rail__group + .wm-rail__group {
-  margin-top: 8px;
-}
-/* Folded is the resting state: the toggles are out only while the group is open, and
-   the fold button steps aside for them so the column stays the same length either way. */
-/* Doubled deliberately: .wm-rail__btn sets display:grid further down this file, and at
-   equal specificity the later rule wins — which left the group permanently unfolded. */
-.wm-rail__btn.wm-rail__btn--layer {
-  display: none;
-}
-[data-layer-group].is-open .wm-rail__btn--layer {
-  display: grid;
-}
-/* Rising into place, bottom-most first, so the eye follows the stack upward instead of
-   finding five buttons already there. */
-@keyframes wm-rail-rise {
-  from {
-    opacity: 0;
-    transform: translateY(8px) scale(0.94);
-  }
-}
-[data-layer-group].is-open .wm-rail__btn--layer {
-  animation: wm-rail-rise 200ms var(--ease-spring, cubic-bezier(0.2, 0.9, 0.3, 1.2)) both;
-}
-[data-layer-group].is-open .wm-rail__btn--layer:nth-of-type(5) { animation-delay: 20ms; }
-[data-layer-group].is-open .wm-rail__btn--layer:nth-of-type(4) { animation-delay: 45ms; }
-[data-layer-group].is-open .wm-rail__btn--layer:nth-of-type(3) { animation-delay: 70ms; }
-[data-layer-group].is-open .wm-rail__btn--layer:nth-of-type(2) { animation-delay: 95ms; }
-[data-layer-group].is-open .wm-rail__btn--layer:nth-of-type(1) { animation-delay: 120ms; }
-@media (prefers-reduced-motion: reduce) {
-  [data-layer-group].is-open .wm-rail__btn--layer {
-    animation: none;
-  }
-}
-/* The chevron IS the fold button, turned over. It stays because it is now the only way
-   back — nothing else dismisses the group. */
-[data-layer-group].is-open .wm-rail__fold-open {
-  display: none;
-}
-.wm-rail__fold-close {
-  display: none;
-}
-[data-layer-group].is-open .wm-rail__fold-close {
-  display: grid;
-}
-[data-layer-group].is-open .wm-rail__badge {
-  display: none;
-}
-/* How many kinds are on, readable without unfolding — which is the whole point of
-   folding. Hidden at zero: an empty map needs no number to say so. */
-.wm-rail__badge {
-  position: absolute;
-  top: -5px;
-  inset-inline-end: -5px;
-  min-width: 17px;
-  height: 17px;
-  padding: 0 4px;
-  display: grid;
-  place-items: center;
-  border-radius: 9px;
-  background: var(--wm-accent, #ed6b00);
-  color: #fff;
-  font-size: 10px;
-  font-weight: 700;
-  line-height: 1;
-  pointer-events: none;
-}
-.wm-rail__badge:empty {
-  display: none;
-}
 .wm-rail__btn {
   position: relative;
 }
@@ -1771,6 +1680,97 @@ body.is-map-page .site-header__inner {
   gap: 8px;
   /* Only the buttons take taps — the column's gaps stay map. */
   pointer-events: none;
+}
+/* Two rails. Left is what the map is MADE of and folds; right is what you DO to it
+   and does not. Nine buttons in one column ran most of the height of a phone. */
+.wm-rail--left {
+  top: auto;
+  bottom: calc(26px + env(safe-area-inset-bottom));
+  right: auto;
+  left: var(--space-5, 20px);
+}
+/* Anchored by its BOTTOM edge, so unfolding grows the column upward into empty map
+   rather than pushing the buttons off the foot of the screen. */
+.wm-rail--right {
+  top: auto;
+  /* Clear of MapLibre's own stack: the zoom group, then the attribution strip. */
+  bottom: calc(152px + env(safe-area-inset-bottom));
+}
+.wm-rail__group {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.wm-rail__group + .wm-rail__group {
+  margin-top: 8px;
+}
+/* Folded is the resting state: the toggles are out only while the group is open, and
+   the fold button steps aside for them so the column stays the same length either way. */
+/* Doubled deliberately: .wm-rail__btn sets display:grid further down this file, and at
+   equal specificity the later rule wins — which left the group permanently unfolded. */
+.wm-rail__btn.wm-rail__btn--layer {
+  display: none;
+}
+[data-layer-group].is-open .wm-rail__btn--layer {
+  display: grid;
+}
+/* Rising into place, bottom-most first, so the eye follows the stack upward instead of
+   finding five buttons already there. */
+@keyframes wm-rail-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.94);
+  }
+}
+[data-layer-group].is-open .wm-rail__btn--layer {
+  animation: wm-rail-rise 200ms var(--ease-spring, cubic-bezier(0.2, 0.9, 0.3, 1.2)) both;
+}
+[data-layer-group].is-open .wm-rail__btn--layer:nth-of-type(5) { animation-delay: 20ms; }
+[data-layer-group].is-open .wm-rail__btn--layer:nth-of-type(4) { animation-delay: 45ms; }
+[data-layer-group].is-open .wm-rail__btn--layer:nth-of-type(3) { animation-delay: 70ms; }
+[data-layer-group].is-open .wm-rail__btn--layer:nth-of-type(2) { animation-delay: 95ms; }
+[data-layer-group].is-open .wm-rail__btn--layer:nth-of-type(1) { animation-delay: 120ms; }
+@media (prefers-reduced-motion: reduce) {
+  [data-layer-group].is-open .wm-rail__btn--layer {
+    animation: none;
+  }
+}
+/* The chevron IS the fold button, turned over. It stays because it is now the only way
+   back — nothing else dismisses the group. */
+[data-layer-group].is-open .wm-rail__fold-open {
+  display: none;
+}
+.wm-rail__fold-close {
+  display: none;
+}
+[data-layer-group].is-open .wm-rail__fold-close {
+  display: grid;
+}
+[data-layer-group].is-open .wm-rail__badge {
+  display: none;
+}
+/* How many kinds are on, readable without unfolding — which is the whole point of
+   folding. Hidden at zero: an empty map needs no number to say so. */
+.wm-rail__badge {
+  position: absolute;
+  top: -5px;
+  inset-inline-end: -5px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  background: var(--wm-accent, #ed6b00);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  pointer-events: none;
+}
+.wm-rail__badge:empty {
+  display: none;
 }
 .wm-rail__btn {
   position: relative;
