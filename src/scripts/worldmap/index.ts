@@ -445,28 +445,37 @@ function radiusExpr(): unknown {
   ];
 }
 
-function opacityExpr(factor: number): unknown {
-  // Two states, decided by the declutter rather than by zoom. A pin that won a slot is
-  // drawn as artwork and its dot is suppressed, so the two never stack. A pin that lost
-  // one stays a dot at every zoom — that is the density texture, and dropping it was what
-  // made a pulled-back map read as empty. The tier split rides both.
-  const tier = (verified: number, breadth: number) => [
-    'case',
-    ['==', ['get', 'tier'], 'verified'],
-    verified * factor,
-    breadth * factor,
-  ];
+/**
+ * Dot opacity: the declutter's losers, at every zoom.
+ *
+ * A pin that won a slot is drawn as artwork and its dot is suppressed, so the two never
+ * stack. One that lost stays a dot — that is the density texture, and dropping it was what
+ * made a pulled-back map read as empty.
+ *
+ * **`zoom` has to be the OUTERMOST expression.** MapLibre rejects an interpolate-by-zoom
+ * nested inside a `case`, and rejects it by refusing to add the layer at all — so the first
+ * shape of this, which wrapped the ramp in a top/dot case, silently deleted every dot on
+ * the map and left only the flags. The ramp stays on the outside; every per-feature
+ * decision happens in its stop outputs, where data expressions are allowed.
+ */
+function opacityExpr(factor: number, selected: string | null = null): unknown {
+  const stop = (verified: number, breadth: number) => {
+    const tier = (k: number) => [
+      'case',
+      ['==', ['get', 'tier'], 'verified'],
+      verified * k,
+      breadth * k,
+    ];
+    // The sheet's own pin is never dimmed — its halo is what the sheet is pointing at.
+    if (factor === 1 || !selected) return ['case', TOP, 0, tier(factor)];
+    return ['case', TOP, 0, ['==', ['get', 'slug'], selected], tier(1), tier(factor)];
+  };
   return [
-    'case',
-    TOP,
-    0,
-    [
-      'interpolate', ['linear'], ['zoom'],
-      1, tier(0.78, 0.48),
-      5, tier(0.9, 0.62),
-      8.4, tier(0.9, 0.7),
-      12, tier(0.7, 0.5),
-    ],
+    'interpolate', ['linear'], ['zoom'],
+    1, stop(0.78, 0.48),
+    5, stop(0.9, 0.62),
+    8.4, stop(0.9, 0.7),
+    12, stop(0.7, 0.5),
   ];
 }
 
@@ -1626,7 +1635,15 @@ class WorldMap {
     const held = (dim: unknown, full: unknown): unknown =>
       on && this.selected ? ['case', ['==', ['get', 'slug'], this.selected], full, dim] : dim;
     const factor = on ? DIM : 1;
-    this.map.setPaintProperty('tracks-dot', 'circle-opacity', held(opacityExpr(factor), opacityExpr(1)) as never);
+    // NOT wrapped in held(): the dot ramp is a zoom interpolate and cannot go inside a
+    // case, so it takes the selection itself and folds the hold into its own stops.
+    const dotSelected = on ? this.selected : null;
+    this.map.setPaintProperty('tracks-dot', 'circle-opacity', opacityExpr(factor, dotSelected) as never);
+    this.map.setPaintProperty(
+      'tracks-dot',
+      'circle-stroke-opacity',
+      opacityExpr(0.7 * factor, dotSelected) as never,
+    );
     this.map.setPaintProperty('tracks-glyph', 'icon-opacity', held(on ? DIM : 1, 1) as never);
     this.map.setPaintProperty('tracks-glow', 'circle-opacity', held(on ? 0.06 : 0.32, 0.32) as never);
     for (const id of ['shops-glow', 'trails-glow'] as const) {
