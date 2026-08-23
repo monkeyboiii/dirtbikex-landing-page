@@ -1322,7 +1322,9 @@ body.is-map-page .site-header__inner {
 }
 /* Folded is the resting state: the toggles are out only while the group is open, and
    the fold button steps aside for them so the column stays the same length either way. */
-.wm-rail__btn--layer {
+/* Doubled deliberately: .wm-rail__btn sets display:grid further down this file, and at
+   equal specificity the later rule wins — which left the group permanently unfolded. */
+.wm-rail__btn.wm-rail__btn--layer {
   display: none;
 }
 [data-layer-group].is-open .wm-rail__btn--layer {
