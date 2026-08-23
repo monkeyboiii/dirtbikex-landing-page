@@ -1685,7 +1685,9 @@ body.is-map-page .site-header__inner {
    and does not. Nine buttons in one column ran most of the height of a phone. */
 .wm-rail--left {
   top: auto;
-  bottom: calc(58px + env(safe-area-inset-bottom));
+  /* Same line as the right rail — the style stack and the locate button read as one
+     row across the foot of the map, not two ledges at different heights. */
+  bottom: calc(172px + env(safe-area-inset-bottom));
   right: auto;
   left: var(--space-5, 20px);
 }
@@ -1750,6 +1752,14 @@ body.is-map-page .site-header__inner {
 [data-layer-group].is-open .wm-rail__badge {
   display: none;
 }
+/* A bar, not another icon tile. Every other button in this rail acts on the map; this
+   one opens a drawer, and the shape says that before the icon does. */
+.wm-rail__btn--fold {
+  width: 42px;
+  height: 28px;
+  border-radius: var(--radius-sm, 6px);
+}
+
 /* How many kinds are on, readable without unfolding — which is the whole point of
    folding. Hidden at zero: an empty map needs no number to say so. */
 .wm-rail__badge {
@@ -1810,7 +1820,9 @@ body.is-map-page .site-header__inner {
    anywhere else and it would open off-screen on a phone. */
 .wm-basemaps {
   position: absolute;
-  top: 0;
+  /* Bottom-aligned, because the rail is: anchoring to the top of a button that sits near
+     the foot of the map dropped the list straight off the bottom edge. */
+  bottom: 0;
   left: calc(100% + 10px);
   z-index: 6;
   display: flex;
@@ -2209,7 +2221,7 @@ body.is-map-page .site-header__inner {
     top: auto;
     right: auto;
     left: 12px;
-    bottom: calc(56px + env(safe-area-inset-bottom));
+    bottom: calc(102px + env(safe-area-inset-bottom));
   }
   .wm-rail--right {
     top: auto;
