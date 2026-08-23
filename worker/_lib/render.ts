@@ -337,6 +337,10 @@ function errorBody(props: ShareLandingProps): string {
  * grid the way the sheet shows them, and the shape as a chip. Same copy, same CTA, same
  * lookup rules — see the note above CLAIM_COPY in worker/index.ts, which is still the
  * authority on what this page may and may not reveal.
+ *
+ * The kicker is dropped on a second visit: "Ready to sign" is a promise, and the code is
+ * already spent. The tick stays, because the ride really did land — that is what the body
+ * copy then goes on to explain.
  */
 function trailClaimBody(
   claim: NonNullable<ShareLandingProps['trailClaim']>,
@@ -346,7 +350,7 @@ function trailClaimBody(
   return `
 <main class="card claim-card">
   ${CARD_LOGO}
-  <p class="claim-kicker">${esc(claim.kicker)}</p>
+  ${claim.claimed ? '' : `<p class="claim-kicker">${esc(claim.kicker)}</p>`}
   <div class="claim-tick" aria-hidden="true">${CHECK_SVG}</div>
   <h1 class="headline claim-title">${esc(title ?? '')}</h1>
   ${claim.facts.length ? `<dl class="claim-facts">${claim.facts
