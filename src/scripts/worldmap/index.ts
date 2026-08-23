@@ -941,9 +941,11 @@ class WorldMap {
         layout: { 'line-cap': 'round', 'line-join': 'round' },
         paint: {
           'line-color': this.groundIsDark ? '#0b0b0c' : '#ffffff',
-          'line-width': ['interpolate', ['linear'], ['zoom'], 6, 4.5, 11, 8, 14, 12] as never,
-          'line-blur': ['interpolate', ['linear'], ['zoom'], 6, 2, 11, 3.5, 14, 5] as never,
-          'line-opacity': this.rasterGround ? 0.85 : 0,
+          'line-width': ['interpolate', ['linear'], ['zoom'], 6, 7, 11, 13, 14, 19] as never,
+          // Less blur than the first attempt, not more: a wide soft cloud reads as haze,
+          // while a firmer bed with a soft edge reads as the trace sitting ON the sheet.
+          'line-blur': ['interpolate', ['linear'], ['zoom'], 6, 1.5, 11, 2.5, 14, 3.5] as never,
+          'line-opacity': this.rasterGround ? 1 : 0,
         },
       },
       map.getLayer('tracks-glow') ? 'tracks-glow' : undefined,
