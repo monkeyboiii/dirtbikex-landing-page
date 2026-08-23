@@ -39,6 +39,14 @@ const lead = {
 // real photo + strings are supplied.
 const team: Founder[] = [
   {
+    nameKey: 'founders.cici.name',
+    roleKey: 'founders.cici.role',
+    photo: { src: '/founders/cici.jpg', altKey: 'founders.cici.photo_alt' },
+    socials: [
+      { platform: 'instagram', labelKey: 'contact.social.instagram', url: 'https://www.instagram.com/cici_xuh1' },
+    ],
+  },
+  {
     nameKey: 'founders.rebecca.name',
     roleKey: 'founders.rebecca.role',
     photo: { src: '/founders/rebecca.jpg', altKey: 'founders.rebecca.photo_alt' },
@@ -46,14 +54,6 @@ const team: Founder[] = [
     // worse than an absent one, and there is no account behind it.
     socials: [
       { platform: 'instagram', labelKey: 'contact.social.instagram', url: 'https://www.instagram.com/rebeccaliii_' },
-    ],
-  },
-  {
-    nameKey: 'founders.cici.name',
-    roleKey: 'founders.cici.role',
-    photo: { src: '/founders/cici.jpg', altKey: 'founders.cici.photo_alt' },
-    socials: [
-      { platform: 'instagram', labelKey: 'contact.social.instagram', url: 'https://www.instagram.com/cici_xuh1' },
     ],
   },
   { nameKey: 'founders.secret.name', roleKey: 'founders.secret.role', tba: true },

@@ -188,6 +188,19 @@ export interface ShareLandingProps {
   event?: EventRow;
   /** A map entity — route / track / shop / challenge. Mutually exclusive with the others. */
   entity?: import('./shareEntity').EntityCard;
+  /** The trail behind a `/s/c/<code>` claim link, so the card can look like the map's own
+   *  sheet instead of the generic error layout it used to fall through to. */
+  trailClaim?: {
+    facts: { value: string; label: string }[];
+    /** `Loop` / `Point to point`, already localised. */
+    shape: string | null;
+    /** "expires in 68 h", already localised. Absent once the trail is signed for. */
+    expiry: string | null;
+    /** Second visit: the code is spent, so the tick is a statement rather than a promise. */
+    claimed: boolean;
+    /** Kicker above the title. */
+    kicker: string;
+  };
   /** Who sent the link (`?from=`), resolved for the "wants to share this with you" line. */
   sharedBy?: { name: string; avatarURL: string | null } | null;
   /** Arm the map card's redirect countdown. Off for `?stay=1`, which the asset

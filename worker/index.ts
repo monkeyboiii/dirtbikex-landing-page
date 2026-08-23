@@ -833,6 +833,9 @@ interface ClaimCopy {
   slowBody: string;
   loop: string;
   pointToPoint: string;
+  distance: string;
+  climb: string;
+  signed: string;
   expires: string;
   backToMap: string;
 }
@@ -848,6 +851,9 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
     slowBody: 'Wait a few minutes, then open your link again. Nothing is lost.',
     loop: 'Loop',
     pointToPoint: 'Point to point',
+    distance: 'Distance',
+    climb: 'Climb',
+    signed: 'Ready to sign',
     expires: 'expires in {n} h',
     backToMap: 'See it on the map',
   },
@@ -861,6 +867,9 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
     slowBody: '请稍等几分钟再打开你的链接。什么都没丢。',
     loop: '环线',
     pointToPoint: '点到点',
+    distance: '距离',
+    climb: '爬升',
+    signed: '等你签名',
     expires: '{n} 小时后过期',
     backToMap: '在地图上查看',
   },
@@ -874,6 +883,9 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
     slowBody: '請稍等幾分鐘再打開你的連結。什麼都沒丟。',
     loop: '環線',
     pointToPoint: '點到點',
+    distance: '距離',
+    climb: '爬升',
+    signed: '等你簽名',
     expires: '{n} 小時後過期',
     backToMap: '在地圖上查看',
   },
@@ -887,6 +899,9 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
     slowBody: '数分待ってから、もう一度リンクを開いてください。何も失われていません。',
     loop: 'ループ',
     pointToPoint: '片道',
+    distance: '距離',
+    climb: '獲得標高',
+    signed: '署名を待っています',
     expires: '残り {n} 時間',
     backToMap: '地図で見る',
   },
@@ -900,6 +915,9 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
     slowBody: '몇 분 뒤에 링크를 다시 열어 주세요. 잃은 것은 없습니다.',
     loop: '루프',
     pointToPoint: '편도',
+    distance: '거리',
+    climb: '상승',
+    signed: '서명을 기다리는 중',
     expires: '{n}시간 남음',
     backToMap: '지도에서 보기',
   },
@@ -913,6 +931,9 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
     slowBody: 'Warte ein paar Minuten und öffne den Link erneut. Nichts ist verloren.',
     loop: 'Runde',
     pointToPoint: 'Punkt zu Punkt',
+    distance: 'Distanz',
+    climb: 'Anstieg',
+    signed: 'Bereit zum Signieren',
     expires: 'läuft in {n} h ab',
     backToMap: 'Auf der Karte ansehen',
   },
@@ -926,6 +947,9 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
     slowBody: 'Attendez quelques minutes puis rouvrez votre lien. Rien n’est perdu.',
     loop: 'Boucle',
     pointToPoint: 'Point à point',
+    distance: 'Distance',
+    climb: 'Dénivelé',
+    signed: 'Prêt à signer',
     expires: 'expire dans {n} h',
     backToMap: 'Voir sur la carte',
   },
@@ -939,6 +963,9 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
     slowBody: 'Espera unos minutos y vuelve a abrir tu enlace. No se ha perdido nada.',
     loop: 'Circular',
     pointToPoint: 'Punto a punto',
+    distance: 'Distancia',
+    climb: 'Desnivel',
+    signed: 'Listo para firmar',
     expires: 'caduca en {n} h',
     backToMap: 'Verla en el mapa',
   },
@@ -952,6 +979,9 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
     slowBody: 'Espere uns minutos e abra o link de novo. Nada se perdeu.',
     loop: 'Circuito',
     pointToPoint: 'Ponto a ponto',
+    distance: 'Distância',
+    climb: 'Ganho',
+    signed: 'Pronto para assinar',
     expires: 'expira em {n} h',
     backToMap: 'Ver no mapa',
   },
@@ -965,6 +995,9 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
     slowBody: 'Aspetta qualche minuto e riapri il link. Non si è perso nulla.',
     loop: 'Anello',
     pointToPoint: 'Punto a punto',
+    distance: 'Distanza',
+    climb: 'Dislivello',
+    signed: 'Pronto da firmare',
     expires: 'scade tra {n} h',
     backToMap: 'Vedilo sulla mappa',
   },
@@ -978,6 +1011,9 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
     slowBody: 'Wacht een paar minuten en open je link opnieuw. Er is niets kwijt.',
     loop: 'Rondje',
     pointToPoint: 'Van A naar B',
+    distance: 'Afstand',
+    climb: 'Stijging',
+    signed: 'Klaar om te ondertekenen',
     expires: 'verloopt over {n} u',
     backToMap: 'Bekijk op de kaart',
   },
@@ -991,6 +1027,9 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
     slowBody: 'Vent et par minutter, og åbn dit link igen. Intet er gået tabt.',
     loop: 'Rundtur',
     pointToPoint: 'Punkt til punkt',
+    distance: 'Distance',
+    climb: 'Stigning',
+    signed: 'Klar til at signere',
     expires: 'udløber om {n} t',
     backToMap: 'Se det på kortet',
   },
@@ -1004,6 +1043,9 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
     slowBody: 'Vänta några minuter och öppna länken igen. Inget är förlorat.',
     loop: 'Runda',
     pointToPoint: 'Punkt till punkt',
+    distance: 'Distans',
+    climb: 'Stigning',
+    signed: 'Redo att signeras',
     expires: 'går ut om {n} h',
     backToMap: 'Se det på kartan',
   },
@@ -1017,6 +1059,9 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
     slowBody: 'Odota muutama minuutti ja avaa linkki uudelleen. Mitään ei ole menetetty.',
     loop: 'Lenkki',
     pointToPoint: 'Pisteestä pisteeseen',
+    distance: 'Matka',
+    climb: 'Nousu',
+    signed: 'Valmis allekirjoitettavaksi',
     expires: 'vanhenee {n} h kuluttua',
     backToMap: 'Katso kartalla',
   },
@@ -1030,6 +1075,9 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
     slowBody: 'Περίμενε λίγα λεπτά και άνοιξε ξανά τον σύνδεσμο. Τίποτα δεν χάθηκε.',
     loop: 'Κύκλος',
     pointToPoint: 'Σημείο σε σημείο',
+    distance: 'Απόσταση',
+    climb: 'Ανάβαση',
+    signed: 'Έτοιμο για υπογραφή',
     expires: 'λήγει σε {n} ώ',
     backToMap: 'Δες τη στον χάρτη',
   },
@@ -1043,6 +1091,9 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
     slowBody: 'Birkaç dakika bekleyip bağlantını yeniden aç. Hiçbir şey kaybolmadı.',
     loop: 'Tur',
     pointToPoint: 'Noktadan noktaya',
+    distance: 'Mesafe',
+    climb: 'Tırmanış',
+    signed: 'İmzalanmaya hazır',
     expires: '{n} sa sonra dolar',
     backToMap: 'Haritada gör',
   },
@@ -1056,6 +1107,9 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
     slowBody: 'Tunggu beberapa menit lalu buka tautanmu lagi. Tidak ada yang hilang.',
     loop: 'Loop',
     pointToPoint: 'Titik ke titik',
+    distance: 'Jarak',
+    climb: 'Tanjakan',
+    signed: 'Siap ditandatangani',
     expires: 'kedaluwarsa dalam {n} j',
     backToMap: 'Lihat di peta',
   },
@@ -1069,6 +1123,9 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
     slowBody: 'Đợi vài phút rồi mở lại liên kết. Không mất gì cả.',
     loop: 'Vòng',
     pointToPoint: 'Điểm tới điểm',
+    distance: 'Quãng đường',
+    climb: 'Độ cao tăng',
+    signed: 'Sẵn sàng để ký',
     expires: 'hết hạn sau {n} giờ',
     backToMap: 'Xem trên bản đồ',
   },
@@ -1082,6 +1139,9 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
     slowBody: 'รอสักครู่แล้วเปิดลิงก์อีกครั้ง ไม่มีอะไรหายไป',
     loop: 'วนรอบ',
     pointToPoint: 'จุดถึงจุด',
+    distance: 'ระยะทาง',
+    climb: 'ไต่ระดับ',
+    signed: 'พร้อมลงชื่อ',
     expires: 'หมดอายุใน {n} ชม.',
     backToMap: 'ดูบนแผนที่',
   },
@@ -1095,6 +1155,9 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
     slowBody: 'انتظر بضع دقائق ثم افتح الرابط مجددًا. لم يضع شيء.',
     loop: 'حلقة',
     pointToPoint: 'من نقطة إلى نقطة',
+    distance: 'المسافة',
+    climb: 'الصعود',
+    signed: 'جاهز للتوقيع',
     expires: 'ينتهي خلال {n} ساعة',
     backToMap: 'شاهده على الخريطة',
   },
@@ -1108,6 +1171,9 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
     slowBody: 'چند دقیقه صبر کن و لینک را دوباره باز کن. چیزی از دست نرفته.',
     loop: 'حلقه',
     pointToPoint: 'نقطه به نقطه',
+    distance: 'مسافت',
+    climb: 'صعود',
+    signed: 'آماده امضا',
     expires: 'تا {n} ساعت دیگر منقضی می‌شود',
     backToMap: 'دیدن روی نقشه',
   },
@@ -1129,24 +1195,42 @@ async function handleTrailClaim(request: Request, env: Env, code: string): Promi
   // page that says only "claim your trail" cannot tell you WHICH, and this is the page
   // somebody lands on after a login round-trip.
   const trail = slow ? null : await claimPreview(env, code);
+  // The numbers go to the card as a LIST, not as a joined sentence. They used to be
+  // "39 km · Loop · expires in 68 h" glued onto the front of the body copy, because the
+  // generic error layout this page fell through to had nowhere else to put them.
   const facts = trail
     ? [
-        trail.distanceKm ? `${trail.distanceKm} km` : null,
-        trail.shape === 'loop' ? copy.loop : trail.shape === 'point_to_point' ? copy.pointToPoint : null,
-        trail.hours != null && trail.hours > 0 ? copy.expires.replace('{n}', String(trail.hours)) : null,
-      ]
-        .filter(Boolean)
-        .join(' · ')
-    : '';
+        trail.distanceKm ? { value: `${trail.distanceKm} km`, label: copy.distance } : null,
+        trail.ascentM ? { value: `+${trail.ascentM} m`, label: copy.climb } : null,
+      ].filter(Boolean) as { value: string; label: string }[]
+    : [];
 
   return renderShareLanding(
     {
       kind: 'c',
       locale,
       title: slow ? copy.slowTitle : trail?.title || copy.title,
-      subtitle: slow
-        ? copy.slowBody
-        : `${facts ? `${facts}\n\n` : ''}${trail?.claimed ? copy.claimedBody : copy.body}`,
+      subtitle: slow ? copy.slowBody : trail?.claimed ? copy.claimedBody : copy.body,
+      // The sheet-shaped card is for a real trail. A rate-limited visitor has no trail to
+      // show, so that one keeps the plain layout — a tick over "too many attempts" would
+      // be telling somebody their problem went well.
+      trailClaim: trail
+        ? {
+            facts,
+            shape:
+              trail.shape === 'loop'
+                ? copy.loop
+                : trail.shape === 'point_to_point'
+                  ? copy.pointToPoint
+                  : null,
+            expiry:
+              trail.hours != null && trail.hours > 0
+                ? copy.expires.replace('{n}', String(trail.hours))
+                : null,
+            claimed: trail.claimed,
+            kicker: copy.signed,
+          }
+        : undefined,
       primaryCTA: {
         // Same destination either way — the forum knows who is asking and routes an owner
         // to their message. Only the promise on the button changes.

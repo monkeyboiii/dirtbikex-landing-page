@@ -264,7 +264,9 @@ ${og.width ? `<meta property="og:image:width" content="${og.width}">
 ${weChatImageHints(og.url)}
 <style>${CSS}</style>`;
 
-  const body = props.invite
+  const body = props.trailClaim
+    ? trailClaimBody(props.trailClaim, props)
+    : props.invite
     ? heroCardBody(props.invite, props, locale)
     : props.user
       ? userCardBody(props.user, props, locale)
@@ -322,6 +324,52 @@ function errorBody(props: ShareLandingProps): string {
   ${secondaryLink ? `<a class="card-link" href="${esc(secondaryLink.url)}">${esc(secondaryLink.label)}</a>` : ''}
 </main>`;
 }
+
+/**
+ * The `/s/c/<code>` card, shaped like the map's own trail sheet.
+ *
+ * It used to fall through to `errorBody`, which is the layout for "something went wrong" —
+ * app icon, a headline, a wall of subtitle. That is a cold reception for the one page a
+ * rider reaches after handing over a file, and the facts arrived as a run-on string
+ * ("39 km · Loop · expires in 68 h") because that layout had nowhere else to put them.
+ *
+ * So: a green tick that says the ride arrived and is waiting for a name, the numbers as a
+ * grid the way the sheet shows them, and the shape as a chip. Same copy, same CTA, same
+ * lookup rules — see the note above CLAIM_COPY in worker/index.ts, which is still the
+ * authority on what this page may and may not reveal.
+ */
+function trailClaimBody(
+  claim: NonNullable<ShareLandingProps['trailClaim']>,
+  props: ShareLandingProps,
+): string {
+  const { title, primaryCTA, secondaryLink, subtitle } = props;
+  return `
+<main class="card claim-card">
+  ${CARD_LOGO}
+  <p class="claim-kicker">${esc(claim.kicker)}</p>
+  <div class="claim-tick" aria-hidden="true">${CHECK_SVG}</div>
+  <h1 class="headline claim-title">${esc(title ?? '')}</h1>
+  ${claim.facts.length ? `<dl class="claim-facts">${claim.facts
+    .map((f) => `<div><dt>${esc(f.value)}</dt><dd>${esc(f.label)}</dd></div>`)
+    .join('')}</dl>` : ''}
+  ${claim.shape || claim.expiry
+    ? `<p class="claim-chips">${[claim.shape, claim.expiry]
+        .filter(Boolean)
+        .map((c) => `<span class="claim-chip">${esc(c as string)}</span>`)
+        .join('')}</p>`
+    : ''}
+  ${subtitle ? `<p class="subtitle claim-body">${esc(subtitle)}</p>` : ''}
+  <a class="cta" href="${esc(primaryCTA.url)}">${esc(primaryCTA.label)}</a>
+  ${secondaryLink ? `<a class="card-link" href="${esc(secondaryLink.url)}">${esc(secondaryLink.label)}</a>` : ''}
+</main>`;
+}
+
+/** Lucide check-circle, drawn in the success green rather than the brand orange: this is
+    a confirmation that the file landed, not a call to action. */
+const CHECK_SVG =
+  '<svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor"' +
+  ' stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+  '<path d="M21.8 10A10 10 0 1 1 17 3.34"/><path d="m9 11 3 3L22 4"/></svg>';
 
 function heroCardBody(invite: InviteRow, props: ShareLandingProps, locale: Lang): string {
   const { primaryCTA, appCTA, returnTapCopy, forumBase } = props;
@@ -1439,6 +1487,63 @@ body {
   color: var(--clay-600);
   margin: 0.75rem 0 0;
 }
+/* --- /s/c/<code>: the map's trail sheet, as a landing card ------------------ */
+.claim-card { text-align: start; }
+.claim-kicker {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--clay-500);
+}
+.claim-tick {
+  margin-top: 1rem;
+  /* Success green, not the brand orange: this confirms the file landed. It is the one
+     thing on the page that is not asking for something. */
+  color: #16a34a;
+  line-height: 0;
+}
+.claim-title { margin-top: 0.5rem; }
+/* The sheet's numbers: value large, label quiet underneath. `auto-fit` rather than a
+   fixed pair, because a plotted route has no climb and one lonely column centred in a
+   two-column grid reads as a missing value. */
+.claim-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
+  gap: 0.75rem 1.5rem;
+  margin: 1.25rem 0 0;
+}
+.claim-facts dt {
+  font-size: 1.375rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  line-height: 1.2;
+}
+.claim-facts dd {
+  margin: 0.125rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--clay-600);
+}
+.claim-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1rem 0 0;
+}
+.claim-chip {
+  border: 1px solid var(--clay-200);
+  border-radius: 999px;
+  padding: 0.3rem 0.85rem;
+  font-size: 0.8125rem;
+  color: var(--clay-700);
+}
+/* A rule between the facts and the ask, the way the sheet separates its uploader block. */
+.claim-body {
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--clay-100);
+}
 .message {
   font-style: italic;
   color: var(--clay-800);
@@ -1610,6 +1715,14 @@ a.meta-item:hover, a.meta-item:active { background: var(--clay-200); }
   a.meta-item:hover, a.meta-item:active { background: var(--clay-700); }
   .stats { color: var(--clay-200); }
   .stats b { color: var(--clay-50); }
+  .claim-kicker { color: var(--clay-200); }
+  .claim-facts dt { color: var(--clay-50); }
+  .claim-facts dd { color: var(--clay-200); }
+  .claim-chip { border-color: var(--clay-700); color: var(--clay-100); }
+  .claim-body { border-top-color: var(--clay-800); }
+  /* Lifted, because #16a34a on #1a1614 sits under 3:1 and this mark is the page's
+     one piece of good news. */
+  .claim-tick { color: #4ade80; }
 }
 
 .shared-by{display:flex;align-items:center;justify-content:center;gap:.5rem;margin-bottom:.75rem;font-size:.9rem;opacity:.85}

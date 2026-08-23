@@ -584,7 +584,7 @@ function pluginAuthorised(request: Request, env: PagesEnv): boolean {
 export async function claimPreview(
   env: PagesEnv,
   code: string,
-): Promise<{ id: string; title: string | null; distanceKm: number | null; shape: string | null; hours: number | null; claimed: boolean } | null> {
+): Promise<{ id: string; title: string | null; distanceKm: number | null; ascentM: number | null; shape: string | null; hours: number | null; claimed: boolean } | null> {
   if (!env.SUBSCRIBERS_DB) return null;
   try {
     const row = await env.SUBSCRIBERS_DB.prepare(
@@ -597,12 +597,15 @@ export async function claimPreview(
       .first<{ id: string; title: string | null; distance_km: number | null; stats: string; hours: number | null; claimed_at: string | null }>();
     if (!row) return null;
     let shape: string | null = null;
+    let ascentM: number | null = null;
     try {
-      shape = (JSON.parse(row.stats) as { shape?: string }).shape ?? null;
+      const stats = JSON.parse(row.stats) as { shape?: string; ele?: { ascent_m?: number } };
+      shape = stats.shape ?? null;
+      ascentM = stats.ele?.ascent_m ?? null;
     } catch {
       shape = null;
     }
-    return { id: row.id, title: row.title, distanceKm: row.distance_km, shape, hours: row.hours, claimed: row.claimed_at != null };
+    return { id: row.id, title: row.title, distanceKm: row.distance_km, ascentM, shape, hours: row.hours, claimed: row.claimed_at != null };
   } catch (err) {
     console.error('trail:claim_preview_threw', { err: String(err) });
     return null;
