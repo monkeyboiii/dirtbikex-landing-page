@@ -380,6 +380,24 @@ id comes from a public topic title and its post stays public whatever the map sa
 collapsing protects nothing and costs the readable name the first time the rider toggles
 the trail off and on. The secret still rotates; only the name survives.
 
+### The claim link is web-only, and that is deliberate
+
+`/s/c/<code>` is **excluded** in `public/.well-known/apple-app-site-association`, so tapping
+a claim link opens the interstitial in a browser even on a device with the app installed.
+
+It was claimed on 2026-08-22 in anticipation of an iOS release that would handle it. That
+release never shipped a destination: `ShareKind` has no `c` case, `DeepLinkHandler.classify`
+returns nil for the path, and the app answers a perfectly good claim link with its
+invalid-link bubble. A claimed path with no destination is strictly worse than an
+unclaimed one, so it went back behind the exclude on 2026-08-23.
+
+**Un-exclude it in the same release that adds the destination, not before.** What that
+destination needs is more than an enum case: the claim is completed by
+`GET /dbx/trails/claim?code=…` on the forum, which writes and then redirects to the
+rider's personal message, and the app has no generic surface for "open this forum path
+in the authenticated web view" — every web view it has is bound to a topic, a chat or the
+composer. See `iOS/docs/SHARING_MODULE.md`.
+
 ### Known gap
 
 The duplicate-file check only looks at D1. A trail already on the map through the **R2

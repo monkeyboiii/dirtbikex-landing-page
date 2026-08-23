@@ -32,7 +32,8 @@
           },
           {
             "/": "/s/c/*",
-            "comment": "Trail claim - native. Added 2026-08-22 in lockstep with the iOS release that handles it: a path here without a destination in the SHIPPED app makes it raise its invalid-link bubble on a good link."
+            "exclude": true,
+            "comment": "Trail claim - WEB ONLY, deliberately. Claimed here on 2026-08-22 for an iOS release that never shipped a destination: ShareKind has no `c` case, so DeepLinkHandler.classify returns nil and a good claim link opens the app straight into its invalid-link bubble. Excluded again 2026-08-23 until iOS can actually complete the claim. Un-exclude in the SAME release that adds it."
           },
           {
             "/": "/s/*",
