@@ -284,6 +284,8 @@
   "map.trail.goneTitle": "Dette spor er her ikke længere",
   "map.basemap.title": "Kortstil",
   "map.control.title": "Kortkontroller",
+  "map.locate.blockedTitle": "Din browser blokerer placering",
+  "map.locate.blockedBody": "Dette websted fik afvist tilladelsen, og kun browseren kan give den tilbage — åbn webstedsindstillingerne ved adresselinjen, tillad placering, og prøv igen.",
   "map.basemap.auto": "DirtBikeX",
   "map.basemap.autoNote": "Følger sidens tema",
   "map.basemap.topo": "Topografisk",

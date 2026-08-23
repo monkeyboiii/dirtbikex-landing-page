@@ -284,6 +284,8 @@
   "map.trail.goneTitle": "Esta trilha já não está aqui",
   "map.basemap.title": "Estilo do mapa",
   "map.control.title": "Controlos do mapa",
+  "map.locate.blockedTitle": "O seu navegador está a bloquear a localização",
+  "map.locate.blockedBody": "A permissão foi recusada a este site e só o navegador a pode devolver — abra as definições do site ao lado da barra de endereço, permita a localização e tente de novo.",
   "map.basemap.auto": "DirtBikeX",
   "map.basemap.autoNote": "Segue o tema da página",
   "map.basemap.topo": "Topográfico",

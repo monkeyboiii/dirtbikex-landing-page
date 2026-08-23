@@ -284,6 +284,8 @@
   "map.trail.goneTitle": "Diese Strecke gibt es nicht mehr",
   "map.basemap.title": "Kartenstil",
   "map.control.title": "Kartensteuerung",
+  "map.locate.blockedTitle": "Dein Browser blockiert den Standort",
+  "map.locate.blockedBody": "Dieser Seite wurde die Berechtigung verweigert, und nur der Browser kann sie zurückgeben — öffne die Seiteneinstellungen neben der Adressleiste, erlaube den Standort und versuche es erneut.",
   "map.basemap.auto": "DirtBikeX",
   "map.basemap.autoNote": "Folgt dem Seitendesign",
   "map.basemap.topo": "Topografisch",

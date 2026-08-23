@@ -284,6 +284,8 @@
   "map.trail.goneTitle": "Jalur ini sudah tidak ada",
   "map.basemap.title": "Gaya peta",
   "map.control.title": "Kontrol peta",
+  "map.locate.blockedTitle": "Peramban memblokir lokasi",
+  "map.locate.blockedBody": "Situs ini ditolak izinnya, dan hanya peramban yang bisa mengembalikannya — buka pengaturan situs di samping bilah alamat, izinkan lokasi, lalu coba lagi.",
   "map.basemap.auto": "DirtBikeX",
   "map.basemap.autoNote": "Mengikuti tema halaman",
   "map.basemap.topo": "Topografi",

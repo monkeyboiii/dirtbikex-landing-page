@@ -286,6 +286,8 @@
   "map.trail.goneTitle": "这条轨迹已不在了",
   "map.basemap.title": "地图样式",
   "map.control.title": "地图控件",
+  "map.locate.blockedTitle": "浏览器阻止了定位",
+  "map.locate.blockedBody": "本站的定位权限已被拒绝，只有浏览器能恢复它——在地址栏旁找到网站设置，允许定位后再试一次。",
   "map.basemap.auto": "DirtBikeX",
   "map.basemap.autoNote": "跟随页面主题",
   "map.basemap.topo": "地形图",

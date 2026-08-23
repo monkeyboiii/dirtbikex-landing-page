@@ -290,6 +290,8 @@
   "map.trail.goneTitle": "This trail is no longer here",
   "map.basemap.title": "Map style",
   "map.control.title": "Map controls",
+  "map.locate.blockedTitle": "Your browser is blocking location",
+  "map.locate.blockedBody": "This site was refused permission, and only the browser can give it back — look for the site settings beside the address bar, allow location there, then try again.",
   "map.basemap.auto": "DirtBikeX",
   "map.basemap.autoNote": "Follows the page theme",
   "map.basemap.topo": "Topographic",

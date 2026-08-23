@@ -284,6 +284,8 @@
   "map.trail.goneTitle": "Deze route is er niet meer",
   "map.basemap.title": "Kaartstijl",
   "map.control.title": "Kaartbediening",
+  "map.locate.blockedTitle": "Je browser blokkeert locatie",
+  "map.locate.blockedBody": "Deze site kreeg geen toestemming, en alleen de browser kan die teruggeven — open de site-instellingen naast de adresbalk, sta locatie toe en probeer het opnieuw.",
   "map.basemap.auto": "DirtBikeX",
   "map.basemap.autoNote": "Volgt het paginathema",
   "map.basemap.topo": "Topografisch",

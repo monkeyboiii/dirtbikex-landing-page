@@ -284,6 +284,8 @@
   "map.trail.goneTitle": "Cette trace n’est plus là",
   "map.basemap.title": "Style de carte",
   "map.control.title": "Commandes de la carte",
+  "map.locate.blockedTitle": "Votre navigateur bloque la localisation",
+  "map.locate.blockedBody": "L'autorisation a été refusée à ce site, et seul le navigateur peut la rendre — ouvrez les paramètres du site à côté de la barre d'adresse, autorisez la localisation, puis réessayez.",
   "map.basemap.auto": "DirtBikeX",
   "map.basemap.autoNote": "Suit le thème du site",
   "map.basemap.topo": "Topographique",

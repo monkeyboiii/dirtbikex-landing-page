@@ -284,6 +284,8 @@
   "map.trail.goneTitle": "이 트레일은 더 이상 없습니다",
   "map.basemap.title": "지도 스타일",
   "map.control.title": "지도 컨트롤",
+  "map.locate.blockedTitle": "브라우저가 위치 정보를 차단했습니다",
+  "map.locate.blockedBody": "이 사이트의 권한이 거부되었고 되돌릴 수 있는 것은 브라우저뿐입니다 — 주소 표시줄 옆 사이트 설정에서 위치를 허용한 뒤 다시 시도하세요.",
   "map.basemap.auto": "DirtBikeX",
   "map.basemap.autoNote": "페이지 테마를 따름",
   "map.basemap.topo": "지형도",

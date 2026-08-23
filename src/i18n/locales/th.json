@@ -284,6 +284,8 @@
   "map.trail.goneTitle": "เส้นทางนี้ไม่อยู่แล้ว",
   "map.basemap.title": "รูปแบบแผนที่",
   "map.control.title": "การควบคุมแผนที่",
+  "map.locate.blockedTitle": "เบราว์เซอร์กำลังบล็อกตำแหน่ง",
+  "map.locate.blockedBody": "เว็บนี้ถูกปฏิเสธสิทธิ์ และมีแต่เบราว์เซอร์เท่านั้นที่คืนให้ได้ — เปิดการตั้งค่าเว็บไซต์ข้างแถบที่อยู่ อนุญาตตำแหน่ง แล้วลองอีกครั้ง",
   "map.basemap.auto": "DirtBikeX",
   "map.basemap.autoNote": "ตามธีมของหน้า",
   "map.basemap.topo": "ภูมิประเทศ",

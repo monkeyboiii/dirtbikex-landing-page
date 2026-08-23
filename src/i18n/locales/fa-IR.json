@@ -284,6 +284,8 @@
   "map.trail.goneTitle": "این مسیر دیگر اینجا نیست",
   "map.basemap.title": "سبک نقشه",
   "map.control.title": "کنترل‌های نقشه",
+  "map.locate.blockedTitle": "مرورگر شما موقعیت مکانی را مسدود کرده است",
+  "map.locate.blockedBody": "اجازهٔ این سایت رد شده و فقط مرورگر می‌تواند آن را برگرداند — تنظیمات سایت کنار نوار نشانی را باز کنید، موقعیت مکانی را مجاز کنید و دوباره تلاش کنید.",
   "map.basemap.auto": "DirtBikeX",
   "map.basemap.autoNote": "از پوستهٔ صفحه پیروی می‌کند",
   "map.basemap.topo": "توپوگرافی",

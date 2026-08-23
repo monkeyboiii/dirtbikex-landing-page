@@ -82,6 +82,9 @@ const DEFAULTS: Record<string, string> = {
   'map.trail.goneTitle': 'This trail is no longer here',
   'map.basemap.title': 'Map style',
   'map.control.title': 'Map controls',
+  'map.locate.blockedTitle': 'Your browser is blocking location',
+  'map.locate.blockedBody':
+    'This site was refused permission, and only the browser can give it back — look for the site settings beside the address bar, allow location there, then try again.',
   'map.basemap.auto': 'DirtBikeX',
   'map.basemap.autoNote': 'Follows the page theme',
   'map.basemap.topo': 'Topographic',
@@ -252,12 +255,11 @@ const config = {
         title={s('map.layer.title')}
         aria-label={s('map.layer.title')}
       >
-        <span class="wm-rail__on wm-rail__fold-open" set:html={`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m18 15-6-6-6 6"/></svg>`} />
-        {/* The same button turned over. Open, it is the only way back — nothing else
-            dismisses the group, so it has to stay on screen. */}
-        <span class="wm-rail__on wm-rail__fold-close" set:html={`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>`} />
-        {/* The count is the whole point of folding: you can see what is on without
-            unfolding it. */}
+        <span class="wm-rail__chev wm-rail__fold-open" set:html={`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m18 15-6-6-6 6"/></svg>`} />
+        {/* One control, two marks: the chevron says which way it moves, the
+            component mark says what it opens. */}
+        <span class="wm-rail__chev wm-rail__fold-close" set:html={`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>`} />
+        <span class="wm-rail__on" set:html={`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15.536 11.293a1 1 0 0 0 0 1.414l2.376 2.377a1 1 0 0 0 1.414 0l2.377-2.377a1 1 0 0 0 0-1.414l-2.377-2.377a1 1 0 0 0-1.414 0z"/><path d="M2.297 11.293a1 1 0 0 0 0 1.414l2.377 2.377a1 1 0 0 0 1.414 0l2.377-2.377a1 1 0 0 0 0-1.414L6.088 8.916a1 1 0 0 0-1.414 0z"/><path d="M8.916 17.912a1 1 0 0 0 0 1.415l2.377 2.376a1 1 0 0 0 1.414 0l2.377-2.376a1 1 0 0 0 0-1.415l-2.377-2.376a1 1 0 0 0-1.414 0z"/><path d="M8.916 4.674a1 1 0 0 0 0 1.414l2.377 2.376a1 1 0 0 0 1.414 0l2.377-2.376a1 1 0 0 0 0-1.414l-2.377-2.377a1 1 0 0 0-1.414 0z"/></svg>`} />
         <span class="wm-rail__badge" data-layer-count aria-hidden="true"></span>
         <span class="wm-rail__label">{s('map.layer.title')}</span>
       </button>

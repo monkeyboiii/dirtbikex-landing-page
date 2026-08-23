@@ -1538,6 +1538,25 @@ export function createPanel(deps: PanelDeps) {
     },
 
     /**
+     * The browser is refusing, and no amount of tapping will change that.
+     *
+     * Once a site's location permission is denied, `getCurrentPosition` fails instantly
+     * and without a prompt — there is no API that can ask again. So the button kept
+     * trying on every tap and kept doing nothing visible, which reads as broken. This
+     * says who said no and where the switch actually is.
+     */
+    showLocationBlocked() {
+      open((host) => {
+        kicker(strings['map.control.locate'] ?? 'Show where I am');
+        titleRow(host, strings['map.locate.blockedTitle'] ?? 'Your browser is blocking location', null, strings);
+        host.appendChild(
+          el('p', 'wm-panel__meta', strings['map.locate.blockedBody']
+            ?? 'This site was refused permission, and only the browser can give it back — look for the site settings beside the address bar, allow location there, then try again.'),
+        );
+      });
+    },
+
+    /**
      * Removing a claimed trail from this device's list.
      *
      * The server refuses to delete it — a claimed trail belongs to a forum post now, and

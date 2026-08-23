@@ -284,6 +284,8 @@
   "map.trail.goneTitle": "Cung đường này không còn ở đây",
   "map.basemap.title": "Kiểu bản đồ",
   "map.control.title": "Điều khiển bản đồ",
+  "map.locate.blockedTitle": "Trình duyệt đang chặn vị trí",
+  "map.locate.blockedBody": "Trang này đã bị từ chối quyền, và chỉ trình duyệt mới trả lại được — mở cài đặt trang bên cạnh thanh địa chỉ, cho phép vị trí rồi thử lại.",
   "map.basemap.auto": "DirtBikeX",
   "map.basemap.autoNote": "Theo giao diện trang",
   "map.basemap.topo": "Địa hình",

@@ -1740,15 +1740,20 @@ body.is-map-page .site-header__inner {
 }
 /* The chevron IS the fold button, turned over. It stays because it is now the only way
    back — nothing else dismisses the group. */
-[data-layer-group].is-open .wm-rail__on.wm-rail__fold-open {
+[data-layer-group].is-open .wm-rail__chev.wm-rail__fold-open {
   display: none;
 }
 /* Doubled with .wm-rail__on, which both faces carry and which sets display later in this
    file — the single-class form lost and drew the chevron twice. */
-.wm-rail__on.wm-rail__fold-close {
+.wm-rail__chev {
+  display: grid;
+  place-items: center;
+  line-height: 0;
+}
+.wm-rail__chev.wm-rail__fold-close {
   display: none;
 }
-[data-layer-group].is-open .wm-rail__on.wm-rail__fold-close {
+[data-layer-group].is-open .wm-rail__chev.wm-rail__fold-close {
   display: grid;
 }
 [data-layer-group].is-open .wm-rail__badge {
@@ -1796,9 +1801,17 @@ body.is-map-page .site-header__inner {
 /* A bar, not another icon tile. Every other button in this rail acts on the map; this
    one opens a drawer, and the shape says that before the icon does. Doubled class: the
    base .wm-rail__btn sizing sits at the same specificity and would win on order. */
+/* Taller than the others on purpose: the chevron and the component mark are ONE control,
+   stacked — the chevron says which way it moves, the mark says what it opens. */
 .wm-rail__btn.wm-rail__btn--fold {
-  height: 28px;
-  border-radius: var(--radius-sm, 6px);
+  height: 58px;
+  grid-auto-flow: row;
+  gap: 1px;
+  align-content: center;
+}
+.wm-rail__btn--fold .wm-rail__chev svg {
+  width: 14px;
+  height: 14px;
 }
 .wm-rail__btn:hover {
   border-color: var(--wm-line-strong);
@@ -1821,6 +1834,10 @@ body.is-map-page .site-header__inner {
    anywhere else and it would open off-screen on a phone. */
 .wm-basemaps {
   position: absolute;
+  /* The rail sets pointer-events:none so its gaps stay map, and only .wm-rail__btn turns
+     them back on. This menu is neither, so every tap on it fell straight through to the
+     map and the style never changed. */
+  pointer-events: auto;
   /* Bottom-aligned, because the rail is: anchoring to the top of a button that sits near
      the foot of the map dropped the list straight off the bottom edge. */
   bottom: 0;
@@ -2234,7 +2251,7 @@ body.is-map-page .site-header__inner {
     height: 38px;
   }
   .wm-rail__btn.wm-rail__btn--fold {
-    height: 26px;
+    height: 52px;
   }
   .wm-rail__actions {
     gap: 6px;

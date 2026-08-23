@@ -284,6 +284,8 @@
   "map.trail.goneTitle": "Tätä reittiä ei enää ole",
   "map.basemap.title": "Kartan tyyli",
   "map.control.title": "Kartan säätimet",
+  "map.locate.blockedTitle": "Selaimesi estää sijainnin",
+  "map.locate.blockedBody": "Tältä sivustolta evättiin lupa, ja vain selain voi antaa sen takaisin — avaa sivuston asetukset osoiterivin vierestä, salli sijainti ja yritä uudelleen.",
   "map.basemap.auto": "DirtBikeX",
   "map.basemap.autoNote": "Seuraa sivun teemaa",
   "map.basemap.topo": "Topografinen",

@@ -284,6 +284,8 @@
   "map.trail.goneTitle": "Bu rota artık burada değil",
   "map.basemap.title": "Harita stili",
   "map.control.title": "Harita denetimleri",
+  "map.locate.blockedTitle": "Tarayıcın konumu engelliyor",
+  "map.locate.blockedBody": "Bu siteye izin verilmedi ve onu yalnızca tarayıcı geri verebilir — adres çubuğunun yanındaki site ayarlarını aç, konuma izin ver ve tekrar dene.",
   "map.basemap.auto": "DirtBikeX",
   "map.basemap.autoNote": "Sayfa temasını izler",
   "map.basemap.topo": "Topoğrafik",

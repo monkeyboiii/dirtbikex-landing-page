@@ -286,6 +286,8 @@
   "map.trail.goneTitle": "Det här spåret finns inte längre",
   "map.basemap.title": "Kartstil",
   "map.control.title": "Kartkontroller",
+  "map.locate.blockedTitle": "Din webbläsare blockerar plats",
+  "map.locate.blockedBody": "Den här webbplatsen nekades behörighet, och bara webbläsaren kan ge tillbaka den — öppna webbplatsinställningarna vid adressfältet, tillåt plats och försök igen.",
   "map.basemap.auto": "DirtBikeX",
   "map.basemap.autoNote": "Följer sidans tema",
   "map.basemap.topo": "Topografisk",

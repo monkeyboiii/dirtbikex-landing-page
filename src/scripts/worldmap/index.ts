@@ -1630,6 +1630,10 @@ class WorldMap {
    * "you are already there", which is the difference between a button worth pressing
    * and one that would do nothing.
    */
+  explainLocationBlocked() {
+    this.panel.showLocationBlocked();
+  }
+
   syncControls() {
     const mark = (selector: string, on: boolean) => {
       const button = this.root.querySelector<HTMLElement>(selector);
@@ -2480,8 +2484,13 @@ function wireRail(root: HTMLElement, world: WorldMap, strings: Strings) {
     locate.addEventListener('click', async () => {
       if (locate.dataset.state === 'busy') return;
       locate.dataset.state = 'busy';
-      locate.dataset.state = await world.locate();
+      const next = await world.locate();
+      locate.dataset.state = next;
       world.syncControls();
+      // Trying again was already happening on every tap — it just could not work, and did
+      // so invisibly. A denial is the browser's and no API can re-prompt, so the only
+      // useful thing left is to say who refused and where the switch is.
+      if (next === 'denied') world.explainLocationBlocked();
     });
   }
 
