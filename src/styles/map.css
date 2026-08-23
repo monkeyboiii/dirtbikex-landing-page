@@ -1694,7 +1694,7 @@ body.is-map-page .site-header__inner {
 .wm-rail--right {
   top: auto;
   /* Clear of MapLibre's own stack: the zoom group, then the attribution strip. */
-  bottom: calc(152px + env(safe-area-inset-bottom));
+  bottom: calc(172px + env(safe-area-inset-bottom));
 }
 .wm-rail__group {
   position: relative;
@@ -2214,7 +2214,7 @@ body.is-map-page .site-header__inner {
   .wm-rail--right {
     top: auto;
     right: 12px;
-    bottom: calc(92px + env(safe-area-inset-bottom));
+    bottom: calc(102px + env(safe-area-inset-bottom));
   }
   .wm-rail__btn {
     width: 38px;
