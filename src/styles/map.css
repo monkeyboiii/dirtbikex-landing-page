@@ -1685,7 +1685,7 @@ body.is-map-page .site-header__inner {
    and does not. Nine buttons in one column ran most of the height of a phone. */
 .wm-rail--left {
   top: auto;
-  bottom: calc(26px + env(safe-area-inset-bottom));
+  bottom: calc(58px + env(safe-area-inset-bottom));
   right: auto;
   left: var(--space-5, 20px);
 }
@@ -2209,7 +2209,7 @@ body.is-map-page .site-header__inner {
     top: auto;
     right: auto;
     left: 12px;
-    bottom: calc(20px + env(safe-area-inset-bottom));
+    bottom: calc(56px + env(safe-area-inset-bottom));
   }
   .wm-rail--right {
     top: auto;
