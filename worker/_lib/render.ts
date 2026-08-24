@@ -1,5 +1,5 @@
 import type { EntityCard } from './shareEntity';
-import { BRAND_CARD, brandCardURL, kindCardURL, type KindCard } from './brand';
+import { BRAND_CARD, brandCardURL, kindCardURL, type KindCard } from './brand.ts';
 import type { EventRow, InviteRow, Lang, ShareLandingProps, UserRow } from './types';
 
 /**
@@ -326,6 +326,52 @@ function errorBody(props: ShareLandingProps): string {
 }
 
 /**
+ * The iOS "finish this in the app" ask, shown when the CTA is tapped.
+ *
+ * A rider on an iPhone reached this page one of two ways: without the app, or with it but
+ * through something that does not honour Universal Links — Safari's address bar, most
+ * QR scanners, several in-app browsers. The second case is the one worth catching: they
+ * have the app, and the claim would otherwise finish in a browser tab and leave them
+ * logged in nowhere they wanted to be.
+ *
+ * A `<dialog>` rather than a hand-rolled overlay: it gets the focus trap, the Escape key,
+ * inert background and the top layer from the platform, none of which is worth
+ * reimplementing for one prompt. `showModal` is the only part that needs script.
+ */
+function appPromptDialog(app: NonNullable<NonNullable<ShareLandingProps['trailClaim']>['app']>): string {
+  return `
+<dialog class="ios-ask" data-claim-ask data-app="${esc(app.appURL)}" data-store="${esc(app.storeURL)}">
+  <p class="ios-ask__text">${esc(app.prompt)}</p>
+  <button class="ios-ask__btn ios-ask__btn--go" type="button" data-claim-app>${esc(app.yes)}</button>
+  <button class="ios-ask__btn" type="button" data-claim-web>${esc(app.web)}</button>
+</dialog>
+<script>${CLAIM_ASK_JS}</script>`;
+}
+
+/**
+ * Scheme first, App Store if nothing answers.
+ *
+ * There is no API that reports whether an app is installed, so the shape is the usual
+ * one: navigate to the custom scheme, and if the page is still here a moment later,
+ * nothing handled it. `visibilityState` is the test rather than a blur listener, because
+ * iOS backgrounds the tab when the app takes over and that is precisely the signal.
+ *
+ * The https link cannot do this job even though `/s/c/*` is in the AASA: this page IS
+ * that URL, and iOS does not re-run Universal Link matching for a navigation to the page
+ * you are already on.
+ */
+const CLAIM_ASK_JS = `(function(){
+var d=document.querySelector('[data-claim-ask]'),c=document.querySelector('[data-claim-cta]');
+if(!d||!c||!d.showModal)return;
+c.addEventListener('click',function(e){e.preventDefault();d.showModal();});
+d.querySelector('[data-claim-web]').addEventListener('click',function(){d.close();location.href=c.href;});
+d.querySelector('[data-claim-app]').addEventListener('click',function(){
+var t=setTimeout(function(){if(document.visibilityState==='visible')location.href=d.dataset.store;},1400);
+addEventListener('pagehide',function(){clearTimeout(t);},{once:true});
+location.href=d.dataset.app;});
+})();`;
+
+/**
  * The `/s/c/<code>` card, shaped like the map's own trail sheet.
  *
  * It used to fall through to `errorBody`, which is the layout for "something went wrong" —
@@ -363,9 +409,9 @@ function trailClaimBody(
         .join('')}</p>`
     : ''}
   ${subtitle ? `<p class="subtitle claim-body">${esc(subtitle)}</p>` : ''}
-  <a class="cta" href="${esc(primaryCTA.url)}">${esc(primaryCTA.label)}</a>
+  <a class="cta" href="${esc(primaryCTA.url)}"${claim.app ? ' data-claim-cta' : ''}>${esc(primaryCTA.label)}</a>
   ${secondaryLink ? `<a class="card-link" href="${esc(secondaryLink.url)}">${esc(secondaryLink.label)}</a>` : ''}
-</main>`;
+</main>${claim.app ? appPromptDialog(claim.app) : ''}`;
 }
 
 /** Lucide check-circle, drawn in the success green rather than the brand orange: this is
@@ -1509,8 +1555,8 @@ body {
   line-height: 0;
 }
 .claim-title { margin-top: 0.5rem; }
-/* The sheet's numbers: value large, label quiet underneath. `auto-fit` rather than a
-   fixed pair, because a plotted route has no climb and one lonely column centred in a
+/* The sheet's numbers: value large, label quiet underneath. auto-fit rather than a fixed
+   pair, because a plotted route has no climb and one lonely column centred in a
    two-column grid reads as a missing value. */
 .claim-facts {
   display: grid;
@@ -1547,6 +1593,49 @@ body {
   margin-top: 1.25rem;
   padding-top: 1.25rem;
   border-top: 1px solid var(--clay-100);
+}
+/* The iOS ask. Deliberately the SYSTEM alert's shape rather than the site's — it is a
+   platform question ("use the app?"), and dressing it as brand chrome makes it read as
+   an advert instead of a choice. Hence the system blue, not the DirtBikeX orange. */
+.ios-ask {
+  border: none;
+  border-radius: 14px;
+  padding: 0;
+  width: min(270px, calc(100vw - 3rem));
+  background: #f2f2f7;
+  color: #000;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+  overflow: hidden;
+}
+.ios-ask::backdrop { background: rgba(0,0,0,0.4); }
+.ios-ask__text {
+  margin: 0;
+  padding: 1.25rem 1rem;
+  text-align: center;
+  font-size: 0.9375rem;
+  line-height: 1.4;
+}
+.ios-ask__btn {
+  display: block;
+  width: 100%;
+  padding: 0.8rem 1rem;
+  border: none;
+  border-top: 1px solid rgba(0,0,0,0.12);
+  background: transparent;
+  font: inherit;
+  font-size: 1.0625rem;
+  /* Grey, because it is the lesser of the two. The system would use blue for both and
+     lean on weight alone; here the difference has to survive a glance. */
+  color: #6b6b70;
+  cursor: pointer;
+}
+.ios-ask__btn--go { color: #007aff; font-weight: 600; }
+.ios-ask__btn:active { background: rgba(0,0,0,0.06); }
+@media (prefers-color-scheme: dark) {
+  .ios-ask { background: #1c1c1e; color: #fff; }
+  .ios-ask__btn { border-top-color: rgba(255,255,255,0.16); color: #9b9ba0; }
+  .ios-ask__btn--go { color: #0a84ff; }
+  .ios-ask__btn:active { background: rgba(255,255,255,0.08); }
 }
 .message {
   font-style: italic;

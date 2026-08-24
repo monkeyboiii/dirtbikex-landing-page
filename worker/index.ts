@@ -431,6 +431,19 @@ function isDesktopUA(ua: string | null): boolean {
   return !/Android|iPhone|iPad|iPod|Mobile/i.test(ua ?? '');
 }
 
+/**
+ * iOS/iPadOS, for the claim card's "finish this in the app" ask.
+ *
+ * Same `no-store` reasoning as above — per-UA branching is safe here because the edge
+ * never keeps a copy. Desktop Safari on a Mac is deliberately NOT matched even though
+ * iPadOS reports a Macintosh UA: over-matching shows a Mac user an App Store prompt for
+ * an app they cannot install, and the cost of missing a desktop-mode iPad is one extra
+ * tap on a page that still works.
+ */
+function isIOSUA(ua: string | null): boolean {
+  return /iPhone|iPad|iPod/i.test(ua ?? '');
+}
+
 function buildProps(
   result: LookupResult,
   copy: Copy,
@@ -836,6 +849,8 @@ interface ClaimCopy {
   distance: string;
   climb: string;
   signed: string;
+  /** Shown only on iOS, before the CTA hands off to the forum. */
+  appPrompt: string;
   expires: string;
   backToMap: string;
 }
@@ -854,6 +869,7 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
     distance: 'Distance',
     climb: 'Climb',
     signed: 'Ready to sign',
+    appPrompt: 'DirtBikeX works best in the app.',
     expires: 'expires in {n} h',
     backToMap: 'See it on the map',
   },
@@ -870,6 +886,7 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
     distance: '距离',
     climb: '爬升',
     signed: '等你签名',
+    appPrompt: 'DirtBikeX 在 App 里体验更好。',
     expires: '{n} 小时后过期',
     backToMap: '在地图上查看',
   },
@@ -886,6 +903,7 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
     distance: '距離',
     climb: '爬升',
     signed: '等你簽名',
+    appPrompt: 'DirtBikeX 在 App 裡體驗更好。',
     expires: '{n} 小時後過期',
     backToMap: '在地圖上查看',
   },
@@ -902,6 +920,7 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
     distance: '距離',
     climb: '獲得標高',
     signed: '署名を待っています',
+    appPrompt: 'DirtBikeX はアプリでより快適に使えます。',
     expires: '残り {n} 時間',
     backToMap: '地図で見る',
   },
@@ -918,6 +937,7 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
     distance: '거리',
     climb: '상승',
     signed: '서명을 기다리는 중',
+    appPrompt: 'DirtBikeX는 앱에서 가장 잘 작동합니다.',
     expires: '{n}시간 남음',
     backToMap: '지도에서 보기',
   },
@@ -934,6 +954,7 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
     distance: 'Distanz',
     climb: 'Anstieg',
     signed: 'Bereit zum Signieren',
+    appPrompt: 'DirtBikeX funktioniert in der App am besten.',
     expires: 'läuft in {n} h ab',
     backToMap: 'Auf der Karte ansehen',
   },
@@ -950,6 +971,7 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
     distance: 'Distance',
     climb: 'Dénivelé',
     signed: 'Prêt à signer',
+    appPrompt: 'DirtBikeX fonctionne mieux dans l’application.',
     expires: 'expire dans {n} h',
     backToMap: 'Voir sur la carte',
   },
@@ -966,6 +988,7 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
     distance: 'Distancia',
     climb: 'Desnivel',
     signed: 'Listo para firmar',
+    appPrompt: 'DirtBikeX funciona mejor en la app.',
     expires: 'caduca en {n} h',
     backToMap: 'Verla en el mapa',
   },
@@ -982,6 +1005,7 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
     distance: 'Distância',
     climb: 'Ganho',
     signed: 'Pronto para assinar',
+    appPrompt: 'O DirtBikeX funciona melhor no app.',
     expires: 'expira em {n} h',
     backToMap: 'Ver no mapa',
   },
@@ -998,6 +1022,7 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
     distance: 'Distanza',
     climb: 'Dislivello',
     signed: 'Pronto da firmare',
+    appPrompt: 'DirtBikeX funziona meglio nell’app.',
     expires: 'scade tra {n} h',
     backToMap: 'Vedilo sulla mappa',
   },
@@ -1014,6 +1039,7 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
     distance: 'Afstand',
     climb: 'Stijging',
     signed: 'Klaar om te ondertekenen',
+    appPrompt: 'DirtBikeX werkt het best in de app.',
     expires: 'verloopt over {n} u',
     backToMap: 'Bekijk op de kaart',
   },
@@ -1030,6 +1056,7 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
     distance: 'Distance',
     climb: 'Stigning',
     signed: 'Klar til at signere',
+    appPrompt: 'DirtBikeX fungerer bedst i appen.',
     expires: 'udløber om {n} t',
     backToMap: 'Se det på kortet',
   },
@@ -1046,6 +1073,7 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
     distance: 'Distans',
     climb: 'Stigning',
     signed: 'Redo att signeras',
+    appPrompt: 'DirtBikeX fungerar bäst i appen.',
     expires: 'går ut om {n} h',
     backToMap: 'Se det på kartan',
   },
@@ -1062,6 +1090,7 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
     distance: 'Matka',
     climb: 'Nousu',
     signed: 'Valmis allekirjoitettavaksi',
+    appPrompt: 'DirtBikeX toimii parhaiten sovelluksessa.',
     expires: 'vanhenee {n} h kuluttua',
     backToMap: 'Katso kartalla',
   },
@@ -1078,6 +1107,7 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
     distance: 'Απόσταση',
     climb: 'Ανάβαση',
     signed: 'Έτοιμο για υπογραφή',
+    appPrompt: 'Το DirtBikeX λειτουργεί καλύτερα στην εφαρμογή.',
     expires: 'λήγει σε {n} ώ',
     backToMap: 'Δες τη στον χάρτη',
   },
@@ -1094,6 +1124,7 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
     distance: 'Mesafe',
     climb: 'Tırmanış',
     signed: 'İmzalanmaya hazır',
+    appPrompt: 'DirtBikeX en iyi uygulamada çalışır.',
     expires: '{n} sa sonra dolar',
     backToMap: 'Haritada gör',
   },
@@ -1110,6 +1141,7 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
     distance: 'Jarak',
     climb: 'Tanjakan',
     signed: 'Siap ditandatangani',
+    appPrompt: 'DirtBikeX bekerja paling baik di aplikasi.',
     expires: 'kedaluwarsa dalam {n} j',
     backToMap: 'Lihat di peta',
   },
@@ -1126,6 +1158,7 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
     distance: 'Quãng đường',
     climb: 'Độ cao tăng',
     signed: 'Sẵn sàng để ký',
+    appPrompt: 'DirtBikeX hoạt động tốt nhất trên ứng dụng.',
     expires: 'hết hạn sau {n} giờ',
     backToMap: 'Xem trên bản đồ',
   },
@@ -1142,6 +1175,7 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
     distance: 'ระยะทาง',
     climb: 'ไต่ระดับ',
     signed: 'พร้อมลงชื่อ',
+    appPrompt: 'DirtBikeX ใช้งานได้ดีที่สุดในแอป',
     expires: 'หมดอายุใน {n} ชม.',
     backToMap: 'ดูบนแผนที่',
   },
@@ -1158,6 +1192,7 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
     distance: 'المسافة',
     climb: 'الصعود',
     signed: 'جاهز للتوقيع',
+    appPrompt: 'يعمل DirtBikeX بشكل أفضل في التطبيق.',
     expires: 'ينتهي خلال {n} ساعة',
     backToMap: 'شاهده على الخريطة',
   },
@@ -1174,6 +1209,7 @@ const CLAIM_COPY: Partial<Record<Lang, ClaimCopy>> = {
     distance: 'مسافت',
     climb: 'صعود',
     signed: 'آماده امضا',
+    appPrompt: 'DirtBikeX در اپلیکیشن بهتر کار می‌کند.',
     expires: 'تا {n} ساعت دیگر منقضی می‌شود',
     backToMap: 'دیدن روی نقشه',
   },
@@ -1183,6 +1219,9 @@ async function handleTrailClaim(request: Request, env: Env, code: string): Promi
   const url = new URL(request.url);
   const locale = pickLocale(url, request.headers.get('accept-language'), request.headers.get('user-agent'));
   const copy = CLAIM_COPY[locale] ?? CLAIM_COPY.en!;
+  // The two button labels already exist, translated, on the invite card's table. Writing
+  // a second "Open in the app" would be two strings that can drift.
+  const appCopy = COPY[locale] ?? COPY.en!;
   // The forum sends a rate-limited rider back here rather than showing them Discourse's
   // "page not found", which is what its rate-limit handler produces for a plain browser
   // navigation and which reads as "your link is broken" — so they retry, and spend more
@@ -1229,6 +1268,17 @@ async function handleTrailClaim(request: Request, env: Env, code: string): Promi
                 : null,
             claimed: trail.claimed,
             kicker: copy.signed,
+            // Only iOS is asked. There is no Android build to offer, and on desktop the
+            // question has no good answer.
+            app: isIOSUA(request.headers.get('user-agent'))
+              ? {
+                  prompt: copy.appPrompt,
+                  yes: appCopy.openInAppLabel,
+                  web: appCopy.webCtaLabel,
+                  appURL: `dirtbikex://s/c/${encodeURIComponent(code)}`,
+                  storeURL: APP_STORE_URL,
+                }
+              : undefined,
           }
         : undefined,
       primaryCTA: {

@@ -200,6 +200,9 @@ export interface ShareLandingProps {
     claimed: boolean;
     /** Kicker above the title. */
     kicker: string;
+    /** Set only for iOS. The CTA then asks before it hands off to the forum, because a
+     *  rider who has the app should finish there rather than in a browser tab. */
+    app?: { prompt: string; yes: string; web: string; appURL: string; storeURL: string };
   };
   /** Who sent the link (`?from=`), resolved for the "wants to share this with you" line. */
   sharedBy?: { name: string; avatarURL: string | null } | null;
