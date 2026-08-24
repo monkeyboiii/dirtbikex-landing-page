@@ -1532,7 +1532,7 @@ class WorldMap {
         void this.openTrail(props.slug);
       } else if (props?.slug) {
         this.selectTrack(props.slug, { fly: true });
-      } else {
+      } else if (!this.tracedTrailOnScreen()) {
         this.clearSelection();
       }
     });
@@ -2384,6 +2384,24 @@ class WorldMap {
     this.trailFetch = null;
     this.root.classList.remove('is-tracing');
     this.drawTrail(null);
+  }
+
+  /**
+   * A trail sheet with its trace actually drawn on the map.
+   *
+   * That sheet is not incidental: the visitor asked for a line, the line is on the ground
+   * under their finger, and the sheet is the only thing naming what they are looking at.
+   * Tapping empty ground while reading a trace is what somebody does to pan, to dismiss a
+   * keyboard, or simply by holding the phone — it is not "put that away", and treating it
+   * as such threw the trace off screen mid-read.
+   *
+   * Deliberately NARROWER than `sticky`, which blocks every path out including opening
+   * another sheet. Tapping a different pin still works and replaces this sheet, because
+   * that IS a decision; the X and Escape still close, because those are the two gestures
+   * that mean "close". Only the empty tap is ignored.
+   */
+  private tracedTrailOnScreen(): boolean {
+    return !!this.selectedTrail && !!this.trailGeometry.get(this.selectedTrail)?.length;
   }
 
   clearSelection() {
