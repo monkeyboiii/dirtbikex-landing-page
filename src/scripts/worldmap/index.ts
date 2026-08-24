@@ -1949,12 +1949,31 @@ class WorldMap {
    */
   private rememberSharedTrail(trail: Trail) {
     const expiry = trail.expires_at ? Date.parse(trail.expires_at) : Number.NaN;
+    // **Keep the claim code if this device already has one.**
+    //
+    // `rememberUpload` REPLACES the row for an id, so writing `claim: ''` here destroyed
+    // it — and the code exists nowhere else. The sequence that did it is an ordinary one:
+    // upload, tap Claim, then on the claim page tap "See it on the map". That last step is
+    // `/?trail=<secret>`, which lands in `openSecretTrail`, which calls this. One tap and
+    // the rider's own trail became somebody else's bookmark:
+    //   - `mine` in the device list goes false, so the Claim button VANISHES
+    //   - Delete degrades to Forget, so they cannot remove their own trail either
+    //   - nothing else in the product holds the code, so it is not recoverable
+    //
+    // A blank stays blank; only a real code survives. This path genuinely is a bookmark
+    // when the trail came from somebody else's link.
+    const held = this.recentUploads().find((r) => r.id === trail.id)?.claim ?? '';
     this.rememberUpload({
       id: trail.id,
       title: localizedName(trail.title, this.cfg.lang) ?? trail.id,
-      claim: '',
+      claim: held,
       exp: Number.isFinite(expiry) ? expiry : 0,
     });
+  }
+
+  /** The claim URL this device holds for a trail, or null. Empty means "not ours". */
+  claimFor(id: string): string | null {
+    return this.recentUploads().find((r) => r.id === id)?.claim || null;
   }
 
   private rememberUpload(row: { id: string; title: string; claim: string; exp?: number }) {
@@ -2821,6 +2840,7 @@ export async function bootWorldMap() {
       contactUrl: cfg.contactUrl,
       forumBase: cfg.forumBase,
       isVerified: (slug, hasTopic) => world.verdict(slug, hasTopic),
+      claimFor: (id) => world.claimFor(id),
       onClose: () => world.clearSelection(),
       setTurnstileToken: (token) => world.setTurnstileToken(token),
       onVenue: (track) => world.openVenue(track),

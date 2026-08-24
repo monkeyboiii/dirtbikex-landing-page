@@ -211,6 +211,7 @@
   "map.panel.openIn": "Mở bằng",
   "map.panel.share": "Chia sẻ",
   "map.panel.shareCopied": "Đã sao chép liên kết",
+  "map.panel.shareFailed": "Không thể chia sẻ liên kết đó",
   "map.panel.systemMaps": "Ứng dụng bản đồ mặc định",
   "map.panel.inProduction": "Tập đang sản xuất",
   "map.panel.watch": "Xem",

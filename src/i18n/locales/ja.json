@@ -214,6 +214,7 @@
   "map.panel.openIn": "アプリで開く",
   "map.panel.share": "シェア",
   "map.panel.shareCopied": "リンクをコピーしました",
+  "map.panel.shareFailed": "このリンクを共有できませんでした",
   "map.panel.systemMaps": "既定の地図アプリ",
   "map.panel.inProduction": "エピソード制作中",
   "map.panel.watch": "見る",

@@ -217,6 +217,7 @@
   "map.panel.openIn": "Open in",
   "map.panel.share": "Share",
   "map.panel.shareCopied": "Link copied",
+  "map.panel.shareFailed": "Could not share that link",
   "map.panel.systemMaps": "Default map app",
   "map.panel.inProduction": "Episode in production",
   "map.panel.watch": "Watch",

@@ -211,6 +211,7 @@
   "map.panel.openIn": "Openen in",
   "map.panel.share": "Delen",
   "map.panel.shareCopied": "Link gekopieerd",
+  "map.panel.shareFailed": "Kon die link niet delen",
   "map.panel.systemMaps": "Standaard kaarten-app",
   "map.panel.inProduction": "Aflevering in productie",
   "map.panel.watch": "Bekijken",

@@ -211,6 +211,7 @@
   "map.panel.openIn": "다음으로 열기",
   "map.panel.share": "공유",
   "map.panel.shareCopied": "링크를 복사했습니다",
+  "map.panel.shareFailed": "링크를 공유하지 못했습니다",
   "map.panel.systemMaps": "기본 지도 앱",
   "map.panel.inProduction": "에피소드 제작 중",
   "map.panel.watch": "보기",

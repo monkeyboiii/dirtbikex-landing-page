@@ -88,6 +88,17 @@ export interface PanelDeps {
    * the sheet is built, and again when the owner lookup lands.
    */
   isVerified(slug: string, hasTopic: boolean): boolean;
+  /**
+   * The claim URL this device holds for a trail, or null.
+   *
+   * The trail sheet needs it because the map is a place riders come BACK to. The claim
+   * page offers "See it on the map", and before this the sheet waiting there had no way
+   * onward — the only Claim buttons in the product were on the upload sheet, which is
+   * gone once dismissed, and in the device list, which is two taps away behind the upload
+   * control. A rider who followed that loop had lost their own trail with nothing on
+   * screen saying so.
+   */
+  claimFor?(id: string): string | null;
 }
 
 /** Picks the viewer's locale out of a {locale: text} block, falling back to en. */
@@ -168,25 +179,83 @@ function titleRow(
     button.innerHTML =
       SHARE_SVG;
 
+    /** Says something happened, where the reader is already looking. */
+    const say = (message: string) => {
+      button.classList.add('is-copied');
+      button.title = message;
+      setTimeout(() => {
+        button.classList.remove('is-copied');
+        button.title = label;
+      }, 1600);
+    };
+
+    /**
+     * Clipboard, with the older path behind it. Returns whether the text actually landed,
+     * because the caller has to be able to say so.
+     *
+     * `navigator.clipboard` needs a secure context AND, in several in-app browsers, a
+     * permission the host never grants — it REJECTS rather than throwing synchronously,
+     * which is how the old `.catch(() => {})` turned a refusal into a dead button.
+     */
+    const copy = async (url: string): Promise<boolean> => {
+      try {
+        await navigator.clipboard.writeText(url);
+        return true;
+      } catch {
+        /* fall through */
+      }
+      try {
+        const box = document.createElement('textarea');
+        box.value = url;
+        box.setAttribute('readonly', '');
+        box.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
+        document.body.appendChild(box);
+        box.select();
+        const ok = document.execCommand('copy');
+        box.remove();
+        return ok;
+      } catch {
+        return false;
+      }
+    };
+
     button.addEventListener('click', (event) => {
       event.stopPropagation();
       const url = target;
-      const data = { title: text, url };
+
+      /**
+       * `navigator.share` is called SYNCHRONOUSLY inside the click, and nothing may be
+       * awaited before it: iOS grants transient activation to the gesture and drops it at
+       * the first await, after which the call rejects with `NotAllowedError`.
+       *
+       * Its rejection used to be swallowed whole, so three different outcomes — the
+       * visitor dismissed the sheet, the browser refused, `navigator.share` was absent
+       * behind a stale feature check — all looked identical: a button that did nothing.
+       * That is the bug this untangles. An `AbortError` is the visitor changing their
+       * mind and is left alone; anything else falls back to the clipboard, which is the
+       * whole point of having one.
+       */
       if (navigator.share) {
-        void navigator.share(data).catch(() => {});
+        navigator.share({ title: text, url }).catch((err: unknown) => {
+          if ((err as { name?: string })?.name === 'AbortError') return;
+          void copy(url).then((ok) =>
+            say(
+              ok
+                ? strings['map.panel.shareCopied'] ?? 'Link copied'
+                : strings['map.panel.shareFailed'] ?? 'Could not share that link',
+            ),
+          );
+        });
         return;
       }
-      void navigator.clipboard
-        ?.writeText(url)
-        .then(() => {
-          button.classList.add('is-copied');
-          button.title = strings['map.panel.shareCopied'] ?? 'Link copied';
-          setTimeout(() => {
-            button.classList.remove('is-copied');
-            button.title = label;
-          }, 1600);
-        })
-        .catch(() => {});
+
+      void copy(url).then((ok) =>
+        say(
+          ok
+            ? strings['map.panel.shareCopied'] ?? 'Link copied'
+            : strings['map.panel.shareFailed'] ?? 'Could not share that link',
+        ),
+      );
     });
     row.appendChild(button);
   }
@@ -1680,6 +1749,24 @@ export function createPanel(deps: PanelDeps) {
         }
         if (trail.post_url) {
           mark(null, trail.post_url, strings['map.trail.thread'] ?? 'Forum thread', THREAD_SVG);
+        }
+
+        // The way back to claiming. Sits on the byline row because the byline is the blank
+        // it fills — the same argument the upload sheet makes, in the place a returning
+        // rider is already looking.
+        //
+        // Shown only while the trail is UNCLAIMED and this device holds the code. A
+        // claimed trail has its rider on it already, and a device without the code cannot
+        // claim anything: the code is the authority, so a button there would be an
+        // invitation to sign for somebody else's ride.
+        const claimHref = trail.author_username ? null : deps.claimFor?.(trail.id) ?? null;
+        if (claimHref) {
+          const claim = el('a', 'wm-panel__claim') as HTMLAnchorElement;
+          claim.href = claimHref;
+          claim.target = '_blank';
+          claim.rel = 'noopener';
+          claim.textContent = strings['map.upload.claimShort'] ?? 'Claim';
+          byline.insertBefore(claim, row);
         }
       });
     },

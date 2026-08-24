@@ -211,6 +211,7 @@
   "map.panel.openIn": "Åbn i",
   "map.panel.share": "Del",
   "map.panel.shareCopied": "Link kopieret",
+  "map.panel.shareFailed": "Kunne ikke dele linket",
   "map.panel.systemMaps": "Standardkortapp",
   "map.panel.inProduction": "Afsnit under produktion",
   "map.panel.watch": "Se",

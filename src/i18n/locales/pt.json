@@ -211,6 +211,7 @@
   "map.panel.openIn": "Abrir em",
   "map.panel.share": "Partilhar",
   "map.panel.shareCopied": "Link copiado",
+  "map.panel.shareFailed": "Não foi possível partilhar a ligação",
   "map.panel.systemMaps": "App de mapas padrão",
   "map.panel.inProduction": "Episódio em produção",
   "map.panel.watch": "Assistir",
