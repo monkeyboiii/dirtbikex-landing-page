@@ -285,6 +285,7 @@
   "map.upload.errBusy": "Troppi caricamenti da qui in questo momento. Riprova tra qualche minuto.",
   "map.upload.errFailed": "Non è andata a buon fine. Riprova.",
   "map.trail.goneTitle": "Questo percorso non c’è più",
+  "map.trail.notYet": "Non è ancora sulla mappa. Se l’hai appena caricata, torna tra un minuto.",
   "map.basemap.title": "Stile mappa",
   "map.control.title": "Comandi mappa",
   "map.locate.blockedTitle": "Il browser sta bloccando la posizione",

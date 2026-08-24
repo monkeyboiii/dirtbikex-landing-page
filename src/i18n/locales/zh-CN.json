@@ -287,6 +287,7 @@
   "map.upload.errBusy": "当前上传次数过多，请几分钟后再试。",
   "map.upload.errFailed": "上传未成功，请重试。",
   "map.trail.goneTitle": "这条轨迹已不在了",
+  "map.trail.notYet": "还没出现在地图上。如果你刚上传，请一分钟后再来看看。",
   "map.basemap.title": "地图样式",
   "map.control.title": "地图控件",
   "map.locate.blockedTitle": "浏览器阻止了定位",

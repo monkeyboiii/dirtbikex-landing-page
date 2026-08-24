@@ -285,6 +285,7 @@
   "map.upload.errBusy": "عمليات رفع كثيرة من هنا الآن. حاول بعد بضع دقائق.",
   "map.upload.errFailed": "لم تتم العملية. حاول مجددًا.",
   "map.trail.goneTitle": "لم يعد هذا المسار موجودًا",
+  "map.trail.notYet": "لم يظهر على الخريطة بعد. إذا رفعته للتو، فعد بعد دقيقة.",
   "map.basemap.title": "نمط الخريطة",
   "map.control.title": "عناصر التحكم في الخريطة",
   "map.locate.blockedTitle": "متصفحك يحجب تحديد الموقع",

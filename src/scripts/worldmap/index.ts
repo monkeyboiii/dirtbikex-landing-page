@@ -2459,7 +2459,14 @@ class WorldMap {
     // otherwise defers until the layer is switched on.
     if (slug && !this.tracksBySlug.has(slug) && this.visible.trails) {
       void this.loadTrails().then(() => {
-        if (this.tracksBySlug.has(slug)) this.selectTrack(slug, { fly: true });
+        if (this.tracksBySlug.has(slug)) {
+          this.selectTrack(slug, { fly: true });
+          return;
+        }
+        // Still absent after the document loaded. Almost always a ride published in the
+        // last minute, before the rebuild — see the panel method for why this is not the
+        // same message as an expired trail.
+        this.panel.showTrailNotYet();
       });
       return;
     }

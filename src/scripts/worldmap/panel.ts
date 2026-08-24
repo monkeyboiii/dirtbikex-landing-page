@@ -1686,6 +1686,29 @@ export function createPanel(deps: PanelDeps) {
     },
 
     /**
+     * Asked for by link, and not there — for an ordinary reason.
+     *
+     * Publishing writes to D1; the map document is rebuilt on a cron. For up to about a
+     * minute after a rider publishes a ride, a link to it resolves to nothing. Silence
+     * reads as a broken link to the one person most likely to follow it — the rider who
+     * just uploaded it — so say it, and say it as a wait rather than as a failure.
+     *
+     * Distinct from `showMissingTrail`, which says the opposite thing: that one is for a
+     * trail that expired or never existed, and telling somebody to come back in a minute
+     * for a ride that is gone forever would be worse than saying nothing.
+     */
+    showTrailNotYet() {
+      open((host) => {
+        kicker(strings['map.trail.kicker'] ?? 'Rider trail');
+        titleRow(host, strings['map.upload.kicker'] ?? 'Your trail', null, strings);
+        host.appendChild(
+          el('p', 'wm-panel__meta', strings['map.trail.notYet']
+            ?? 'Not on the map yet. If you just uploaded it, come back in a minute.'),
+        );
+      });
+    },
+
+    /**
      * The browser is refusing, and no amount of tapping will change that.
      *
      * Once a site's location permission is denied, `getCurrentPosition` fails instantly

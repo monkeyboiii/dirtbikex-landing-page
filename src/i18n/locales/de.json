@@ -285,6 +285,7 @@
   "map.upload.errBusy": "Gerade zu viele Uploads von hier. Versuch es in ein paar Minuten noch einmal.",
   "map.upload.errFailed": "Das hat nicht geklappt. Versuch es noch einmal.",
   "map.trail.goneTitle": "Diese Strecke gibt es nicht mehr",
+  "map.trail.notYet": "Noch nicht auf der Karte. Wenn du sie gerade hochgeladen hast, schau in einer Minute noch einmal.",
   "map.basemap.title": "Kartenstil",
   "map.control.title": "Kartensteuerung",
   "map.locate.blockedTitle": "Dein Browser blockiert den Standort",

@@ -285,6 +285,7 @@
   "map.upload.errBusy": "Op dit moment te veel uploads vanaf hier. Probeer het over een paar minuten opnieuw.",
   "map.upload.errFailed": "Dat is niet gelukt. Probeer het opnieuw.",
   "map.trail.goneTitle": "Deze route is er niet meer",
+  "map.trail.notYet": "Nog niet op de kaart. Als je hem net hebt geüpload, kom over een minuut terug.",
   "map.basemap.title": "Kaartstijl",
   "map.control.title": "Kaartbediening",
   "map.locate.blockedTitle": "Je browser blokkeert locatie",

@@ -285,6 +285,7 @@
   "map.upload.errBusy": "Trop d’envois depuis ici en ce moment. Réessayez dans quelques minutes.",
   "map.upload.errFailed": "L’envoi a échoué. Réessayez.",
   "map.trail.goneTitle": "Cette trace n’est plus là",
+  "map.trail.notYet": "Pas encore sur la carte. Si vous venez de l’envoyer, revenez dans une minute.",
   "map.basemap.title": "Style de carte",
   "map.control.title": "Commandes de la carte",
   "map.locate.blockedTitle": "Votre navigateur bloque la localisation",

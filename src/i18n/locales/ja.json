@@ -288,6 +288,7 @@
   "map.upload.errBusy": "アップロードが多すぎます。数分後にお試しください。",
   "map.upload.errFailed": "送信できませんでした。もう一度お試しください。",
   "map.trail.goneTitle": "このルートはもうありません",
+  "map.trail.notYet": "まだ地図に出ていません。アップロードした直後なら、1 分ほどでもう一度お試しください。",
   "map.basemap.title": "地図スタイル",
   "map.control.title": "地図の操作",
   "map.locate.blockedTitle": "ブラウザが位置情報をブロックしています",

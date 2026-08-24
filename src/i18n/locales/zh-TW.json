@@ -288,6 +288,7 @@
   "map.upload.errBusy": "目前上傳次數過多，請幾分鐘後再試。",
   "map.upload.errFailed": "上傳未成功，請重試。",
   "map.trail.goneTitle": "這條軌跡已不在了",
+  "map.trail.notYet": "還沒出現在地圖上。如果你剛上傳，請一分鐘後再回來看看。",
   "map.basemap.title": "地圖樣式",
   "map.control.title": "地圖控制項",
   "map.locate.blockedTitle": "瀏覽器阻擋了定位",

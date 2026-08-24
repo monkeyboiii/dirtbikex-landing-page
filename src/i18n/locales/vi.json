@@ -285,6 +285,7 @@
   "map.upload.errBusy": "Hiện có quá nhiều lượt tải từ đây. Thử lại sau vài phút.",
   "map.upload.errFailed": "Không gửi được. Thử lại nhé.",
   "map.trail.goneTitle": "Cung đường này không còn ở đây",
+  "map.trail.notYet": "Chưa có trên bản đồ. Nếu bạn vừa tải lên, hãy quay lại sau một phút.",
   "map.basemap.title": "Kiểu bản đồ",
   "map.control.title": "Điều khiển bản đồ",
   "map.locate.blockedTitle": "Trình duyệt đang chặn vị trí",

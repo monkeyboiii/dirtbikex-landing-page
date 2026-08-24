@@ -285,6 +285,7 @@
   "map.upload.errBusy": "For mange uploads herfra lige nu. Prøv igen om et par minutter.",
   "map.upload.errFailed": "Det gik ikke igennem. Prøv igen.",
   "map.trail.goneTitle": "Dette spor er her ikke længere",
+  "map.trail.notYet": "Endnu ikke på kortet. Hvis du lige har uploadet den, så kom tilbage om et minut.",
   "map.basemap.title": "Kortstil",
   "map.control.title": "Kortkontroller",
   "map.locate.blockedTitle": "Din browser blokerer placering",

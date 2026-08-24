@@ -285,6 +285,7 @@
   "map.upload.errBusy": "Demasiadas subidas desde aquí ahora mismo. Inténtalo en unos minutos.",
   "map.upload.errFailed": "No se completó. Inténtalo de nuevo.",
   "map.trail.goneTitle": "Esta ruta ya no está aquí",
+  "map.trail.notYet": "Todavía no está en el mapa. Si acabas de subirla, vuelve en un minuto.",
   "map.basemap.title": "Estilo de mapa",
   "map.control.title": "Controles del mapa",
   "map.locate.blockedTitle": "Tu navegador está bloqueando la ubicación",

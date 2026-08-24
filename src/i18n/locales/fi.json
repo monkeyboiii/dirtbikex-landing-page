@@ -285,6 +285,7 @@
   "map.upload.errBusy": "Liikaa lähetyksiä täältä juuri nyt. Yritä muutaman minuutin kuluttua.",
   "map.upload.errFailed": "Lähetys ei onnistunut. Yritä uudelleen.",
   "map.trail.goneTitle": "Tätä reittiä ei enää ole",
+  "map.trail.notYet": "Ei vielä kartalla. Jos latasit sen juuri, palaa hetken kuluttua.",
   "map.basemap.title": "Kartan tyyli",
   "map.control.title": "Kartan säätimet",
   "map.locate.blockedTitle": "Selaimesi estää sijainnin",

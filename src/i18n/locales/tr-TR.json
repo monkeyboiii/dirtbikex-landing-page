@@ -285,6 +285,7 @@
   "map.upload.errBusy": "Şu anda buradan çok fazla yükleme yapıldı. Birkaç dakika sonra dene.",
   "map.upload.errFailed": "Gönderilemedi. Tekrar dene.",
   "map.trail.goneTitle": "Bu rota artık burada değil",
+  "map.trail.notYet": "Henüz haritada değil. Az önce yüklediyseniz bir dakika sonra tekrar bakın.",
   "map.basemap.title": "Harita stili",
   "map.control.title": "Harita denetimleri",
   "map.locate.blockedTitle": "Tarayıcın konumu engelliyor",

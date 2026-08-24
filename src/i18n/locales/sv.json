@@ -287,6 +287,7 @@
   "map.upload.errBusy": "För många uppladdningar härifrån just nu. Försök igen om några minuter.",
   "map.upload.errFailed": "Det gick inte. Försök igen.",
   "map.trail.goneTitle": "Det här spåret finns inte längre",
+  "map.trail.notYet": "Inte på kartan ännu. Om du precis laddade upp den, kom tillbaka om en minut.",
   "map.basemap.title": "Kartstil",
   "map.control.title": "Kartkontroller",
   "map.locate.blockedTitle": "Din webbläsare blockerar plats",

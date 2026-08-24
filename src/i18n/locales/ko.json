@@ -285,6 +285,7 @@
   "map.upload.errBusy": "지금 업로드가 너무 많습니다. 몇 분 뒤 다시 시도하세요.",
   "map.upload.errFailed": "전송되지 않았습니다. 다시 시도하세요.",
   "map.trail.goneTitle": "이 트레일은 더 이상 없습니다",
+  "map.trail.notYet": "아직 지도에 없습니다. 방금 업로드했다면 1분 뒤에 다시 확인해 주세요.",
   "map.basemap.title": "지도 스타일",
   "map.control.title": "지도 컨트롤",
   "map.locate.blockedTitle": "브라우저가 위치 정보를 차단했습니다",
