@@ -63,6 +63,7 @@ test('the iOS ask ships only to iOS', async () => {
       ...claim,
       app: {
         prompt: 'DirtBikeX works best in the app.',
+        recommended: 'Recommended',
         yes: 'Open in the app',
         web: 'Open in browser',
         appURL: 'dirtbikex://s/c/ABC',
@@ -74,7 +75,12 @@ test('the iOS ask ships only to iOS', async () => {
   assert.ok(ios.includes('data-claim-cta'), 'CTA not hooked');
   assert.ok(ios.includes('data-app="dirtbikex://s/c/ABC"'), 'scheme missing');
   assert.ok(ios.includes('data-store="https://apps.apple.com/app/id6765577701"'), 'store missing');
-  assert.ok(ios.includes('#007aff'), 'system blue missing');
+  // A popover, not a system alert: no <dialog>, no backdrop, and it carries the
+  // Recommended mark and the spinner the hand-off needs.
+  assert.ok(!ios.includes('<dialog'), 'still a modal dialog');
+  assert.ok(ios.includes('ask__tag'), 'Recommended mark missing');
+  assert.ok(ios.includes('Recommended'), 'Recommended text missing');
+  assert.ok(ios.includes('ask__spin'), 'spinner missing');
 });
 
 test('a spent code drops the kicker and keeps the tick', async () => {

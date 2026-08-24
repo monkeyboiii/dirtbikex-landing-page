@@ -462,6 +462,65 @@ const CLOCK_FADING_SVG =
  * IS, and this one states what is about to happen to it. It reads as provisional because
  * it is, and it disappears the moment somebody claims the trail.
  */
+/**
+ * A confirm that opens beside the button instead of over the page.
+ *
+ * `window.confirm` blocks the whole tab, looks like the browser rather than like this
+ * product, and on a phone it lands nowhere near the thumb that asked for it. This is the
+ * same shape as the footer's platform picker: anchored, dismissible by tapping anywhere
+ * else, and gone the moment it is answered.
+ *
+ * `tone: 'danger'` is for the one that cannot be undone. It is deliberately LOUDER than
+ * the ordinary one — a red confirm button and the consequence spelled out above it —
+ * because the whole reason to keep a confirm here is that deleting a trail takes it away
+ * from everyone holding the link, not just from this device.
+ */
+function anchoredConfirm(
+  anchor: HTMLElement,
+  opts: { lead: string; confirm: string; cancel: string; tone?: 'danger'; onConfirm(): void },
+): void {
+  const host = anchor.parentElement;
+  if (!host) {
+    // Nothing to anchor to. A confirm the visitor cannot see is worse than none, so the
+    // browser's own is the honest fallback rather than acting unasked.
+    if (window.confirm(opts.lead)) opts.onConfirm();
+    return;
+  }
+  host.querySelector('.wm-ask')?.remove();
+
+  const menu = el('div', `wm-ask${opts.tone === 'danger' ? ' wm-ask--danger' : ''}`);
+  menu.appendChild(el('p', 'wm-ask__lead', opts.lead));
+  const go = el('button', 'wm-ask__opt wm-ask__opt--go', opts.confirm) as HTMLButtonElement;
+  go.type = 'button';
+  const no = el('button', 'wm-ask__opt', opts.cancel) as HTMLButtonElement;
+  no.type = 'button';
+  menu.append(go, no);
+
+  const close = () => {
+    menu.remove();
+    document.removeEventListener('click', away, true);
+    document.removeEventListener('keydown', onKey);
+  };
+  function away(event: MouseEvent) {
+    if (!menu.contains(event.target as Node) && event.target !== anchor) close();
+  }
+  function onKey(event: KeyboardEvent) {
+    if (event.key === 'Escape') close();
+  }
+  go.addEventListener('click', () => {
+    close();
+    opts.onConfirm();
+  });
+  no.addEventListener('click', close);
+  // Capture, and on the NEXT frame: the click that opened this is still travelling.
+  requestAnimationFrame(() => document.addEventListener('click', away, true));
+  document.addEventListener('keydown', onKey);
+
+  if (getComputedStyle(host).position === 'static') host.style.position = 'relative';
+  host.appendChild(menu);
+  go.focus();
+}
+
 function expiryChip(hours: number, strings: Record<string, string>): HTMLElement {
   const chip = el('span', 'wm-chip wm-chip--pending');
   const icon = el('span', 'wm-chip__icon');
@@ -1317,10 +1376,14 @@ export function createPanel(deps: PanelDeps) {
                 acts.forget(row.id);
                 return;
               }
-              if (window.confirm(strings['map.upload.confirmDelete']
-                ?? 'Delete this trail? Anyone holding the link loses it too, and this cannot be undone.')) {
-                acts.remove(row.id);
-              }
+              anchoredConfirm(drop, {
+                lead: strings['map.upload.confirmDelete']
+                  ?? 'Delete this trail? Anyone holding the link loses it too, and this cannot be undone.',
+                confirm: strings['map.upload.delete'] ?? 'Delete',
+                cancel: strings['map.panel.close'] ?? 'Close',
+                tone: 'danger',
+                onConfirm: () => acts.remove(row.id),
+              });
             });
 
             if (mine) {

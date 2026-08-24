@@ -326,26 +326,31 @@ function errorBody(props: ShareLandingProps): string {
 }
 
 /**
- * The iOS "finish this in the app" ask, shown when the CTA is tapped.
+ * The iOS "finish this in the app" ask.
  *
  * A rider on an iPhone reached this page one of two ways: without the app, or with it but
- * through something that does not honour Universal Links — Safari's address bar, most
- * QR scanners, several in-app browsers. The second case is the one worth catching: they
- * have the app, and the claim would otherwise finish in a browser tab and leave them
- * logged in nowhere they wanted to be.
+ * through something that does not honour Universal Links — Safari's address bar, most QR
+ * scanners, several in-app browsers. The second case is the one worth catching: they have
+ * the app, and the claim would otherwise finish in a browser tab.
  *
- * A `<dialog>` rather than a hand-rolled overlay: it gets the focus trap, the Escape key,
- * inert background and the top layer from the platform, none of which is worth
- * reimplementing for one prompt. `showModal` is the only part that needs script.
+ * **A popover, not a modal.** The first version was a `<dialog>` and looked like a system
+ * alert: centred, backdropped, the page inert behind it. That is the shape of an
+ * interruption, and this is a choice between two fine answers — so it now opens where the
+ * thumb already is, directly above the button that was tapped, and the page stays visible.
+ * Same pattern as the footer's TikTok/Douyin picker. Escape and a tap outside close it,
+ * and closing costs nothing.
  */
-function appPromptDialog(app: NonNullable<NonNullable<ShareLandingProps['trailClaim']>['app']>): string {
+function appPromptMenu(app: NonNullable<NonNullable<ShareLandingProps['trailClaim']>['app']>): string {
   return `
-<dialog class="ios-ask" data-claim-ask data-app="${esc(app.appURL)}" data-store="${esc(app.storeURL)}">
-  <p class="ios-ask__text">${esc(app.prompt)}</p>
-  <button class="ios-ask__btn ios-ask__btn--go" type="button" data-claim-app>${esc(app.yes)}</button>
-  <button class="ios-ask__btn" type="button" data-claim-web>${esc(app.web)}</button>
-</dialog>
-<script>${CLAIM_ASK_JS}</script>`;
+  <div class="ask" data-claim-ask hidden data-app="${esc(app.appURL)}" data-store="${esc(app.storeURL)}">
+    <p class="ask__lead">${esc(app.prompt)}</p>
+    <button class="ask__opt ask__opt--go" type="button" data-claim-app>
+      <span class="ask__name">${esc(app.yes)}</span>
+      <span class="ask__tag">${esc(app.recommended)}</span>
+      <span class="ask__spin" aria-hidden="true"></span>
+    </button>
+    <button class="ask__opt" type="button" data-claim-web>${esc(app.web)}</button>
+  </div>`;
 }
 
 /**
@@ -362,12 +367,19 @@ function appPromptDialog(app: NonNullable<NonNullable<ShareLandingProps['trailCl
  */
 const CLAIM_ASK_JS = `(function(){
 var d=document.querySelector('[data-claim-ask]'),c=document.querySelector('[data-claim-cta]');
-if(!d||!c||!d.showModal)return;
-c.addEventListener('click',function(e){e.preventDefault();d.showModal();});
-d.querySelector('[data-claim-web]').addEventListener('click',function(){d.close();location.href=c.href;});
-d.querySelector('[data-claim-app]').addEventListener('click',function(){
-var t=setTimeout(function(){if(document.visibilityState==='visible')location.href=d.dataset.store;},1400);
-addEventListener('pagehide',function(){clearTimeout(t);},{once:true});
+if(!d||!c)return;
+var app=d.querySelector('[data-claim-app]'),web=d.querySelector('[data-claim-web]');
+function close(){d.hidden=true;}
+c.addEventListener('click',function(e){e.preventDefault();d.hidden=!d.hidden;});
+document.addEventListener('click',function(e){if(!d.hidden&&!d.contains(e.target)&&e.target!==c)close();});
+document.addEventListener('keydown',function(e){if(e.key==='Escape')close();});
+web.addEventListener('click',function(){close();location.href=c.href;});
+app.addEventListener('click',function(){
+if(app.dataset.busy)return;
+app.dataset.busy='1';
+var t=setTimeout(function(){if(document.visibilityState==='visible')location.href=d.dataset.store;},1200);
+addEventListener('pagehide',function(){clearTimeout(t);delete app.dataset.busy;},{once:true});
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')clearTimeout(t);},{once:true});
 location.href=d.dataset.app;});
 })();`;
 
@@ -409,9 +421,11 @@ function trailClaimBody(
         .join('')}</p>`
     : ''}
   ${subtitle ? `<p class="subtitle claim-body">${esc(subtitle)}</p>` : ''}
-  <a class="cta" href="${esc(primaryCTA.url)}"${claim.app ? ' data-claim-cta' : ''}>${esc(primaryCTA.label)}</a>
+  ${claim.app
+    ? `<div class="claim-cta">${appPromptMenu(claim.app)}<a class="cta" href="${esc(primaryCTA.url)}" data-claim-cta>${esc(primaryCTA.label)}</a></div>`
+    : `<a class="cta" href="${esc(primaryCTA.url)}">${esc(primaryCTA.label)}</a>`}
   ${secondaryLink ? `<a class="card-link" href="${esc(secondaryLink.url)}">${esc(secondaryLink.label)}</a>` : ''}
-</main>${claim.app ? appPromptDialog(claim.app) : ''}`;
+</main>${claim.app ? `<script>${CLAIM_ASK_JS}</script>` : ''}`;
 }
 
 /** Lucide check-circle, drawn in the success green rather than the brand orange: this is
@@ -1594,48 +1608,94 @@ body {
   padding-top: 1.25rem;
   border-top: 1px solid var(--clay-100);
 }
-/* The iOS ask. Deliberately the SYSTEM alert's shape rather than the site's — it is a
-   platform question ("use the app?"), and dressing it as brand chrome makes it read as
-   an advert instead of a choice. Hence the system blue, not the DirtBikeX orange. */
-.ios-ask {
-  border: none;
+/* The claim card's own body reads left, but the two things you PRESS are the end of the
+   card rather than part of the prose — centring them stops the eye tracking back to the
+   margin for the last two lines. */
+.claim-card .cta { text-align: center; }
+.claim-card .card-link { display: block; text-align: center; }
+
+/* The iOS ask: a popover above the button that opened it, NOT a system alert.
+   A modal is the shape of an interruption; this is a choice between two fine answers,
+   so it opens at the thumb and leaves the page visible behind it. */
+.claim-cta { position: relative; }
+.ask {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 0;
+  right: 0;
+  z-index: 20;
+  padding: 6px;
   border-radius: 14px;
-  padding: 0;
-  width: min(270px, calc(100vw - 3rem));
-  background: #f2f2f7;
-  color: #000;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.25);
-  overflow: hidden;
+  border: 1px solid var(--clay-100);
+  background: #fff;
+  box-shadow: 0 18px 44px -16px rgb(0 0 0 / 30%);
+  text-align: start;
 }
-.ios-ask::backdrop { background: rgba(0,0,0,0.4); }
-.ios-ask__text {
+.ask[hidden] { display: none; }
+/* The little tail, so the menu reads as belonging to the button under it. */
+.ask::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -7px;
+  border: 7px solid transparent;
+  border-top-color: #fff;
+}
+.ask__lead {
   margin: 0;
-  padding: 1.25rem 1rem;
-  text-align: center;
-  font-size: 0.9375rem;
-  line-height: 1.4;
+  padding: 0.6rem 0.7rem 0.5rem;
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  color: var(--clay-600);
 }
-.ios-ask__btn {
-  display: block;
+.ask__opt {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   width: 100%;
-  padding: 0.8rem 1rem;
+  padding: 0.7rem;
   border: none;
-  border-top: 1px solid rgba(0,0,0,0.12);
+  border-radius: 9px;
   background: transparent;
   font: inherit;
-  font-size: 1.0625rem;
-  /* Grey, because it is the lesser of the two. The system would use blue for both and
-     lean on weight alone; here the difference has to survive a glance. */
-  color: #6b6b70;
+  font-size: 0.9375rem;
+  color: var(--clay-900);
+  text-align: start;
   cursor: pointer;
 }
-.ios-ask__btn--go { color: #007aff; font-weight: 600; }
-.ios-ask__btn:active { background: rgba(0,0,0,0.06); }
-@media (prefers-color-scheme: dark) {
-  .ios-ask { background: #1c1c1e; color: #fff; }
-  .ios-ask__btn { border-top-color: rgba(255,255,255,0.16); color: #9b9ba0; }
-  .ios-ask__btn--go { color: #0a84ff; }
-  .ios-ask__btn:active { background: rgba(255,255,255,0.08); }
+.ask__opt:hover, .ask__opt:active { background: rgba(127, 127, 127, 0.12); }
+.ask__opt--go { font-weight: 600; }
+.ask__name { flex: 1; }
+/* States the preference instead of arguing for it. */
+.ask__tag {
+  flex: none;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(237, 107, 0, 0.14);
+  color: var(--dirt-600);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+/* Hidden until the tap. Handing off to another app can sit for a second with nothing on
+   screen, which reads as a frozen page — this is the only thing saying otherwise. */
+.ask__spin {
+  display: none;
+  flex: none;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  border: 2px solid rgba(127, 127, 127, 0.35);
+  border-top-color: var(--dirt-500);
+  animation: ask-spin 0.7s linear infinite;
+}
+.ask__opt[data-busy] .ask__tag { display: none; }
+.ask__opt[data-busy] .ask__spin { display: block; }
+@keyframes ask-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .ask__spin { animation-duration: 2.4s; }
+}
 }
 .message {
   font-style: italic;
@@ -1816,6 +1876,11 @@ a.meta-item:hover, a.meta-item:active { background: var(--clay-200); }
   /* Lifted, because #16a34a on #1a1614 sits under 3:1 and this mark is the page's
      one piece of good news. */
   .claim-tick { color: #4ade80; }
+  .ask { background: #241f1d; border-color: var(--clay-800); }
+  .ask::after { border-top-color: #241f1d; }
+  .ask__lead { color: var(--clay-200); }
+  .ask__opt { color: var(--clay-50); }
+  .ask__tag { background: rgba(237, 107, 0, 0.22); color: var(--dirt-200); }
 }
 
 .shared-by{display:flex;align-items:center;justify-content:center;gap:.5rem;margin-bottom:.75rem;font-size:.9rem;opacity:.85}
