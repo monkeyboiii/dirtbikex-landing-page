@@ -213,6 +213,7 @@
   "map.panel.shareCopied": "링크를 복사했습니다",
   "map.panel.shareFailed": "링크를 공유하지 못했습니다",
   "map.panel.systemMaps": "기본 지도 앱",
+  "map.panel.appBlocked": "지도 앱을 열 수 없어 웹 지도를 엽니다.",
   "map.panel.inProduction": "에피소드 제작 중",
   "map.panel.watch": "보기",
   "map.panel.trackInfo": "트랙 정보",

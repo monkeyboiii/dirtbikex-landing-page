@@ -310,3 +310,52 @@ Carried here so nobody re-derives them from the old files:
 
 Run Playwright through `~/bin/pw-limited` with `--workers=1`. Against staging the spec fails
 on the Cloudflare beacon; that is the spec working, not a bug to allowlist away.
+
+## A light basemap under dark chrome
+
+Pins already followed `groundIsDark`; the rail, HUD and sheets did not. Choosing topo or
+streets on a dark page left dark slabs on a pale map with light-palette pins beside them.
+
+`syncGroundAttribute()` stamps `data-ground="light"` on the map root whenever the chosen
+basemap is one of the light sheets and the page is dark, and `.dark .wm[data-ground='light']`
+puts the map's own chrome back on the light token set.
+
+**Scoped to `.wm`, not `html.dark`.** The visitor asked the *site* for dark; a basemap
+picker is not a theme switch, and flipping the page theme would take the header, footer and
+every other page with it. Called on boot, on restyle (before the tiles, so the chrome does
+not flash the old palette across the style load) and on theme change.
+
+## When the map app will not open
+
+`openVia` tries the custom scheme, then falls back. **WeChat is the case the fallback is
+written around**: MicroMessenger blocks schemes for apps it has not whitelisted *and* blocks
+`window.open(_, '_blank')`, so both the attempt and the fallback failed silently — a button
+that does nothing, twice.
+
+The fallback now navigates the current tab, which WeChat allows, and says why first through
+`deps.onNotice` → `WorldMap.notice()`, a transient line over the map. `window.open` is still
+preferred everywhere else: keeping the map open is better when the browser permits it.
+
+## The upload picker's `accept`, and the platform that cannot have one
+
+The markup lists `.gpx`, `.gpx+xml`, `application/gpx+xml` and the XML MIME types. `.gpx+xml`
+is not a typo — Discourse appends its own `.gpx` to a file a recorder already named
+`.gpx+xml` — and plenty of exporters label a GPX `text/xml`.
+
+**On Apple portables the attribute is removed entirely, and it cannot be narrowed.** iOS
+resolves every token to a Uniform Type Identifier and greys out what it cannot map. GPX has
+no system UTI unless an installed app declares `com.topografix.gpx`, so a `.gpx` resolves to
+`public.data` — and no accept value both includes `public.data` and excludes anything else.
+iOS 18 ignored unmatched tokens; iOS 26 honours them, which is why the same file on the same
+phone stopped being selectable after an update. `preflight()` is the real filter, and it
+gives a better message than a greyed-out row.
+
+## Undoing a pinch after the rename field
+
+`resetZoom()` sets `user-scalable=no`, waits two frames for Safari to commit the clamped
+viewport, then restores. The first version set only `maximum-scale=1` and restored 250 ms
+later, and often did nothing: once a visitor has pinched, `maximum-scale` alone is advisory
+on iOS, and a restore landing in the same paint is indistinguishable from never having set
+it. Scaling is handed back immediately after — clamping it permanently would take the map's
+own gestures with it.
+

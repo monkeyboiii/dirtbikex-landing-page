@@ -213,6 +213,7 @@
   "map.panel.shareCopied": "Link copiado",
   "map.panel.shareFailed": "Não foi possível partilhar a ligação",
   "map.panel.systemMaps": "App de mapas padrão",
+  "map.panel.appBlocked": "Não foi possível abrir a app de mapas — a abrir o mapa web.",
   "map.panel.inProduction": "Episódio em produção",
   "map.panel.watch": "Assistir",
   "map.panel.trackInfo": "Informações da pista",

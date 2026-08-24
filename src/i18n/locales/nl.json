@@ -213,6 +213,7 @@
   "map.panel.shareCopied": "Link gekopieerd",
   "map.panel.shareFailed": "Kon die link niet delen",
   "map.panel.systemMaps": "Standaard kaarten-app",
+  "map.panel.appBlocked": "Kon de kaart-app niet openen — de webkaart wordt geopend.",
   "map.panel.inProduction": "Aflevering in productie",
   "map.panel.watch": "Bekijken",
   "map.panel.trackInfo": "Terreininfo",

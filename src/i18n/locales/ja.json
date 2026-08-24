@@ -216,6 +216,7 @@
   "map.panel.shareCopied": "リンクをコピーしました",
   "map.panel.shareFailed": "このリンクを共有できませんでした",
   "map.panel.systemMaps": "既定の地図アプリ",
+  "map.panel.appBlocked": "地図アプリを開けませんでした。ウェブ版を開きます。",
   "map.panel.inProduction": "エピソード制作中",
   "map.panel.watch": "見る",
   "map.panel.trackInfo": "コース情報",

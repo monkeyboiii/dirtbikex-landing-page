@@ -39,6 +39,25 @@
   font-family: var(--font-sans, 'Geist', system-ui, sans-serif);
 }
 
+/* A light sheet under dark chrome is the one combination that never works: the topo and
+   streets basemaps are light whatever the page theme is, so the rail, HUD and sheets sat
+   as dark slabs on pale ground with dark-palette pins beside them.
+   `data-ground="light"` is stamped on the map root whenever the chosen basemap is one of
+   those, and it puts the map's OWN chrome back on the light set. Deliberately scoped to
+   `.wm` rather than flipping `html.dark`: the visitor asked the SITE for dark, and the
+   basemap picker is not a theme switch. */
+.dark .wm[data-ground='light'] {
+  --wm-surface: rgba(255, 255, 255, 0.86);
+  --wm-surface-solid: #ffffff;
+  --wm-line: rgba(22, 20, 15, 0.12);
+  --wm-line-strong: rgba(22, 20, 15, 0.26);
+  --wm-text: #16140f;
+  --wm-text-dim: #57544f;
+  --wm-text-faint: #6e6c69;
+  --wm-ink: #faf8f4;
+  --wm-veil: 255, 255, 255;
+}
+
 .dark .wm {
   --wm-ink: #0d0c09;
   --wm-veil: 13, 12, 9;
@@ -2625,4 +2644,36 @@ body.is-map-page .site-header__inner {
 }
 .wm-rider__avatar--letter {
   background: var(--dbx-orange, #d64000);
+}
+
+/* A sentence over the map, then gone. Sits above the rails but below the panel, and is
+   never interactive — it explains something that already happened. */
+.wm-notice {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--space-5, 20px) + 84px);
+  transform: translateX(-50%);
+  z-index: 18;
+  max-width: min(420px, calc(100vw - 48px));
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--wm-line);
+  background: var(--wm-surface);
+  backdrop-filter: var(--wm-blur);
+  -webkit-backdrop-filter: var(--wm-blur);
+  color: var(--wm-text);
+  font-size: 0.84rem;
+  line-height: 1.35;
+  text-align: center;
+  pointer-events: none;
+  box-shadow: 0 14px 34px -14px rgb(0 0 0 / 40%);
+  animation: wm-notice-in 200ms ease-out;
+}
+@keyframes wm-notice-in {
+  from { opacity: 0; transform: translate(-50%, 8px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wm-notice { animation: none; }
 }

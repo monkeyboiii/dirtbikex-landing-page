@@ -213,6 +213,7 @@
   "map.panel.shareCopied": "پیوند کپی شد",
   "map.panel.shareFailed": "اشتراک‌گذاری این پیوند ممکن نشد",
   "map.panel.systemMaps": "برنامه نقشه پیش‌فرض",
+  "map.panel.appBlocked": "برنامهٔ نقشه باز نشد — نقشهٔ وب باز می‌شود.",
   "map.panel.inProduction": "قسمت در دست ساخت",
   "map.panel.watch": "تماشا",
   "map.panel.trackInfo": "اطلاعات پیست",

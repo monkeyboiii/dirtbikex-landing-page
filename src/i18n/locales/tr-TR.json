@@ -213,6 +213,7 @@
   "map.panel.shareCopied": "Bağlantı kopyalandı",
   "map.panel.shareFailed": "Bu bağlantı paylaşılamadı",
   "map.panel.systemMaps": "Varsayılan harita uygulaması",
+  "map.panel.appBlocked": "Harita uygulaması açılamadı — web haritası açılıyor.",
   "map.panel.inProduction": "Bölüm yapım aşamasında",
   "map.panel.watch": "İzle",
   "map.panel.trackInfo": "Parkur bilgisi",

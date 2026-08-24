@@ -213,6 +213,7 @@
   "map.panel.shareCopied": "Ο σύνδεσμος αντιγράφηκε",
   "map.panel.shareFailed": "Δεν ήταν δυνατή η κοινοποίηση του συνδέσμου",
   "map.panel.systemMaps": "Προεπιλεγμένη εφαρμογή χαρτών",
+  "map.panel.appBlocked": "Δεν άνοιξε η εφαρμογή χαρτών — ανοίγει ο χάρτης στο web.",
   "map.panel.inProduction": "Επεισόδιο σε παραγωγή",
   "map.panel.watch": "Δες το",
   "map.panel.trackInfo": "Πληροφορίες πίστας",

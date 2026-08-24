@@ -213,6 +213,7 @@
   "map.panel.shareCopied": "Link kopieret",
   "map.panel.shareFailed": "Kunne ikke dele linket",
   "map.panel.systemMaps": "Standardkortapp",
+  "map.panel.appBlocked": "Kunne ikke åbne kort-appen — åbner webkortet.",
   "map.panel.inProduction": "Afsnit under produktion",
   "map.panel.watch": "Se",
   "map.panel.trackInfo": "Om banen",

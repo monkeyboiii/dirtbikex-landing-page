@@ -213,6 +213,7 @@
   "map.panel.shareCopied": "Link kopiert",
   "map.panel.shareFailed": "Link konnte nicht geteilt werden",
   "map.panel.systemMaps": "Standard-Kartenapp",
+  "map.panel.appBlocked": "Karten-App ließ sich nicht öffnen — Webkarte wird geöffnet.",
   "map.panel.inProduction": "Folge in Produktion",
   "map.panel.watch": "Ansehen",
   "map.panel.trackInfo": "Streckeninfos",

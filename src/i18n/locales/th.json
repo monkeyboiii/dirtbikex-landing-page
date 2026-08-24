@@ -213,6 +213,7 @@
   "map.panel.shareCopied": "คัดลอกลิงก์แล้ว",
   "map.panel.shareFailed": "ไม่สามารถแชร์ลิงก์นี้ได้",
   "map.panel.systemMaps": "แอปแผนที่เริ่มต้น",
+  "map.panel.appBlocked": "เปิดแอปแผนที่ไม่ได้ — จะเปิดแผนที่บนเว็บแทน",
   "map.panel.inProduction": "ตอนใหม่กำลังผลิต",
   "map.panel.watch": "ดู",
   "map.panel.trackInfo": "ข้อมูลสนาม",

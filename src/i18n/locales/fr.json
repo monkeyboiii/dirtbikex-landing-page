@@ -213,6 +213,7 @@
   "map.panel.shareCopied": "Lien copié",
   "map.panel.shareFailed": "Impossible de partager ce lien",
   "map.panel.systemMaps": "Application de cartes par défaut",
+  "map.panel.appBlocked": "Impossible d’ouvrir l’app de cartes — ouverture de la carte web.",
   "map.panel.inProduction": "Épisode en production",
   "map.panel.watch": "Regarder",
   "map.panel.trackInfo": "Infos du terrain",

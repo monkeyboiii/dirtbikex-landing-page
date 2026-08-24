@@ -213,6 +213,7 @@
   "map.panel.shareCopied": "تم نسخ الرابط",
   "map.panel.shareFailed": "تعذّرت مشاركة هذا الرابط",
   "map.panel.systemMaps": "تطبيق الخرائط الافتراضي",
+  "map.panel.appBlocked": "تعذّر فتح تطبيق الخرائط — سيتم فتح خريطة الويب.",
   "map.panel.inProduction": "حلقة قيد الإنتاج",
   "map.panel.watch": "شاهد",
   "map.panel.trackInfo": "معلومات المضمار",

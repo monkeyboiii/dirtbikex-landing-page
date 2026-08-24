@@ -99,6 +99,8 @@ export interface PanelDeps {
    * screen saying so.
    */
   claimFor?(id: string): string | null;
+  /** A transient line over the map — used when a hand-off had to be explained. */
+  onNotice?(message: string): void;
 }
 
 /** Picks the viewer's locale out of a {locale: text} block, falling back to en. */
@@ -436,14 +438,32 @@ function liftForKeyboard(root: HTMLElement): void {
  * restoring it immediately keeps pinch-zoom available. Ugly, and the only thing that does
  * it — a rider should not have to pinch their way back to a centred map after typing a name.
  */
+/**
+ * Puts the page back to 100% after the rename field is done with.
+ *
+ * The field already carries a 16px floor, so iOS is not zooming on focus — this is
+ * undoing a pinch the visitor made to read a small sheet. The first version set
+ * `maximum-scale=1` and restored 250 ms later, and often did nothing at all: once a
+ * visitor has pinched, `maximum-scale` alone is advisory on iOS, and a restore that lands
+ * in the same paint is indistinguishable from never having set it.
+ *
+ * So: `user-scalable=no`, which actually clamps, and the restore waits for Safari to have
+ * committed the clamped viewport across two frames first. Pinch-to-zoom is handed back
+ * immediately afterwards — clamping it permanently would take the map's own gestures with
+ * it.
+ */
 function resetZoom(): void {
   const meta = document.querySelector<HTMLMetaElement>('meta[name="viewport"]');
   if (!meta) return;
   const was = meta.content;
-  meta.content = 'width=device-width, initial-scale=1, maximum-scale=1';
-  window.setTimeout(() => {
-    meta.content = was;
-  }, 250);
+  meta.content = 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no';
+  requestAnimationFrame(() =>
+    requestAnimationFrame(() => {
+      window.setTimeout(() => {
+        meta.content = was;
+      }, 350);
+    }),
+  );
 }
 
 function dropAfterKeyboard(root: HTMLElement): void {
@@ -871,10 +891,33 @@ export function createPanel(deps: PanelDeps) {
     // On a phone the web URI is a detour: try the installed app's own scheme first and
     // fall back to the web page only if nothing took the navigation. `pagehide` firing
     // means the app opened, so the fallback is cancelled.
+    /**
+     * Leaves for the map app, and copes with the browser that will not let us.
+     *
+     * **WeChat is the case this is written around.** MicroMessenger blocks custom schemes
+     * for apps it has not whitelisted, so the scheme silently does nothing; and it blocks
+     * `window.open(_, '_blank')`, so the fallback silently did nothing either. Two silent
+     * failures in a row is a button that does not work, which is what was reported.
+     *
+     * So the fallback navigates the CURRENT tab, which WeChat does allow, and says why
+     * first — a page that changes under you with no explanation reads as a mis-tap.
+     * `window.open` is still preferred everywhere else, because keeping the map open is
+     * better when the browser permits it.
+     */
     const openVia = (scheme: string | null, web: string) => (ev: MouseEvent) => {
       dismiss();
       if (!scheme || !touch) return;
       ev.preventDefault();
+
+      const fallback = () => {
+        const opened = window.open(web, '_blank', 'noopener');
+        if (opened) return;
+        // Refused. Say so, then take the whole tab there once the message has landed.
+        deps.onNotice?.(strings['map.panel.appBlocked']
+          ?? "Couldn't open the map app — opening the web map instead.");
+        window.setTimeout(() => { location.href = web; }, 1200);
+      };
+
       let left = false;
       const gone = () => { left = true; };
       addEventListener('pagehide', gone, { once: true });
@@ -883,7 +926,7 @@ export function createPanel(deps: PanelDeps) {
       setTimeout(() => {
         removeEventListener('pagehide', gone);
         removeEventListener('blur', gone);
-        if (!left && !document.hidden) window.open(web, '_blank', 'noopener');
+        if (!left && !document.hidden) fallback();
       }, 1400);
     };
 

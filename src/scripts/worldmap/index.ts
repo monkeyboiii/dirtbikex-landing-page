@@ -559,6 +559,36 @@ class WorldMap {
     return this.basemap === 'auto' && this.dark;
   }
 
+  /**
+   * Tells the CSS which ground the map's own chrome is sitting on.
+   *
+   * The pins already followed `groundIsDark`; the rail, HUD and sheets did not, so
+   * choosing topo or streets on a dark page left dark slabs on a pale map. Stamped on the
+   * map root rather than flipping `html.dark`, because the visitor asked the SITE for
+   * dark and a basemap picker is not a theme switch.
+   */
+  /**
+   * A line over the map that says something and goes away.
+   *
+   * Deliberately not the panel: the cases that need this have just dismissed it, and
+   * re-opening a sheet to deliver one sentence is a heavier interruption than the thing
+   * being explained.
+   */
+  notice(message: string) {
+    this.root.querySelector('.wm-notice')?.remove();
+    const el = document.createElement('p');
+    el.className = 'wm-notice';
+    el.setAttribute('role', 'status');
+    el.textContent = message;
+    this.root.appendChild(el);
+    window.setTimeout(() => el.remove(), 4200);
+  }
+
+  private syncGroundAttribute() {
+    if (this.groundIsDark || !this.dark) this.root.removeAttribute('data-ground');
+    else this.root.dataset.ground = 'light';
+  }
+
   /** A basemap that is already a drawing rather than a backdrop. Only the topo sheet is
       busy enough to need the trace lifted off it. */
   private get rasterGround() {
@@ -623,6 +653,7 @@ class WorldMap {
     hooks.onBasemap?.(isNarrow() ? 7 : 3);
     await new Promise<void>((resolve) => this.map.on('load', () => resolve()));
 
+    this.syncGroundAttribute();
     this.applyProjection();
     // Reveal here. 'load' fires once the first tile ring is actually painted, and
     // everything after this point — glyph decodes, pins, markers — was measured at
@@ -678,6 +709,7 @@ class WorldMap {
       // arrive at the same tiles.
       if (dark === this.dark) return;
       this.dark = dark;
+      this.syncGroundAttribute();
       if (this.basemap === 'auto') void this.restyle();
     }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
   }
@@ -699,6 +731,9 @@ class WorldMap {
   }
 
   private async restyle() {
+    // Before the tiles, not after: the chrome should already match the ground the new
+    // sheet is about to draw, or it flashes the old palette across the style load.
+    this.syncGroundAttribute();
     await new Promise<void>((resolve) => {
       this.map.once('style.load', () => resolve());
       this.map.setStyle(this.styleUrl);
@@ -2704,16 +2739,23 @@ function wireRail(root: HTMLElement, world: WorldMap, strings: Strings) {
   const picker = root.querySelector<HTMLInputElement>('[data-upload-input]');
   const drop = root.querySelector<HTMLElement>('[data-drop]');
   if (upload && picker) {
-    // iOS resolves every `accept` token to a Uniform Type Identifier and greys out
-    // anything it cannot map. GPX has no system-declared UTI unless some installed app
-    // declares `com.topografix.gpx`, and `application/gpx+xml` is not a type iOS knows
-    // either — so on a phone with no such app the picker opens with the rider's own .gpx
-    // unselectable. iOS 18 was lenient about unmatched tokens and iOS 26 is not, which is
-    // why the same file on the same phone stopped working after an update.
+    // The markup's `accept` is the real filter and covers what actually turns up:
+    // `.gpx`, the `application/gpx+xml` MIME, and `.gpx+xml` — which is not a typo but a
+    // real extension in the wild, because Discourse appends its own `.gpx` to a file a
+    // recorder already named `.gpx+xml`. The XML types are there because plenty of
+    // exporters hand out a GPX labelled `text/xml`.
     //
-    // No attribute at all means no UTI resolution, so everything is pickable. Nothing is
-    // lost by it: `preflight()` reads the file and refuses anything that is not a track,
-    // with a better message than a greyed-out row gives.
+    // **On Apple portables the attribute is removed, and it cannot be narrowed.** iOS
+    // resolves every token to a Uniform Type Identifier and greys out what it cannot map.
+    // GPX has no system UTI unless some installed app declares `com.topografix.gpx`, so a
+    // `.gpx` file on a phone without one resolves to `public.data` — and no accept value
+    // both includes `public.data` and excludes anything else. iOS 18 ignored unmatched
+    // tokens; iOS 26 honours them, which is why the same file on the same phone stopped
+    // being selectable after an update.
+    //
+    // So this is a platform limit rather than a missing filter. Nothing is lost by it:
+    // `preflight()` reads the file and refuses anything that is not a track, with a better
+    // message than a greyed-out row gives.
     if (isApplePortable()) picker.removeAttribute('accept');
 
     void world.checkUploads(upload);
@@ -2866,6 +2908,7 @@ export async function bootWorldMap() {
       forumBase: cfg.forumBase,
       isVerified: (slug, hasTopic) => world.verdict(slug, hasTopic),
       claimFor: (id) => world.claimFor(id),
+      onNotice: (message) => world.notice(message),
       onClose: () => world.clearSelection(),
       setTurnstileToken: (token) => world.setTurnstileToken(token),
       onVenue: (track) => world.openVenue(track),

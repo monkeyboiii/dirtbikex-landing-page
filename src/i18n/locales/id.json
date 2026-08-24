@@ -213,6 +213,7 @@
   "map.panel.shareCopied": "Tautan disalin",
   "map.panel.shareFailed": "Tidak dapat membagikan tautan itu",
   "map.panel.systemMaps": "Aplikasi peta bawaan",
+  "map.panel.appBlocked": "Tidak bisa membuka aplikasi peta — membuka peta web.",
   "map.panel.inProduction": "Episode sedang digarap",
   "map.panel.watch": "Tonton",
   "map.panel.trackInfo": "Info trek",

@@ -213,6 +213,7 @@
   "map.panel.shareCopied": "Linkki kopioitu",
   "map.panel.shareFailed": "Linkin jakaminen ei onnistunut",
   "map.panel.systemMaps": "Oletuskarttasovellus",
+  "map.panel.appBlocked": "Karttasovellusta ei voitu avata — avataan verkkokartta.",
   "map.panel.inProduction": "Jakso työn alla",
   "map.panel.watch": "Katso",
   "map.panel.trackInfo": "Radan tiedot",

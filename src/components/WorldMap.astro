@@ -130,6 +130,7 @@ const DEFAULTS: Record<string, string> = {
   'map.panel.directions': 'Directions',
   'map.panel.openIn': 'Open in',
   'map.panel.systemMaps': 'Default map app',
+  'map.panel.appBlocked': "Couldn't open the map app — opening the web map instead.",
   'map.trail.kicker': 'Rider trail',
   'map.trail.distance': 'Distance',
   'map.trail.rideTime': 'Ride time',
@@ -315,7 +316,7 @@ const config = {
 
   {/* Only rendered while a file is over the map — see .wm__drop. */}
   <div class="wm__drop" data-drop hidden>{s('map.upload.drop')}</div>
-  <input type="file" accept=".gpx,application/gpx+xml" data-upload-input hidden />
+  <input type="file" accept=".gpx,.gpx+xml,application/gpx+xml,application/xml,text/xml" data-upload-input hidden />
 
   {/* Opens where it is asked for: beside the rail on a wide screen, across the top
       on a phone, where a rail-width popover would be unusable. */}

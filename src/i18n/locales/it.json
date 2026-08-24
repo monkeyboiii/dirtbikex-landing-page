@@ -213,6 +213,7 @@
   "map.panel.shareCopied": "Link copiato",
   "map.panel.shareFailed": "Impossibile condividere il link",
   "map.panel.systemMaps": "App mappe predefinita",
+  "map.panel.appBlocked": "Impossibile aprire l’app mappe — apro la mappa web.",
   "map.panel.inProduction": "Episodio in produzione",
   "map.panel.watch": "Guarda",
   "map.panel.trackInfo": "Info pista",

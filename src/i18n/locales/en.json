@@ -219,6 +219,7 @@
   "map.panel.shareCopied": "Link copied",
   "map.panel.shareFailed": "Could not share that link",
   "map.panel.systemMaps": "Default map app",
+  "map.panel.appBlocked": "Couldn't open the map app — opening the web map instead.",
   "map.panel.inProduction": "Episode in production",
   "map.panel.watch": "Watch",
   "map.panel.trackInfo": "Track info",

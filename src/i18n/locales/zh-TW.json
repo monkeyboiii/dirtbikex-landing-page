@@ -216,6 +216,7 @@
   "map.panel.shareCopied": "連結已複製",
   "map.panel.shareFailed": "無法分享該連結",
   "map.panel.systemMaps": "預設地圖應用程式",
+  "map.panel.appBlocked": "無法開啟地圖 App——改為開啟網頁版地圖。",
   "map.panel.inProduction": "本集製作中",
   "map.panel.watch": "觀看",
   "map.panel.trackInfo": "賽道資訊",

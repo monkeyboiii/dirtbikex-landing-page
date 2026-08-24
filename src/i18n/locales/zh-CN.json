@@ -216,6 +216,7 @@
   "map.panel.shareCopied": "链接已复制",
   "map.panel.shareFailed": "无法分享该链接",
   "map.panel.systemMaps": "默认地图应用",
+  "map.panel.appBlocked": "无法打开地图 App——改为打开网页版地图。",
   "map.panel.inProduction": "本集制作中",
   "map.panel.watch": "观看",
   "map.panel.trackInfo": "赛道信息",

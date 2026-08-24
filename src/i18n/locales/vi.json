@@ -213,6 +213,7 @@
   "map.panel.shareCopied": "Đã sao chép liên kết",
   "map.panel.shareFailed": "Không thể chia sẻ liên kết đó",
   "map.panel.systemMaps": "Ứng dụng bản đồ mặc định",
+  "map.panel.appBlocked": "Không mở được ứng dụng bản đồ — mở bản đồ web thay thế.",
   "map.panel.inProduction": "Tập đang sản xuất",
   "map.panel.watch": "Xem",
   "map.panel.trackInfo": "Thông tin đường đua",

@@ -215,6 +215,7 @@
   "map.panel.shareCopied": "Länk kopierad",
   "map.panel.shareFailed": "Kunde inte dela länken",
   "map.panel.systemMaps": "Standardkartapp",
+  "map.panel.appBlocked": "Kunde inte öppna kartappen — öppnar webbkartan.",
   "map.panel.inProduction": "Avsnitt under produktion",
   "map.panel.watch": "Se",
   "map.panel.trackInfo": "Om banan",
