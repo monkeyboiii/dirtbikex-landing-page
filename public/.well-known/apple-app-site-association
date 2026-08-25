@@ -16,7 +16,9 @@
             "/": "/c/*"
           },
           {
-            "/": "/chat/*"
+            "/": "/chat/*",
+            "exclude": true,
+            "comment": "Claimed until 2026-08-25 and always rejected. DiscourseURLParser returns nil for /chat/ on purpose — correct for its original caller, the WebView interception path, where nil means 'let the webview have it'. But DeepLinkHandler.classifyWeb reuses the same function for Universal Links, where nil means the invalid-link pill. So this claimed the app out of Safari and then dead-ended, same-environment, for a path this host does not serve at all. Fix the AASA, not the parser: PooledWebView depends on that nil meaning .allow."
           },
           {
             "/": "/s/i/*",
