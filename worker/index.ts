@@ -306,51 +306,47 @@ function getCopy(locale: Lang): Copy {
 }
 
 /**
- * Copy for the escape-hatch overlay. Falls back to `en` per key.
+ * The escape-hatch line. One sentence, all 21 locales, falls back to `en`.
  *
- * `menuLabel` must be the host app's OWN words for the menu item, not a translation of
- * them — the rider is matching text on screen, not reading an instruction. WeChat labels
- * that item in WeChat's UI language, which usually tracks the phone, which is also what
- * picks the locale here.
+ * These are the host app's OWN menu words, not a translation of an instruction — the rider
+ * is matching text on a screen. WeChat labels that item in WeChat's UI language, which
+ * usually tracks the phone, which is also what picks the locale here.
  */
-const BROWSER_HINT: Partial<Record<Lang, { menuLabel: string; title: string; step: string; dismiss: string }>> = {
-  en: {
-    menuLabel: 'Open in Default Browser',
-    title: 'Finish opening in your browser',
-    step: 'Tap ··· in the top-right corner, then choose:',
-    dismiss: 'Got it',
-  },
-  'zh-CN': {
-    menuLabel: '用默认浏览器打开',
-    title: '请在浏览器中继续打开',
-    step: '点击右上角 ···，然后选择：',
-    dismiss: '知道了',
-  },
-  'zh-TW': {
-    menuLabel: '用預設瀏覽器開啟',
-    title: '請在瀏覽器中繼續開啟',
-    step: '點擊右上角 ···，然後選擇：',
-    dismiss: '知道了',
-  },
+const BROWSER_HINT: Partial<Record<Lang, string>> = {
+  en: 'Tap ··· · Open in Default Browser',
+  'zh-CN': '点击 ··· 用默认浏览器打开',
+  'zh-TW': '點擊 ··· 用預設瀏覽器開啟',
+  ja: '··· をタップ →「デフォルトブラウザで開く」',
+  ko: '··· 탭 → 기본 브라우저로 열기',
+  de: '··· tippen · Im Standardbrowser öffnen',
+  it: 'Tocca ··· · Apri nel browser predefinito',
+  fr: 'Touchez ··· · Ouvrir dans le navigateur par défaut',
+  es: 'Toca ··· · Abrir en el navegador predeterminado',
+  ar: 'اضغط ··· · افتح في المتصفح الافتراضي',
+  da: 'Tryk ··· · Åbn i standardbrowser',
+  el: 'Πατήστε ··· · Άνοιγμα στο προεπιλεγμένο πρόγραμμα περιήγησης',
+  'fa-IR': '··· را بزنید · باز کردن در مرورگر پیش‌فرض',
+  fi: 'Napauta ··· · Avaa oletusselaimessa',
+  id: 'Ketuk ··· · Buka di browser bawaan',
+  nl: 'Tik op ··· · Openen in standaardbrowser',
+  pt: 'Toque em ··· · Abrir no navegador padrão',
+  'tr-TR': '··· öğesine dokunun · Varsayılan tarayıcıda aç',
+  th: 'แตะ ··· · เปิดในเบราว์เซอร์เริ่มต้น',
+  vi: 'Chạm ··· · Mở bằng trình duyệt mặc định',
+  sv: 'Tryck ··· · Öppna i standardwebbläsaren',
 };
 
 /**
- * The escape-hatch copy, or `undefined` when the container is not one that blocks
- * `dirtbikex://`.
+ * The hint, or `undefined` when the container is not one that blocks the hand-off.
  *
- * Only WeChat is claimed here. WeCom carries `MicroMessenger` too and has the same menu
- * item, so it rides along. A Mini Program web view is excluded deliberately: it may have
- * no browser item at all, and an arrow pointing at a menu entry that is not there is worse
- * than saying nothing. Douyin is NOT included — its chrome is unmeasured (see
- * `iOS/docs/E2E_FINDINGS_PLAN.md` § 2).
- *
- * Note this is a gate on the *copy*, not on the timer: the fallback arms everywhere, since
- * a scheme that goes nowhere is not WeChat-specific.
+ * Only WeChat is claimed. WeCom carries `MicroMessenger` too and has the same menu item, so
+ * it rides along. A Mini Program web view is excluded deliberately: it may have no browser
+ * item at all, and an arrow pointing at something absent is worse than silence. Douyin is
+ * NOT included — its chrome is unmeasured (see `iOS/docs/E2E_FINDINGS_PLAN.md` § 2).
  */
 function browserHintFor(ua: string | null, locale: Lang): ShareLandingProps['browserHint'] {
   if (!ua || !/MicroMessenger/i.test(ua) || /miniProgram/i.test(ua)) return undefined;
-  const c = BROWSER_HINT[locale] ?? BROWSER_HINT.en!;
-  return { ...c, storeLabel: getCopy(locale).ctaLabel, storeURL: APP_STORE_URL };
+  return { line: BROWSER_HINT[locale] ?? BROWSER_HINT.en! };
 }
 
 /** Profile not-found copy (`/s/u/<username>`). Falls back to `en`. */
@@ -741,7 +737,8 @@ async function handleEntity(request: Request, env: Env, kindCode: string, key: s
       fromD1 = !!entity;
     }
   }
-  const base: Pick<ShareLandingProps, 'kind' | 'locale' | 'primaryCTA' | 'returnTapCopy' | 'forumBase'> = {
+  const base: Pick<ShareLandingProps, 'kind' | 'locale' | 'primaryCTA' | 'returnTapCopy' | 'forumBase' | 'browserHint'> = {
+    browserHint: browserHintFor(request.headers.get('user-agent'), locale),
     kind: kindCode as ShareLandingProps['kind'],
     locale,
     primaryCTA: { label: copy.ctaLabel, url: APP_STORE_URL },

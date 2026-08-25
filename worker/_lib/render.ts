@@ -366,58 +366,56 @@ function appPromptMenu(app: NonNullable<NonNullable<ShareLandingProps['trailClai
  * you are already on.
  */
 /**
- * The escape hatch for in-app browsers that refuse `dirtbikex://`.
+ * The escape hatch for in-app browsers that send a hand-off nowhere.
  *
- * The tap is not intercepted — the scheme is still attempted, so anywhere it is honoured
- * this never runs. What is added is a one-second timer: if it fires, the navigation went
- * nowhere. That is not a guess about WeChat, it is how the refusal works. WeChat's
- * navigation delegate *declines* the scheme rather than navigating, so nothing unloads,
- * nothing backgrounds, and the page is still `visible` a second later. The success path is
- * self-announcing in the opposite way — iOS backgrounds the web view to launch the app,
- * firing `visibilitychange` and `pagehide`.
+ * Neither tap is redirected — the destination is still attempted, so anywhere it is honoured
+ * none of this shows. What is added is a timer: if it fires, the page is still here, which
+ * means the navigation was declined. That is not a guess about WeChat, it is how the refusal
+ * works — the delegate *declines* rather than navigating, so nothing unloads and nothing
+ * backgrounds. The success path announces itself the opposite way: iOS backgrounds the web
+ * view to launch, firing `visibilitychange` and `pagehide`.
  *
- * Both of those cancel the timer, and the timer body re-checks `visibilityState` anyway.
  * `blur` is deliberately NOT a cancel signal: a WKWebView raises it spuriously (the host's
- * own sheets, the keyboard), which would suppress the overlay in exactly the case it exists
- * for.
+ * own sheets, the keyboard), which would suppress the hint in exactly the case it exists for.
  *
- * One script for all three app-CTA cards, found by the one selector unique to them
- * repo-wide. The anchor markup is duplicated in three template literals; hooking each one
- * separately is how a card silently loses the behaviour.
+ * Both CTAs share one `arm()`. The store link is navigated by script rather than left to the
+ * anchor because a plain anchor to `apps.apple.com` is what silently does nothing on a
+ * `/share/` card — a scripted navigation inside the same click gesture at least gives the
+ * host a chance to raise its own prompt.
+ *
+ * One script for every card, found by two selectors unique to those anchors repo-wide. The
+ * app-CTA markup is duplicated in three template literals; hooking each separately is how a
+ * card silently loses the behaviour.
  */
 const APP_FALLBACK_JS = `(function(){
 var h=document.querySelector('[data-hint]');if(!h)return;
-function close(){h.hidden=true;}
-h.querySelector('[data-hint-close]').addEventListener('click',close);
-h.addEventListener('click',function(e){if(e.target===h)close();});
-document.addEventListener('keydown',function(e){if(e.key==='Escape')close();});
-var a=document.querySelector('a.cta-secondary[href^="dirtbikex:"]');if(!a)return;
-a.addEventListener('click',function(e){
-e.preventDefault();
-var t=setTimeout(function(){if(document.visibilityState==='visible')h.hidden=false;},1000);
+function arm(ms){
+var t=setTimeout(function(){if(document.visibilityState==='visible')h.hidden=false;},ms);
 addEventListener('pagehide',function(){clearTimeout(t);},{once:true});
-document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')clearTimeout(t);},{once:true});
-location.href=a.href;});
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')clearTimeout(t);},{once:true});}
+function hook(el,ms){if(!el)return;el.addEventListener('click',function(e){e.preventDefault();arm(ms);location.href=el.href;});}
+hook(document.querySelector('a.cta-secondary[href^="dirtbikex:"]'),1000);
+hook(document.querySelector('a.cta[href*="apps.apple.com"]'),1200);
 })();`;
 
 /**
- * The overlay itself. Rendered hidden and only when the container is known to block the
- * scheme, so it costs nothing on a normal browser.
+ * The hint: one line, and an arrow at the host app's ··· button.
+ *
+ * It is not a dialog and must never become one. No backdrop, no card, no dismiss — it is
+ * `pointer-events: none`, so it floats over the card without ever trapping the rider, and it
+ * needs no way out because following it leaves the page.
  *
  * The arrow is positioned with PHYSICAL `top`/`right`, not logical properties, and that is
- * deliberate: it points at the host app's ··· button, which lives in native chrome above the
- * web view and does not move when the page is `dir="rtl"`. The bubble's text stays logical.
+ * deliberate: it points at native chrome above the web view, which does not move when the
+ * page is `dir="rtl"`.
  */
 function browserHintOverlay(hint: NonNullable<ShareLandingProps['browserHint']>): string {
   return `<div class="hint" data-hint hidden>
-  <div class="hint-arrow" aria-hidden="true"></div>
-  <div class="hint-card" role="dialog" aria-modal="true">
-    <p class="hint-title">${esc(hint.title)}</p>
-    <p class="hint-step">${esc(hint.step)}</p>
-    <p class="hint-menu">${esc(hint.menuLabel)}</p>
-    <a class="hint-store" href="${esc(hint.storeURL)}">${esc(hint.storeLabel)}</a>
-    <button class="hint-close" type="button" data-hint-close>${esc(hint.dismiss)}</button>
-  </div>
+  <p class="hint-line">${esc(hint.line)}</p>
+  <svg class="hint-arrow" viewBox="0 0 40 56" aria-hidden="true" focusable="false">
+    <path d="M7 53 C 3 30, 13 11, 31 5" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+    <path d="M21 5 L33 3 L31 15" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
 </div>`;
 }
 
@@ -1971,45 +1969,38 @@ button.card-link{background:none;border:0;cursor:pointer;font:inherit;color:inhe
 .stat-info{display:inline-flex;align-items:center;color:#fff;opacity:.75;vertical-align:-3px}
 .stat-info:hover,.stat-info:focus-visible{opacity:1}
 
-/* Escape hatch for in-app browsers that decline dirtbikex:// — see APP_FALLBACK_JS.
-   The arrow uses PHYSICAL top/right on purpose: it points at the host app's ··· button in
-   native chrome, which does not flip when the page is dir="rtl". Text stays logical. */
+/* Escape hatch for in-app browsers that decline a hand-off.
+   Not a dialog: pointer-events:none so it floats over the card and can never trap the
+   rider. The arrow uses PHYSICAL top/right because it points at the host app's ··· in
+   native chrome, which does not flip when the page is dir="rtl". */
 .hint {
-  position: fixed; inset: 0; z-index: 50;
-  background: rgba(24,18,12,0.62);
-  display: flex; align-items: flex-start; justify-content: center;
-  padding: 4.75rem 1.1rem 1.1rem;
+  position: fixed; top: 0; right: 0; left: 0; z-index: 50;
+  display: flex; align-items: flex-start; justify-content: flex-end; gap: 0.5rem;
+  padding: 0.55rem 0.7rem 0 1rem;
+  pointer-events: none;
+  animation: hint-bob 2.6s ease-in-out infinite;
 }
 .hint[hidden] { display: none; }
-.hint-arrow {
-  position: absolute; top: 0.55rem; right: 1.15rem;
-  width: 0; height: 0;
-  border-left: 11px solid transparent; border-right: 11px solid transparent;
-  border-bottom: 15px solid var(--dirt-50, #fff);
+.hint-line {
+  margin: 1.15rem 0 0;
+  font-size: 0.92rem; font-weight: 600; line-height: 1.25; text-align: end;
+  color: var(--clay-900, #3f3934);
+  text-shadow: 0 1px 10px var(--dirt-50, #fff8eb), 0 0 3px var(--dirt-50, #fff8eb);
 }
-.hint-card {
-  width: 100%; max-width: 20rem;
-  background: var(--dirt-50, #fff); border-radius: 14px;
-  padding: 1.1rem 1.15rem 0.9rem; text-align: start;
-  box-shadow: 0 14px 40px rgba(0,0,0,0.3);
+.hint-arrow { flex: none; width: 26px; height: 36px; color: var(--dirt-500, #f3760b); }
+
+/* Barely there on purpose — enough to catch the eye, not enough to read as a bug. */
+@keyframes hint-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
 }
-.hint-title { margin: 0; font-size: 1.05rem; font-weight: 700; }
-.hint-step { margin: 0.5rem 0 0; font-size: 0.9rem; color: var(--dirt-600, #6b5b4a); }
-.hint-menu {
-  margin: 0.55rem 0 0; padding: 0.55rem 0.7rem;
-  border: 1px solid var(--dirt-200, #e6ddd2); border-radius: 9px;
-  font-weight: 600; font-size: 0.98rem;
-}
-.hint-store { display: block; margin: 0.8rem 0 0; font-size: 0.9rem; text-align: center; }
-.hint-close {
-  display: block; width: 100%; margin: 0.6rem 0 0; padding: 0.6rem;
-  border: 0; border-radius: 9px; background: transparent;
-  color: var(--dirt-600, #6b5b4a); font: inherit; font-weight: 600; cursor: pointer;
-}
+@media (prefers-reduced-motion: reduce) { .hint { animation: none; } }
 @media (prefers-color-scheme: dark) {
-  .hint-arrow { border-bottom-color: var(--dirt-900, #241c14); }
-  .hint-card { background: var(--dirt-900, #241c14); }
-  .hint-menu { border-color: var(--dirt-400, #9c8b78); }
+  .hint-line {
+    color: var(--dirt-50, #fff8eb);
+    text-shadow: 0 1px 10px rgba(0,0,0,0.92), 0 0 3px rgba(0,0,0,0.92);
+  }
+}
 }
 
 `;
