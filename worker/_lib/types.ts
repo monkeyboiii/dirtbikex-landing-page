@@ -172,6 +172,21 @@ export interface ShareLandingProps {
   appCTA?: { label: string; url: string };
   /** Shown only beneath `appCTA` (the install→return helper). */
   returnTapCopy: string;
+  /** Set only when the request came from an in-app browser that blocks `dirtbikex://`
+   *  (WeChat and friends). Presence is the render gate for the escape-hatch overlay:
+   *  the tap still attempts the scheme, and this copy is what the rider sees when the
+   *  attempt goes nowhere. See MAP_MODULE.md § "When the app will not open". */
+  browserHint?: {
+    /** Literal words of the host app's menu item, so the reader matches text rather
+     *  than translating a paraphrase. */
+    menuLabel: string;
+    title: string;
+    step: string;
+    dismiss: string;
+    /** Store link repeated inside the overlay so the card never dead-ends. */
+    storeLabel: string;
+    storeURL: string;
+  };
   /** Forum origin (e.g. `https://forum.dirtbikex.com`) — needed to resolve `avatar_template`. */
   forumBase: string;
   /** One quiet text link under the primary action. Used by the claim card to offer the

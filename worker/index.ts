@@ -305,6 +305,54 @@ function getCopy(locale: Lang): Copy {
   return COPY[locale] ?? COPY.en!;
 }
 
+/**
+ * Copy for the escape-hatch overlay. Falls back to `en` per key.
+ *
+ * `menuLabel` must be the host app's OWN words for the menu item, not a translation of
+ * them — the rider is matching text on screen, not reading an instruction. WeChat labels
+ * that item in WeChat's UI language, which usually tracks the phone, which is also what
+ * picks the locale here.
+ */
+const BROWSER_HINT: Partial<Record<Lang, { menuLabel: string; title: string; step: string; dismiss: string }>> = {
+  en: {
+    menuLabel: 'Open in Default Browser',
+    title: 'Finish opening in your browser',
+    step: 'Tap ··· in the top-right corner, then choose:',
+    dismiss: 'Got it',
+  },
+  'zh-CN': {
+    menuLabel: '用默认浏览器打开',
+    title: '请在浏览器中继续打开',
+    step: '点击右上角 ···，然后选择：',
+    dismiss: '知道了',
+  },
+  'zh-TW': {
+    menuLabel: '用預設瀏覽器開啟',
+    title: '請在瀏覽器中繼續開啟',
+    step: '點擊右上角 ···，然後選擇：',
+    dismiss: '知道了',
+  },
+};
+
+/**
+ * The escape-hatch copy, or `undefined` when the container is not one that blocks
+ * `dirtbikex://`.
+ *
+ * Only WeChat is claimed here. WeCom carries `MicroMessenger` too and has the same menu
+ * item, so it rides along. A Mini Program web view is excluded deliberately: it may have
+ * no browser item at all, and an arrow pointing at a menu entry that is not there is worse
+ * than saying nothing. Douyin is NOT included — its chrome is unmeasured (see
+ * `iOS/docs/E2E_FINDINGS_PLAN.md` § 2).
+ *
+ * Note this is a gate on the *copy*, not on the timer: the fallback arms everywhere, since
+ * a scheme that goes nowhere is not WeChat-specific.
+ */
+function browserHintFor(ua: string | null, locale: Lang): ShareLandingProps['browserHint'] {
+  if (!ua || !/MicroMessenger/i.test(ua) || /miniProgram/i.test(ua)) return undefined;
+  const c = BROWSER_HINT[locale] ?? BROWSER_HINT.en!;
+  return { ...c, storeLabel: getCopy(locale).ctaLabel, storeURL: APP_STORE_URL };
+}
+
 /** Profile not-found copy (`/s/u/<username>`). Falls back to `en`. */
 const USER_NOT_FOUND: Partial<Record<Lang, { title: string; subtitle: string }>> = {
   en: { title: 'Rider not found', subtitle: 'This profile may have moved — but you can still join DirtBikeX.' },
@@ -450,13 +498,15 @@ function buildProps(
   locale: Lang,
   forumBase: string,
   desktop: boolean,
+  hint: ShareLandingProps['browserHint'],
 ): { props: ShareLandingProps; cacheControl?: string } {
-  const base: Pick<ShareLandingProps, 'kind' | 'locale' | 'primaryCTA' | 'returnTapCopy' | 'forumBase'> = {
+  const base: Pick<ShareLandingProps, 'kind' | 'locale' | 'primaryCTA' | 'returnTapCopy' | 'forumBase' | 'browserHint'> = {
     kind: 'i',
     locale,
     primaryCTA: { label: copy.ctaLabel, url: APP_STORE_URL },
     returnTapCopy: copy.returnTap,
     forumBase,
+    browserHint: hint,
   };
 
   const errorCTA = desktop && forumBase
@@ -504,7 +554,8 @@ async function handleInvite(request: Request, env: Env, key: string): Promise<Re
 
   const result = await lookupInvite(env, key);
   const desktop = isDesktopUA(request.headers.get('user-agent'));
-  const { props, cacheControl } = buildProps(result, copy, locale, forumBase, desktop);
+  const hint = browserHintFor(request.headers.get('user-agent'), locale);
+  const { props, cacheControl } = buildProps(result, copy, locale, forumBase, desktop, hint);
   return renderShareLanding(props, request.url, cacheControl ? { cacheControl } : {});
 }
 
@@ -514,14 +565,16 @@ function buildUserProps(
   locale: Lang,
   forumBase: string,
   desktop: boolean,
+  hint: ShareLandingProps['browserHint'],
   username: string,
 ): { props: ShareLandingProps; cacheControl?: string } {
-  const base: Pick<ShareLandingProps, 'kind' | 'locale' | 'primaryCTA' | 'returnTapCopy' | 'forumBase'> = {
+  const base: Pick<ShareLandingProps, 'kind' | 'locale' | 'primaryCTA' | 'returnTapCopy' | 'forumBase' | 'browserHint'> = {
     kind: 'u',
     locale,
     primaryCTA: { label: copy.ctaLabel, url: APP_STORE_URL },
     returnTapCopy: copy.returnTap,
     forumBase,
+    browserHint: hint,
   };
 
   // Desktop has no app: point both the valid and error CTA at the forum profile page.
@@ -569,7 +622,8 @@ async function handleUser(request: Request, env: Env, username: string): Promise
 
   const result = await lookupUser(env, username);
   const desktop = isDesktopUA(request.headers.get('user-agent'));
-  const { props, cacheControl } = buildUserProps(result, copy, locale, forumBase, desktop, username);
+  const hint = browserHintFor(request.headers.get('user-agent'), locale);
+  const { props, cacheControl } = buildUserProps(result, copy, locale, forumBase, desktop, hint, username);
   return renderShareLanding(props, request.url, cacheControl ? { cacheControl } : {});
 }
 
@@ -579,14 +633,16 @@ function buildEventProps(
   locale: Lang,
   forumBase: string,
   desktop: boolean,
+  hint: ShareLandingProps['browserHint'],
   eventId: string,
 ): { props: ShareLandingProps; cacheControl?: string } {
-  const base: Pick<ShareLandingProps, 'kind' | 'locale' | 'primaryCTA' | 'returnTapCopy' | 'forumBase'> = {
+  const base: Pick<ShareLandingProps, 'kind' | 'locale' | 'primaryCTA' | 'returnTapCopy' | 'forumBase' | 'browserHint'> = {
     kind: 'e',
     locale,
     primaryCTA: { label: copy.ctaLabel, url: APP_STORE_URL },
     returnTapCopy: copy.returnTap,
     forumBase,
+    browserHint: hint,
   };
 
   // Desktop has no app: keep the "Open in browser" label (like profile's
@@ -628,7 +684,8 @@ async function handleEvent(request: Request, env: Env, eventId: string): Promise
 
   const result = await lookupEvent(env, eventId);
   const desktop = isDesktopUA(request.headers.get('user-agent'));
-  const { props, cacheControl } = buildEventProps(result, copy, locale, forumBase, desktop, eventId);
+  const hint = browserHintFor(request.headers.get('user-agent'), locale);
+  const { props, cacheControl } = buildEventProps(result, copy, locale, forumBase, desktop, hint, eventId);
   return renderShareLanding(props, request.url, cacheControl ? { cacheControl } : {});
 }
 
@@ -1271,6 +1328,10 @@ async function handleTrailClaim(request: Request, env: Env, code: string): Promi
     {
       kind: 'c',
       locale,
+      // The claim card's app hand-off lives inside CLAIM_ASK_JS's popover rather than a
+      // `.cta-secondary` anchor, so APP_FALLBACK_JS binds only the overlay's dismiss here
+      // and CLAIM_ASK_JS owns the timer. One timer per tap — see its comment.
+      browserHint: browserHintFor(request.headers.get('user-agent'), locale),
       title: slow ? copy.slowTitle : trail?.title || copy.title,
       subtitle: slow ? copy.slowBody : trail?.claimed ? copy.claimedBody : copy.body,
       // The sheet-shaped card is for a real trail. A rate-limited visitor has no trail to

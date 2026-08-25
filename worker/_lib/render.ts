@@ -298,7 +298,7 @@ ${weChatImageHints(og.url)}
   return `<!DOCTYPE html>
 <html lang="${locale}" dir="${isRTL(locale) ? 'rtl' : 'ltr'}">
 <head>${head(ogTitle, ogDescription)}</head>
-<body>${body}${props.autoJump ? `<script>${JUMP_JS}</script>` : ''}</body>
+<body>${body}${props.browserHint ? browserHintOverlay(props.browserHint) : ''}${props.autoJump ? `<script>${JUMP_JS}</script>` : ''}${props.browserHint ? `<script>${APP_FALLBACK_JS}</script>` : ''}</body>
 </html>`;
 }
 
@@ -365,6 +365,62 @@ function appPromptMenu(app: NonNullable<NonNullable<ShareLandingProps['trailClai
  * that URL, and iOS does not re-run Universal Link matching for a navigation to the page
  * you are already on.
  */
+/**
+ * The escape hatch for in-app browsers that refuse `dirtbikex://`.
+ *
+ * The tap is not intercepted — the scheme is still attempted, so anywhere it is honoured
+ * this never runs. What is added is a one-second timer: if it fires, the navigation went
+ * nowhere. That is not a guess about WeChat, it is how the refusal works. WeChat's
+ * navigation delegate *declines* the scheme rather than navigating, so nothing unloads,
+ * nothing backgrounds, and the page is still `visible` a second later. The success path is
+ * self-announcing in the opposite way — iOS backgrounds the web view to launch the app,
+ * firing `visibilitychange` and `pagehide`.
+ *
+ * Both of those cancel the timer, and the timer body re-checks `visibilityState` anyway.
+ * `blur` is deliberately NOT a cancel signal: a WKWebView raises it spuriously (the host's
+ * own sheets, the keyboard), which would suppress the overlay in exactly the case it exists
+ * for.
+ *
+ * One script for all three app-CTA cards, found by the one selector unique to them
+ * repo-wide. The anchor markup is duplicated in three template literals; hooking each one
+ * separately is how a card silently loses the behaviour.
+ */
+const APP_FALLBACK_JS = `(function(){
+var h=document.querySelector('[data-hint]');if(!h)return;
+function close(){h.hidden=true;}
+h.querySelector('[data-hint-close]').addEventListener('click',close);
+h.addEventListener('click',function(e){if(e.target===h)close();});
+document.addEventListener('keydown',function(e){if(e.key==='Escape')close();});
+var a=document.querySelector('a.cta-secondary[href^="dirtbikex:"]');if(!a)return;
+a.addEventListener('click',function(e){
+e.preventDefault();
+var t=setTimeout(function(){if(document.visibilityState==='visible')h.hidden=false;},1000);
+addEventListener('pagehide',function(){clearTimeout(t);},{once:true});
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')clearTimeout(t);},{once:true});
+location.href=a.href;});
+})();`;
+
+/**
+ * The overlay itself. Rendered hidden and only when the container is known to block the
+ * scheme, so it costs nothing on a normal browser.
+ *
+ * The arrow is positioned with PHYSICAL `top`/`right`, not logical properties, and that is
+ * deliberate: it points at the host app's ··· button, which lives in native chrome above the
+ * web view and does not move when the page is `dir="rtl"`. The bubble's text stays logical.
+ */
+function browserHintOverlay(hint: NonNullable<ShareLandingProps['browserHint']>): string {
+  return `<div class="hint" data-hint hidden>
+  <div class="hint-arrow" aria-hidden="true"></div>
+  <div class="hint-card" role="dialog" aria-modal="true">
+    <p class="hint-title">${esc(hint.title)}</p>
+    <p class="hint-step">${esc(hint.step)}</p>
+    <p class="hint-menu">${esc(hint.menuLabel)}</p>
+    <a class="hint-store" href="${esc(hint.storeURL)}">${esc(hint.storeLabel)}</a>
+    <button class="hint-close" type="button" data-hint-close>${esc(hint.dismiss)}</button>
+  </div>
+</div>`;
+}
+
 const CLAIM_ASK_JS = `(function(){
 var d=document.querySelector('[data-claim-ask]'),c=document.querySelector('[data-claim-cta]');
 if(!d||!c)return;
@@ -377,7 +433,12 @@ web.addEventListener('click',function(){close();location.href=c.href;});
 app.addEventListener('click',function(){
 if(app.dataset.busy)return;
 app.dataset.busy='1';
-var t=setTimeout(function(){if(document.visibilityState==='visible')location.href=d.dataset.store;},1200);
+var h=document.querySelector('[data-hint]');
+var t=setTimeout(function(){
+if(document.visibilityState!=='visible')return;
+delete app.dataset.busy;
+if(h){close();h.hidden=false;}else{location.href=d.dataset.store;}
+},h?1000:1200);
 addEventListener('pagehide',function(){clearTimeout(t);delete app.dataset.busy;},{once:true});
 document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')clearTimeout(t);},{once:true});
 location.href=d.dataset.app;});
@@ -1909,4 +1970,46 @@ button.card-link{background:none;border:0;cursor:pointer;font:inherit;color:inhe
 
 .stat-info{display:inline-flex;align-items:center;color:#fff;opacity:.75;vertical-align:-3px}
 .stat-info:hover,.stat-info:focus-visible{opacity:1}
+
+/* Escape hatch for in-app browsers that decline dirtbikex:// — see APP_FALLBACK_JS.
+   The arrow uses PHYSICAL top/right on purpose: it points at the host app's ··· button in
+   native chrome, which does not flip when the page is dir="rtl". Text stays logical. */
+.hint {
+  position: fixed; inset: 0; z-index: 50;
+  background: rgba(24,18,12,0.62);
+  display: flex; align-items: flex-start; justify-content: center;
+  padding: 4.75rem 1.1rem 1.1rem;
+}
+.hint[hidden] { display: none; }
+.hint-arrow {
+  position: absolute; top: 0.55rem; right: 1.15rem;
+  width: 0; height: 0;
+  border-left: 11px solid transparent; border-right: 11px solid transparent;
+  border-bottom: 15px solid var(--dirt-50, #fff);
+}
+.hint-card {
+  width: 100%; max-width: 20rem;
+  background: var(--dirt-50, #fff); border-radius: 14px;
+  padding: 1.1rem 1.15rem 0.9rem; text-align: start;
+  box-shadow: 0 14px 40px rgba(0,0,0,0.3);
+}
+.hint-title { margin: 0; font-size: 1.05rem; font-weight: 700; }
+.hint-step { margin: 0.5rem 0 0; font-size: 0.9rem; color: var(--dirt-600, #6b5b4a); }
+.hint-menu {
+  margin: 0.55rem 0 0; padding: 0.55rem 0.7rem;
+  border: 1px solid var(--dirt-200, #e6ddd2); border-radius: 9px;
+  font-weight: 600; font-size: 0.98rem;
+}
+.hint-store { display: block; margin: 0.8rem 0 0; font-size: 0.9rem; text-align: center; }
+.hint-close {
+  display: block; width: 100%; margin: 0.6rem 0 0; padding: 0.6rem;
+  border: 0; border-radius: 9px; background: transparent;
+  color: var(--dirt-600, #6b5b4a); font: inherit; font-weight: 600; cursor: pointer;
+}
+@media (prefers-color-scheme: dark) {
+  .hint-arrow { border-bottom-color: var(--dirt-900, #241c14); }
+  .hint-card { background: var(--dirt-900, #241c14); }
+  .hint-menu { border-color: var(--dirt-400, #9c8b78); }
+}
+
 `;
