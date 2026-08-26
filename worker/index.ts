@@ -467,9 +467,13 @@ function matchTag(tag: string): Lang | null {
 /**
  * Coarse server-side device split for the CTA. Mobile (iOS/Android) keeps the
  * App Store CTA + the install→re-tap return path; desktop has no app to install,
- * so the valid-invite CTA points at the forum's web accept page instead. `/s/*`
- * is `no-store` (public/_headers), so per-UA branching can't be poisoned by an
- * edge cache serving one device's variant to the other.
+ * so the valid-invite CTA points at the forum's web accept page instead.
+ *
+ * Per-UA branching is safe because these responses carry their own `no-cache` /
+ * `no-store` — NOT because of `public/_headers`. That file does not apply to
+ * worker-rendered responses (`/s/*` is in `run_worker_first`) and its rules append
+ * rather than override. If a branch here ever stops setting its own header, an edge
+ * cache can serve one device's variant to the other.
  */
 function isDesktopUA(ua: string | null): boolean {
   return !/Android|iPhone|iPad|iPod|Mobile/i.test(ua ?? '');
@@ -885,9 +889,14 @@ async function handleLineagePage(request: Request, env: Env, ref: string, route:
  * claim route, which is behind a login and a rate limiter. Do not reintroduce a lookup
  * here, and do not add an endpoint anywhere that answers yes-or-no to a claim code.
  *
- * `/s/c/*` is NOT in the AASA file, on purpose: a path joins it only when the shipped app
- * has a destination for that path, and this one has none yet. Adding it early is what makes
- * the app raise its invalid-link bubble on a perfectly good link.
+ * `/s/c/*` IS in the AASA as of landing v1.0.32, because iOS v1.0.3 shipped
+ * `ShareKind.trailClaim` and the app finally has a destination for it. (This comment
+ * previously said the opposite; it was written while the claim was excluded.)
+ *
+ * The rule it encodes still stands and is the reason to keep reading: a path joins the
+ * AASA only when the SHIPPED app has a destination for it. Claiming one early is what
+ * makes the app raise its invalid-link bubble on a perfectly good link — worse than not
+ * claiming it, since an unclaimed link just opens on the web and works.
  */
 interface ClaimCopy {
   title: string;

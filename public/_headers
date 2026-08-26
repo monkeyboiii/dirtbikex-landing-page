@@ -75,6 +75,15 @@
 # Per-token/per-key dynamic routes (rendered by the worker). Never edge-cache:
 # during a worker deploy gap the asset layer serves a 404-page here, and any
 # s-maxage would pin that transient 404 at a CF PoP for hours.
+#
+# READ THIS BEFORE TRUSTING THE RULE BELOW. _headers rules are ADDITIVE, not
+# overriding: this one does not replace /*'s value, it appends to it, and the
+# result (`public, max-age=300, no-store`) is resolved by Cloudflare in favour of
+# caching. It is also inert for worker-RENDERED responses, because /s/* is in
+# run_worker_first and _headers never sees them. The real protection is the
+# no-store/no-cache the worker sets on its own responses; this rule only reaches
+# the asset layer's answers, which is the deploy-gap case it was written for.
+# It is kept for that case and because /* no longer carries s-maxage.
 /s/*
   Cache-Control: no-store
 
@@ -101,5 +110,13 @@
   Content-Type: text/plain; charset=utf-8
   Cache-Control: public, max-age=300
 
+# The catch-all. It matches EVERYTHING, including paths that have their own rule
+# above and paths the worker routes — so keep it weak. It used to carry
+# s-maxage=86400, which is what held a transient 404 at a PoP for a full day:
+# any path the worker does not route falls here, and an error cached for a day
+# outlives the condition that caused it many times over.
+#
+# Long-lived assets are not affected: /_astro/*, /fonts/*, /brand/*, the icons and
+# /map/* all carry their own immutable or long max-age rules above.
 /*
-  Cache-Control: public, max-age=300, s-maxage=86400
+  Cache-Control: public, max-age=300

@@ -6,9 +6,11 @@ import type { EventRow, InviteRow, Lang, ShareLandingProps, UserRow } from './ty
  * Render a share-link landing page response. Inline styles; no Astro layout
  * reach (Pages Functions are bundled separately from the Astro app).
  *
- * Cache-Control is intentionally left off success responses so `public/_headers`
- * (`/s/*` → `max-age=60`) is the single source of truth. Pass `init.cacheControl`
- * to override on error paths.
+ * Cache-Control on success responses comes from `public/_headers`, NOT from here.
+ * Note that is weaker than it sounds: `_headers` does not apply to worker-rendered
+ * responses at all (`/s/*` is in `run_worker_first`), and its rules are additive
+ * rather than overriding — so anything that must not be cached has to say so on the
+ * response itself. Pass `init.cacheControl` for that; the error paths already do.
  */
 export function renderShareLanding(
   props: ShareLandingProps,
