@@ -1063,6 +1063,22 @@ interface DripResult {
   requeued: number;   // retried, consuming one of MAX_ATTEMPTS
   deferred: number;   // requeued WITHOUT consuming an attempt (cap, rate limit, account)
   cap: number; sentToday: number;
+  /** Why this tick did nothing, when it did nothing on purpose.
+   *
+   *  `scheduled()` logs this whole object every minute, and an all-zeros line used to be
+   *  indistinguishable from a stalled drip — which is how a 24-minute outage was once found
+   *  by eyeball rather than by alert. An idle tick now says so, and says which kind, so
+   *  "quiet because there is no work" never reads as "quiet because it is broken". */
+  idle?: 'disabled' | 'empty';
+}
+
+/**
+ * The drip's kill switch. Opt-OUT: only an explicit "0" / "false" / "off" / "no" stops it.
+ * Mirrors `uploadsEnabled` in trailUpload.ts — same reasoning, same accepted values.
+ */
+function dripEnabled(env: PagesEnv): boolean {
+  const raw = String(env.OUTREACH_DRIP_ENABLED ?? '').trim().toLowerCase();
+  return !['0', 'false', 'off', 'no'].includes(raw);
 }
 
 // One drip tick: reap stale claims → claim K queued → per row: suppression re-check, then
@@ -1084,6 +1100,29 @@ export async function runDrip(env: PagesEnv, opts: { dry?: boolean } = {}): Prom
   // Pre-flight: never CLAIM rows we can't send. A missing key would otherwise drop each
   // claimed real row to failed_permanent, and send-once blocks re-enqueue → permanent loss.
   if (!env.RESEND_API_KEY || !env.JOIN_FROM_EMAIL) { console.error('outreach:drip_misconfigured'); return out; }
+
+  // Durable off-switch. Absent = enabled (opt-out), matching TRAILS_UPLOAD_ENABLED: a switch
+  // that arms itself on a missing or misspelled var takes a shipped feature down on a deploy
+  // nobody thought was risky.
+  //
+  // This is the ONLY safe way to stop the drip. Removing RESEND_API_KEY or JOIN_FROM_EMAIL
+  // trips the pre-flight above and looks like a kill switch, but both are shared with the
+  // waitlist double-opt-in mail (join.ts) — you would silently break confirmation emails.
+  // OUTREACH_ALLOW_REAL=0 and OUTREACH_DAILY_CAP=0 do not stop it either; both guards sit
+  // downstream of the scan this exists to avoid.
+  if (!dripEnabled(env)) { out.idle = 'disabled'; return out; }
+
+  // Is there anything to do at all? One probe on idx_outreach_status reads ~1 row; the
+  // sent_today count below full-scans every row ever sent to answer a question that is
+  // always 0 while the queue is empty. Measured on prod 2026-08-31: 1.82M of ~1.84M D1
+  // rows/day went into that count, accomplishing nothing.
+  //
+  // 'claimed' is in the probe on purpose — without it a tick that died mid-send would leave
+  // rows claimed forever, because the reaper below would never run again.
+  const pending = await db.prepare(
+    "SELECT 1 FROM outreach WHERE status IN ('queued','claimed') LIMIT 1"
+  ).first();
+  if (!pending) { out.idle = 'empty'; return out; }
 
   // reaper: rows stuck in 'claimed' past the TTL get re-queued (does NOT consume an attempt).
   await db.prepare("UPDATE outreach SET status='queued', claimed_at=NULL WHERE status='claimed' AND claimed_at < datetime('now', ?)")

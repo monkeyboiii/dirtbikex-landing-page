@@ -90,6 +90,9 @@ export interface PagesEnv {
   OUTREACH_ALLOW_REAL?: string;
   /** Per-UTC-day cap on `real` sends (warm-up). Optional; defaults to 200. */
   OUTREACH_DAILY_CAP?: string;
+  /** Durable off-switch for the cron drip. Opt-OUT: absent means enabled, matching
+   *  TRAILS_UPLOAD_ENABLED. See docs/OUTREACH_MODULE.md § "The idle drip". */
+  OUTREACH_DRIP_ENABLED?: string;
   /** Resend webhook signing secret (`whsec_…`) for POST /api/outreach/webhook. Secret.
    *  Set on the env that actually sends real mail (prod). Absent = webhook returns 503. */
   RESEND_WEBHOOK_SECRET?: string;

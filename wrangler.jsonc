@@ -82,6 +82,12 @@
 		// the map's upload control greys out. Opt-OUT on purpose — a missing or misspelled var
 		// must never take a shipped feature down on a deploy nobody thought was risky.
 		"TRAILS_UPLOAD_ENABLED": "1",
+		// Cron drip off-switch. "0" / "false" / "off" stops it dead; absent leaves it
+		// running. Opt-OUT for the same reason as the line above. This is the ONLY
+		// safe way to stop the drip — RESEND_API_KEY and JOIN_FROM_EMAIL are shared
+		// with the waitlist confirmation mail, and ALLOW_REAL/DAILY_CAP sit downstream
+		// of the scan the guard exists to avoid.
+		"OUTREACH_DRIP_ENABLED": "1",
 		// Cloudflare Turnstile on the upload confirm. BOTH this site key and the
 		// TURNSTILE_SECRET_KEY wrangler secret must be set, or the challenge is skipped
 		// entirely and uploads work as before. EMPTY on purpose: the widget script comes
@@ -165,6 +171,12 @@
 				// the map's upload control greys out. Opt-OUT on purpose — a missing or misspelled var
 				// must never take a shipped feature down on a deploy nobody thought was risky.
 				"TRAILS_UPLOAD_ENABLED": "1",
+				// Cron drip off-switch. "0" / "false" / "off" stops it dead; absent leaves it
+				// running. Opt-OUT for the same reason as the line above. This is the ONLY
+				// safe way to stop the drip — RESEND_API_KEY and JOIN_FROM_EMAIL are shared
+				// with the waitlist confirmation mail, and ALLOW_REAL/DAILY_CAP sit downstream
+				// of the scan the guard exists to avoid.
+				"OUTREACH_DRIP_ENABLED": "1",
 				// Cloudflare Turnstile on the upload confirm. BOTH this site key and the
 				// TURNSTILE_SECRET_KEY wrangler secret must be set, or the challenge is skipped
 				// entirely and uploads work as before. EMPTY on purpose: the widget script comes
