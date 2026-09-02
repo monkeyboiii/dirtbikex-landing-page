@@ -4,7 +4,7 @@ import type { PagesEnv } from './types';
  * Reads the forum's lineage graph. Every endpoint here is anonymous by design —
  * the plugin serves the same JSON to the app, the forum and this worker, so the
  * landing page needs no key, no CORS and no per-environment Data Explorer query
- * (the trade docs/TRAILS_MODULE.md already settled once).
+ * (the trade agents.d/modules/trails.md already settled once).
  */
 
 export interface LineageRiderCard {

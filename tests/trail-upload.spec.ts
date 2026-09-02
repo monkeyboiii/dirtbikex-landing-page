@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 /**
- * The visitor trail upload, against a deployed environment. See docs/TRAIL_UPLOAD_MODULE.md.
+ * The visitor trail upload, against a deployed environment. See agents.d/modules/trail-upload.md.
  *
  * Opt-in (TRAIL_UPLOAD_E2E=1) because it really uploads: it puts a file in the forum's
  * upload store, a row in D1 and spends one of six uploads an IP gets per hour. There is no

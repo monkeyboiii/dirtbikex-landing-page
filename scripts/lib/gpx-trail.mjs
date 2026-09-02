@@ -8,7 +8,7 @@
 //
 // The entry is METADATA ONLY — a point, a bbox and the ride's numbers. Geometry is
 // fetched from `gpx_url` when a visitor taps the trail, so the payload stays flat as
-// the catalog grows. See docs/TRAILS_MODULE.md.
+// the catalog grows. See agents.d/modules/trails.md.
 
 /** Track points only — route points crash gpx.studio's stats and are not a ridden line.
     Segments stay separate: joining them would draw a stroke through every pause. */

@@ -3,7 +3,7 @@
 -- The signature is a 25 m arc-length resampling of the trace, Google-encoded, computed in
 -- the BROWSER at upload — the only place the geometry exists cheaply. The worker gets ~1 KB
 -- per trail instead of a 10 MB GPX it could never parse inside the free plan's ~10 ms.
--- See worker/_lib/trailOverlap.ts and docs/TRAIL_UPLOAD_MODULE.md.
+-- See worker/_lib/trailOverlap.ts and agents.d/modules/trail-upload.md.
 --
 -- It is deliberately NOT inside the `stats` JSON blob. toEntry() copies `stats` verbatim
 -- into /api/map/trails.json, which is measured at 676 B/entry with a sharding horizon

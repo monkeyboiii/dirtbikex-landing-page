@@ -1,6 +1,6 @@
 -- D1 schema for special influencer invites (the /join?c=<code> flow).
 -- Apply: pnpm wrangler d1 execute dbx-subscribers --remote --file ./migrations/0002_special_invites.sql
--- See worker/_lib/join.ts (claimCode / sendInviteEmail) and docs/JOIN_MODULE.md.
+-- See worker/_lib/join.ts (claimCode / sendInviteEmail) and agents.d/modules/join.md.
 
 -- Per-kind config. Rotate `invite_url`/`label` with a plain UPDATE (no deploy).
 -- QR images live in R2 at qr/<kind>/<locale>.png (en fallback), NOT stored here.

@@ -14,7 +14,7 @@
 //     composited invite card + invite link + confirm CTA. A confirmed subscriber
 //     still gets the card; never downgraded.
 //   GET  /api/join/code?c=<code>  → precheck (valid/kind/label) for the page.
-// See docs/JOIN_MODULE.md "Special invites".
+// See agents.d/modules/join.md "Special invites".
 
 import type { PagesEnv } from './types';
 import { mintInvite } from './forumInvite';

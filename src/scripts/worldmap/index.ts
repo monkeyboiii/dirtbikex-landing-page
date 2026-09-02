@@ -100,7 +100,7 @@ function pinPitch(map: MapLibreMap): number {
 
 const EMPTY: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: [] };
 
-/** A row in the operator-published shops doc — see docs/MAP_MODULE.md. */
+/** A row in the operator-published shops doc — see agents.d/modules/map.md. */
 interface ShopDoc {
   slug: string;
   name: string;

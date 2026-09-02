@@ -3,7 +3,7 @@
 -- job's rows (ON CONFLICT(email)), orphaning the first job — it showed 0/N "done" and never
 -- sent. Now the PK is a synthetic `id`; REAL send-once is enforced by a PARTIAL UNIQUE INDEX
 -- (email unique only WHERE mode='real'), and test rows may repeat freely. The drip now keys
--- per-row work on `id`, not `email`. See docs/OUTREACH_MODULE.md §"Batch outreach".
+-- per-row work on `id`, not `email`. See agents.d/modules/outreach.md §"Batch outreach".
 --   pnpm wrangler d1 execute dbx-subscribers --remote --env preview --file ./migrations/0007_outreach_pk.sql
 CREATE TABLE outreach_new (
   id            INTEGER PRIMARY KEY AUTOINCREMENT,

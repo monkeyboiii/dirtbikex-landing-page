@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // admin.mjs — friendly wrapper over `wrangler` for the /join + special-invite data.
 // Reuses your wrangler login (no extra token). All writes hit the remote D1/R2.
-// See docs/JOIN_MODULE.md "Admin (admin.mjs)".
+// See agents.d/modules/join.md "Admin (admin.mjs)".
 //
 //   node scripts/admin.mjs mint --kind holeshot_crew --campaign alice --count 5 [--expires-days 21]
 //                          [--track "Glen Helen" --region US --channel instagram]  # links the code in the contacts CRM

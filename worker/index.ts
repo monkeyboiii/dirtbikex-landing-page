@@ -1547,7 +1547,7 @@ export default {
       const param = decodeURIComponent(slw[1]!);
       return handleLineagePage(request, env, shareLineageRef(param), '/share/lineage/', param);
     }
-    // Rider lineage — the public read surface (docs/LINEAGE_MODULE.md). Reads are
+    // Rider lineage — the public read surface (agents.d/modules/lineage.md). Reads are
     // anonymous plugin endpoints, so no key and no CORS is involved; every write
     // stays in the forum, which is the only place a visitor has a session.
     const lineagePage = url.pathname.match(/^\/lineage\/(@?[A-Za-z0-9._\-]+)\/?$/);
@@ -1601,7 +1601,7 @@ export default {
     }
 
     // /api/outreach/* — pre-invite outreach (single test send + batch pipeline).
-    // See worker/_lib/outreach.ts + docs/OUTREACH_MODULE.md.
+    // See worker/_lib/outreach.ts + agents.d/modules/outreach.md.
     if (url.pathname === '/api/outreach/test' && request.method === 'POST') {
       return handleOutreachTest(request, env);
     }

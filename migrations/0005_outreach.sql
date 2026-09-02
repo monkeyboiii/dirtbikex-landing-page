@@ -1,4 +1,4 @@
--- D1 schema for the pre-invite BATCH outreach pipeline. See docs/OUTREACH_MODULE.md
+-- D1 schema for the pre-invite BATCH outreach pipeline. See agents.d/modules/outreach.md
 -- §"Batch outreach". Apply:
 --   pnpm wrangler d1 execute dbx-subscribers --file ./migrations/0005_outreach.sql
 --   local: add --local   ·   remote: add --remote   (repeat with --env preview)

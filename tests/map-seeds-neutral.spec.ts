@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 
 // The committed seeds ship INSIDE the bundle and are served to whichever environment
 // loses R2 — so anything environment-specific in them is a lie told to the other one.
-// docs/TRAILS_MODULE.md records what that cost: a staging trail on the prod map,
+// agents.d/modules/trails.md records what that cost: a staging trail on the prod map,
 // attributed to a staging user, silently, for anyone who hit an R2 hiccup. §3d asks
 // for this guard, because the fix is only permanent once the bad state cannot be
 // committed rather than merely being absent today.
@@ -27,7 +27,7 @@ test('committed map seeds name no environment', () => {
     expect(
       hit,
       `public/map/${file} names ${hit?.[0]} — environment data belongs in fixtures/map/<env>/, ` +
-        `not in a file the bundle serves to both environments (docs/TRAILS_MODULE.md)`,
+        `not in a file the bundle serves to both environments (agents.d/modules/trails.md)`,
     ).toBeNull();
   }
 });

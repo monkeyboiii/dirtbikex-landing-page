@@ -86,12 +86,12 @@ export interface PagesEnv {
   OUTREACH_SECRET?: string;
   /** "1" ONLY on the prod worker — the structural gate that permits `mode='real'` batch
    *  sends + real-recipient delivery. Absent/"0" on preview, so staging can only run
-   *  test modes (dry_run / override-to-your-inbox). See docs/OUTREACH_MODULE.md. */
+   *  test modes (dry_run / override-to-your-inbox). See agents.d/modules/outreach.md. */
   OUTREACH_ALLOW_REAL?: string;
   /** Per-UTC-day cap on `real` sends (warm-up). Optional; defaults to 200. */
   OUTREACH_DAILY_CAP?: string;
   /** Durable off-switch for the cron drip. Opt-OUT: absent means enabled, matching
-   *  TRAILS_UPLOAD_ENABLED. See docs/OUTREACH_MODULE.md § "The idle drip". */
+   *  TRAILS_UPLOAD_ENABLED. See agents.d/modules/outreach.md § "The idle drip". */
   OUTREACH_DRIP_ENABLED?: string;
   /** Resend webhook signing secret (`whsec_…`) for POST /api/outreach/webhook. Secret.
    *  Set on the env that actually sends real mail (prod). Absent = webhook returns 503. */

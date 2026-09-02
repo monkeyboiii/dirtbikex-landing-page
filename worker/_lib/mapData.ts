@@ -2,7 +2,7 @@ import type { PagesEnv } from './types';
 
 /**
  * Serves the world map's operator-curated data — the series story and the promoted
- * trails (docs/MAP_MODULE.md, docs/TRAILS_MODULE.md).
+ * trails (agents.d/modules/map.md, agents.d/modules/trails.md).
  *
  * R2 is the live projection — the operator overwrites it with `scripts/push-map-data.mjs`
  * and the change is live inside the edge TTL, no redeploy. The committed

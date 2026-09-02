@@ -11,7 +11,7 @@ import { test, expect, type Page } from '@playwright/test';
 //
 // The homepage carries a DELIBERATE, TEMPORARY exception: the MVP world map
 // streams tiles/glyphs/sprites from OpenFreeMap while self-hosted PMTiles are
-// still a later milestone (docs/MAP_MODULE.md "The tile host is a fenced breach"). The allowlist is
+// still a later milestone (agents.d/modules/map.md "The tile host is a fenced breach"). The allowlist is
 // per-route so that breach cannot silently spread to the rest of the site, and
 // it is removed when tiles move in-house.
 
@@ -55,7 +55,7 @@ const ROUTES: RouteSpec[] = [
   { path: '/founders' },
   { path: '/contact' },
   // Lineage pages are worker-rendered and read by people who never sign in —
-  // the China invariant has to extend to them (docs/LINEAGE_MODULE.md).
+  // the China invariant has to extend to them (agents.d/modules/lineage.md).
   { path: LINEAGE_RESUME_PATH },
   { path: LINEAGE_SHARE_PATH },
   // `?debug=true` renders an extra panel; it must stay as asset-free as the page.

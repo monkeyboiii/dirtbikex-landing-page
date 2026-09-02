@@ -1,5 +1,5 @@
 /**
- * Visitor trail upload — the client half. See docs/TRAIL_UPLOAD_MODULE.md.
+ * Visitor trail upload — the client half. See agents.d/modules/trail-upload.md.
  *
  * Everything expensive happens here rather than at the edge: the worker runs on the free
  * plan's ~10 ms CPU budget and cannot parse a 10 MB file, so it re-checks only the cheap

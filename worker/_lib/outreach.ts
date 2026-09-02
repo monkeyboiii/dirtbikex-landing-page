@@ -5,7 +5,7 @@
 //     (`outreach`), a Cron (or POST /api/outreach/drip) drips it out, /api/outreach/status
 //     reports jobs, /api/outreach/u is the tokened one-click unsubscribe.
 // Sender is Resend, From joindirtbikex.com (the reputation-isolated identity, same as the
-// join confirmation email). See docs/OUTREACH_MODULE.md §"Batch outreach".
+// join confirmation email). See agents.d/modules/outreach.md §"Batch outreach".
 import type { D1Database, PagesEnv } from './types';
 
 // personalization is TRACK NAME only (no owner greeting, by design)
@@ -1042,7 +1042,7 @@ export async function handleUnsub(request: Request, env: PagesEnv): Promise<Resp
 // 100 rows/tick = a single POST /emails/batch per minute = 100 emails/min, using ~0.02 of
 // Resend's 10 req/s team limit. The daily cap bounds the DAY's volume; this bounds the burst.
 // Both are needed: the cap alone let a spent budget re-open at 00:00 UTC and dump every
-// already-due row at once (docs/OUTREACH_MODULE.md warns about exactly that reputation spike).
+// already-due row at once (agents.d/modules/outreach.md warns about exactly that reputation spike).
 // Raise this only alongside a deliverability decision, in units of BATCH_CHUNK.
 const CLAIM_LIMIT = 100;
 const BATCH_CHUNK = 100;    // Resend's hard maximum per /emails/batch request
@@ -1318,7 +1318,7 @@ async function verifySvix(secret: string, id: string, timestamp: string, body: s
 
 // POST /api/outreach/webhook — Resend bounce/complaint events. Signature-verified (public,
 // mutating). Hard bounces + complaints suppress the address in D1 and cancel any still-pending
-// row; other events are acked and ignored. See docs/OUTREACH_MODULE.md §"Batch outreach".
+// row; other events are acked and ignored. See agents.d/modules/outreach.md §"Batch outreach".
 export async function handleWebhook(request: Request, env: PagesEnv): Promise<Response> {
   const secret = env.RESEND_WEBHOOK_SECRET;
   if (!secret) return json({ error: 'webhook not configured' }, 503);
