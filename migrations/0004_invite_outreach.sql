@@ -9,7 +9,7 @@
 -- Note: the --file path goes through the D1 import endpoint, which briefly makes
 -- the database unavailable to serve queries — apply in a quiet window, or run the
 -- five ALTERs individually via --command (the /query endpoint, no outage).
--- See dirtbikex-contacts docs/CONTACT_MODULE.md "Invites".
+-- See dirtbikex-contacts agents.d/modules/contact.md "Invites".
 ALTER TABLE invite_codes ADD COLUMN track_name TEXT;
 ALTER TABLE invite_codes ADD COLUMN track_region TEXT;
 ALTER TABLE invite_codes ADD COLUMN channel TEXT;
