@@ -1,3 +1,9 @@
+---
+kind: spec
+status: in-progress
+summary: a page listing and mapping every uploaded trail with simple administration, behind Cloudflare Zero Trust — or a tab in the Discourse plug…
+---
+
 # TRAIL_ADMIN_PLAN — where the operator surface for trails belongs
 
 **Status: discussion, rev 1. No code written.** Answers the question asked on 2026-08-22:

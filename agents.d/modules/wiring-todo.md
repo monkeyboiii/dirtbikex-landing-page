@@ -1,3 +1,9 @@
+---
+kind: note
+status: current
+summary: Live, visitor-facing placeholders that need real values before/at launch. Tick items off as they land.
+---
+
 # Wiring TODO — placeholders awaiting real values
 
 Live, visitor-facing placeholders that need real values before/at launch.

@@ -1,3 +1,9 @@
+---
+kind: why
+status: current
+summary: The public read surface for the lineage graph . Everything here is READ: the worker has no visitor session, so confirming, declining and …
+---
+
 # LINEAGE_MODULE — the rider résumé on the web
 
 The public read surface for the lineage graph (design + phases:

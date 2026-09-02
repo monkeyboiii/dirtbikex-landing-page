@@ -1,3 +1,9 @@
+---
+kind: spec
+status: in-progress
+summary: 2026-08-21, corrects one part of it that is unsafe as stated, and enumerates the cases it has to answer. Companion to TRAILUPLOADMODULE.
+---
+
 # TRAIL_PRECEDENCE_PLAN — who holds a spot on the map
 
 **Status: proposal, rev 1. No code written.** Formalises the precedence rule proposed on

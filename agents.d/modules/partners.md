@@ -1,3 +1,9 @@
+---
+kind: why
+status: current
+summary: The brand‑partnership funnel on the marketing site: attract brands to the reserved hero placement — a direct, deal‑based cross‑branding a…
+---
+
 # Partners Module
 
 The brand‑partnership funnel on the marketing site: attract **brands** (not consumers)

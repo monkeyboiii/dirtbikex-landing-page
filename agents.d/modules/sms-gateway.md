@@ -1,3 +1,9 @@
+---
+kind: note
+status: current
+summary: Cloudflare Worker endpoint that backs Logto's HTTP SMS connector. Routes by country , enforces a seven-bucket quota stack in KV, returns …
+---
+
 # SMS Gateway (`/api/logto/sms`)
 
 Cloudflare Worker endpoint that backs Logto's HTTP SMS connector. Routes by country (CN → Aliyun, US → AWS SNS), enforces a seven-bucket quota stack in KV, returns the HTTP status codes Logto expects. Lives **inside the landing-page Worker** at `www.dirtbikex.com` (prod) / `www.dirtbikechina.com` (preview) — not a separate worker.

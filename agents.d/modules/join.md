@@ -1,3 +1,9 @@
+---
+kind: why
+status: current
+summary: Double-opt-in email waitlist at dirtbikex.com/join. Builds a consent-first subscriber list so outreach is opted-in . The opt-in page live…
+---
+
 # Join Module
 
 Double-opt-in email waitlist at `dirtbikex.com/join`. Builds a **consent-first**

@@ -1,3 +1,9 @@
+---
+kind: why
+status: current
+summary: The pre-invite cold email — the thin first touch to a track operator , carrying no invite code, link, or QR. It is the top of the funnel …
+---
+
 # Outreach Module
 
 The **pre-invite cold email** — the thin first touch to a track operator ("we built

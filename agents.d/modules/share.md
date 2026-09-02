@@ -1,3 +1,9 @@
+---
+kind: why
+status: current
+summary: Supersedes SHAREENTITIES.md , whose route table had gone stale: the map kinds moved from /s/ to /share/ and the old paths now 301. Also f…
+---
+
 # SHARE_MODULE — a card for every thing on the map
 
 Supersedes `SHARE_ENTITIES.md` (deleted 2026-08-21), whose route table had gone stale: the

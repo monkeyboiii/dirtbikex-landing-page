@@ -1,3 +1,9 @@
+---
+kind: why
+status: current
+summary: A trail is one rider's recorded GPX, promoted onto the world map by an operator. It draws as a blip like any catalog pin until you tap it…
+---
+
 # TRAILS_MODULE — somebody's actual ride, on the map
 
 A trail is one rider's recorded GPX, promoted onto the world map by an operator. It draws as

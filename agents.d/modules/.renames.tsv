@@ -1,0 +1,15 @@
+old	new
+docs/JOIN_MODULE.md	agents.d/modules/join.md
+docs/LEGAL_REVIEW.md	agents.d/modules/legal-review.md
+docs/LINEAGE_MODULE.md	agents.d/modules/lineage.md
+docs/MAP_MODULE.md	agents.d/modules/map.md
+docs/OUTREACH_MODULE.md	agents.d/modules/outreach.md
+docs/PARTNERS_MODULE.md	agents.d/modules/partners.md
+docs/SHARE_MODULE.md	agents.d/modules/share.md
+docs/TRAILS_MODULE.md	agents.d/modules/trails.md
+docs/TRAIL_ADMIN_PLAN.md	agents.d/modules/trail-admin-plan.md
+docs/TRAIL_PRECEDENCE_PLAN.md	agents.d/modules/trail-precedence-plan.md
+docs/TRAIL_UPLOAD_MODULE.md	agents.d/modules/trail-upload.md
+docs/WIRING_TODO.md	agents.d/modules/wiring-todo.md
+docs/sms-gateway.md	agents.d/modules/sms-gateway.md
+CLAUDE.md	AGENTS.md

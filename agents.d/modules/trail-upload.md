@@ -1,3 +1,9 @@
+---
+kind: why
+status: current
+summary: An operator-imported trail is TRAILSMODULE: somebody decided a ride belonged on the map and ran a script. This is the other path — a stra…
+---
+
 # TRAIL_UPLOAD_MODULE — letting a visitor put their own ride on the map
 
 An operator-imported trail is [TRAILS_MODULE](TRAILS_MODULE.md): somebody decided a ride

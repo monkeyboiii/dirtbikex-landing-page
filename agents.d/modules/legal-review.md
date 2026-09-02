@@ -1,3 +1,9 @@
+---
+kind: note
+status: current
+summary: Concise hand-off for legal counsel and the founder. Drafted 2026-05-22.
+---
+
 # Legal & policy docs — review notes
 
 Concise hand-off for legal counsel and the founder. Drafted 2026-05-22.

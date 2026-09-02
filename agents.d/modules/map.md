@@ -1,3 +1,9 @@
+---
+kind: why
+status: current
+summary: / on all 21 locales is a full-viewport MapLibre map: ~3,600 catalog pins, a 100-track journey, rider trails, shops, riders. Everything el…
+---
+
 # MAP_MODULE — the homepage is a map
 
 `/` on all 21 locales is a full-viewport MapLibre map: ~3,600 catalog pins, a 100-track
