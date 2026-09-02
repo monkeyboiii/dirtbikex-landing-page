@@ -11,30 +11,30 @@ a blip like any catalog pin until you tap it, at which point its trace is fetche
 as a polyline.
 
 This documents the operator path. The other one — a visitor dropping their own `.gpx` on
-the map — is [TRAIL_UPLOAD_MODULE](TRAIL_UPLOAD_MODULE.md), and it shares this file's entry
+the map — is [TRAIL_UPLOAD_MODULE](trail-upload.md), and it shares this file's entry
 format, its parser and its map layers, but none of its storage: an upload lives in D1 and is
 merged into the document at serve time, never written into it.
 
 Folded 2026-08-21 from the trail sections of `CONCRETE_MAP_PLAN.md` (D12) and
 `MAP_LAYERS_PLAN.md` §3b, both untracked at the umbrella root. The surface a trail appears on
-is [MAP_MODULE](MAP_MODULE.md); its share card is [SHARE_MODULE](SHARE_MODULE.md).
+is [MAP_MODULE](map.md); its share card is [SHARE_MODULE](share.md).
 
 ## Module layout
 
 | Concern | Where |
 |---|---|
-| A forum post id → a trail entry | [`scripts/import-forum-trail.mjs`](../scripts/import-forum-trail.mjs) |
-| A loose file or CDN URL → a trail entry | [`scripts/import-gpx-trail.mjs`](../scripts/import-gpx-trail.mjs) |
-| The GPX → entry maths, shared by both | [`scripts/lib/gpx-trail.mjs`](../scripts/lib/gpx-trail.mjs) |
-| Which file is canonical for which environment | [`scripts/lib/map-source.mjs`](../scripts/lib/map-source.mjs) |
-| Validation + the R2 push | [`scripts/push-map-data.mjs`](../scripts/push-map-data.mjs) |
-| The documents themselves | [`fixtures/map/preview/trails.json`](../fixtures/map/preview/trails.json), [`fixtures/map/prod/trails.json`](../fixtures/map/prod/trails.json) |
-| Outage fallback (must stay empty) | [`public/map/trails.seed.json`](../public/map/trails.seed.json) |
-| Serving | [`worker/_lib/mapData.ts`](../worker/_lib/mapData.ts) → `/api/map/trails.json` |
-| Client fetch + parse + decimate | [`src/scripts/worldmap/gpx.ts`](../src/scripts/worldmap/gpx.ts) |
-| Ingest, layers, tap-to-draw | [`src/scripts/worldmap/index.ts`](../src/scripts/worldmap/index.ts) — `fetchTrails`, `openTrail`, `traceTrail`, `drawTrail`, `fitTrail` |
-| The trail sheet | [`src/scripts/worldmap/panel.ts`](../src/scripts/worldmap/panel.ts) `showTrail` |
-| Seed-neutrality guard | [`tests/map-seeds-neutral.spec.ts`](../tests/map-seeds-neutral.spec.ts) |
+| A forum post id → a trail entry | [`scripts/import-forum-trail.mjs`](../../scripts/import-forum-trail.mjs) |
+| A loose file or CDN URL → a trail entry | [`scripts/import-gpx-trail.mjs`](../../scripts/import-gpx-trail.mjs) |
+| The GPX → entry maths, shared by both | [`scripts/lib/gpx-trail.mjs`](../../scripts/lib/gpx-trail.mjs) |
+| Which file is canonical for which environment | [`scripts/lib/map-source.mjs`](../../scripts/lib/map-source.mjs) |
+| Validation + the R2 push | [`scripts/push-map-data.mjs`](../../scripts/push-map-data.mjs) |
+| The documents themselves | [`fixtures/map/preview/trails.json`](../../fixtures/map/preview/trails.json), [`fixtures/map/prod/trails.json`](../../fixtures/map/prod/trails.json) |
+| Outage fallback (must stay empty) | [`public/map/trails.seed.json`](../../public/map/trails.seed.json) |
+| Serving | [`worker/_lib/mapData.ts`](../../worker/_lib/mapData.ts) → `/api/map/trails.json` |
+| Client fetch + parse + decimate | [`src/scripts/worldmap/gpx.ts`](../../src/scripts/worldmap/gpx.ts) |
+| Ingest, layers, tap-to-draw | [`src/scripts/worldmap/index.ts`](../../src/scripts/worldmap/index.ts) — `fetchTrails`, `openTrail`, `traceTrail`, `drawTrail`, `fitTrail` |
+| The trail sheet | [`src/scripts/worldmap/panel.ts`](../../src/scripts/worldmap/panel.ts) `showTrail` |
+| Seed-neutrality guard | [`tests/map-seeds-neutral.spec.ts`](../../tests/map-seeds-neutral.spec.ts) |
 
 ## A trail entry is metadata; the geometry is fetched on tap
 
@@ -143,7 +143,7 @@ count, bbox) and the browser's only feed the drawn line. There is now a **third*
 `src/scripts/worldmap/upload.ts` measures a visitor's file in the browser, using the same
 hand-rolled scanner, and those numbers go straight into the entry — so an uploaded trail's
 distance comes from `gpx.ts`'s reading and an imported trail's from `gpx-trail.mjs`'s. See
-[TRAIL_UPLOAD_MODULE](TRAIL_UPLOAD_MODULE.md).
+[TRAIL_UPLOAD_MODULE](trail-upload.md).
 
 ## Route points poison a file
 

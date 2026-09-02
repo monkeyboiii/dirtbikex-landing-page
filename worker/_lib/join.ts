@@ -87,14 +87,14 @@ export async function handleJoinSubmit(request: Request, env: PagesEnv): Promise
   const locale = LOCALES.includes(rawLocale) ? rawLocale : 'en';
   const code = typeof body.code === 'string' ? body.code.trim() : '';
   // Redeem-time choice by whoever enters the email on the join page (checkbox,
-  // default off). NOT a property of the D1 code row — see JOIN_MODULE.md.
+  // default off). NOT a property of the D1 code row — see agents.d/modules/join.md.
   const emailLocked = body.email_locked === true;
 
   // Abuse caps. Warn-and-allow if KV is unbound — a sign-up shouldn't hard-fail
   // on a missing-binding config gap (unlike the auth SMS gateway, which fails closed).
   // Operator/test addresses are exempt: repeated Deliver tests tripped the 3/day
   // email cap, and the CRM's server-side Deliver funnels ALL sends through one
-  // egress IP against the 10/h cap. See JOIN_MODULE.md § Debugging.
+  // egress IP against the 10/h cap. See agents.d/modules/join.md § Debugging.
   if (env.RATELIMIT_KV && !rateExempt(email)) {
     const byIp = await rateLimitConsume(env.RATELIMIT_KV, `join:ip:${clientIp(request)}:1h`, 10, 3600);
     const byEmail = await rateLimitConsume(env.RATELIMIT_KV, `join:email:${email}:1d`, 3, 86400);
@@ -345,7 +345,7 @@ Unsubscribe: ${unsubUrl}`;
   // Track-steward invites answer the operator's own reply to a cold email/DM — a
   // different provenance than the waitlist, so the copy, the step meter, and the
   // footer reason line are steward-specific. Layout + lock semantics:
-  // JOIN_MODULE.md § "Steward invite email" / § "Per-redemption Discourse invites".
+  // agents.d/modules/join.md § "Steward invite email" / § "Per-redemption Discourse invites".
   if (kind === 'track_stewards') {
     subject = 'Your Track Stewards invite — one step to go';
     const check = '<td style="padding:2px 10px 2px 0;color:#1a7f37;">&#10003;</td>';

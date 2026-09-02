@@ -872,7 +872,7 @@ async function handleLineagePage(request: Request, env: Env, ref: string, route:
 }
 
 /**
- * The one-time claim card a visitor is handed after an upload. See TRAIL_UPLOAD_MODULE.md.
+ * The one-time claim card a visitor is handed after an upload. See agents.d/modules/trail-upload.md.
  *
  * It is deliberately a buffer rather than a redirect: the code is a bearer credential and
  * the jump lands on a forum login, so a visitor who arrives here needs to be told what is
@@ -1569,7 +1569,7 @@ export default {
       if (url.pathname === '/api/map/series.json') return handleMapDoc(request, env, ctx, 'series');
       if (url.pathname === '/api/map/trails.json') {
         // Curated fixture first, visitor uploads merged over it. Uploads never enter the
-        // R2 document — see TRAIL_UPLOAD_MODULE.md.
+        // R2 document — see agents.d/modules/trail-upload.md.
         return handleMapDoc(request, env, ctx, 'trails', async (doc) => {
           const curated = Array.isArray(doc.trails) ? doc.trails : [];
           return { ...doc, trails: [...curated, ...(await publicTrailEntries(env))] };

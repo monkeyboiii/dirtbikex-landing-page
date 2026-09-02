@@ -51,7 +51,7 @@ export interface PagesEnv {
   /** Object-key prefix isolating this env's map data inside the shared bucket: `prod` / `preview`. */
   MAP_DATA_PREFIX?: string;
   /** Discourse `Api-Username` for the trail-upload service account — a dedicated, non-staff
-   *  TL1 user, NOT the operator. See TRAIL_UPLOAD_MODULE.md. */
+   *  TL1 user, NOT the operator. See agents.d/modules/trail-upload.md. */
   FORUM_TRAILS_USERNAME?: string;
   /** Discourse `Api-Key` for that account, scoped to `uploads:create` and nothing else.
    *  Secret. A leak of this key can put a file in the upload store and do nothing else —
@@ -79,7 +79,7 @@ export interface PagesEnv {
   TRAIL_PUBLISH_CAP?: string;
   /** Shared bearer between the worker and the forum plugin, both directions. Unset means
    *  the plugin surface does not exist — every one of its endpoints 404s, and the
-   *  reconcile pull does nothing. See TRAIL_UPLOAD_MODULE.md. */
+   *  reconcile pull does nothing. See agents.d/modules/trail-upload.md. */
   TRAILS_PLUGIN_TOKEN?: string;
   ASSETS?: AssetsBinding;
   /** Shared bearer for the /api/outreach/* endpoints (the CRM's pre-invite test + batch). Secret. */
@@ -179,7 +179,7 @@ export interface ShareLandingProps {
    *  (WeChat and friends). Presence is the render gate for the escape-hatch hint: the tap
    *  still attempts the destination, and this one line is what the rider sees when the
    *  attempt goes nowhere. One line on purpose — it sits under the host app's own ··· and
-   *  must not become a dialog. See MAP_MODULE.md § "When the app will not open".
+   *  must not become a dialog. See agents.d/modules/map.md § "When the app will not open".
    *
    *  Already localised; the words are the host's own menu item, not a paraphrase. */
   browserHint?: { line: string };
@@ -309,7 +309,7 @@ export interface UserRow {
  *
  * Intentionally omitted vs `Invite.swift`: `link`, `email`, `domain`,
  * `can_delete_invite` — recipient doesn't need them, and `email` is the
- * long-standing leak vector (SHARING_MODULE.md "Discourse contracts").
+ * long-standing leak vector (ios/agents.d/modules/sharing.md "Discourse contracts").
  */
 export interface InviteRow {
   id: number;

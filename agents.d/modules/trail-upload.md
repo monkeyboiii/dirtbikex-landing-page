@@ -6,7 +6,7 @@ summary: An operator-imported trail is TRAILSMODULE: somebody decided a ride bel
 
 # TRAIL_UPLOAD_MODULE — letting a visitor put their own ride on the map
 
-An operator-imported trail is [TRAILS_MODULE](TRAILS_MODULE.md): somebody decided a ride
+An operator-imported trail is [TRAILS_MODULE](trails.md): somebody decided a ride
 belonged on the map and ran a script. This is the other path — a stranger drops a `.gpx`
 on the map, gets a private link and a one-time code, and decides later whether it becomes
 theirs and whether anyone else ever sees it.
@@ -81,16 +81,16 @@ clause belongs in the product copy, not only here.
 
 | Concern | Where |
 |---|---|
-| The whole visitor write surface | [`worker/_lib/trailUpload.ts`](../worker/_lib/trailUpload.ts) |
-| The index | [`migrations/0009_trails.sql`](../migrations/0009_trails.sql), [`0010_trails_short_url.sql`](../migrations/0010_trails_short_url.sql) |
-| Client parse, measure, reject | [`src/scripts/worldmap/upload.ts`](../src/scripts/worldmap/upload.ts) |
-| The control, the drop target, the sheets | [`src/components/WorldMap.astro`](../src/components/WorldMap.astro), [`index.ts`](../src/scripts/worldmap/index.ts) `uploadTrail`/`openSecretTrail`, [`panel.ts`](../src/scripts/worldmap/panel.ts) `showUpload*`/`showMissingTrail` |
-| The claim card | [`worker/index.ts`](../worker/index.ts) `handleTrailClaim`, `CLAIM_COPY` |
-| Merge into the map document | [`worker/index.ts`](../worker/index.ts) `/api/map/trails.json` augment → `publicTrailEntries` |
-| Sweep + reconcile | [`worker/index.ts`](../worker/index.ts) `scheduled`, [`trailUpload.ts`](../worker/_lib/trailUpload.ts) `sweepExpiredTrails`/`reconcileTrails` |
+| The whole visitor write surface | [`worker/_lib/trailUpload.ts`](../../worker/_lib/trailUpload.ts) |
+| The index | [`migrations/0009_trails.sql`](../../migrations/0009_trails.sql), [`0010_trails_short_url.sql`](../../migrations/0010_trails_short_url.sql) |
+| Client parse, measure, reject | [`src/scripts/worldmap/upload.ts`](../../src/scripts/worldmap/upload.ts) |
+| The control, the drop target, the sheets | [`src/components/WorldMap.astro`](../../src/components/WorldMap.astro), [`index.ts`](../../src/scripts/worldmap/index.ts) `uploadTrail`/`openSecretTrail`, [`panel.ts`](../../src/scripts/worldmap/panel.ts) `showUpload*`/`showMissingTrail` |
+| The claim card | [`worker/index.ts`](../../worker/index.ts) `handleTrailClaim`, `CLAIM_COPY` |
+| Merge into the map document | [`worker/index.ts`](../../worker/index.ts) `/api/map/trails.json` augment → `publicTrailEntries` |
+| Sweep + reconcile | [`worker/index.ts`](../../worker/index.ts) `scheduled`, [`trailUpload.ts`](../../worker/_lib/trailUpload.ts) `sweepExpiredTrails`/`reconcileTrails` |
 | Claim, publish, drop | `discourse-dirtbikex-event-filters`: `lib/dirtbikex_event_filters/trail_claims.rb`, `trail_worker.rb`, `trail_claim.rb`, `app/controllers/dirtbikex_event_filters/trail_claims_controller.rb` |
 | The owner's switch | `discourse-dbx-gpx-preview`: `javascripts/discourse/initializers/dbx-gpx-preview.js` |
-| E2E | [`tests/trail-upload.spec.ts`](../tests/trail-upload.spec.ts) — opt-in, it really uploads |
+| E2E | [`tests/trail-upload.spec.ts`](../../tests/trail-upload.spec.ts) — opt-in, it really uploads |
 
 ## Routes
 
@@ -519,7 +519,7 @@ one office IP will hit it — and it is the first number to revisit if real peop
 - **`/s/c/*` is deliberately not in AASA.** A path joins the association file only when the
   shipped app has a destination for it; claiming a trail has none yet. Adding it early is
   exactly what makes the app raise its invalid-link bubble on a good link — see
-  [SHARE_MODULE](SHARE_MODULE.md).
+  [SHARE_MODULE](share.md).
 - **The claim card is `no-store`.** Its whole content is the state of a secret.
 - **A trail resolved from `?trail=` never joins the layer**, the search index or the cull.
   It is not in the catalog and must vanish when the visitor leaves.
@@ -603,5 +603,5 @@ Kept because three of these were killed by facts that are still true.
 
 ---
 
-**Related:** [TRAILS_MODULE](TRAILS_MODULE.md) · [MAP_MODULE](MAP_MODULE.md) ·
-[SHARE_MODULE](SHARE_MODULE.md) · [JOIN_MODULE](JOIN_MODULE.md)
+**Related:** [TRAILS_MODULE](trails.md) · [MAP_MODULE](map.md) ·
+[SHARE_MODULE](share.md) · [JOIN_MODULE](join.md)

@@ -950,7 +950,7 @@ export async function handleStatus(request: Request, env: PagesEnv): Promise<Res
   return json({ ok: true, jobs, sent, suppressions });
 }
 
-// GET /api/outreach/metrics — aggregate-only D1 counters for the Prometheus exporter. See DASHBOARDS_MODULE.md § DBX Outreach.
+// GET /api/outreach/metrics — aggregate-only D1 counters for the Prometheus exporter. See infra/agents.d/modules/dashboards.md § DBX Outreach.
 export async function handleMetrics(request: Request, env: PagesEnv): Promise<Response> {
   if (!checkAuth(request, env)) return json({ error: 'unauthorized' }, 401);
   if (!env.SUBSCRIBERS_DB) return json({ error: 'outreach db not bound' }, 503);

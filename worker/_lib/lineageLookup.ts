@@ -65,7 +65,7 @@ export interface LineageClaimPreview {
 }
 
 /**
- * `reason` + `httpStatus` exist for `?debug=true` (LINEAGE_MODULE.md § debug):
+ * `reason` + `httpStatus` exist for `?debug=true` (agents.d/modules/lineage.md § debug):
  * "unreachable" alone cannot tell an operator whether the forum was down, the
  * plugin was disabled, or the JSON was malformed. Callers that only branch on
  * `status` are unaffected.

@@ -8,7 +8,7 @@ summary: The pre-invite cold email — the thin first touch to a track operator 
 
 The **pre-invite cold email** — the thin first touch to a track operator ("we built
 DirtBikeX, interested?"), carrying **no invite code, link, or QR**. It is the top of
-the funnel that precedes everything in [JOIN_MODULE](JOIN_MODULE.md): only if an
+the funnel that precedes everything in [JOIN_MODULE](join.md): only if an
 operator *replies* do we mint an invite (the `/api/join` Deliver flow). Sending is
 Resend, `From joindirtbikex.com` — the same reputation-isolated identity as the join
 confirmation email, so a cold-outreach reputation hit never touches `dirtbikex.com`.
@@ -36,11 +36,11 @@ outreach").
 
 | Concern | Where | Notes |
 |---|---|---|
-| Template + send + test route | [worker/_lib/outreach.ts](../worker/_lib/outreach.ts) | `renderPreInvite` (track-name fill, bilingual local+EN), `sendPreInvite` (Resend), `handleOutreachTest` (bearer, single send) |
-| Route dispatch | [worker/index.ts](../worker/index.ts) | `POST /api/outreach/test` matched before the `ASSETS` fallthrough |
-| Env (secret) | [worker/_lib/types.ts](../worker/_lib/types.ts) | `OUTREACH_SECRET?` on `PagesEnv` (shared bearer with the CRM) |
-| CRM caller | dirtbikex-contacts [scripts/contact_web.py](../../dirtbikex-contacts/scripts/contact_web.py) `POST /outreach/test` | proxies here with the bearer; the CRM never sends email itself ([CONTACT_MODULE](../../dirtbikex-contacts/docs/CONTACT_MODULE.md) §"Pre-invite") |
-| Sending identity (shared) | `JOIN_FROM_EMAIL` / `JOIN_REPLY_TO` / `JOIN_ORG_ADDRESS` | reused verbatim from [JOIN_MODULE](JOIN_MODULE.md) — one verified domain, one CAN-SPAM footer |
+| Template + send + test route | [worker/_lib/outreach.ts](../../worker/_lib/outreach.ts) | `renderPreInvite` (track-name fill, bilingual local+EN), `sendPreInvite` (Resend), `handleOutreachTest` (bearer, single send) |
+| Route dispatch | [worker/index.ts](../../worker/index.ts) | `POST /api/outreach/test` matched before the `ASSETS` fallthrough |
+| Env (secret) | [worker/_lib/types.ts](../../worker/_lib/types.ts) | `OUTREACH_SECRET?` on `PagesEnv` (shared bearer with the CRM) |
+| CRM caller | dirtbikex-contacts [scripts/contact_web.py](../../../dirtbikex-contacts/scripts/contact_web.py) `POST /outreach/test` | proxies here with the bearer; the CRM never sends email itself ([CONTACT_MODULE](../../dirtbikex-contacts/docs/CONTACT_MODULE.md) §"Pre-invite") |
+| Sending identity (shared) | `JOIN_FROM_EMAIL` / `JOIN_REPLY_TO` / `JOIN_ORG_ADDRESS` | reused verbatim from [JOIN_MODULE](join.md) — one verified domain, one CAN-SPAM footer |
 
 ## Architecture decisions
 
@@ -291,7 +291,7 @@ inheritable, so both workers persist logs.
 
 ## Routes, schema, config
 
-**Routes** (in [worker/index.ts](../worker/index.ts) → [worker/_lib/outreach.ts](../worker/_lib/outreach.ts)):
+**Routes** (in [worker/index.ts](../../worker/index.ts) → [worker/_lib/outreach.ts](../../worker/_lib/outreach.ts)):
 
 | Method · path | Does | Returns |
 |---|---|---|
@@ -303,7 +303,7 @@ inheritable, so both workers persist logs.
 | `POST /api/outreach/webhook` | Resend bounce/complaint, **Svix-verified** (`RESEND_WEBHOOK_SECRET`, +5min replay guard) → hard bounce + complaint suppress in D1 + cancel pending; other events acked | `200 {ok}` · `401` bad sig · `503` unconfigured |
 | `POST /api/outreach/drip?dry=` | **PLANNED** — run one drip tick on demand (`dry=1` logs, no send) | processed batch |
 
-**Env** (shared with [JOIN_MODULE](JOIN_MODULE.md), + one new secret):
+**Env** (shared with [JOIN_MODULE](join.md), + one new secret):
 
 | Key | Notes |
 |---|---|

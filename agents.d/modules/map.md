@@ -16,8 +16,8 @@ the code on that date; the plans' claims that turned out to be false are listed 
 [What the plans said that is no longer true](#what-the-plans-said-that-is-no-longer-true)
 rather than quietly dropped, because a stale canonical doc is worse than a missing one.
 
-Share cards for map entities are [SHARE_MODULE](SHARE_MODULE.md). How a trail gets onto the
-map is [TRAILS_MODULE](TRAILS_MODULE.md). The rider layer is [LINEAGE_MODULE](LINEAGE_MODULE.md).
+Share cards for map entities are [SHARE_MODULE](share.md). How a trail gets onto the
+map is [TRAILS_MODULE](trails.md). The rider layer is [LINEAGE_MODULE](lineage.md).
 
 ## Three datasets, three cadences
 
@@ -31,21 +31,21 @@ map is [TRAILS_MODULE](TRAILS_MODULE.md). The rider layer is [LINEAGE_MODULE](LI
 
 | Concern | Where | Notes |
 |---|---|---|
-| The island | [`src/scripts/worldmap/index.ts`](../src/scripts/worldmap/index.ts) | 1,909 lines; the only file that owns the `MapLibreMap`. `bootWorldMap()` at 1792, `class WorldMap` at 392 |
-| Shapes + layer registry | [`types.ts`](../src/scripts/worldmap/types.ts) | Dependency-free on purpose so Astro frontmatter can import it |
-| Sheets | [`panel.ts`](../src/scripts/worldmap/panel.ts) | Episode / track / shop / trail cards, carousel, directions + short-video choosers |
-| Journey HUD | [`hud.ts`](../src/scripts/worldmap/hud.ts) | The scrubber rail, counter, series-mode toggle |
-| Search | [`search.ts`](../src/scripts/worldmap/search.ts) | Plain scan over the in-memory catalog — no index, no worker, no endpoint |
-| GPX | [`gpx.ts`](../src/scripts/worldmap/gpx.ts) | Fetch cap, hand-rolled scanner, decimation |
-| Datum | [`geo.ts`](../src/scripts/worldmap/geo.ts) | WGS-84 → GCJ-02, forward only |
-| Markup + i18n dict | [`src/components/WorldMap.astro`](../src/components/WorldMap.astro) | Server-renders canvas, gate, rail, search, HUD, panel, drawer; emits the config the island reads |
-| Styling | [`src/styles/map.css`](../src/styles/map.css) | 1,894 lines, banner-sectioned |
-| Mount points | [`src/pages/index.astro`](../src/pages/index.astro), [`[lang]/index.astro`](../src/pages/[lang]/index.astro), [`BaseLayout.astro`](../src/layouts/BaseLayout.astro) | `chrome="map"` suppresses the site footer — the drawer owns it |
-| Basemap forks | [`public/map/style-dark.json`](../public/map/style-dark.json), [`style-light.json`](../public/map/style-light.json) | 43 layers each, identical ids/order/sources |
-| Marker artwork | [`public/map/markers/`](../public/map/markers/) | Contract in its [README](../public/map/markers/README.md): 24×24, 20×20 safe area, one colour via `currentColor` |
-| Live documents | [`worker/index.ts`](../worker/index.ts) 938–942, [`worker/_lib/mapData.ts`](../worker/_lib/mapData.ts) | `/api/map/{series,trails,shops,track}.json`, `/api/map/og` |
-| Publishing | [`scripts/push-map-data.mjs`](../scripts/push-map-data.mjs) | `--env preview\|prod [--doc …] [--check]` |
-| CI guards | [`tests/map-seeds-neutral.spec.ts`](../tests/map-seeds-neutral.spec.ts), [`tests/no-external-assets.spec.ts`](../tests/no-external-assets.spec.ts) | Seed neutrality; the tile carve-out |
+| The island | [`src/scripts/worldmap/index.ts`](../../src/scripts/worldmap/index.ts) | 1,909 lines; the only file that owns the `MapLibreMap`. `bootWorldMap()` at 1792, `class WorldMap` at 392 |
+| Shapes + layer registry | [`types.ts`](../../src/scripts/worldmap/types.ts) | Dependency-free on purpose so Astro frontmatter can import it |
+| Sheets | [`panel.ts`](../../src/scripts/worldmap/panel.ts) | Episode / track / shop / trail cards, carousel, directions + short-video choosers |
+| Journey HUD | [`hud.ts`](../../src/scripts/worldmap/hud.ts) | The scrubber rail, counter, series-mode toggle |
+| Search | [`search.ts`](../../src/scripts/worldmap/search.ts) | Plain scan over the in-memory catalog — no index, no worker, no endpoint |
+| GPX | [`gpx.ts`](../../src/scripts/worldmap/gpx.ts) | Fetch cap, hand-rolled scanner, decimation |
+| Datum | [`geo.ts`](../../src/scripts/worldmap/geo.ts) | WGS-84 → GCJ-02, forward only |
+| Markup + i18n dict | [`src/components/WorldMap.astro`](../../src/components/WorldMap.astro) | Server-renders canvas, gate, rail, search, HUD, panel, drawer; emits the config the island reads |
+| Styling | [`src/styles/map.css`](../../src/styles/map.css) | 1,894 lines, banner-sectioned |
+| Mount points | [`src/pages/index.astro`](../../src/pages/index.astro), [`[lang]/index.astro`](../../src/pages/[lang]/index.astro), [`BaseLayout.astro`](../../src/layouts/BaseLayout.astro) | `chrome="map"` suppresses the site footer — the drawer owns it |
+| Basemap forks | [`public/map/style-dark.json`](../../public/map/style-dark.json), [`style-light.json`](../../public/map/style-light.json) | 43 layers each, identical ids/order/sources |
+| Marker artwork | [`public/map/markers/`](../../public/map/markers) | Contract in its [README](../../public/map/markers/README.md): 24×24, 20×20 safe area, one colour via `currentColor` |
+| Live documents | [`worker/index.ts`](../../worker/index.ts) 938–942, [`worker/_lib/mapData.ts`](../../worker/_lib/mapData.ts) | `/api/map/{series,trails,shops,track}.json`, `/api/map/og` |
+| Publishing | [`scripts/push-map-data.mjs`](../../scripts/push-map-data.mjs) | `--env preview\|prod [--doc …] [--check]` |
+| CI guards | [`tests/map-seeds-neutral.spec.ts`](../../tests/map-seeds-neutral.spec.ts), [`tests/no-external-assets.spec.ts`](../../tests/no-external-assets.spec.ts) | Seed neutrality; the tile carve-out |
 
 ## Both catalog tiers ship, not just the verified one
 
@@ -238,7 +238,7 @@ Carried here so nobody re-derives them from the old files:
 - **Trail geometry is fetched on tap, not baked into the document.** The plans describe
   Douglas–Peucker simplification *into* `trails.json`; entries are metadata-only now.
 - **Client-side search is done**; the `/s/t/<slug>` share route names are wrong (see
-  [SHARE_MODULE](SHARE_MODULE.md)).
+  [SHARE_MODULE](share.md)).
 - **No RTL text plugin was ever added**, though §5.3 asserts it as shipped.
 - **The boot poster is a CSS surface, not a pre-rendered image**, so it is not the LCP element.
 - `PROD_INSTALL_DEBT.md` was cited five times across the scripts, the CI guards and two
@@ -288,7 +288,7 @@ Carried here so nobody re-derives them from the old files:
 - **Held firm at V1:** accounts, personalization, GPX uploads on web, editing from web, any
   framework, live WebSocket anything. **Web upload has since shipped**, and it holds the line
   it was drawn against: the visitor still has no account here, and the forum is still the only
-  place they have a session — see [TRAIL_UPLOAD_MODULE](TRAIL_UPLOAD_MODULE.md).
+  place they have a session — see [TRAIL_UPLOAD_MODULE](trail-upload.md).
 
 ## Operator
 

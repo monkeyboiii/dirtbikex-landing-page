@@ -1,4 +1,4 @@
--- Visitor-uploaded rider trails. See TRAIL_UPLOAD_MODULE.md.
+-- Visitor-uploaded rider trails. See agents.d/modules/trail-upload.md.
 --
 -- The GPX bytes live in Discourse (uploads-cdn), not here — this table is the index the
 -- map reads and the only place a trail's visibility, secret and expiry are decided.

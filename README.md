@@ -17,7 +17,7 @@ FORUM_API_USERNAME=system
 FORUM_API_KEY=<discourse-api-key>
 ```
 
-`FORUM_API_KEY` is a secret — never commit it. The other three are mirrored from [wrangler.jsonc](wrangler.jsonc) for parity with deployed environments. For the full env surface (Logto SMS creds, `RATELIMIT_KV`, `SPONSOR_API_BASE`) see [wrangler.jsonc](wrangler.jsonc) and [docs/sms-gateway.md](docs/sms-gateway.md).
+`FORUM_API_KEY` is a secret — never commit it. The other three are mirrored from [wrangler.jsonc](wrangler.jsonc) for parity with deployed environments. For the full env surface (Logto SMS creds, `RATELIMIT_KV`, `SPONSOR_API_BASE`) see [wrangler.jsonc](wrangler.jsonc) and [docs/sms-gateway.md](agents.d/modules/sms-gateway.md).
 
 ---
 
@@ -88,7 +88,7 @@ pnpm wrangler tail --env preview      # preview
 
 ## Notes
 
-- **Launch placeholders (App Store id, social URLs/handles, sponsorship copy) are tracked in [docs/WIRING_TODO.md](docs/WIRING_TODO.md).**
+- **Launch placeholders (App Store id, social URLs/handles, sponsorship copy) are tracked in [docs/WIRING_TODO.md](agents.d/modules/wiring-todo.md).**
 - **No external runtime assets — keep it that way.** No Google Fonts, no Google Analytics, no third-party CDNs (jsdelivr / unpkg / cdnjs / cloudfront). Fonts are self-hosted under `public/fonts/` ([global.css](src/styles/global.css)); no external font CDN. Adding external CDN deps silently breaks mainland-China users.
 - **`*.workers.dev` is unreliable from mainland China.** Production must run behind a custom domain; `www.dirtbikechina.com` may want a non-Cloudflare CDN (Aliyun) in front of it.
 - **Architecture: `worker/` and `src/` are independently bundled.** Wrangler/esbuild bundles `worker/` separately from the Astro app. Sentinels duplicated across both (e.g. `APP_STORE_URL` in [worker/index.ts](worker/index.ts) and [src/config.ts](src/config.ts)) must be updated in both places.

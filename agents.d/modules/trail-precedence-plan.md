@@ -9,7 +9,7 @@ summary: 2026-08-21, corrects one part of it that is unsafe as stated, and enume
 **Status: proposal, rev 1. No code written.** Formalises the precedence rule proposed on
 2026-08-21, corrects one part of it that is unsafe as stated, and enumerates the cases it
 has to answer. Companion to
-[TRAIL_UPLOAD_MODULE](TRAIL_UPLOAD_MODULE.md).
+[TRAIL_UPLOAD_MODULE](trail-upload.md).
 
 ## 1. What was proposed
 
@@ -202,6 +202,6 @@ named after, which is usually the sign the model is right.
 
 ---
 
-**Related:** [TRAIL_UPLOAD_MODULE](TRAIL_UPLOAD_MODULE.md) ·
-[TRAILS_MODULE](TRAILS_MODULE.md) ·
-[MAP_MODULE](MAP_MODULE.md)
+**Related:** [TRAIL_UPLOAD_MODULE](trail-upload.md) ·
+[TRAILS_MODULE](trails.md) ·
+[MAP_MODULE](map.md)

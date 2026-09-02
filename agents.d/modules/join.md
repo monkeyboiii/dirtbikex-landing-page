@@ -23,20 +23,20 @@ GET|POST /api/unsubscribe?token  ─► D1 →'unsubscribed'  (POST = RFC 8058 o
 
 | Concern | Where | Notes |
 |---|---|---|
-| Page (EN + locales) | [src/pages/join.astro](../src/pages/join.astro), [src/pages/[lang]/join.astro](../src/pages/[lang]/join.astro) | wrap `BaseLayout` (chrome) + `JoinBody`; locale mirror via `getStaticPaths` |
-| Form + states UI | [src/components/JoinBody.astro](../src/components/JoinBody.astro) | hero shell; scoped styles (theme tokens); inline script does `fetch` + `?state` switching |
-| Copy (21 langs) | [src/i18n/locales/*.json](../src/i18n/locales/) | `join.*` keys; `UIKey = keyof typeof en` so EN is the source of truth, others fall back |
-| Worker handlers | [worker/_lib/join.ts](../worker/_lib/join.ts) | plain: `handleJoinSubmit` / `handleJoinConfirm` / `handleUnsubscribe` + `sendConfirmationEmail`. Invites: `handleCodePrecheck` / `redeemInvite` / `fetchCardBase64` / `sendInviteEmail` (Resend) |
-| Discourse minting | [worker/_lib/forumInvite.ts](../worker/_lib/forumInvite.ts) | `mintInvite` — group-attached; email-locked only when the redeemer opted in; logs `mintInvite:<reason>` |
-| Card compositing | [worker/_lib/qrCard.ts](../worker/_lib/qrCard.ts) | `composeCard` — finds the magenta sentinel, paints the QR (`fast-png` + `qrcode-generator`) |
-| Route dispatch | [worker/index.ts](../worker/index.ts) | matches `/api/join`, `/api/join/code`, `/join/confirm`, `/api/unsubscribe` before the `ASSETS` fallthrough |
-| Env + D1/R2 types | [worker/_lib/types.ts](../worker/_lib/types.ts) | `PagesEnv` join fields + minimal `D1Database` / `R2Bucket` interfaces |
-| Rate limit (reused) | [worker/_lib/rateLimit.ts](../worker/_lib/rateLimit.ts) | `rateLimitConsume(kv,key,limit,window)` — shared with the SMS gateway |
-| D1 schema | [0001_subscribers.sql](../migrations/0001_subscribers.sql), [0002_special_invites.sql](../migrations/0002_special_invites.sql) | `subscribers`; `invite_kinds` + `invite_codes` |
-| Blank invite cards | [templates/](../templates/) → R2 bucket `dbx-qr` (`QR_BUCKET`) | `template/<kind>/<locale>.png`, en fallback; rebuild with [scripts/make_templates.py](../scripts/make_templates.py), push with `admin.mjs upload-template` (no deploy) |
-| Admin CLI | [scripts/admin.mjs](../scripts/admin.mjs) | `mint` / `codes` / `sql` / `subs` / `kinds` / `upload-template` over wrangler (reuses your login) |
-| Bindings / vars / routes | [wrangler.jsonc](../wrangler.jsonc) | `SUBSCRIBERS_DB`, `QR_BUCKET`, `run_worker_first`, `JOIN_*` + `FORUM_INVITE_*` / `FORUM_GROUP_*` vars (prod + preview) |
-| Cache headers | [public/_headers](../public/_headers) | `/join/confirm` + `/api/unsubscribe` → `no-store` |
+| Page (EN + locales) | [src/pages/join.astro](../../src/pages/join.astro), [src/pages/[lang]/join.astro](../../src/pages/[lang]/join.astro) | wrap `BaseLayout` (chrome) + `JoinBody`; locale mirror via `getStaticPaths` |
+| Form + states UI | [src/components/JoinBody.astro](../../src/components/JoinBody.astro) | hero shell; scoped styles (theme tokens); inline script does `fetch` + `?state` switching |
+| Copy (21 langs) | [src/i18n/locales/*.json](../../src/i18n/locales) | `join.*` keys; `UIKey = keyof typeof en` so EN is the source of truth, others fall back |
+| Worker handlers | [worker/_lib/join.ts](../../worker/_lib/join.ts) | plain: `handleJoinSubmit` / `handleJoinConfirm` / `handleUnsubscribe` + `sendConfirmationEmail`. Invites: `handleCodePrecheck` / `redeemInvite` / `fetchCardBase64` / `sendInviteEmail` (Resend) |
+| Discourse minting | [worker/_lib/forumInvite.ts](../../worker/_lib/forumInvite.ts) | `mintInvite` — group-attached; email-locked only when the redeemer opted in; logs `mintInvite:<reason>` |
+| Card compositing | [worker/_lib/qrCard.ts](../../worker/_lib/qrCard.ts) | `composeCard` — finds the magenta sentinel, paints the QR (`fast-png` + `qrcode-generator`) |
+| Route dispatch | [worker/index.ts](../../worker/index.ts) | matches `/api/join`, `/api/join/code`, `/join/confirm`, `/api/unsubscribe` before the `ASSETS` fallthrough |
+| Env + D1/R2 types | [worker/_lib/types.ts](../../worker/_lib/types.ts) | `PagesEnv` join fields + minimal `D1Database` / `R2Bucket` interfaces |
+| Rate limit (reused) | [worker/_lib/rateLimit.ts](../../worker/_lib/rateLimit.ts) | `rateLimitConsume(kv,key,limit,window)` — shared with the SMS gateway |
+| D1 schema | [0001_subscribers.sql](../../migrations/0001_subscribers.sql), [0002_special_invites.sql](../../migrations/0002_special_invites.sql) | `subscribers`; `invite_kinds` + `invite_codes` |
+| Blank invite cards | [templates/](../../templates) → R2 bucket `dbx-qr` (`QR_BUCKET`) | `template/<kind>/<locale>.png`, en fallback; rebuild with [scripts/make_templates.py](../../scripts/make_templates.py), push with `admin.mjs upload-template` (no deploy) |
+| Admin CLI | [scripts/admin.mjs](../../scripts/admin.mjs) | `mint` / `codes` / `sql` / `subs` / `kinds` / `upload-template` over wrangler (reuses your login) |
+| Bindings / vars / routes | [wrangler.jsonc](../../wrangler.jsonc) | `SUBSCRIBERS_DB`, `QR_BUCKET`, `run_worker_first`, `JOIN_*` + `FORUM_INVITE_*` / `FORUM_GROUP_*` vars (prod + preview) |
+| Cache headers | [public/_headers](../../public/_headers) | `/join/confirm` + `/api/unsubscribe` → `no-store` |
 
 ## Architecture decisions
 
@@ -175,8 +175,8 @@ asserting the non-steward kinds byte-identical to the deployed baseline.
 
 ### Invite cards: blank templates in R2, QR painted in at send time
 The emailed card is a pre-rendered PNG of the iOS `InviteShareCard`, one per
-`(kind, locale)`, committed under [templates/](../templates/) and repainted offline by
-[scripts/make_templates.py](../scripts/make_templates.py): the group label is baked into
+`(kind, locale)`, committed under [templates/](../../templates) and repainted offline by
+[scripts/make_templates.py](../../scripts/make_templates.py): the group label is baked into
 the description strip, and the QR is replaced by a solid **magenta sentinel**. At send time `composeCard` finds that sentinel by colour and paints the real
 invite URL into it. **Why a sentinel and not fixed coordinates:** the QR's Y position
 shifts up to 22px between locales, because script line-heights change the headline's
@@ -193,7 +193,7 @@ attach a bare QR instead of a card).
 
 ## Routes, schema, config
 
-**Routes** (all in [worker/index.ts](../worker/index.ts) → [worker/_lib/join.ts](../worker/_lib/join.ts)):
+**Routes** (all in [worker/index.ts](../../worker/index.ts) → [worker/_lib/join.ts](../../worker/_lib/join.ts)):
 
 | Method · path | Does | Returns |
 |---|---|---|
@@ -204,15 +204,15 @@ attach a bare QR instead of a card).
 | `GET /api/unsubscribe?token` | →`unsubscribed` | `302 → …?state=unsubscribed` |
 | `POST /api/unsubscribe?token` | →`unsubscribed` (one-click) | `200` text |
 
-**`subscribers`** ([migrations/0001_subscribers.sql](../migrations/0001_subscribers.sql)):
+**`subscribers`** ([migrations/0001_subscribers.sql](../../migrations/0001_subscribers.sql)):
 `email` (PK, lowercased) · `status` (`pending`/`confirmed`/`unsubscribed`) · `token`
 (unique) · `locale` · `source` · `created_at` · `confirmed_at` · `unsubscribed_at`.
 
-**`invite_kinds`** + **`invite_codes`** ([migrations/0002_special_invites.sql](../migrations/0002_special_invites.sql)):
+**`invite_kinds`** + **`invite_codes`** ([migrations/0002_special_invites.sql](../../migrations/0002_special_invites.sql)):
 `invite_kinds(kind PK, label, invite_url)` — 3 seeded rows; rotate with `admin.mjs kinds set`.
 `invite_codes(code PK, kind, campaign, max_uses, used_count, expires_at, created_at, redeemed_email, redeemed_at)` — mint with `admin.mjs mint`.
 
-**Env** ([wrangler.jsonc](../wrangler.jsonc) `vars`, + one secret):
+**Env** ([wrangler.jsonc](../../wrangler.jsonc) `vars`, + one secret):
 
 | Key | Example | Notes |
 |---|---|---|
@@ -322,4 +322,4 @@ redemptions immediately; only worker *code* changes need a redeploy.
 
 ## Tests
 
-Covered by the existing Playwright suite over built pages: [tests/no-external-assets.spec.ts](../tests/no-external-assets.spec.ts) (the page adds only inline/scoped assets) and [tests/locale-routing.spec.ts](../tests/locale-routing.spec.ts) (`/join` + `/<locale>/join`). **Not covered:** worker handler logic (no worker test harness in-repo) — the numbered smoke above is the gate; `wrangler deploy --dry-run` bundles it.
+Covered by the existing Playwright suite over built pages: [tests/no-external-assets.spec.ts](../../tests/no-external-assets.spec.ts) (the page adds only inline/scoped assets) and [tests/locale-routing.spec.ts](../../tests/locale-routing.spec.ts) (`/join` + `/<locale>/join`). **Not covered:** worker handler logic (no worker test harness in-repo) — the numbered smoke above is the gate; `wrangler deploy --dry-run` bundles it.

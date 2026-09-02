@@ -211,7 +211,7 @@ calls survive.
 ## What the plans said that is no longer true
 
 - **The share URL is not `/s/l/<username>`.** Map-adjacent kinds moved to `/share/` — see
-  [SHARE_MODULE](SHARE_MODULE.md) for why an un-evictable iOS cache forced a different prefix.
+  [SHARE_MODULE](share.md) for why an un-evictable iOS cache forced a different prefix.
 - **Notification 852 is `lineage_declined`, not `lineage_disputed`.** 850 and 851 are as
   planned.
 - **`map_visible` is tri-state, not `bool default false`** — NULL means nobody has decided,

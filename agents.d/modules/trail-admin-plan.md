@@ -11,8 +11,8 @@ a page listing and mapping every uploaded trail with simple administration, behi
 Cloudflare Zero Trust — or a tab in the Discourse plugin settings instead?
 
 Companion to
-[TRAIL_UPLOAD_MODULE](TRAIL_UPLOAD_MODULE.md)
-and [TRAIL_PRECEDENCE_PLAN](TRAIL_PRECEDENCE_PLAN.md).
+[TRAIL_UPLOAD_MODULE](trail-upload.md)
+and [TRAIL_PRECEDENCE_PLAN](trail-precedence-plan.md).
 
 ## 1. One correction before the options
 
@@ -159,6 +159,6 @@ forum can then only ever be *more* restrictive than the worker, never less.
 ---
 
 **Related:**
-[TRAIL_UPLOAD_MODULE](TRAIL_UPLOAD_MODULE.md) ·
-[TRAIL_PRECEDENCE_PLAN](TRAIL_PRECEDENCE_PLAN.md) ·
-[MAP_MODULE](MAP_MODULE.md)
+[TRAIL_UPLOAD_MODULE](trail-upload.md) ·
+[TRAIL_PRECEDENCE_PLAN](trail-precedence-plan.md) ·
+[MAP_MODULE](map.md)

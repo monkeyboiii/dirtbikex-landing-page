@@ -7,7 +7,7 @@ export type MintResult =
 /**
  * Mint an email-locked, group-attached Discourse invite. Emits
  * `console.error('mintInvite:<reason>', …)` on every failure path.
- * See JOIN_MODULE.md "Per-redemption Discourse invites".
+ * See agents.d/modules/join.md "Per-redemption Discourse invites".
  */
 export async function mintInvite(
   env: PagesEnv,
@@ -37,7 +37,7 @@ export async function mintInvite(
       method: 'POST',
       headers,
       // No email -> a generic one-use link invite (email locking is per-code opt-in
-      // since migration 0008; see JOIN_MODULE.md "Per-redemption Discourse invites").
+      // since migration 0008; see agents.d/modules/join.md "Per-redemption Discourse invites").
       body: new URLSearchParams({
         group_ids: groupId,
         custom_message: label,

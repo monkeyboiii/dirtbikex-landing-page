@@ -28,17 +28,17 @@ A share URL that ever worked keeps working, and only one spelling is ever indexe
 
 | Concern | Where |
 |---|---|
-| Routing, locale resolution, props assembly | [`worker/index.ts`](../worker/index.ts) 875–930 |
-| Card HTML: head, five bodies, all CSS | [`worker/_lib/render.ts`](../worker/_lib/render.ts) |
-| The four map-entity lookups | [`worker/_lib/shareEntity.ts`](../worker/_lib/shareEntity.ts) |
-| og:image fallback assets | [`worker/_lib/brand.ts`](../worker/_lib/brand.ts), [`public/share/`](../public/share/), [`public/icon-512.png`](../public/icon-512.png) |
-| Rider résumé + its own OG head | [`worker/_lib/lineageRender.ts`](../worker/_lib/lineageRender.ts) — see [LINEAGE_MODULE](LINEAGE_MODULE.md) |
-| Inbound OG crawl for episode sheets | [`worker/_lib/ogPreview.ts`](../worker/_lib/ogPreview.ts), [`shortlink.ts`](../worker/_lib/shortlink.ts) |
-| Per-surface lookups | [`userLookup.ts`](../worker/_lib/userLookup.ts), [`eventLookup.ts`](../worker/_lib/eventLookup.ts), [`inviteLookup.ts`](../worker/_lib/inviteLookup.ts) |
-| Universal-link claims | [`public/.well-known/apple-app-site-association`](../public/.well-known/apple-app-site-association) |
-| WeChat domain token | [`public/98cb4034d143c97e195fc21a62d2bd36.txt`](../public/98cb4034d143c97e195fc21a62d2bd36.txt) |
-| Route ownership | [`wrangler.jsonc`](../wrangler.jsonc) `run_worker_first`, **both** blocks |
-| Static-page OG (a separate chain) | [`src/layouts/BaseLayout.astro`](../src/layouts/BaseLayout.astro) |
+| Routing, locale resolution, props assembly | [`worker/index.ts`](../../worker/index.ts) 875–930 |
+| Card HTML: head, five bodies, all CSS | [`worker/_lib/render.ts`](../../worker/_lib/render.ts) |
+| The four map-entity lookups | [`worker/_lib/shareEntity.ts`](../../worker/_lib/shareEntity.ts) |
+| og:image fallback assets | [`worker/_lib/brand.ts`](../../worker/_lib/brand.ts), [`public/share/`](../../public/share), [`public/icon-512.png`](../../public/icon-512.png) |
+| Rider résumé + its own OG head | [`worker/_lib/lineageRender.ts`](../../worker/_lib/lineageRender.ts) — see [LINEAGE_MODULE](lineage.md) |
+| Inbound OG crawl for episode sheets | [`worker/_lib/ogPreview.ts`](../../worker/_lib/ogPreview.ts), [`shortlink.ts`](../../worker/_lib/shortlink.ts) |
+| Per-surface lookups | [`userLookup.ts`](../../worker/_lib/userLookup.ts), [`eventLookup.ts`](../../worker/_lib/eventLookup.ts), [`inviteLookup.ts`](../../worker/_lib/inviteLookup.ts) |
+| Universal-link claims | [`public/.well-known/apple-app-site-association`](../../public/.well-known/apple-app-site-association) |
+| WeChat domain token | [`public/98cb4034d143c97e195fc21a62d2bd36.txt`](../../public/98cb4034d143c97e195fc21a62d2bd36.txt) |
+| Route ownership | [`wrangler.jsonc`](../../wrangler.jsonc) `run_worker_first`, **both** blocks |
+| Static-page OG (a separate chain) | [`src/layouts/BaseLayout.astro`](../../src/layouts/BaseLayout.astro) |
 
 ## og:image is never absent
 

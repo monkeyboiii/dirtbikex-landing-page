@@ -4,7 +4,7 @@
 -- was the wrong end of the funnel: the email at stake belongs to whoever redeems the
 -- join code on the landing page, so the lock choice is theirs, at redeem time — it now
 -- rides `POST /api/join` as `email_locked: true` (a checkbox on the join page's invite
--- mode), and no code-row column is involved. See JOIN_MODULE.md § "Per-redemption
+-- mode), and no code-row column is involved. See agents.d/modules/join.md § "Per-redemption
 -- Discourse invites".
 --
 -- History: the ALTER below ran on the PREVIEW database only, before the rethink. The

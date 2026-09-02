@@ -19,18 +19,18 @@ app "Brand partnerships" CTA (iOS Hub)  ──►  /sponsorship  (the pitch)
 ```
 
 The consumer avatar‑pool spot is a *separate* product (in‑app StoreKit IAP) and is **not** sold
-here. The consumer **email waitlist** is a separate module ([JOIN_MODULE.md](./JOIN_MODULE.md)) —
+here. The consumer **email waitlist** is a separate module ([JOIN_MODULE.md](join.md)) —
 deliberately *not* reused for B2B leads.
 
 ## Module layout
 
 | Concern | Where | Notes |
 |---|---|---|
-| Pitch page | [src/pages/sponsorship.astro](../src/pages/sponsorship.astro) + [`[lang]/`](../src/pages/[lang]/sponsorship.astro) | hero → offer → the exchange (give/get) → how‑it‑works → CTA; design tokens (`t-*`, `btn`, `--brand*`) |
-| Copy | [src/i18n/locales/en.json](../src/i18n/locales/en.json) `sponsorship.*` | EN is source of truth; other locales **fall back to EN** (a B2B page is EN‑first) |
-| Live wall | [src/pages/sponsors.astro](../src/pages/sponsors.astro) + [`[lang]/`](../src/pages/[lang]/sponsors.astro) | client fetch → `/api/proxy/sponsors`; renders the v5 pool + a roster‑occupancy bar |
-| Sponsor proxy | [worker/_lib/sponsorProxy.ts](../worker/_lib/sponsorProxy.ts) | edge‑cached (60s) pass‑through of sponsorhub `/sponsors.json`; **no remap** — the page owns the shape |
-| Inbound | [src/pages/contact.astro](../src/pages/contact.astro), `contact.email.sponsors` | the "Sponsorships & partnerships" channel — the pitch's CTA destination |
+| Pitch page | [src/pages/sponsorship.astro](../../src/pages/sponsorship.astro) + [`[lang]/`](../../src/pages/[lang]/sponsorship.astro) | hero → offer → the exchange (give/get) → how‑it‑works → CTA; design tokens (`t-*`, `btn`, `--brand*`) |
+| Copy | [src/i18n/locales/en.json](../../src/i18n/locales/en.json) `sponsorship.*` | EN is source of truth; other locales **fall back to EN** (a B2B page is EN‑first) |
+| Live wall | [src/pages/sponsors.astro](../../src/pages/sponsors.astro) + [`[lang]/`](../../src/pages/[lang]/sponsors.astro) | client fetch → `/api/proxy/sponsors`; renders the v5 pool + a roster‑occupancy bar |
+| Sponsor proxy | [worker/_lib/sponsorProxy.ts](../../worker/_lib/sponsorProxy.ts) | edge‑cached (60s) pass‑through of sponsorhub `/sponsors.json`; **no remap** — the page owns the shape |
+| Inbound | [src/pages/contact.astro](../../src/pages/contact.astro), `contact.email.sponsors` | the "Sponsorships & partnerships" channel — the pitch's CTA destination |
 
 ## Architecture decisions
 
@@ -50,7 +50,7 @@ in English (± one or two languages) — translating a low‑volume B2B deal pag
 volume — then translate just `sponsorship.*` for that locale.
 
 ### The join/invite module is NOT reused for brand deals
-[JOIN_MODULE.md](./JOIN_MODULE.md) is a consent‑first *consumer* email list + single‑use influencer
+[JOIN_MODULE.md](join.md) is a consent‑first *consumer* email list + single‑use influencer
 invites. Brand deals are B2B, negotiated, one‑off — a different audience and legal basis. Routing
 partner leads into `subscribers` would mix them. What *is* reusable if a real inquiry form is ever
 built: the join module's Resend + rate‑limit + D1 plumbing behind a new `partner_inquiries` table
@@ -62,7 +62,7 @@ built: the join module's Resend + rate‑limit + D1 plumbing behind a new `partn
 `infra/submodules/dirtbikex-sponsors/src/schemas/wire.ts`). It renders showable riders
 (anonymous airtime placeholders — null name+avatar — are skipped) linking to the forum profile,
 plus a roster‑occupancy bar from `sell_capacity`/`airtime_capacity`. The stale
-[src/lib/sponsor-types.ts](../src/lib/sponsor-types.ts) (v4: `sponsor_podium`, `section`) is left
+[src/lib/sponsor-types.ts](../../src/lib/sponsor-types.ts) (v4: `sponsor_podium`, `section`) is left
 alone — it still backs the legacy `src/data/*` static‑sponsor scaffold. **NOT done:** no shared
 Web Component between the EN + `[lang]` pages (the `<script>` is inline‑duplicated; Astro doesn't
 share hydration across page variants — keep the two in sync).

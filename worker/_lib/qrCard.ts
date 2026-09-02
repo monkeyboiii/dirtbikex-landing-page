@@ -7,7 +7,7 @@ const SENTINEL_B = 255;
 const QUIET_MODULES = 1;
 const MIN_MODULE_PX = 4;
 
-/** Paint `url` as a QR into the template's magenta sentinel. See JOIN_MODULE.md "Invite cards". */
+/** Paint `url` as a QR into the template's magenta sentinel. See agents.d/modules/join.md "Invite cards". */
 export function composeCard(template: ArrayBuffer, url: string): Uint8Array {
   const img = decode(template);
   const { width, height, channels } = img;

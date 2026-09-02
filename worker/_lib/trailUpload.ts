@@ -1,5 +1,5 @@
 /**
- * Visitor trail upload. See TRAIL_UPLOAD_MODULE.md.
+ * Visitor trail upload. See agents.d/modules/trail-upload.md.
  *
  * The worker holds ONE Discourse scope, `uploads:create`. It never posts, never creates a
  * topic and never speaks for a user — everything needing a forum identity is done by the
