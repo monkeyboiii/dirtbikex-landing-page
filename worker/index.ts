@@ -342,7 +342,7 @@ const BROWSER_HINT: Partial<Record<Lang, string>> = {
  * Only WeChat is claimed. WeCom carries `MicroMessenger` too and has the same menu item, so
  * it rides along. A Mini Program web view is excluded deliberately: it may have no browser
  * item at all, and an arrow pointing at something absent is worse than silence. Douyin is
- * NOT included — its chrome is unmeasured (see `iOS/docs/E2E_FINDINGS_PLAN.md` § 2).
+ * NOT included — its chrome is unmeasured (see `ios/agents.d/modules/e2e-findings-plan.md` § 2).
  */
 function browserHintFor(ua: string | null, locale: Lang): ShareLandingProps['browserHint'] {
   if (!ua || !/MicroMessenger/i.test(ua) || /miniProgram/i.test(ua)) return undefined;
