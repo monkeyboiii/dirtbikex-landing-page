@@ -6,7 +6,7 @@ summary: a page listing and mapping every uploaded trail with simple administrat
 
 # TRAIL_ADMIN_PLAN — where the operator surface for trails belongs
 
-**Status: discussion, rev 1. No code written.** Answers the question asked on 2026-08-22:
+**Rev 1**, written before any of it was built; phase one has since shipped and the frontmatter `status:` is the one that is kept current. Answers the question asked on 2026-08-22:
 a page listing and mapping every uploaded trail with simple administration, behind
 Cloudflare Zero Trust — or a tab in the Discourse plugin settings instead?
 

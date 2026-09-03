@@ -6,7 +6,7 @@ summary: 2026-08-21, corrects one part of it that is unsafe as stated, and enume
 
 # TRAIL_PRECEDENCE_PLAN — who holds a spot on the map
 
-**Status: proposal, rev 1. No code written.** Formalises the precedence rule proposed on
+**Rev 1**, written when none of this existed; parts of § 10 have since shipped and the frontmatter `status:` is the one that is kept current. Formalises the precedence rule proposed on
 2026-08-21, corrects one part of it that is unsafe as stated, and enumerates the cases it
 has to answer. Companion to
 [TRAIL_UPLOAD_MODULE](trail-upload.md).
