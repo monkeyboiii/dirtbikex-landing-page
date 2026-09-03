@@ -1,5 +1,5 @@
 ---
-kind: spec
+kind: note
 status: in-progress
 summary: a page listing and mapping every uploaded trail with simple administration, behind Cloudflare Zero Trust — or a tab in the Discourse plug…
 ---

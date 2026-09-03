@@ -1,5 +1,5 @@
 ---
-kind: spec
+kind: note
 status: in-progress
 summary: 2026-08-21, corrects one part of it that is unsafe as stated, and enumerates the cases it has to answer. Companion to TRAILUPLOADMODULE.
 ---
