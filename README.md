@@ -88,7 +88,7 @@ pnpm wrangler tail --env preview      # preview
 
 ## Notes
 
-- **Launch placeholders (App Store id, social URLs/handles, sponsorship copy) are tracked in [docs/WIRING_TODO.md](agents.d/modules/wiring-todo.md).**
+- **Launch placeholders are done.** The App Store id, the founder social URLs and the contact handles all carry real values; what is left is styling debt on `/sponsors` and the duplicated `/sponsorship` body, both in [partners.md](agents.d/modules/partners.md) under Deferred.
 - **No external runtime assets — keep it that way.** No Google Fonts, no Google Analytics, no third-party CDNs (jsdelivr / unpkg / cdnjs / cloudfront). Fonts are self-hosted under `public/fonts/` ([global.css](src/styles/global.css)); no external font CDN. Adding external CDN deps silently breaks mainland-China users.
 - **`*.workers.dev` is unreliable from mainland China.** Production must run behind a custom domain; `www.dirtbikechina.com` may want a non-Cloudflare CDN (Aliyun) in front of it.
 - **Architecture: `worker/` and `src/` are independently bundled.** Wrangler/esbuild bundles `worker/` separately from the Astro app. Sentinels duplicated across both (e.g. `APP_STORE_URL` in [worker/index.ts](worker/index.ts) and [src/config.ts](src/config.ts)) must be updated in both places.

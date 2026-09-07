@@ -81,10 +81,20 @@ contract, not `sponsor-types.ts`.
 - **App‑side CTA.** The iOS Hub "Brand partnerships" entry → framing sheet →
   `openURL(.../sponsorship?utm_source=app&utm_medium=hub)` is an iOS change, not in this repo.
   **Built** in the iOS repo: the hub buy-stage hero tap opens `BrandPartnershipSheet`,
-  whose CTA opens this page (see that repo's `docs/SPONSOR_MODULE.md` → "Hero-tap
+  whose CTA opens this page (see `ios/agents.d/modules/sponsor.md` § "Hero-tap
   brand-partnership nudge"). Copy mirrors this page's `sponsorship.title`/`.body`.
 - **Dedicated inquiry form.** `POST /api/partner` reusing `join.ts`'s Resend + rate‑limit into a
   `partner_inquiries` D1 table + operator email — build only if `/contact` volume justifies it.
+- **The two `/sponsorship` variants are body-duplicated.** They differ only in frontmatter
+  (imports and `getStaticPaths`); the bodies are byte-identical, the same shape as `/sponsors`
+  above. Extracting a shared `SponsorshipBody.astro` is the obvious move and nobody has needed
+  it enough — the page's real copy now lives in `sponsorship.*` i18n keys, so a copy change is
+  one edit in `en.json`, not two in Astro. Keep the two in sync until that stops being true.
+- **`/sponsors` is still raw Tailwind and hardcoded EN.** The wall uses utility classes
+  (`text-gray-600 dark:text-gray-300`) rather than the `t-*` / `btn` / `--brand*` tokens the
+  pitch page uses, and its copy — the `<h1>`, the loading and error lines — is English on every
+  locale route. It is two clicks from the header nav, so it is more visible than its styling
+  debt suggests.
 - **More wall charts.** The roster‑occupancy bar is ported from the app's `SponsorRotationView`.
   The other charts there (search‑dwell **budget pie**, **booking window**) are *operator config*
   viz — deliberately NOT on a public page. The **credit‑value trend** (airtime) could be added if

@@ -1,5 +1,5 @@
 ---
-kind: note
+kind: why
 status: current
 summary: Cloudflare Worker endpoint that backs Logto's HTTP SMS connector. Routes by country , enforces a seven-bucket quota stack in KV, returns …
 ---

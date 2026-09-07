@@ -412,10 +412,10 @@ redirects would read as success. Nothing on the POST arm redirects. Both arms sh
 `not_found` still covers spent, expired and somebody-else's alike, so neither endpoint can
 be asked who owns a trail.
 
-See `iOS/docs/SHARING_MODULE.md` § "Trail-claim kind" for the state matrix and the
+See `ios/agents.d/modules/sharing.md` § "Trail-claim kind" for the state matrix and the
 onboarding sequencing.
 
-### Known gap### Known gap
+### Known gap — an operator import can be imported twice
 
 The duplicate-file check only looks at D1. A trail already on the map through the **R2
 bundle** — an operator import — can be imported again from its post, producing two entries
@@ -586,6 +586,81 @@ Kept because three of these were killed by facts that are still true.
 | 4 | Self-service PM → public conversion. **Blocked** — `can_convert_topic?` is admin/moderator only, so a user cannot convert their own message |
 | 5 | Every upload anonymous; a one-time code claims it; trails bind to a **post id**, not to topic visibility — which dissolved rev 4 entirely |
 | 6 | Decisions closed |
+
+## Unclaimed trails are never on the map, and that settles precedence
+
+Two readings of "a pending trail can still go onto the map" were live at once, and only one
+survives. **What shipped is Fork A: an unclaimed trail is invisible to everyone but its link
+holder.** `/api/map/trails.json` selects `visibility = 'public'` only; a private or unlisted
+one answers at `/api/map/trail/<secret>.json` and nowhere else.
+
+The alternative — drawing unclaimed uploads faintly from the moment they land, so that
+"newest anonymous wins" does real work — was rejected on the one ground this feature was
+designed around: **it publishes a stranger's precise riding location before they have agreed
+to anything.** A GPS trace of where someone lives, public on drop, with no account and no
+consent step. The discoverability it would buy is available without the disclosure, through
+the density hint below.
+
+That decision collapses most of the precedence ladder. Written out, read-time precedence per
+conflict group is: **tier 1 operator-curated**, then **tier 2 claimed and published**, then
+tier 3 claimed-and-private and tier 4 unclaimed. Within a tier the newest `created_at` wins —
+the **server's** clock in D1, never the client's — with ties broken by `id` ascending so the
+map cannot flicker between two orderings. Tiers 3 and 4 exist only to make the rule total;
+they never render, so they never contend. **In practice precedence is a rule about tier 1
+versus tier 2, and that rule is not built.**
+
+A losing trail would be **hidden, not suppressed**: absent from the document for as long as it
+loses, returning by itself when it stops. No column records it — the only state is the trails
+themselves.
+
+What *is* built is the cap that made most of the ladder unnecessary: `gpx_sha1` uniqueness
+among public rows, and the per-author `too_many_nearby` refusal at publish. A refused publish
+leaves the trail private with a working link, so unpublishing a nearby one frees a slot
+instantly. That is § How many a rider may have on the map, and it is about the same *ground*
+rather than a count.
+
+**Still unbuilt, in the order worth doing them:** reserving curated ids so a visitor upload
+cannot land beside one under the same id; the density hint on the result sheet; clustering for
+tier-2-versus-tier-2, which is preferable to hiding — two riders who both did the work should
+give a slightly busier pin, not a disappearance — and only then curated-beats-visitor
+suppression, the smallest piece of the thing precedence is named after.
+
+Two bugs that had to be fixed before precedence could behave at all are fixed. A publisher can
+no longer choose their own `id` — it is the minted secret (`id: secret`), so a stranger cannot
+publish under a curated one — and publishing now purges the edge cache (`purgeMapDoc`), so a
+new public trail is no longer up to 24 hours late to the map.
+
+## The operator surface for trails is the forum, and the kill switch is not
+
+`GET /api/map/trails/admin.json` is bearer-gated to the plugin and hands it the whole index,
+including the unclaimed rows the plugin cannot see for itself. It exists because the
+**moderation surface lives in Discourse**, not here.
+
+That was a choice between a page in this repo behind Cloudflare Access and a tab in the forum
+plugin, and the reason is not effort: **taking somebody's ride off the map is a moderation act,
+and moderation acts should be attributable and logged.** Discourse gives that for nothing; an
+Access allowlist gives an email address and no record. Most of it already existed too — the
+plugin drops a trail when its post is destroyed, so "take one down" is already a moderator
+deleting a post, and the tab's job was to make that findable.
+
+A read-only `/admin/trails` page here, behind Access, with the map, is **phase two and not
+built**. Read-only is the point: every mutation stays where it is logged. It earns itself only
+if the map view is genuinely needed — that is the one thing the plugin tab cannot do well, and
+the whole case for a page here rests on it. Worth remembering that an Access-gated page is not
+reachable from mainland China when Access is having a bad day, while the forum is, through its
+own tunnel.
+
+**`TRAILS_UPLOAD_ENABLED` stays a wrangler var and a plugin setting must not replace it.** A
+kill switch exists to stop something going wrong; if the worker took its own switch from the
+forum, then the forum being compromised, misconfigured or simply down would decide whether an
+unauthenticated write endpoint is open — backwards for the one control whose job is to shut
+that endpoint. A site setting can honestly be a **soft** switch: it hides the control, the
+endpoint still works, and it does not survive a forum outage. The hard switch is editing
+`wrangler.jsonc` and deploying, and saying so plainly beats letting a settings tab imply
+otherwise. If a browser control over the hard switch is ever a requirement, the shape that does
+not invert the trust is for the plugin to pass its setting as a field on the publish call it
+already makes — no polling, no cache, no invalidation bug — with the worker still refusing on
+its own var regardless. The forum can then only ever be *more* restrictive, never less.
 
 ## Deferred
 
