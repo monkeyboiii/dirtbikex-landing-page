@@ -11,9 +11,13 @@
 // not the parent DiscourseAssetKit checkout.
 //
 // Source resolution (first existing wins):
-//   1. DISCOURSE_ASSET_KIT_DIR env var (CI override)
-//   2. ../../../iOS/submodules/DiscourseAssetKit/...  (DirtBikeX layout)
-//   3. ../../../../Pinmoji/iOS/submodules/DiscourseAssetKit/...  (sibling repo fallback)
+//   1. DISCOURSE_ASSET_KIT_DIR env var — the only one that works from a standalone clone
+//   2. ../dak/... — the harness's flat layout, where every repo is a sibling under repos/
+//
+// The two paths that used to be here (`../../../iOS/submodules/DiscourseAssetKit`, and a
+// Pinmoji sibling) assumed the nested pre-flat-repos checkout and resolve to nothing now.
+// There was also a `vendor/discourse-asset-kit` submodule declared with `update = none`; it
+// was never populated, this script never read it, and it is gone.
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -24,8 +28,7 @@ const repoRoot = path.resolve(__dirname, '..');
 
 const candidates = [
   process.env.DISCOURSE_ASSET_KIT_DIR,
-  path.resolve(repoRoot, '../../../iOS/submodules/DiscourseAssetKit/Sources/DiscourseAssetKit/Resources/Emojis'),
-  path.resolve(repoRoot, '../../../../Pinmoji/iOS/submodules/DiscourseAssetKit/Sources/DiscourseAssetKit/Resources/Emojis'),
+  path.resolve(repoRoot, '../dak/Sources/DiscourseAssetKit/Resources/Emojis'),
 ].filter(Boolean);
 
 const srcDir = candidates.find((p) => fs.existsSync(p));
