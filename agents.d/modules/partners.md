@@ -19,7 +19,7 @@ app "Brand partnerships" CTA (iOS Hub)  ──►  /sponsorship  (the pitch)
 ```
 
 The consumer avatar‑pool spot is a *separate* product (in‑app StoreKit IAP) and is **not** sold
-here. The consumer **email waitlist** is a separate module ([JOIN_MODULE.md](join.md)) —
+here. The consumer **email waitlist** is a separate module ([join.md](join.md)) —
 deliberately *not* reused for B2B leads.
 
 ## Module layout
@@ -50,7 +50,7 @@ in English (± one or two languages) — translating a low‑volume B2B deal pag
 volume — then translate just `sponsorship.*` for that locale.
 
 ### The join/invite module is NOT reused for brand deals
-[JOIN_MODULE.md](join.md) is a consent‑first *consumer* email list + single‑use influencer
+[join.md](join.md) is a consent‑first *consumer* email list + single‑use influencer
 invites. Brand deals are B2B, negotiated, one‑off — a different audience and legal basis. Routing
 partner leads into `subscribers` would mix them. What *is* reusable if a real inquiry form is ever
 built: the join module's Resend + rate‑limit + D1 plumbing behind a new `partner_inquiries` table

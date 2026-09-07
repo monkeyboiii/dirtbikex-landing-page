@@ -87,7 +87,7 @@ Notes:
 `worker/_lib/lineageLookup.ts` fetches the plugin's anonymous endpoints
 (`/dirtbikex/lineage/…`) with a 5-minute edge cache. No API key, no CORS, no
 Data Explorer query and therefore no per-environment operator step — the same
-trade TRAILS_MODULE.md settled for trails. A missing rider, a retracted one
+trade [trails.md](trails.md) settled for trails. A missing rider, a retracted one
 and a profile-hidden one are indistinguishable (uniform 404 from the plugin), so
 the page cannot be used to test whether a named person is in the graph.
 
@@ -153,7 +153,7 @@ Two touches, both small on purpose:
   on it. It is drawn with **DOM markers, not style layers** — a `Marker`
   survives `setStyle`, so this layer never joins the hard-coded `addLayers()`
   block, the hit-test list or the click-dispatch chain that
-  MAP_MODULE.md wants refactored before another style layer lands. Each
+  [map.md](map.md) wants refactored before another style layer lands. Each
   marker is a plain anchor to that rider's résumé: no sheet, nothing to keep in
   sync, nothing to clear when the layer is switched off.
 
