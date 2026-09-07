@@ -39,7 +39,7 @@ outreach").
 | Template + send + test route | [worker/_lib/outreach.ts](../../worker/_lib/outreach.ts) | `renderPreInvite` (track-name fill, bilingual local+EN), `sendPreInvite` (Resend), `handleOutreachTest` (bearer, single send) |
 | Route dispatch | [worker/index.ts](../../worker/index.ts) | `POST /api/outreach/test` matched before the `ASSETS` fallthrough |
 | Env (secret) | [worker/_lib/types.ts](../../worker/_lib/types.ts) | `OUTREACH_SECRET?` on `PagesEnv` (shared bearer with the CRM) |
-| CRM caller | dirtbikex-contacts `contacts:scripts/contact_web.py` `POST /outreach/test` | proxies here with the bearer; the CRM never sends email itself (`contacts:docs/CONTACT_MODULE.md` §"Pre-invite") |
+| CRM caller | dirtbikex-contacts `contacts:scripts/contact_web.py` `POST /outreach/test` | proxies here with the bearer; the CRM never sends email itself (`contacts:agents.d/modules/contact.md` §"Pre-invite") |
 | Sending identity (shared) | `JOIN_FROM_EMAIL` / `JOIN_REPLY_TO` / `JOIN_ORG_ADDRESS` | reused verbatim from [JOIN_MODULE](join.md) — one verified domain, one CAN-SPAM footer |
 
 ## Architecture decisions
@@ -47,7 +47,7 @@ outreach").
 ### The pre-invite is worker-sent, never CRM-sent
 The CRM (dirtbikex-contacts) is behind Cloudflare Access with no egress mail path,
 and the whole invite chain already funnels every send through the landing worker's
-Resend identity (`contacts:docs/CONTACT_MODULE.md`
+Resend identity (`contacts:agents.d/modules/contact.md`
 §"Sending (REMOVED)"). The pre-invite is the one send that happens *before* a code
 exists, so it would have been the temptation to re-grow a second mailer in the CRM.
 Instead the worker owns it and the CRM **proxies** `POST /api/outreach/test`.
