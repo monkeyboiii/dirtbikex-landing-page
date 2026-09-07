@@ -158,6 +158,78 @@ buttons over an empty card is what started this.
 Facts render as `4.5 km · ↑ 200 m · loop`, not labelled chips. `Where 浙江·杭州·桐庐县` is a
 database row with the column names left on.
 
+## The `_headers` catch-all cannot be narrowed, only changed
+
+`public/_headers` rules are **additive, not overriding**. A narrow `/s/*  →  no-store` cannot beat
+a broad `/*  →  s-maxage=86400`; it appends, producing
+`public, max-age=300, s-maxage=86400, no-store`, and Cloudflare resolves that in favour of
+caching. The `/s/*` rule carried a comment naming exactly the hazard it failed to prevent — a
+transient 404 served by the asset layer during a Worker deploy gap, pinned at a PoP for a day —
+and it was measured doing nothing on prod's `/s/c/`. The fix was to change the broad rule: `/*`
+now carries `public, max-age=300` and no `s-maxage` at all.
+
+Two consequences worth keeping. **For Worker-rendered responses `_headers` does not apply at
+all** — `/s/*` and `/share/*` are `run_worker_first`, so their protection is the Worker's own
+`no-store`/`no-cache`, and the `_headers` rule is live only for asset-served responses, which is
+precisely the deploy-gap case where additivity defeated it. And **never cache a non-200**: a 404
+is a statement about *now*, and `s-maxage` turns it into a statement about the next 24 hours.
+That is still a general rule rather than an enforced one; removing the catch-all took away the
+one place it bit.
+
+## The hand-off out of WeChat is a scheme allowlist, not an https/scheme split
+
+The first model of this was wrong, and measuring is what showed it. `apps.apple.com` publishes no
+AASA and 301s every iOS-mobile UA into `itms-appss://` — identically for Safari and WeChat. So the
+"Get DirtBikeX" button that works in WeChat is **not an https success story, it is a custom scheme
+too**. The real rule is an allowlist: `itms-appss` is on WeChat's, `dirtbikex` is not, and never
+will be.
+
+That matters because it forecloses the obvious fix. Repointing "Open in the app" at an https
+Universal Link would fail for two independent reasons. **A same-domain Universal Link never opens
+the app in any browser, Safari included** (Apple TN3155: a browser expects the user wants to keep
+navigating when the link's domain matches the previous navigation) — and our cards are served from
+the same host our AASA claims. Serving the launch link from a different host with its own AASA is
+the documented fix, and it costs an entitlement change, therefore an App Store build. **And
+Universal Links inside a WKWebView are a host-app policy, not an OS law** — Apple says they fire,
+and a private-API technique exists specifically to disable them, which only makes sense because
+they do. So WeChat suppressing them is a navigation-delegate decision: measurable per app and per
+version, never to be deduced. Do not write "WeChat blocks Universal Links" as though it were
+physics, and do not assume Douyin behaves the same way.
+
+What ships instead is a **one-second timer**, not an interception. The scheme is still attempted,
+so anywhere it is honoured none of this runs. WeChat's delegate *declines* the scheme rather than
+navigating, so nothing unloads and the page is still `visible` a second later — that is the
+signal. The success path announces itself the opposite way: iOS backgrounds the web view to launch
+the app, firing `visibilitychange` and `pagehide`, both of which cancel the timer. **`blur` is
+deliberately not a cancel signal** — a WKWebView raises it spuriously for its own sheets, the
+keyboard and the JS bridge, which would suppress the hint in exactly the case it exists for.
+
+The hint is one localised line and an arrow, `pointer-events: none`, carrying the menu item's own
+words (`用默认浏览器打开`). The first cut was a modal that buried the one instruction that mattered
+under four that did not. It is armed for `MicroMessenger` only; WeCom rides along on the same UA
+and the same menu item, and **Mini Program web views are excluded** because they may have no
+browser item at all, and an arrow pointing at something absent is worse than silence. Douyin is
+not included: unmeasured chrome gets its own probes first.
+
+**One script, one selector — this is the part that will rot if it is not understood.** The
+`appCTA` anchor is duplicated byte-identically in three template literals (invite, profile,
+event), so hooking each separately is how a card silently loses the behaviour: no type error, no
+failing build. The script is emitted once and finds the button with
+`a.cta-secondary[href^="dirtbikex:"]`, and
+[`tests/unit/browserHint.test.ts`](../../tests/unit/browserHint.test.ts) asserts that selector
+still matches all three *rendered* bodies.
+
+**The claim card keeps exactly one timer.** `/s/c/` already had a 1200 ms store fallback; a second
+at 1000 ms would paint the hint and have it wiped 200 ms later, ejecting a rider who *has* the app
+to the App Store. Its `visibilityState` guard would not have saved it — in WeChat the page *is*
+visible, which is the premise.
+
+Not doing: a WeChat Open Tag (`<wx-open-launch-app>`), the only sanctioned in-WeChat launch. It
+needs an authenticated 服务号 and an authenticated 开放平台 app under the same legal entity, that app
+already through review, with the page's host bound on that account — realistically a Chinese
+business entity, and months rather than a sprint. And **not** "copy link" as the primary answer:
+one more step, landing the rider where ⋯ would have, having read more text.
+
 ## Traps
 
 - **`?stay=1` or you are measuring the map.** Entity cards arm a 3s `location.replace`
@@ -167,9 +239,10 @@ database row with the column names left on.
   it shipped doing nothing.
 - **The kind-card PNGs sit under the `/share/*` prefix the worker claims**, so they reach the
   asset layer only via the router's final `env.ASSETS.fetch`.
-- **A transient 404 during a deploy is cacheable.** `/share/*` has no `_headers` rule, so it
-  falls to `/*`'s `s-maxage=86400`. A crawler that fetches mid-deploy can cache a broken card
-  for a day. Verify after deploying, with a cache-buster.
+- **Measure with GET, never `curl -I`.** `/s/*` and `/share/*` are in `run_worker_first`, so a
+  HEAD is answered by the edge-cached 404 asset and never reaches the Worker at all — it will
+  report a cacheable 404 that does not exist. Two sections of an earlier findings doc were wrong
+  for exactly this reason.
 - **`canonicalURL` strips only `lang`**, so `?from=` stays in `og:url` — and since WeChat
   caches per URL, the same route shared by two senders is two cards.
 - **A bare handle resolves differently on the two lineage routes**, and `/lineage/<ref>` is
@@ -179,8 +252,8 @@ database row with the column names left on.
 - **`cardKindFor` casts to `KindCard`** and works only because the five baked cards happen to
   cover all four entity kinds plus `rider`. A fifth entity kind without a baked PNG 404s its
   own og:image.
-- Two stale comments in `render.ts`: it claims `_headers` maps `/s/*` to `max-age=60` (it is
-  `no-store`), and points at a `functions/` directory that no longer exists.
+- **One stale comment survives in `render.ts`** (`:30`): it points error-state copy at
+  `functions/s/i/[key].ts`, and there is no `functions/` directory.
 
 ## Verifying these routes
 
