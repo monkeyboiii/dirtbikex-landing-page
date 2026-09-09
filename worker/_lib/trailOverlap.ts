@@ -1,5 +1,5 @@
 /**
- * How much ground two rides share. See docs/TRAIL_OVERLAP_MODULE.md.
+ * How much ground two rides share. See agents.d/modules/trail-upload.md.
  *
  * The measure is bidirectional length-weighted corridor coverage, reduced to one number:
  *
@@ -51,7 +51,7 @@ export const SIG_MAX_POINTS = 2400;
 export const COARSE_SPACING_M = 30;
 
 /** Defaults for every compare-time threshold. Each is overridable per environment; see
-    docs/TRAIL_OVERLAP_MODULE.md § tunables. Read them through `thresholds()`, never
+    agents.d/modules/trail-upload.md § tunables. Read them through `thresholds()`, never
     directly, so a typo in config degrades to the default instead of to NaN. */
 export const DEFAULTS = {
   /** The similarity threshold: how far apart two traces may be and still be one ride. */

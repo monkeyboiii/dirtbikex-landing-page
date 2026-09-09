@@ -378,6 +378,29 @@ This is a **count**, and separate from the worker's `TRAIL_PUBLISH_CAP`, which i
 same GROUND — how many of your trails may overlap each other. A rider can be inside one and
 outside the other.
 
+### The overlap tunables
+
+The overlap measure gates publishing, and its four thresholds are configuration. `worker/_lib/
+trailOverlap.ts` cited a `docs/TRAIL_OVERLAP_MODULE.md § tunables` for them; that file has never
+existed in this repo's history, so the numbers below had no home outside the code that reads them.
+
+Read through `thresholds()`, never off `DEFAULTS` directly — the point of the accessor is that a
+typo in config degrades to the default instead of to `NaN`, and `NaN >= 0.6` is `false`, which
+would silently disable the cap rather than loudly break it. `''` is treated as absent for the same
+reason: `Number('')` is `0` and finite, so a blank var would set a floor of zero, which is a real
+config and never the intended one.
+
+| Var | Default | What it means | Clamp |
+|---|---|---|---|
+| `TRAIL_OVERLAP_CORRIDOR_M` | 60 m | how far apart two traces may be and still be one ride | `[SIG_SPACING_M * 2, 500]`, so config cannot break the `SIG_SPACING_M ≤ CORRIDOR_M/2` invariant |
+| `TRAIL_OVERLAP_SHARE_FRAC` | 0.6 | fraction of the SHORTER ride that must be shared | `[0, 1]` |
+| `TRAIL_OVERLAP_FLOOR_M` | 300 m | absolute floor, so a car-park stub cannot claim a 50 km ride | `≥ 0` |
+| `TRAIL_OVERLAP_NUDGE_M` | 500 m | report an overlap at or above this many shared metres | `≥ 0` |
+
+Two constants are NOT tunable, and that is deliberate: `SIG_MAX_POINTS` (2400) bounds what a
+signature costs to store and compare, and `COARSE_SPACING_M` (30 m) is the line above which a
+signature is sampled too widely to be trusted for a refusal.
+
 ### An imported trail keeps its name
 
 Going private collapses a trail's id to its secret, so a stale copy of `trails.json` cannot

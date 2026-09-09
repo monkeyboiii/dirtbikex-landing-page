@@ -18,7 +18,7 @@ import {
 } from '../../worker/_lib/trailOverlap.ts';
 
 /**
- * The overlap measure. See docs/TRAIL_OVERLAP_MODULE.md.
+ * The overlap measure. See agents.d/modules/trail-upload.md.
  *
  * Run with `pnpm test:unit`. Node's native type stripping, no loader, no dev dependency,
  * no browser — deliberately NOT @playwright/test, whose `webServer` is config-global, so

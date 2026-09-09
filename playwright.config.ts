@@ -16,7 +16,7 @@ export default defineConfig({
   /* Browser specs only. tests/unit/*.test.ts is pure logic run by `pnpm test:unit` under
      node --test; Playwright's default testMatch would otherwise collect it as a browser
      spec, run it three times, and — with PLAYWRIGHT_BASE_URL unset — boot `astro dev` to
-     do it. See docs/TRAIL_OVERLAP_MODULE.md. */
+     do it. See agents.d/modules/trail-upload.md. */
   testMatch: '**/*.spec.ts',
   /* Run tests in files in parallel */
   fullyParallel: true,
