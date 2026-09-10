@@ -145,9 +145,16 @@ if (checkOnly) {
 }
 
 console.log(`pushing ${count} ${name} → r2://${key}`);
+// `--allow-build` per package, and it is not optional. pnpm 10+ refuses to run a dependency's
+// install scripts unless it is named, and `pnpm dlx wrangler` pulls two that need them —
+// esbuild and workerd. Without these flags the push dies with ERR_PNPM_IGNORED_BUILDS *after*
+// reporting the diff and printing "pushing …", so it reads as a transport failure rather than a
+// package-manager policy. The harness hit the identical wall in `dbx deploy worker`
+// (scripts/lib/deploy.py); this is the second call site.
 execFileSync(
   'pnpm',
-  ['dlx', 'wrangler', 'r2', 'object', 'put', key, '--file', SOURCE, '--content-type', 'application/json', '--remote'],
+  ['dlx', '--allow-build=esbuild', '--allow-build=workerd', 'wrangler',
+   'r2', 'object', 'put', key, '--file', SOURCE, '--content-type', 'application/json', '--remote'],
   { stdio: 'inherit' },
 );
 console.log('done — live within the 5 minute edge TTL');
