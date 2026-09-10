@@ -203,6 +203,53 @@ judgement we never made. **"Unverified" no longer exists anywhere.**
 One verdict feeds three surfaces: the sheet's chip, the rail's dot colour, and the bloom under
 an episode marker. Because it rides the series document it is an R2 push, not a rebuild.
 
+## A stop's status is a verdict about the venue, not a date
+
+`SeriesEntry.status` reads like a timeline and is not one. It is the same kind of judgement as
+`verified` above, and the two compose:
+
+| status | means | counts toward 100 | wins the opening camera |
+|---|---|---|---|
+| `live` | ridden, and the venue is with us | yes | yes, first |
+| `visited` | ridden, and it is **not** with us | yes | only if nothing is `live` |
+| `upcoming` | decided on, not yet ridden | **no** | never |
+
+Stop `02` is the worked example: the e-bike park's boss turned the app down and asked for GPX and
+live tracking instead, so the stop is `visited` and its slug carries `verified: false`. Nothing
+about that is chronological — it is the newest stops that are `live`, but a stop three visits ago
+stays `live` if the venue is still with us.
+
+**The counter takes `visited` and `live` both** (`hud.ts` filters to those two, with `main >= 1`),
+so downgrading a stop to `visited` does not lose a track off the hundred. That is deliberate: the
+ride happened whatever the venue decided afterwards.
+
+**Two axes, two attributes, and one of them deliberately outranks the other.** Status sets
+`is-live` / `is-visited`; the verdict sets `data-tone` on the same element. For the episode pin the
+tone rule is written with a doubled class (`.wm-ep.wm-ep[data-tone=…]`) *specifically* so it beats
+the `is-visited` background — which is why an `upcoming` pin is amber (`--wm-tone-upcoming`) and
+not mistakeable for a ridden one, even though `addEpisodeMarkers` has only two `is-` branches for
+three states. Reading the class list alone suggests a bug that the stylesheet has already answered.
+
+## The two short-video platforms are one clip, and only the data forgets
+
+`panel.ts` states it: *"The two short-video platforms carry the same clip, so they're offered
+together"* — `SHORT_VIDEO = ['tiktok', 'douyin']`. The series document cannot say that. Its `links`
+is a flat map of platform to URL, so the pairing lives only in code, and three behaviours depend on
+it:
+
+- **`platformsFor(lang)` offers `douyin` to `zh-CN` and `tiktok` to everyone else.** A stop with
+  only a douyin link therefore shows **no short-video slide at all on the other twenty locales**.
+  The clip is not merely unpreviewed; it is absent.
+- **A douyin slide cannot preview itself.** Outside China the worker gets only a shell, so the
+  slide borrows the same clip's TikTok card. With no tiktok link there is no preview to borrow.
+- **The platform chooser only appears when both are present**, so a tap on a douyin-only stop goes
+  straight to douyin with no choice offered.
+
+Stop `04` sat in exactly that state — douyin only — from publication until 2026-09-10, its clip
+invisible on every non-Chinese locale. `skills/content/journey-stop/lint.py` now warns when one half
+of the pair is present without the other, because the document is where the mistake is made and the
+code is where it is felt.
+
 ## The tile host is a fenced breach of the China invariant
 
 `tests/no-external-assets.spec.ts` forbids third-party runtime assets. The hosted OpenFreeMap

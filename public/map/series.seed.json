@@ -86,7 +86,7 @@
         "en": "I came back and suddenly all the bikes had batteries.",
         "zh-CN": "我回来了，突然发现车都带电池了。"
       },
-      "status": "live",
+      "status": "visited",
       "links": {
         "douyin": "https://v.douyin.com/cm9B2y_dcUU/",
         "tiktok": "https://www.tiktok.com/t/ZTDeKnUAL/",
@@ -135,8 +135,35 @@
       },
       "track_slug": "cn-nan-jing-fei-fei-tiao-qi-shi-nong-chang",
       "links": {
-        "douyin": "https://v.douyin.com/mNSTALbYNt4/"
+        "douyin": "https://v.douyin.com/mNSTALbYNt4/",
+        "tiktok": "https://www.tiktok.com/t/ZTUf6tBbB/",
+        "instagram": "https://www.instagram.com/reel/DcwBj_fqVgv/",
+        "facebook": "https://www.facebook.com/share/r/1JqrHdi1V1/"
       }
+    },
+    {
+      "main": 5,
+      "sub": 0,
+      "label": "05",
+      "kind": "episode",
+      "status": "upcoming",
+      "track_slug": "cn-shang-hai-guo-ji-yue-ye-sai-che-chang",
+      "coords": {
+        "lat": 30.847848,
+        "lng": 121.563898
+      },
+      "venue": {
+        "en": "Fengxian, Shanghai",
+        "zh-CN": "上海奉贤"
+      },
+      "title": {
+        "en": "Shanghai International Off-road Circuit",
+        "zh-CN": "上海国际越野赛车场"
+      },
+      "links": {},
+      "thumb": null,
+      "visited_on": null,
+      "published_on": null
     }
   ]
 }
