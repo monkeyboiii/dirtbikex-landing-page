@@ -203,32 +203,41 @@ judgement we never made. **"Unverified" no longer exists anywhere.**
 One verdict feeds three surfaces: the sheet's chip, the rail's dot colour, and the bloom under
 an episode marker. Because it rides the series document it is an R2 push, not a rebuild.
 
-## A stop's status is a verdict about the venue, not a date
+## Status tracks the footage; `verified` tracks the venue
 
-`SeriesEntry.status` reads like a timeline and is not one. It is the same kind of judgement as
-`verified` above, and the two compose:
+`SeriesEntry.status` reads like a timeline and is one — but of the *production*, not the calendar.
+It answers "is there anything to watch yet", and it is independent of what the venue thinks:
 
-| status | means | counts toward 100 | wins the opening camera |
-|---|---|---|---|
-| `live` | ridden, and the venue is with us | yes | yes, first |
-| `visited` | ridden, and it is **not** with us | yes | only if nothing is `live` |
-| `upcoming` | decided on, not yet ridden | **no** | never |
+| status | means | counts toward 100 | wins the opening camera | video on the card |
+|---|---|---|---|---|
+| `live` | ridden, and the episode is published | yes | yes, first | yes |
+| `visited` | ridden, **no episode produced yet** | yes | only if nothing is `live` | no |
+| `upcoming` | decided on, not yet ridden | **no** | never | no |
 
-Stop `02` is the worked example: the e-bike park's boss turned the app down and asked for GPX and
-live tracking instead, so the stop is `visited` and its slug carries `verified: false`. Nothing
-about that is chronological — it is the newest stops that are `live`, but a stop three visits ago
-stays `live` if the venue is still with us.
+So a stop walks `upcoming → visited → live` as the work happens, and `visited` is where it sits
+between the ride and the cut. **The counter takes `visited` and `live` both** (`hud.ts` filters to
+those two, with `main >= 1`): the ride is what counts toward the hundred, not the edit.
 
-**The counter takes `visited` and `live` both** (`hud.ts` filters to those two, with `main >= 1`),
-so downgrading a stop to `visited` does not lose a track off the hundred. That is deliberate: the
-ride happened whatever the venue decided afterwards.
+Nothing here is a judgement about the venue. **That is `verified`**, the separate map at the top of
+the document, and the two axes are genuinely independent — a venue that turned the app down but
+whose episode shipped is `live` with `verified: false`. Stop `02` is exactly that, and it was
+briefly mis-set to `visited` on 2026-09-10 on the theory that status carried the rejection. It does
+not; `verified: false` already did, and downgrading the status claimed there was no episode when
+four platforms carry one.
 
-**Two axes, two attributes, and one of them deliberately outranks the other.** Status sets
-`is-live` / `is-visited`; the verdict sets `data-tone` on the same element. For the episode pin the
-tone rule is written with a doubled class (`.wm-ep.wm-ep[data-tone=…]`) *specifically* so it beats
-the `is-visited` background — which is why an `upcoming` pin is amber (`--wm-tone-upcoming`) and
-not mistakeable for a ridden one, even though `addEpisodeMarkers` has only two `is-` branches for
-three states. Reading the class list alone suggests a bug that the stylesheet has already answered.
+**The card's "no video" is derived, not declared.** `panel.ts` computes
+`published = links && Object.values(links).some(Boolean)` and shows the *In production* line when
+that is false — so a `visited` stop needs no special-casing to lose its video iframe, it simply has
+no links yet. Status and links can therefore disagree, and the card believes the links.
+
+**Two attributes on the pin, and one deliberately outranks the other.** Status sets
+`is-live` / `is-visited`; the verdict sets `data-tone` on the same element (`toneOf`: `upcoming`
+first, else `success` when verified and `partial` when not). For the episode pin the tone rule is
+written with a doubled class (`.wm-ep.wm-ep[data-tone=…]`) *specifically* so it beats the
+`is-visited` background — which is why a verified stop is green whether it is `visited` or `live`,
+and why an `upcoming` pin is amber (`--wm-tone-upcoming`) and not mistakeable for a ridden one,
+even though `addEpisodeMarkers` has only two `is-` branches for three states. Reading the class
+list alone suggests a bug that the stylesheet has already answered.
 
 ## A stop has one place, and the catalog bake is where it is kept
 
