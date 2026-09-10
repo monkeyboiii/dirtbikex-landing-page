@@ -148,10 +148,7 @@
       "kind": "episode",
       "status": "upcoming",
       "track_slug": "cn-shang-hai-guo-ji-yue-ye-sai-che-chang",
-      "coords": {
-        "lat": 30.847848,
-        "lng": 121.563898
-      },
+      "coords": null,
       "venue": {
         "en": "Fengxian, Shanghai",
         "zh-CN": "上海奉贤"

@@ -230,6 +230,36 @@ the `is-visited` background — which is why an `upcoming` pin is amber (`--wm-t
 not mistakeable for a ridden one, even though `addEpisodeMarkers` has only two `is-` branches for
 three states. Reading the class list alone suggests a bug that the stylesheet has already answered.
 
+## A stop has one place, and the catalog bake is where it is kept
+
+A journey entry can name where it is twice — `coords` on the entry, and the pin its `track_slug`
+resolves to in the bake — and `resolvePlacements` takes `coords` first. The venue glyph does not:
+`tracks-glyph` always draws from the bake. So an entry carrying both draws the stop **twice**, and
+the map has no way to say which one is the venue.
+
+That is not a subtle rendering difference, because the two marks are meant to be one. When the
+badge and the glyph share a coordinate, `syncEpisodeChrome` clears `is-solo` and `.wm-ep__num`
+pins to the flag's top-trailing rim (`top: -7px; right: -9px`) — the composition every ridden stop
+has. Split them and you get a lone number floating over open map next to an unlabelled flag, which
+is what stop `05` shipped as on 2026-09-10, its two marks **5.27 km** apart.
+
+**So `coords` is for a stop with no catalog venue at all** — the easter egg at `00` is the only
+one. Anything with a resolvable `track_slug` leaves `coords` null and the bake decides. If the
+bake is in the wrong place, the bake is what is wrong:
+
+```shell
+python3 scripts/set_track_geo.py <slug> --gcj <lat> <lng> --source apple-place   # in the CRM repo
+python3 scripts/export_map_geojson.py --db <copy> --out ../landing/public/map/tracks.json
+```
+
+`--gcj` matters. Apple Maps and Amap show **GCJ-02** inside the mainland and this catalog is
+WGS-84, so a coordinate read off either app and stored raw lands ~500 m out — the same two-datum
+trap `scripts/wgs84-to-gcj02.mjs` exists for in the outbound direction. Stop `05`'s original
+coordinate had exactly that error on top of the 5.27 km one.
+
+`journey-stop`'s `lint.py` fails on an entry that carries both and prints the distance between
+them, so this cannot ship again unnoticed.
+
 ## The two short-video platforms are one clip, and only the data forgets
 
 `panel.ts` states it: *"The two short-video platforms carry the same clip, so they're offered
