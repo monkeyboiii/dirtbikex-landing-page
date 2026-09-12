@@ -307,9 +307,30 @@ async function previewOne(target: URL, trace: string[]): Promise<Preview | null>
   };
 }
 
-export async function handleOgPreview(request: Request, _env: PagesEnv, ctx: WaitUntil): Promise<Response> {
+export async function handleOgPreview(request: Request, env: PagesEnv, ctx: WaitUntil): Promise<Response> {
+  // The forum's native-embed theme component fetches this from the BROWSER, so it needs the same
+  // CORS posture `/api/resolve/shortlink` has carried all along (shortlink.ts): one origin from
+  // FORUM_BASE, never `*`. Without it the fetch is blocked and the card silently keeps its
+  // placeholder, which is exactly how this was found.
+  //
+  // Two deliberate differences from that route, both because THIS one is cached.
+  //
+  // No `Vary: Origin`. The value does not depend on the request's Origin — it is a per-deployment
+  // constant — so varying on it would fragment `caches.default` into one entry per origin, on the
+  // one route that exists to be cached. Correct per spec, and cheaper.
+  //
+  // Applied on the cache-hit path too. Entries stored before this existed carry no header and a
+  // positive result is cached for a full edge TTL, so without this the fix would appear not to work
+  // for exactly the URLs anyone had already looked at.
+  const cors = { 'Access-Control-Allow-Origin': env.FORUM_BASE ?? '*' };
+  const withCors = (r: Response): Response => {
+    const out = new Response(r.body, r);
+    for (const [k, v] of Object.entries(cors)) out.headers.set(k, v);
+    return out;
+  };
+
   const cached = await caches.default.match(request).catch(() => undefined);
-  if (cached) return cached;
+  if (cached) return withCors(cached);
 
   const candidates = new URL(request.url).searchParams
     .getAll('u')
@@ -349,6 +370,7 @@ export async function handleOgPreview(request: Request, _env: PagesEnv, ctx: Wai
     headers: {
       'Content-Type': 'application/json',
       'Cache-Control': preview ? `public, max-age=600, s-maxage=${EDGE_TTL}` : 'public, max-age=120, s-maxage=600',
+      ...cors,
     },
   });
   ctx.waitUntil(caches.default.put(request, response.clone()).catch(() => {}));
