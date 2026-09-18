@@ -146,7 +146,7 @@
       "sub": 0,
       "label": "05",
       "kind": "episode",
-      "status": "upcoming",
+      "status": "live",
       "track_slug": "cn-shang-hai-guo-ji-yue-ye-sai-che-chang",
       "coords": null,
       "venue": {
@@ -157,7 +157,12 @@
         "en": "Shanghai International Off-road Circuit",
         "zh-CN": "上海国际越野赛车场"
       },
-      "links": {},
+      "links": {
+        "douyin": "https://v.douyin.com/32NARN38lUM/",
+        "tiktok": "https://www.tiktok.com/t/ZTUnoJuko/",
+        "instagram": "https://www.instagram.com/reel/DdRMhyXIyUe/",
+        "facebook": "https://www.facebook.com/reel/3026169524381129/"
+      },
       "thumb": null,
       "visited_on": null,
       "published_on": null
